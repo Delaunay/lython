@@ -2,8 +2,8 @@ project(lython)
 cmake_minimum_required(VERSION 2.8)
 
 # Enable C++11
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O1 -O2 -O3")
+# `llvm-config --cxxflags --ldflags --system-libs --libs core jit native`
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fPIC")
 
 
 #===============================================================================
@@ -20,9 +20,6 @@ include_directories("${LLVM_BUILD_DIR}/include")
 #           Project Source
 #===============================================================================
 
-# Home Source
-aux_source_directory(. SRC_LIST)
-
 # Sources
 aux_source_directory("${PROJECT_SOURCE_DIR}/AbstractSyntaxTree" SRC_LIST)
 aux_source_directory("${PROJECT_SOURCE_DIR}/Lexer"              SRC_LIST)
@@ -36,18 +33,45 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/Parser")
 add_subdirectory("${PROJECT_SOURCE_DIR}/Generator")
 
 # Source
-
-SET(LEXER_HEADERS
+SET(ADD_HEADERS
+    config.h
     Lexer/Token.h
-    AbstractSyntaxTree/Operators.h)
+    AbstractSyntaxTree/Operators.h
+    path_hack.h)
+
+
+SET(ADD_SOURCE
+    path_hack.cpp)
 
 #===============================================================================
 #           Compiling
 #===============================================================================
 
-add_executable(${PROJECT_NAME} ${SRC_LIST} ${LEXER_HEADERS})
+SET(LLVM_LINKING -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen
+                 -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMObject
+                 -lLLVMMCParser -lLLVMBitReader -lLLVMX86Info -lLLVMX86AsmPrinter
+                 -lLLVMX86Utils -lLLVMJIT -lLLVMExecutionEngine -lLLVMCodeGen
+                 -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils
+                 -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMCore
+                 -lLLVMSupport -lrt -ldl -ltinfo -lpthread -lz)
 
-target_link_libraries(${PROJECT_NAME} libLLVMCore.a libLLVMSupport.a
-                        -ldl        # Dynamic loading
-                        -pthread
-                        -ltinfo)    # Terminal Information
+# testing
+#==================
+add_executable(${PROJECT_NAME} "${PROJECT_SOURCE_DIR}/main.cpp"
+                                ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
+
+target_link_libraries(${PROJECT_NAME} ${LLVM_LINKING})
+
+
+## default Compiler
+##==================
+#add_executable(ilython "${PROJECT_SOURCE_DIR}/interpreter/interpreter.cpp"
+#                        ${SRC_LIST} ${LEXER_HEADERS})
+
+#target_link_libraries(ilython ${LLVM_LINKING})
+
+
+## Compiling Original Source Code! (Check is all flags are here)
+##==================
+#add_executable(full_source "${PROJECT_SOURCE_DIR}/test/full_source.cpp")
+#target_link_libraries(full_source ${LLVM_LINKING})

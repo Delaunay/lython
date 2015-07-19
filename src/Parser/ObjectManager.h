@@ -21,6 +21,11 @@ namespace lython{
  *
  * does they matter ?
  */
+
+// reads type, cast into correct type and delete it return true
+// if no cast were possible return false
+bool safe_delete(AbstractSyntaxTree::Expression *exp);
+
 class ObjectManager
 {
     public:
@@ -33,7 +38,7 @@ class ObjectManager
         AST::Prototype* new_prototype(AST::Prototype* expr);
         AST::Function* new_function(AST::Function* expr);
     #if LLVM_CODEGEN
-        llvm::Function* new_gen_function(llvm::Function* expr);
+        llvm::Value* new_gen_function(llvm::Value* expr);
     #endif
 
      vector<AST::Expression*> expression;
@@ -41,7 +46,7 @@ class ObjectManager
      vector<AST::Function*>   function;
 
 #if LLVM_CODEGEN
-     vector<llvm::Function*>  generated;
+     vector<llvm::Value*>  generated;
 #endif
 };
 

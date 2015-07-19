@@ -1,5 +1,8 @@
 #include "Expression.h"
 
+#include <cassert>
+
+
 namespace lython{
 namespace AbstractSyntaxTree{
 
@@ -13,12 +16,14 @@ string I(unsigned int n)
     return str;
 }
 
+
 Expression::~Expression()
 {}
 
 void Expression::print(ostream& str, int i)
-{}
-
+{
+    str << "Empty Expression";
+}
 
 VariableExpression::VariableExpression(const string &name):
     name(name)
@@ -26,16 +31,16 @@ VariableExpression::VariableExpression(const string &name):
 
 void VariableExpression::print(ostream& str, int i)
 {
-    str << I(i) << name;
+    str << I(i) << "v[" << name << "]";
 }
 
-BinaryExpression::BinaryExpression(char op, Expression *lhs, Expression *rhs):
-    op(op), lhs(lhs), rhs(rhs)
+BinaryExpression::BinaryExpression(string op, Expression *lhs, Expression *rhs):
+    op(op), lhs(lhs), rhs(rhs), Expression(Type_BinaryExpression)
 {}
 
 void BinaryExpression::print(ostream& str, int i)
 {
-    str << I(i) << "'" << op << "'(";
+    str << I(i) << "bin'" << op << "'(";
 
         lhs->print(str);
 
@@ -47,7 +52,7 @@ void BinaryExpression::print(ostream& str, int i)
 }
 
 Function::Function(Prototype *proto, Expression *body):
-    prototype(proto), body(body)
+    prototype(proto), body(body) //, Expression(Type_Function)
 {}
 
 void Function::print(ostream& str, int i)
@@ -55,22 +60,36 @@ void Function::print(ostream& str, int i)
     str << I(i);
     prototype->print(str, i);
 
-    str << I(i + 1);
-
     body->print(str, i + 1);
-    str << "\n\n";
+    str << "\n";
 }
 
 
-Prototype::Prototype(const string &name, const Arguments& args):
-    name(name), args(args)
+Prototype::Prototype(const string &name, const Arguments& args,
+                     bool isoperator, unsigned prec):
+    name(name), args(args), _is_operator(isoperator), _precedence(prec)
+  //, Expression(Type_Prototype)
 {}
+
+
+bool Prototype::is_unary() const {   return _is_operator && args.size() == 1; }
+bool Prototype::is_binary()const {   return _is_operator && args.size() == 2; }
+const bool& Prototype::is_operator() const { return _is_operator; }
+
+const unsigned& Prototype::precedence() const {   return _precedence; }
+
+string Prototype::operator_name() const
+{
+    assert(is_unary() || is_binary());
+
+    return name;//[name.size() - 1];
+}
 
 void Prototype::print(ostream& str, int i)
 {
     str << I(i) << "fn " << name << " (";
 
-    for (int i = 0, n = args.size(); i < n; i++)
+    for (size_t i = 0, n = args.size(); i < n; i++)
     {
         str << args[i];
 
@@ -82,14 +101,14 @@ void Prototype::print(ostream& str, int i)
 }
 
 CallExpression::CallExpression(const std::string &callee, Arguments& args):
-    callee(callee), args(args)
+    callee(callee), args(args), Expression(Type_CallExpression)
 {}
 
 void CallExpression::print(ostream& str, int i)
 {
     str << I(i) << callee << "(";
 
-    for (int i = 0, n = args.size(); i < n; i++)
+    for (size_t i = 0, n = args.size(); i < n; i++)
     {
         args[i]->print(str);
 
@@ -101,30 +120,89 @@ void CallExpression::print(ostream& str, int i)
 }
 
 IfExpression::IfExpression(Expression* cond, Expression* then, Expression* lse):
-    cond(cond), then(then), els(lse)
+    cond(cond), then(then), els(lse), Expression(Type_IfExpression, true)
 {}
 
 void IfExpression::print(ostream& str, int i)
 {
-    str << "if ";
+    str << I(i) << "if ";
 
     cond->print(str, 0);
 
-    str << ":\n" << I(i + 1);
+    str << ":\n";
 
-    then->print(str, i);
+    then->print(str, i + 1);
 
     str << "\n"
     << I(i) << "else: \n";
 
     els->print(str, i + 1);
-
 }
+
+
 ForExpression::ForExpression(const std::string &var,
               AST::Expression* s, AST::Expression* e ,
               AST::Expression* st, AST::Expression* bd):
-    var(var), start(s), end(e), step(st), body(bd)
+    var(var), start(s), end(e), step(st), body(bd),
+    Expression(Type_ForExpression, true)
 {}
+
+
+ForExpression::ForExpression(const std::string &var, AST::Expression*s, AST::Expression* bd):
+    var(var), start(s), end(0), step(0), body(bd),
+    Expression(Type_ForExpression, true)
+{}
+
+
+void ForExpression::print(ostream& str, int i)
+{
+    if (end != 0 && step != 0)
+    {
+        str << I(i) << "for(" << var << ": ";
+            start->print(str);
+
+        str << " ; ";
+            end->print(str);
+
+        str << " ; ";
+            step->print(str);
+
+        str << ")\n";
+            body->print(str, i + 1);
+    }
+    else
+    {
+        str << I(i) << "for " << var << " in "; start->print(str); str << ":\n";
+            body->print(str, i + 1);
+    }
+}
+
+UnaryExpression::UnaryExpression(string opcode, Expression *operand):
+    opcode(opcode), operand(operand),
+    Expression(Type_UnaryExpression)
+{}
+
+void UnaryExpression::print(ostream& str, int i)
+{
+    str << I(i) << "Un'" << opcode << "'(";
+
+    operand->print(str);
+
+    str << ")";
+}
+
+//const string Expression        ::idendity()   { return "Raw Expression";        }
+const string VariableExpression::idendity()   { return "Variable Expression";   }
+const string BinaryExpression  ::idendity()   { return "Binary Expression";     }
+const string CallExpression    ::idendity()   { return "Call Expression";       }
+const string Prototype         ::idendity()   { return "Prototype";             }
+const string Function          ::idendity()   { return "Function";              }
+const string IfExpression      ::idendity()   { return "if Expression";         }
+const string ForExpression     ::idendity()   { return "For Expression";        }
+const string UnaryExpression   ::idendity()   { return "Unary Expression";      }
+const string MutableVariableExpression::
+                                 idendity()   { return "Mutable Variable "
+                                                                 "Expression";  }
 
 }
 }

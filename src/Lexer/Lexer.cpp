@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include "../config.h"
 
 //#include <cctype>
 //#include <cstdio>
@@ -12,18 +13,39 @@ namespace lython
 
 Lexer::Lexer(AbstractBuffer& buf):
     _buffer(buf), _value(0),
-    _identifier(string("")), c(' ')
+    _identifier(string("")), _type(String), c(' '),
+    _previous_indent(indent())
     //_indent(0)
-{}
+{
+    _keywords["def"]    = tok_def;
+    _keywords["extern"] = tok_extern;
+    _keywords["if"]     = tok_if;
+    _keywords["else"]   = tok_else;
+    _keywords["for"]    = tok_for;
+    _keywords["unary"]  = tok_unary;
+    _keywords["binary"] = tok_binary;
+    _keywords["in"]     = tok_in;
+    _keywords["class"]  = tok_class;
+
+    special_char['+'] = 1;
+    special_char['-'] = 1;
+    special_char['/'] = 1;
+    special_char['*'] = 1;
+    special_char['='] = 1;
+    special_char['^'] = 1;
+    special_char['.'] = 1;
+}
 
 const char& Lexer::nextc()
 {
     return _buffer.nextc();
 }
 
-// cut the buffer into words
+// cut buffer into words
 int Lexer::get_token()
 {
+//    static char c = ' ';
+
     if (c == '\n')
     {
         c = nextc();
@@ -31,68 +53,71 @@ int Lexer::get_token()
     }
 
     // Skip any whitespace.
-    while (isspace(c) )
+    while (isspace(c))
     {
         c = nextc();
 
         if (c == '\n')
+        {
+            c = nextc();
             return tok_newline;
+        }
     }
 
-    // identifier: [a-zA-Z][a-zA-Z0-9]*
-    if (isalpha(c))
+    // if the line is empty the indentation change does not matter
+    if (_previous_indent < indent() && !empty_line())
     {
+        _previous_indent = indent();
+        return tok_indent;
+    }
+
+    if (_previous_indent > indent() && !empty_line())
+    {
+        _previous_indent = indent();
+        return tok_desindent;
+    }
+
+    // Group digits/words
+    if (isalpha(c) || isdigit(c))
+    {
+        if (isalpha(c))
+            _type = String;
+        else if (isdigit(c))
+            _type = Integer;
+
         _identifier = c;
 
         c = nextc();
 
-        while (isalnum(c))
+        while (isalnum(c) || c == '.' || c == '_')
         {
-            _identifier += c;
-            c = nextc();
+            // handles the case 1.2.3 which is considered a string
+            if (c == '.')
+            {
+                if (_type == Integer)
+                    _type = Float;
+                else
+                    _type = String;
+            }
+
+            // case where 1000g
+            if (isalpha(c))
+                _type = String;
+
+           _identifier += c;
+           c = nextc();
         }
 
-        // put the language keyword into a dictionary {identifier=> tok_number}
-        // make those lines disapear
-        if (_identifier == "def")
-            return tok_def;
-
-        if (_identifier == "extern")
-            return tok_extern;
-
-        if (_identifier  == "if")
-            return tok_if;
-
-        if (_identifier  == "then")
-            return tok_then;
-
-        if (_identifier  == "else")
-            return tok_else;
-
-        if (_identifier  == "for")
-            return tok_for;
-
-        if (_identifier  == "in")
-            return tok_in;
-
-        return tok_identifier;
-    }
-
-    // Number: [0-9.]+
-    if (isdigit(c) || c == '.')
-    {
-        string numstr;
-
-        do
+        if (_type == Float || _type == Integer)
         {
-            numstr += c;
-            c = nextc();
+            _value = strtod(_identifier.c_str(), 0);
+            return tok_number;
+        }
 
-        } while (isdigit(c) || c == '.');
-
-        _value = strtod(numstr.c_str(), 0);
-
-        return tok_number;
+        if (_keywords.count(_identifier) > 0)
+            return _keywords[_identifier];
+        else
+            return tok_identifier; //TOK_IDENTIFIER;
     }
 
     if (c == '#')
@@ -112,11 +137,47 @@ int Lexer::get_token()
     if (c == EOF)
         return tok_eof;
 
+    // group Special character
+    // Special Character are character that should be grouped together
+    // for example when writting '++' '+=' '=/' '--' they should be grouped
+    if (special_char.count(c) > 0)
+    {
+        _identifier = c;
+        c = nextc();
+
+        while(special_char.count(c) > 0)
+        {
+            _identifier += c;
+            c = nextc();
+        }
+        return tok_identifier;
+    }
+
+    // String litteral
+    if (c == '\'' || c == '"')
+    {
+        char c_end = c;
+        _identifier = "";
+        c = nextc();
+
+        while(1)
+        {
+            _identifier += c;
+            c = nextc();
+
+            if (c == c_end)
+                break;
+        }
+
+        // Eat c_end
+        c = nextc();
+        return tok_string_lit;
+    }
+
     // Otherwise, just return the character as its ascii value.
     char tc = c;
     c = nextc();
 
-    // printf("\n '%c' '%c' \n", c, tc);
     return tc;
 }
 
@@ -126,10 +187,11 @@ const string& Lexer::identifier() const {  return _identifier; }
 void Lexer::print(std::ostream& str)
 {
     // save cursor position
-    int curs = _buffer.cursor();
+    //int curs = _buffer.cursor();
 
     // restart
     _buffer.restart();
+    c = ' ';
 
     int k = 0,
         t = 0;
@@ -158,43 +220,52 @@ void Lexer::print(std::ostream& str)
         switch(t)
         {
         case tok_def:
-            str << BLUE  "def" RESET ": '" << identifier() << "'";
+            str << MBLUE  "def" MRESET ": '" << identifier() << "'";
+            break;
+
+        case tok_string_lit:
+            str << MBLUE  "string" MRESET ": '" << identifier() << "'";
             break;
 
         case tok_extern:
-            str << BLUE  "ext" RESET ": '" << identifier() << "'";
+            str << MBLUE  "ext" MRESET ": '" << identifier() << "'";
             break;
 
         case tok_identifier:
-            str << GREEN "ide" RESET ": '" << identifier() << "'";
-            break;
-
-        case tok_then:
-            str << GREEN "ide" RESET ": '" << identifier() << "'";
-            break;
-
-        case tok_else:
-            str << GREEN "ide" RESET ": '" << identifier() << "'";
-            break;
-
         case tok_if:
-            str << GREEN "ide" RESET ": '" << identifier() << "'";
+//        case tok_then:
+//        case tok_var:
+        case tok_else:
+        case tok_in:
+        case tok_for:
+        case tok_unary:
+        case tok_binary:
+
+            str << MGREEN "ide" MRESET ": '" << identifier() << "'";
+            break;
+
+        case tok_indent:
+            str << MGREEN "Indent" MRESET ": '" << indent() << "'";
+            break;
+
+        case tok_desindent:
+            str << MGREEN "Desindent" MRESET ": '" << indent() << "'";
             break;
 
         case tok_newline:
-            str << GREEN "ide" RESET ": '\\n'";
+            str << MGREEN "Newline" MRESET;
             break;
 
         case tok_number:
-            str << YELLOW "val" RESET ": '" << value() << "'";
+            str << MYELLOW "Value" MRESET ": '" << value() << "'";
             break;
 
         case tok_eof:
-            str << GREEN "ide" RESET ": 'EOF'";
+            str << MGREEN "EOF" MRESET;
             break;
 
         default:
-            str << RED "chr" RESET ": '" << char(t) << "'";
+            str << MRED "chr" MRESET ": '" << char(t) << "'";
             break;
         }
 
@@ -202,14 +273,16 @@ void Lexer::print(std::ostream& str)
         /*
         str << "\tpos: [line: " << _buffer.current_line()
             << ", col: "    << _buffer.current_col()
-            << ", cursor: " << _buffer.cursor() << "]), \n";*/
+            << ", cursor: " << _buffer.cursor() << "]), \n";//*/
 
     } while(t != lython::tok_eof);
 
     str << "] (size: " << k << ")\n";
 
     // put the cursor back
-    _buffer.set_cursor(curs);
+    //_buffer.set_cursor(curs);
+    _buffer.restart();
+    c = ' ';
 }
 
 }

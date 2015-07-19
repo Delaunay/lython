@@ -1,16 +1,52 @@
 #include "Parser.h"
+#include <cassert>
 
-#define NEW_EXPR(x) _object.new_expr(new x)
+#if LLVM_CODEGEN
+#   include <llvm/Support/raw_ostream.h>
+#endif
+
+#if PARSER_DBG
+#   define ADD_TRACE add_trace(_intern_trace, idt);
+//#   define PRINT_EXPR(expr) expr->print(std::cout); std::cout << "\n";
+#define CRASH_PARSER info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);\
+                     _out.flush();\
+                     assert(false);
+#else
+#   define ADD_TRACE
+#   define PRINT_EXPR(expr)
+#   define CRASH_PARSER "lookup how to make the compiler Scream" + 1 //
+#endif
+
+#ifndef PRINT_EXPR
+#define PRINT_EXPR(expr)
+#endif
+
+#define NEW_EXPR(x) _object.new_expr(new x);
 #define NEW_FUNCT(x) _object.new_function(new x)
 #define NEW_PROTO(x) _object.new_prototype(new x)
-#define NEW_GEN(x) _object.new_gen_function(x)
 
-//#define PARSER_DBG 1
 
+//#define NEW_GEN(x) _object.new_gen_function(x)
+#define NEW_GEN(x) x
+
+#define RETURN_ERROR(msg)  add_trace(_intern_trace, idt); \
+                    return error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
+
+#define RETURN_ERRORP(msg) add_trace(_intern_trace, idt); \
+                    return error<AST::Prototype>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
+
+#define ERROR(msg)  add_trace(_intern_trace, idt); \
+                    error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
+
+#define ERRORP(msg) add_trace(_intern_trace, idt); \
+                    error<AST::Prototype>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
 
 #define EAT_TOK(x, err) if (token() != x) \
-                            return error<AST::Expression>(err); \
+                            RETURN_ERROR(err); \
                         next_token()\
+
+#define REPORT_RESULT(x) std::cout << ">> " << x << std::endl
+
 
 namespace lython
 {
@@ -20,73 +56,87 @@ const int& Parser::token() const
     return _token;
 }
 
+const string& Parser::identifier() const
+{
+    return lexer.identifier();
+}
+
 const int& Parser::next_token()
 {
-    _tk_idx++;
     _token = lexer.get_token();
+    _past_token[_tk_idx % HST_SIZE] = _token;
+    _tk_idx++;
+
     return _token;
 }
 
-Parser::Parser(Lexer& lex):
-    lexer(lex), _token(0), _tk_idx(0)
+Parser::Parser(Lexer& lex, std::ostream& out):
+    lexer(lex), _token(0), _tk_idx(0),
+    _print_out(true), _out(out), _indent(0),
+    _past_token(vector<int>(HST_SIZE))
+#if LLVM_CODEGEN
+    , _gen(_op, _object)
+#endif
 {}
 
-AST::Expression* Parser::parse_number_expression()
+AST::Expression* Parser::parse_number_expression(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Parse number expr       %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    AST::Expression* r = NEW_EXPR(AST::DoubleExpression(lexer.value()));
-
+    AST::Expression* expr = NEW_EXPR(AST::DoubleExpression(lexer.value()));
     next_token();
 
-#if PARSER_DBG_PRINT
-    r->print(cout);
-#endif
-
-    return r;
+    PRINT_EXPR(expr)
+    return expr;
 }
 
-AST::Expression* Parser::parse_parent_expression()
+AST::Expression* Parser::parse_string_expression(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("parse parent expression %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
+    AST::Expression* expr = NEW_EXPR(AST::StringExpression(lexer.identifier()));
     next_token();
 
-    AST::Expression* r = parse_expression();
+    PRINT_EXPR(expr)
+    return expr;
+}
 
-    if (!r)
+// Expression inside parenthesis
+AST::Expression* Parser::parse_parent_expression(int idt)
+{
+    ADD_TRACE
+    next_token();   // Eat '('
+
+    AST::Expression* expr = parse_simple_expression(idt + 1);
+                          //parse_expression(idt + 1);
+
+    if (!expr){
         return 0;
+    }
 
-    if (token() != ')')
-        return error<AST::Expression>("expected ')'");
+    // Eat ')'
+    if (token() == ')')
+    {
+        next_token();
+        PRINT_EXPR(expr)
+        return expr;
+    }
 
-    next_token();
-
-    return r;
+    RETURN_ERROR("Expected ')'");
 }
 
 // identifier '(' expression* ')'
-AST::Expression* Parser::parse_identifier_expression()
+AST::Expression* Parser::parse_identifier_expression(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("parse identifier        %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
     string idname = lexer.identifier();
-
     next_token();
 
-    // then it is not a function
-    // it is a Variable
-    if (token() != '(')
+    // if it is not a function then it is a Variable
+    if (token() != '('){
         return NEW_EXPR(AST::VariableExpression(idname));
+    }
 
     next_token(); // '('
 
@@ -97,19 +147,21 @@ AST::Expression* Parser::parse_identifier_expression()
         // extract arguments
         while(1)
         {
-            AST::Expression* arg = parse_expression();
+            AST::Expression* arg = parse_simple_expression(idt + 1);
+                                 //parse_expression(idt + 1);
 
             if (!arg)
                 return 0;
 
             args.push_back(arg);
 
-            if (token() == ')')
+            if (token() == ')'){
                 break;
+            }
 
-            if (token() != ',')
-                return error<AST::Expression>("Expected ')' or ',' "
-                                              "in argument list");
+            if (token() != ','){
+                RETURN_ERROR("Expected ')' or ',' in argument list");
+            }
 
             next_token();
         }
@@ -124,44 +176,60 @@ AST::Expression* Parser::parse_identifier_expression()
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-AST::Expression* Parser::parse_primary()
+AST::Expression* Parser::parse_primary(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Parse primary           %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    if (token() == tok_newline)
+    while (token() == tok_newline)
         next_token();
 
     switch(token())
     {
-        case tok_identifier: // - 4
-            return parse_identifier_expression();
+    case tok_identifier: // - 4
+        return parse_identifier_expression(idt + 1);
 
-        case tok_number:     // - 5
-            return parse_number_expression();
+    case tok_number:     // - 5
+        return parse_number_expression(idt + 1);
 
-        case '(':
-            return parse_parent_expression();
+    case tok_string_lit:
+        return parse_string_expression(idt + 1);
 
-        case tok_if:
-            return parse_if_expression();
+    case '(':
+        return parse_parent_expression(idt + 1);
 
-        default:
-            printf("%c, %d\n", token(), token());
-            return error<AST::Expression>("unknown token when "
-                                          "expecting an expression");
+    case tok_indent:
+        return parse_multiline_expression(idt + 1); //parse_expression(idt + 1);
+
+    case tok_if:
+        return parse_if_expression(idt + 1);
+
+    case tok_for:
+        return parse_for_expression(idt + 1);
+
+    //case ';':
+    case tok_def:
+        return 0;
+
+    case tok_desindent:
+        next_token();
+        return 0;
+
+    default:
+        printf("%d [%d %d] %c\n", token(), lexer.line(), lexer.col(), token());
+        RETURN_ERROR("Unknown token when expecting an expression");
     }
 }
 
-
 const int Parser::precendence()
 {
-    if (!isascii(token()))
-        return -1;
+    string op;
 
-    int tokpre = _op[token()]; //binpre[token()];
+    if (token() == tok_identifier)
+        op = identifier();
+    else
+        op += token();
+
+    int tokpre = _op[op]; //binpre[token()];
 
     if (tokpre <= 0)
         return -1;
@@ -169,44 +237,58 @@ const int Parser::precendence()
     return tokpre;
 }
 
-AST::Expression* Parser::parse_expression()
+AST::Expression* Parser::parse_simple_expression(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Parse expression        %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    AST::Expression* lhs = parse_primary();
+    AST::Expression* lhs = parse_unary(idt + 1);
 
-#if PARSER_DBG_PRINT
-    lhs->print(cout);
-#endif
+    PRINT_EXPR(lhs)
+
+//    if (token() == tok_newline)
+//        return lhs;
+
+    // Complex Expression cant be inside BinOp
+    // Such as For Expression, Class, function definition
+    if (lhs->complex)
+        return lhs;
 
     if (!lhs)
         return 0;
 
-    return parse_bin_op_rhs(0, lhs);
+    return parse_bin_op_rhs(0, lhs, idt + 1);
 }
 
-AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs)
+AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs, int idt)
 {
-    while(1)
+    while(1 && token())
     {
-        #if PARSER_DBG
-        //      parse parent expressiong
-        printf("Parse bin op rhs        %d, %c \n", token(), token());
-        #endif
+        ADD_TRACE
 
         int tokpre = precendence();
 
         if (tokpre < exppre)
             return lhs;
 
-        int binop = token();
+        string binop;
+
+        // Bin op is an identifier
+        if (token() == tok_identifier)
+            binop = identifier();
+
+        // Bin op is a character
+        else
+            binop += token();
 
         next_token();
 
-        AST::Expression* rhs = parse_primary();
+        // Check if it is as binop
+        // this the line of code that allow b++ <===
+        if (_op.is_operator(binop) == 1){
+            return NEW_EXPR(AST::UnaryExpression(binop, lhs));
+        }
+
+        AST::Expression* rhs = parse_unary(idt + 1);
 
         if (!rhs)
             return 0;
@@ -215,42 +297,38 @@ AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs)
 
         if (tokpre < nextpre)
         {
-            rhs = parse_bin_op_rhs(tokpre + 1, rhs);
+            rhs = parse_bin_op_rhs(tokpre + 1, rhs, idt + 1);
 
-            if (rhs == 0)
+            if (rhs == 0){
                 return 0;
+            }
         }
 
         lhs = NEW_EXPR(AST::BinaryExpression(binop, lhs, rhs));
-
-        #if PARSER_DBG_PRINT
-        lhs->print(cout);
-        #endif
+        PRINT_EXPR(lhs)
     }
 }
 
-AST::Expression* Parser::parse_if_expression()
+AST::Expression* Parser::parse_if_expression(int idt)
 {
+    ADD_TRACE
+
     next_token();
 
-    AST::Expression* cond = parse_expression();
+    AST::Expression* cond = parse_simple_expression(idt + 1);
 
-    //printf("Parse cond \n");
-    //cond->print(std::cout);
-    //printf("\n");
-
-    if (!cond)
+    if (!cond){
         return 0;
+    }
 
-    //if (token() != tok_then)
-    //    return error<AST::Expression>("expected then");
-
-    if (token() != ':')
-        return error<AST::Expression>("expected ':'");
+    if (token() != ':'){
+        RETURN_ERROR("expected ':'");
+    }
 
     next_token();
 
-    AST::Expression* then = parse_expression();
+    AST::Expression* then = parse_multiline_expression(idt + 1);
+                          //parse_expression(idt + 1);
 
     if (then == 0)
         return 0;
@@ -259,42 +337,110 @@ AST::Expression* Parser::parse_if_expression()
     while (token() == tok_newline)
         next_token();
 
-    EAT_TOK(tok_else, "expected else");
+    EAT_TOK(tok_else, "Expected 'else'");
 
-    EAT_TOK(':', "expected ':'");
+    if (token() == ':'){
+        next_token();
+    }
 
-    EAT_TOK(tok_newline, "expected '\\n'");
+    if (token() == tok_newline){
+        next_token();
+    }
 
-    AST::Expression* el = parse_expression();
+    AST::Expression* el = parse_multiline_expression(idt + 1);
+                        //parse_expression(idt + 1);
 
-    if (!el)
+    if (!el){
         return 0;
+    }
 
+    PRINT_EXPR(el)
     return NEW_EXPR(AST::IfExpression(cond, then, el));
 }
 
-AST::Prototype* Parser::parse_prototype()
+AST::Prototype* Parser::parse_prototype(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("parse prototype         %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
+    string fnname;
+    unsigned kind = 0;
+    unsigned prec = 30;
+
+    switch(token())
+    {
+    case tok_identifier:
+        fnname = identifier();
+        kind = 0;
+        next_token();
+        break;
+
+    case tok_unary:
+        next_token();
+
+        if (!isascii(token())){
+            RETURN_ERRORP("Expected unary operator");
+        }
+
+        fnname = "unary";
+        fnname += (char) token();
+
+        kind = 1;
+
+        next_token();
+        break;
+
+    case tok_binary:
+        //printf("blbl \n");
+
+        next_token();
+
+        if (!isascii(token())){
+            RETURN_ERRORP("Expected binary operator");
+        }
+
+        fnname = "binary";
+        fnname += (char)token();
+        kind = 2;
+
+        next_token();
+
+        // Read the precedence if present.
+        if (token() == tok_number)
+        {
+            if (lexer.value() < 1 || lexer.value() > 100){
+                RETURN_ERRORP("Invalid precedecnce: must be 1..100");
+            }
+
+            prec = (unsigned) lexer.value();
+
+            next_token();
+        }
+        break;
+//    default:
+
+    }
+
+    /*
     if (token() != tok_identifier)
         return error<AST::Prototype>("Expected function name in prototype");
 
     std::string fnname = lexer.identifier();
 
+
     // get parens
-    next_token();
+    next_token();*/
 
     if (token() != '(')
-        return error<AST::Prototype>("Expected '(' in prototype");
+    {
+        RETURN_ERRORP("Expected '(' in prototype");
+    }
+
 
     // Read the list of argument names.
     AST::Prototype::Arguments argname;
 
     next_token();
+
     // extract arguments
     while (token() == tok_identifier || token() == ',')
     {
@@ -307,17 +453,17 @@ AST::Prototype* Parser::parse_prototype()
         }
     }
 
-    // printf("%c %d %s\n", token(), token(), lexer.identifier().c_str());
-
     // close parens
     if (token() != ')')
-        return error<AST::Prototype>("Expected ')' in prototype");
+    {
+        RETURN_ERRORP("Expected ')' in prototype");
+    }
 
     // success.
     next_token();  // eat ')'
 
     // ':' is optional =(
-    if (token() == ':' || token() == tok_newline)
+    if (token() == ':')
     {
         next_token(); // eat ':'
 
@@ -325,56 +471,57 @@ AST::Prototype* Parser::parse_prototype()
             next_token();
     }
     else
-        return error<AST::Prototype>("Expected ':' in prototype");
+    {
+        RETURN_ERRORP("Expected ':' in prototype");
+    }
 
-    return NEW_PROTO(AST::Prototype(fnname, argname));
+    // User define Operators
+    if (kind && argname.size() != kind)
+    {
+        RETURN_ERRORP("Invalid number of operands for operator");
+    }
+
+    return NEW_PROTO(AST::Prototype(fnname, argname, kind != 0, prec));
 }
 
-AST::Function* Parser::parse_definition()
+AST::Function* Parser::parse_definition(int idt)
 {
+    ADD_TRACE
+
     // Previous tokken is 'def'
-    // get function name || identifier
     next_token();
 
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Parse prototype         %d, %c \n", token(), token());
-#endif
-
     // get the prototype
-    AST::Prototype* proto = parse_prototype();
+    AST::Prototype* proto = parse_prototype(idt + 1);
 
-    if (proto == 0)
+    if (proto == 0){
         return 0;
+    }
 
     // get the function body
-    AST::Expression* e = parse_expression();
+    AST::Expression* e = parse_multiline_expression(idt + 1);
 
-    if (e)
+    if (e){
         return NEW_FUNCT(AST::Function(proto, e));
+    }
 
     return 0;
 }
 
-AST::Prototype* Parser::parse_extern()
+AST::Prototype* Parser::parse_extern(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Parse extern            %d, %c \n", token(), token());
-#endif
-
+    ADD_TRACE
     next_token();
-    return parse_prototype();
+
+    return parse_prototype(idt + 1);
 }
 
-AST::Function* Parser::parse_top_level_expression()
+AST::Function* Parser::parse_top_level_expression(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Parse top level         %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    AST::Expression* e = parse_expression();
+    AST::Expression* e = parse_multiline_expression(idt + 1);
+                       //parse_expression(idt + 1);
 
     if (e)
     {
@@ -387,23 +534,161 @@ AST::Function* Parser::parse_top_level_expression()
     return 0;
 }
 
+AST::Expression* Parser::parse_for_expression(int idt)
+{
+    ADD_TRACE
+
+    next_token();  // eat the for.
+
+//    std::cout << token() << "\t"
+//              << tok_identifier << "\t"
+//              << int(token() != tok_identifier) << "\n";
+
+//    _out << token() << "\t"
+//              << tok_identifier << "\t"
+//              << int(token() != tok_identifier) << "\n";
+
+    if (int(token() != tok_identifier)){
+        RETURN_ERROR("expected identifier after for");
+    }
+
+    std::string idname = identifier();
+    next_token();  // eat identifier.
+
+    //// Python For
+    if (int(token() != tok_in)){
+        std::string er_msg = "expected 'in' after " + identifier();
+        RETURN_ERROR(er_msg.c_str());
+    }
+
+    next_token();  // eat 'in'.
+
+    // range(0, 1):
+    AST::Expression *start = parse_simple_expression(idt + 1);
+
+    if (token() != ':'){
+        RETURN_ERROR("expected ':'");
+    }
+
+    next_token();
+
+    // Eat newlines
+    while (token() == tok_newline)
+        next_token();
+
+    // Expect New Scope
+    if (token() != tok_indent){
+        RETURN_ERROR("expected indent block after for");
+    }
+
+    next_token();
+
+    AST::Expression* body = parse_multiline_expression(idt + 1);
+
+    return NEW_EXPR(AST::ForExpression(idname, start, body));
+
+    // Now there are multiple possibilities
+
+////  this is matlab kindof for
+//    if (token() != '=')
+//        RETURN_ERROR("expected '=' after for");
+//    next_token();  // eat '='.
+
+    //// C For
+//    AST::Expression* start = parse_simple_expression(idt + 1);
+
+//    if (start == 0)
+//        return 0;
+
+//    if (token() != ',')
+//        RETURN_ERROR("expected ',' after for start value");
+
+//    next_token();
+
+//    AST::Expression *end = parse_simple_expression(idt + 1);
+
+//    if (end == 0)
+//        return 0;
+
+//    // The step value is optional.
+//    AST::Expression* step = 0;
+
+//    if (token() == ',')
+//    {
+//        next_token();
+//        step = parse_simple_expression(idt + 1);
+
+//        if (step == 0)
+//            return 0;
+//    }
+
+//    if (token() != tok_in)
+//        RETURN_ERROR("expected 'in' after for");
+
+//    next_token();  // eat 'in'.
+
+//    AST::Expression *body = parse_multiline_expression(idt + 1);
+//                          //parse_expression(idt + 1);
+
+//    if (body == 0)
+//        return 0;
+
+//    return NEW_EXPR(AST::ForExpression(idname, start, end, step, body));
+}
+
+
+AST::Expression* Parser::parse_unary(int idt)
+{
+    ADD_TRACE
+
+    // If the current token is not an operator, it must be a primary expr.
+    if ( token() == '(' ||
+         token() == ',' ||
+        (token() == tok_identifier && _op.is_operator(identifier()) != 1) ||
+         token() != tok_identifier)
+    {
+        return parse_primary(idt + 1);
+    }
+
+    // If this is a unary operator, read it.
+    string opc;
+
+    if (token() == tok_identifier)
+        opc = identifier();
+    else
+        opc += token();
+
+    next_token();
+
+    // it not unary anymore
+    AST::Expression *operand = parse_simple_expression(idt + 1);
+                             //parse_primary(idt + 1);
+                             //parse_unary(idt + 1);
+
+    if (operand){
+        return NEW_EXPR(AST::UnaryExpression(opc, operand));
+    }
+
+    return 0;
+}
+
 #include<iostream>
 
 void Parser::parse()
 {
-    std::cout << "===============================================================================\n"
-                 "                   Parser\n"
-                 "===============================================================================\n\n";
+    if (_print_out)
+       _out << "===============================================================================\n"
+               "                   Parser\n"
+               "===============================================================================\n\n";
 
     if (_tk_idx == 0)
         next_token();
 
+    int idt = 0;
+
     while(1)
     {
-#if PARSER_DBG
-        //      parse parent expressiong
-        printf("Parse                   %d, %c \n", token(), token());
-#endif
+        ADD_TRACE
 
         switch (token())
         {
@@ -411,44 +696,56 @@ void Parser::parse()
                 return;
 
             case ';':
+            case tok_desindent:
+            case tok_indent:
             case tok_newline:
                 next_token();
                 break;  // ignore top-level semicolons.
 
             case tok_def:
-                handle_definition();
+                handle_definition(idt + 1);
                 break;
 
             case tok_extern:
-                handle_extern();
+                handle_extern(idt + 1);
                 break;
 
             default:
-                handle_top_level_expression();
+                handle_top_level_expression(idt + 1);
                 break;
         }
 
-        // printf("%d, %c \n", token(), token());
+#if PARSER_DBG
+        if (_intern_trace.traceback.size() != 1 && _print_out)
+        {
+            info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);
+        }
+
+        _intern_trace.erase();
+#endif
     }
 }
 
-void Parser::handle_definition()
+void Parser::handle_definition(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("Handle def              %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    AST::Function* f = parse_definition();
+    AST::Function* f = parse_definition(idt + 1);
 
     if(f)
     {
-        f->print(cout);
+        f->print(_out);
         #if LLVM_CODEGEN
         llvm::Function* lf = NEW_GEN(f->code_gen(_gen));
 
+        std::string s;
+        llvm::raw_string_ostream os(s);
+
         if (lf)
-            lf->dump();
+        {
+            lf->print(os);
+            _out << MYELLOW << os.str() << MRESET "\n";
+        }
         #endif
     }
     else
@@ -458,24 +755,27 @@ void Parser::handle_definition()
 
 }
 
-void Parser::handle_extern()
+void Parser::handle_extern(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("handle Extern           %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    AST::Prototype* p = parse_extern();
+    AST::Prototype* p = parse_extern(idt + 1);
 
     if (p)
     {
-        p->print(cout);
+        p->print(_out);
 
         #if LLVM_CODEGEN
         llvm::Function *lf = NEW_GEN(p->code_gen(_gen));
 
+        std::string s;
+        llvm::raw_string_ostream os(s);
+
         if(lf)
-            lf->dump();
+        {
+            lf->print(os);
+            _out << MYELLOW << os.str() << MRESET "\n";
+        }
         #endif
     }
     else
@@ -484,29 +784,162 @@ void Parser::handle_extern()
     }
 }
 
-void Parser::handle_top_level_expression()
+void Parser::handle_top_level_expression(int idt)
 {
-#if PARSER_DBG
-    //      parse parent expressiong
-    printf("handle Top Level        %d, %c \n", token(), token());
-#endif
+    ADD_TRACE
 
-    AST::Function* f = parse_top_level_expression();
+    AST::Function* f = parse_top_level_expression(idt + 1);
 
     if (f)
     {
-        f->print(cout);
+        f->print(_out);
 
         #if LLVM_CODEGEN
         llvm::Function *lf = NEW_GEN(f->code_gen(_gen));
 
+        std::string s;
+        llvm::raw_string_ostream os(s);
+
         if(lf)
-            lf->dump();
+        {
+            lf->print(os);
+            _out << MYELLOW << os.str() << MRESET "\n";
+
+        #if LLVM_JIT
+            void* fptr = _gen.exec_engine->getPointerToFunction(lf);
+
+            // Cast it to the right type (takes no arguments, returns a double) so we
+            // can call it as a native function.
+            double (*FP)() = (double (*)())(intptr_t)fptr;
+
+            REPORT_RESULT(FP());
+            //fprintf(stderr, "Evaluated to %f\n", FP());
+        #endif
+
+        }
         #endif
     }
     else
     {
         next_token();
+    }
+}
+
+AST::Expression* Parser::parse_variable_expression(int idt)
+{
+    ADD_TRACE
+
+    next_token();  // eat the var.
+
+    std::vector<std::pair<std::string, AST::Expression*> > varnames;
+
+    // At least one variable name is required.
+    if (token() != tok_identifier){
+        RETURN_ERROR("expected identifier after var");
+    }
+
+    while(1)
+    {
+        std::string name = identifier();
+
+        next_token();  // eat identifier.
+
+        // Read the optional initializer.
+        AST::Expression *init = 0;
+
+        if (token() == '=')
+        {
+           next_token(); // eat the '='.
+
+           init = parse_simple_expression(idt + 1);
+
+           if (init == 0)
+               return 0;
+        }
+
+        varnames.push_back(std::make_pair(name, init));
+
+        // End of var list, exit loop.
+        if (token() != ',')
+            break;
+
+        next_token(); // eat the ','.
+
+        if (token() != tok_identifier){
+           RETURN_ERROR("expected identifier list after var");
+        }
+    }
+
+    // At this point, we have to have 'in'.
+    if (token() != tok_in){
+        RETURN_ERROR("expected 'in' keyword after 'var'");
+    }
+
+    next_token();  // eat 'in'.
+
+    AST::Expression *body = parse_simple_expression(idt + 1);
+
+    if (body == 0)
+        return 0;
+
+    return NEW_EXPR(AST::MutableVariableExpression(varnames, body));
+}
+
+
+AST::Expression* Parser::parse_multiline_expression(int idt)
+{
+    ADD_TRACE
+
+    // eat indent token
+    if (token() == tok_indent)
+        next_token();
+
+    // save indent level
+    // int level = lexer.indent();
+
+    // Save all expression
+    AST::MultilineExpression* m = (AST::MultilineExpression*) NEW_EXPR(AST::MultilineExpression());
+
+    while(1)
+    {
+//        AST::Expression* lhs = parse_unary(idt + 1);
+
+//        if (!lhs)
+//        {
+//            // Simplify
+//            if (m->expressions.size() == 1)
+//                return (m->expressions)[0];
+//            else
+//               return m;
+//        }
+
+//        PRINT_EXPR(lhs);
+
+////        // newline == new expression
+////        if (token() == tok_newline)
+////            m->add(lhs);
+////        else
+//        m->add(parse_bin_op_rhs(0, lhs, idt + 1));
+
+        m->add(parse_simple_expression(idt + 1));
+
+        while(token() == tok_newline)
+            next_token();
+
+        if (token() == tok_indent)
+        {
+            m->add(parse_multiline_expression(idt + 1)/*parse_expression()*/);
+        }
+        else if (token() == tok_desindent || token() == tok_eof)
+        {
+            // Eat Token
+            next_token();
+            // Simplify
+            if (m->expressions.size() == 1)
+                return (m->expressions)[0];
+            else
+                return m;
+        }
     }
 }
 

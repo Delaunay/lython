@@ -4,7 +4,9 @@
 #include <string>
 #include <iostream>
 
-#include "../colors.h"
+#ifdef _MSC_VER
+#   define _CRT_SECURE_NO_WARNINGS
+#endif
 
 using namespace std;
 
@@ -30,8 +32,8 @@ class AbstractBuffer
         virtual const int&    current_line () const = 0;
         virtual const int&    current_col  () const = 0;
         virtual const string& file         () const = 0;
-        const int& indent() const
-        {}
+        virtual const int&    indent       () const = 0;
+        virtual const bool& is_line_empty() const  = 0;
 
         // virtual const bool end() = 0;
 };
@@ -49,21 +51,10 @@ class StandardInputBuffer : public AbstractBuffer
         const int&    current_line () const {   return _line;     }
         const int&    current_col  () const {   return _col;      }
         const string& file         () const {   return _string;     }
+        const int&    indent       () const {   return _indent;     }
+        const bool&   is_line_empty() const {   return _empty_line;}
 
-        void print(std::ostream& str)
-        {
-            str << "===============================================================================\n"
-                   "                   Buffer\n"
-                   "===============================================================================\n\n";
-
-            str << "Size   : " << _string.size() << "\n"
-                << "Cursor : " << _cursor      << "\n"
-                // << "Current: " << int((*this)[size() - 1]) << "\n"
-                << "File   :\n"
-                << "------BEG------\n" GREEN
-                << _string           << RESET
-                << "\n------END------\n";
-        }
+        void print(std::ostream& str);
 
     protected:
 
@@ -72,6 +63,8 @@ class StandardInputBuffer : public AbstractBuffer
         int _cursor;
         int _line;
         int _col;
+        int _indent;
+        bool _empty_line;
 
         char c;
         int p;
@@ -89,7 +82,7 @@ class FileBuffer : public AbstractBuffer
         const char& prevc();
 
         const int cursor() const;
-        const int size() const;
+        const size_t size() const;
 
         const int&    current_line () const;
         const int&    current_col  () const;
@@ -99,27 +92,16 @@ class FileBuffer : public AbstractBuffer
         void restart();
         void set_cursor(int x);
 
-        void print(std::ostream& str)
-        {
-            str << "===============================================================================\n"
-                   "                   Buffer\n"
-                   "===============================================================================\n\n";
-
-            str << "Size   : " << _file.size() << "\n"
-                << "Cursor : " << _cursor      << "\n"
-                // << "Current: " << int((*this)[size() - 1]) << "\n"
-                << "File   :\n"
-                << "------BEG------\n" GREEN
-                << _file            << RESET
-                << "\n------END------\n";
-        }
+        void print(std::ostream& str);
 
         const int& indent() const   {   return _indent; }
+        const bool& is_line_empty() const { return _empty_line;}
 
     protected:
 
         int _indent;
         int _doc_line;
+        bool _empty_line;
 
         string _file;
 
