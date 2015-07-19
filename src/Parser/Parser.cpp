@@ -1,39 +1,74 @@
 #include "Parser.h"
 #include <cassert>
 
-#if LLVM_CODEGEN
-#   include <llvm/Support/raw_ostream.h>
-#endif
 
 #if PARSER_DBG
+// Add the function to the current trace
 #   define ADD_TRACE add_trace(_intern_trace, idt);
+// Print partial results
 //#   define PRINT_EXPR(expr) expr->print(std::cout); std::cout << "\n";
-#define CRASH_PARSER info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);\
-                     _out.flush();\
-                     assert(false);
+// Make the progrom print out trace info and force the program to crash
+#   define CRASH_PARSER info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);\
+                        _out.flush();\
+                        assert(false);
+// Print out the trace and erase it
+#   define SHOWTRACE    if (_intern_trace.traceback.size() != 1 && _print_out){\
+                        info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);}\
+                        _intern_trace.erase();
 #else
 #   define ADD_TRACE
 #   define PRINT_EXPR(expr)
 #   define CRASH_PARSER "lookup how to make the compiler Scream" + 1 //
+#   define SHOWTRACE
 #endif
 
 #ifndef PRINT_EXPR
-#define PRINT_EXPR(expr)
+#   define PRINT_EXPR(expr)
 #endif
 
+// Print expression after a successful Parsing
+#define PRINT_PARSED_EXPR(expr) expr->print(_out);
+
+// Print Evaluated expression
+#define REPORT_RESULT(x) std::cout << ">> " << x << std::endl
+
+// Use LLVM to generate Assembly code given the AST object
+#if LLVM_CODEGEN
+#   include <llvm/Support/raw_ostream.h>
+#   define LLVM_CODE_GEN(f) \
+        llvm::Function *__lf = NEW_GEN(f->code_gen(_gen));\
+        std::string __s;\
+        llvm::raw_string_ostream __os(__s);\
+        if(__lf)\
+        {\
+            __lf->print(__os);\
+            _out << MYELLOW << __os.str() << MRESET "\n";\
+        }
+#else
+#   define LLVM_CODE_GEN(f)
+#endif
+
+// Cast it to the right type (takes no arguments, returns a double) so we
+// can call it as a native function.
+#if LLVM_JIT && LLVM_CODEGEN
+#   define LLVM_CODE_EXEC(lf) void* fptr = _gen.exec_engine->getPointerToFunction(lf);\
+                              double (*FP)() = (double (*)())(intptr_t)fptr;\
+                              REPORT_RESULT(FP());
+#else
+#   define LLVM_CODE_EXEC(lf)
+#endif
+
+// Garbage Collector Macro
 #define NEW_EXPR(x) _object.new_expr(new x);
 #define NEW_FUNCT(x) _object.new_function(new x)
 #define NEW_PROTO(x) _object.new_prototype(new x)
-
-
-//#define NEW_GEN(x) _object.new_gen_function(x)
 #define NEW_GEN(x) x
 
 #define RETURN_ERROR(msg)  add_trace(_intern_trace, idt); \
-                    return error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
+                           return error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
 
 #define RETURN_ERRORP(msg) add_trace(_intern_trace, idt); \
-                    return error<AST::Prototype>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
+                           return error<AST::Prototype>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
 
 #define ERROR(msg)  add_trace(_intern_trace, idt); \
                     error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
@@ -44,9 +79,6 @@
 #define EAT_TOK(x, err) if (token() != x) \
                             RETURN_ERROR(err); \
                         next_token()\
-
-#define REPORT_RESULT(x) std::cout << ">> " << x << std::endl
-
 
 namespace lython
 {
@@ -390,7 +422,6 @@ AST::Prototype* Parser::parse_prototype(int idt)
         break;
 
     case tok_binary:
-        //printf("blbl \n");
 
         next_token();
 
@@ -430,8 +461,7 @@ AST::Prototype* Parser::parse_prototype(int idt)
     // get parens
     next_token();*/
 
-    if (token() != '(')
-    {
+    if (token() != '('){
         RETURN_ERRORP("Expected '(' in prototype");
     }
 
@@ -454,30 +484,27 @@ AST::Prototype* Parser::parse_prototype(int idt)
     }
 
     // close parens
-    if (token() != ')')
-    {
+    if (token() != ')'){
         RETURN_ERRORP("Expected ')' in prototype");
     }
 
     // success.
     next_token();  // eat ')'
 
+    // TODO
     // ':' is optional =(
-    if (token() == ':')
-    {
+    if (token() == ':'){
         next_token(); // eat ':'
 
         if (token() == tok_newline) // eat '\n'
             next_token();
     }
-    else
-    {
+    else{
         RETURN_ERRORP("Expected ':' in prototype");
     }
 
     // User define Operators
-    if (kind && argname.size() != kind)
-    {
+    if (kind && argname.size() != kind){
         RETURN_ERRORP("Invalid number of operands for operator");
     }
 
@@ -715,16 +742,10 @@ void Parser::parse()
                 break;
         }
 
-#if PARSER_DBG
-        if (_intern_trace.traceback.size() != 1 && _print_out)
-        {
-            info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);
-        }
-
-        _intern_trace.erase();
-#endif
+        SHOWTRACE
     }
 }
+
 
 void Parser::handle_definition(int idt)
 {
@@ -734,22 +755,10 @@ void Parser::handle_definition(int idt)
 
     if(f)
     {
-        f->print(_out);
-        #if LLVM_CODEGEN
-        llvm::Function* lf = NEW_GEN(f->code_gen(_gen));
-
-        std::string s;
-        llvm::raw_string_ostream os(s);
-
-        if (lf)
-        {
-            lf->print(os);
-            _out << MYELLOW << os.str() << MRESET "\n";
-        }
-        #endif
+        PRINT_PARSED_EXPR(f)
+        LLVM_CODE_GEN(f)
     }
-    else
-    {
+    else{
         next_token();
     }
 
@@ -759,24 +768,12 @@ void Parser::handle_extern(int idt)
 {
     ADD_TRACE
 
-    AST::Prototype* p = parse_extern(idt + 1);
+    AST::Prototype* f = parse_extern(idt + 1);
 
-    if (p)
+    if (f)
     {
-        p->print(_out);
-
-        #if LLVM_CODEGEN
-        llvm::Function *lf = NEW_GEN(p->code_gen(_gen));
-
-        std::string s;
-        llvm::raw_string_ostream os(s);
-
-        if(lf)
-        {
-            lf->print(os);
-            _out << MYELLOW << os.str() << MRESET "\n";
-        }
-        #endif
+        PRINT_PARSED_EXPR(f)
+        LLVM_CODE_GEN(f)
     }
     else
     {
@@ -792,35 +789,14 @@ void Parser::handle_top_level_expression(int idt)
 
     if (f)
     {
-        f->print(_out);
+        PRINT_PARSED_EXPR(f)
+        LLVM_CODE_GEN(f)
 
-        #if LLVM_CODEGEN
-        llvm::Function *lf = NEW_GEN(f->code_gen(_gen));
-
-        std::string s;
-        llvm::raw_string_ostream os(s);
-
-        if(lf)
-        {
-            lf->print(os);
-            _out << MYELLOW << os.str() << MRESET "\n";
-
-        #if LLVM_JIT
-            void* fptr = _gen.exec_engine->getPointerToFunction(lf);
-
-            // Cast it to the right type (takes no arguments, returns a double) so we
-            // can call it as a native function.
-            double (*FP)() = (double (*)())(intptr_t)fptr;
-
-            REPORT_RESULT(FP());
-            //fprintf(stderr, "Evaluated to %f\n", FP());
-        #endif
-
-        }
+        #if LLVM_JIT && LLVM_CODEGEN
+            LLVM_CODE_EXEC(__lf)
         #endif
     }
-    else
-    {
+    else{
         next_token();
     }
 }
