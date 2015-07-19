@@ -270,10 +270,6 @@ void Lexer::print(std::ostream& str)
         }
 
         str << ")\n";
-        /*
-        str << "\tpos: [line: " << _buffer.current_line()
-            << ", col: "    << _buffer.current_col()
-            << ", cursor: " << _buffer.cursor() << "]), \n";//*/
 
     } while(t != lython::tok_eof);
 

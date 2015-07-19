@@ -36,7 +36,6 @@ int main()
 
 #if LEXER
     lython::Lexer      lex(buf);
-//    cout << "here" << "\n";
 #endif
 
     std::ofstream file("../log/lython_parser.log");
@@ -49,12 +48,10 @@ int main()
     buf.print(file);
 
 #if LEXER
-//    printf("\n");
     lex.print(file);
 #endif
 
 #if PARSER
-//    printf("\n");
     par.parse();
 #endif
 

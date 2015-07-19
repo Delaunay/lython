@@ -2,18 +2,16 @@
                    Buffer
 ===============================================================================
 
-Size   : 86
+Size   : 37
 Cursor : -1
 File   :
 ------BEG------
+print()
+print(a)
 
+print[]
+print[a]
 
-def bloc_function(cursor):
-
-    for i in cursor:
-        print(i)
-
-    return pydb
 ÿ
 ------END------
 ===============================================================================
@@ -21,84 +19,72 @@ def bloc_function(cursor):
 ===============================================================================
 
 Tokens = [
-    0001: (tok: [-2, 'þ'], Newline)
-    0002: (tok: [-2, 'þ'], Newline)
-    0003: (tok: [-6, 'ú'], def: 'def')
-    0004: (tok: [-10, 'ö'], ide: 'bloc_function')
-    0005: (tok: [40, '('], chr: '(')
-    0006: (tok: [-10, 'ö'], ide: 'cursor')
-    0007: (tok: [41, ')'], chr: ')')
-    0008: (tok: [58, ':'], chr: ':')
+    0001: (tok: [-10, 'ö'], ide: 'print')
+    0002: (tok: [40, '('], chr: '(')
+    0003: (tok: [41, ')'], chr: ')')
+    0004: (tok: [-2, 'þ'], Newline)
+    0005: (tok: [-10, 'ö'], ide: 'print')
+    0006: (tok: [40, '('], chr: '(')
+    0007: (tok: [-10, 'ö'], ide: 'a')
+    0008: (tok: [41, ')'], chr: ')')
     0009: (tok: [-2, 'þ'], Newline)
     0010: (tok: [-2, 'þ'], Newline)
-    0011: (tok: [-3, 'ý'], Indent: '4')
-    0012: (tok: [-16, 'ð'], ide: 'for')
-    0013: (tok: [-10, 'ö'], ide: 'i')
-    0014: (tok: [-19, 'í'], ide: 'in')
-    0015: (tok: [-10, 'ö'], ide: 'cursor')
-    0016: (tok: [58, ':'], chr: ':')
-    0017: (tok: [-2, 'þ'], Newline)
-    0018: (tok: [-3, 'ý'], Indent: '8')
-    0019: (tok: [-10, 'ö'], ide: 'print')
-    0020: (tok: [40, '('], chr: '(')
-    0021: (tok: [-10, 'ö'], ide: 'i')
-    0022: (tok: [41, ')'], chr: ')')
-    0023: (tok: [-2, 'þ'], Newline)
-    0024: (tok: [-2, 'þ'], Newline)
-    0025: (tok: [-4, 'ü'], Desindent: '4')
-    0026: (tok: [-10, 'ö'], ide: 'return')
-    0027: (tok: [-10, 'ö'], ide: 'pydb')
-    0028: (tok: [-2, 'þ'], Newline)
-    0029: (tok: [-4, 'ü'], Desindent: '0')
-    0030: (tok: [-1, 'ÿ'], EOF)
-] (size: 30)
+    0011: (tok: [-10, 'ö'], ide: 'print')
+    0012: (tok: [91, '['], chr: '[')
+    0013: (tok: [93, ']'], chr: ']')
+    0014: (tok: [-2, 'þ'], Newline)
+    0015: (tok: [-10, 'ö'], ide: 'print')
+    0016: (tok: [91, '['], chr: '[')
+    0017: (tok: [-10, 'ö'], ide: 'a')
+    0018: (tok: [93, ']'], chr: ']')
+    0019: (tok: [-2, 'þ'], Newline)
+    0020: (tok: [-2, 'þ'], Newline)
+    0021: (tok: [-1, 'ÿ'], EOF)
+] (size: 21)
 ===============================================================================
                    Parser
 ===============================================================================
 
-fn bloc_function (cursor)
-    for i in v[cursor]:
-        print(v[i])
-    Un'return'(v[pydb])
+fn  ()
+    print()
+    print(v[a])
+    print[]
+    print[v[a]]
 
 
-[Ln:    9, Col:    2]      /!\ Info         Parser Trace Info
-       0) File: Parser/Parser.cpp Line:  718  Function: parse
-       1) File: Parser/Parser.cpp Line:  752 L Function: handle_definition
-       2) File: Parser/Parser.cpp Line:  516  L Function: parse_definition
-       3) File: Parser/Parser.cpp Line:  394   L Function: parse_prototype
-       4) File: Parser/Parser.cpp Line:  867 ___ Function: parse_multiline_expression
-       5) File: Parser/Parser.cpp Line:  273    L Function: parse_simple_expression
-       6) File: Parser/Parser.cpp Line:  669     L Function: parse_unary
-       7) File: Parser/Parser.cpp Line:  212      L Function: parse_primary
-       8) File: Parser/Parser.cpp Line:  867       L Function: parse_multiline_expression
-       9) File: Parser/Parser.cpp Line:  273        L Function: parse_simple_expression
-      10) File: Parser/Parser.cpp Line:  669         L Function: parse_unary
-      11) File: Parser/Parser.cpp Line:  212          L Function: parse_primary
-      12) File: Parser/Parser.cpp Line:  566           L Function: parse_for_expression
-      13) File: Parser/Parser.cpp Line:  273            L Function: parse_simple_expression
-      14) File: Parser/Parser.cpp Line:  669             L Function: parse_unary
-      15) File: Parser/Parser.cpp Line:  212              L Function: parse_primary
-      16) File: Parser/Parser.cpp Line:  162               L Function: parse_identifier_expression
-      17) File: Parser/Parser.cpp Line:  297 _____________ Function: parse_bin_op_rhs
-      18) File: Parser/Parser.cpp Line:  867 ____________ Function: parse_multiline_expression
-      19) File: Parser/Parser.cpp Line:  273             L Function: parse_simple_expression
-      20) File: Parser/Parser.cpp Line:  669              L Function: parse_unary
-      21) File: Parser/Parser.cpp Line:  212               L Function: parse_primary
-      22) File: Parser/Parser.cpp Line:  162                L Function: parse_identifier_expression
-      23) File: Parser/Parser.cpp Line:  273                 L Function: parse_simple_expression
-      24) File: Parser/Parser.cpp Line:  669                  L Function: parse_unary
-      25) File: Parser/Parser.cpp Line:  212                   L Function: parse_primary
-      26) File: Parser/Parser.cpp Line:  162                    L Function: parse_identifier_expression
-      27) File: Parser/Parser.cpp Line:  297 __________________ Function: parse_bin_op_rhs
-      28) File: Parser/Parser.cpp Line:  297 ______________ Function: parse_bin_op_rhs
-      29) File: Parser/Parser.cpp Line:  273 ________ Function: parse_simple_expression
-      30) File: Parser/Parser.cpp Line:  669         L Function: parse_unary
-      31) File: Parser/Parser.cpp Line:  273          L Function: parse_simple_expression
-      32) File: Parser/Parser.cpp Line:  669           L Function: parse_unary
-      33) File: Parser/Parser.cpp Line:  212            L Function: parse_primary
-      34) File: Parser/Parser.cpp Line:  162             L Function: parse_identifier_expression
-      35) File: Parser/Parser.cpp Line:  297 ___________ Function: parse_bin_op_rhs
-      36) File: Parser/Parser.cpp Line:  297 _________ Function: parse_bin_op_rhs
-      37) File: Parser/Parser.cpp Line:  297 _____ Function: parse_bin_op_rhs
+[Ln:    7, Col:    2]      /!\ Info         Parser Trace Info
+       0) File: Parser/Parser.cpp Line:  654  Function: parse
+       1) File: Parser/Parser.cpp Line:  722 L Function: handle_top_level_expression
+       2) File: Parser/Parser.cpp Line:  540  L Function: parse_top_level_expression
+       3) File: Parser/Parser.cpp Line:  803   L Function: parse_multiline_expression
+       4) File: Parser/Parser.cpp Line:  285    L Function: parse_simple_expression
+       5) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
+       6) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
+       7) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
+       8) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
+       9) File: Parser/Parser.cpp Line:  285 ____ Function: parse_simple_expression
+      10) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
+      11) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
+      12) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
+      13) File: Parser/Parser.cpp Line:  285        L Function: parse_simple_expression
+      14) File: Parser/Parser.cpp Line:  605         L Function: parse_unary
+      15) File: Parser/Parser.cpp Line:  224          L Function: parse_primary
+      16) File: Parser/Parser.cpp Line:  173           L Function: parse_identifier_expression
+      17) File: Parser/Parser.cpp Line:  306 _________ Function: parse_bin_op_rhs
+      18) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
+      19) File: Parser/Parser.cpp Line:  285 ____ Function: parse_simple_expression
+      20) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
+      21) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
+      22) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
+      23) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
+      24) File: Parser/Parser.cpp Line:  285 ____ Function: parse_simple_expression
+      25) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
+      26) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
+      27) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
+      28) File: Parser/Parser.cpp Line:  285        L Function: parse_simple_expression
+      29) File: Parser/Parser.cpp Line:  605         L Function: parse_unary
+      30) File: Parser/Parser.cpp Line:  224          L Function: parse_primary
+      31) File: Parser/Parser.cpp Line:  173           L Function: parse_identifier_expression
+      32) File: Parser/Parser.cpp Line:  306 _________ Function: parse_bin_op_rhs
+      33) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
 

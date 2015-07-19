@@ -47,7 +47,7 @@ namespace LIBNAMESPACE {
             out(std::cout)
         {}
 
-        void add(std::string i, std::string j, unsigned int k, int idt=0, bool push_to_out=false)
+        void add(std::string i, std::string j, unsigned int k, int idt=0, bool push_to_out=true)
         {
             traceback.push_back(Element(i, j, k, 0, true, idt));
 

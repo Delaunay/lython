@@ -157,7 +157,7 @@ namespace AbstractSyntaxTree
         public:
             typedef vector<Expression*> Arguments;
 
-            CallExpression(const std::string &callee, Arguments& args);
+            CallExpression(const std::string &callee, Arguments& args, char c = '(');
 
             const string idendity();
 
@@ -167,6 +167,8 @@ namespace AbstractSyntaxTree
 
             string callee;
             Arguments args;
+            // Cal type '(' or '['
+            char      type;
     };
 
     // def function(args1, args2, ...) => fn name(args1, args2, ...)
@@ -316,28 +318,4 @@ namespace AbstractSyntaxTree
 namespace AST = AbstractSyntaxTree;
 }
 
-/*
-template<>
-class TypedExpression<int> : public Expression
-{
-    public:
-        TypedExpression(int v):
-            value(v)
-        {}
-
-        void print(ostream& str, int i = 0)
-        {
-            str << value;
-        }
-
-    #if LLVM_CODEGEN
-        virtual llvm::Value* code_gen(Generator& g)
-        {
-            return llvm::ConstantFP::get(llvm::getGlobalContext(),
-                                         llvm::APInt());
-        }
-    #endif
-
-        int value;
-};*/
 #endif

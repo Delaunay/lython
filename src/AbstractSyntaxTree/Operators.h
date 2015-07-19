@@ -31,6 +31,11 @@ public:
         _op["*"] = Element(40); // 40;
         _op["/"] = Element(40); // 40;
         _op["^"] = Element(50); // 40;
+        _op["=="] = Element(2);
+        _op["!="] = Element(2);
+        _op["is"] = Element(2);
+        _op["not"] = Element(2);
+        _op["and"] = Element(2);
 
         // Unary Operator
         _op["++"] = Element(20, false);

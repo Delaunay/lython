@@ -100,13 +100,13 @@ void Prototype::print(ostream& str, int i)
     str << ")\n";
 }
 
-CallExpression::CallExpression(const std::string &callee, Arguments& args):
-    callee(callee), args(args), Expression(Type_CallExpression)
+CallExpression::CallExpression(const std::string &callee, Arguments& args, char c):
+    callee(callee), args(args), Expression(Type_CallExpression), type(c)
 {}
 
 void CallExpression::print(ostream& str, int i)
 {
-    str << I(i) << callee << "(";
+    str << I(i) << callee << type;
 
     for (size_t i = 0, n = args.size(); i < n; i++)
     {
@@ -116,7 +116,10 @@ void CallExpression::print(ostream& str, int i)
             str << ", ";
     }
 
-    str << ")";
+    if (type == '(')
+        str << ")";
+    else
+        str << "]";
 }
 
 IfExpression::IfExpression(Expression* cond, Expression* then, Expression* lse):

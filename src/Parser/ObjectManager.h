@@ -19,7 +19,7 @@ namespace lython{
  *      ==10203==    still reachable: 9,254 bytes in 30 blocks
  *      ==10203==         suppressed: 0 bytes in 0 blocks
  *
- * does they matter ?
+ * does they matter ? those are LLVM ineternal
  */
 
 // reads type, cast into correct type and delete it return true

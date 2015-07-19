@@ -64,6 +64,12 @@
 #define NEW_PROTO(x) _object.new_prototype(new x)
 #define NEW_GEN(x) x
 
+// Simplify the expression if possible
+#define RETURN_VECTOR(m)    if (m->expressions.size() == 1)\
+                                return (m->expressions)[0];\
+                            else\
+                                return m;
+
 #define RETURN_ERROR(msg)  add_trace(_intern_trace, idt); \
                            return error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
 
@@ -158,6 +164,10 @@ AST::Expression* Parser::parse_parent_expression(int idt)
 }
 
 // identifier '(' expression* ')'
+#define PARENS_OPEN (x) ((x == '(') || (x == '['))
+#define PARENS_CLOSE(x) ((x == ')') || (x == ']'))
+
+
 AST::Expression* Parser::parse_identifier_expression(int idt)
 {
     ADD_TRACE
@@ -166,15 +176,16 @@ AST::Expression* Parser::parse_identifier_expression(int idt)
     next_token();
 
     // if it is not a function then it is a Variable
-    if (token() != '('){
+    if (!PARENS_OPEN(token())){
         return NEW_EXPR(AST::VariableExpression(idname));
     }
 
+    char c = token();
     next_token(); // '('
 
     AST::CallExpression::Arguments args;
 
-    if (token() != ')')
+    if (!PARENS_CLOSE(token()))
     {
         // extract arguments
         while(1)
@@ -187,7 +198,7 @@ AST::Expression* Parser::parse_identifier_expression(int idt)
 
             args.push_back(arg);
 
-            if (token() == ')'){
+            if (PARENS_CLOSE(token())){
                 break;
             }
 
@@ -201,7 +212,7 @@ AST::Expression* Parser::parse_identifier_expression(int idt)
 
     next_token(); // ')'
 
-    return NEW_EXPR(AST::CallExpression(idname, args));
+    return NEW_EXPR(AST::CallExpression(idname, args, c));
 }
 
 /// primary
@@ -238,7 +249,7 @@ AST::Expression* Parser::parse_primary(int idt)
     case tok_for:
         return parse_for_expression(idt + 1);
 
-    //case ';':
+    case tok_else:
     case tok_def:
         return 0;
 
@@ -276,9 +287,6 @@ AST::Expression* Parser::parse_simple_expression(int idt)
     AST::Expression* lhs = parse_unary(idt + 1);
 
     PRINT_EXPR(lhs)
-
-//    if (token() == tok_newline)
-//        return lhs;
 
     // Complex Expression cant be inside BinOp
     // Such as For Expression, Class, function definition
@@ -365,19 +373,15 @@ AST::Expression* Parser::parse_if_expression(int idt)
     if (then == 0)
         return 0;
 
-    // eat new line
-    while (token() == tok_newline)
-        next_token();
-
-    EAT_TOK(tok_else, "Expected 'else'");
-
-    if (token() == ':'){
-        next_token();
+    if (token() != tok_else){
+        RETURN_ERROR("expected 'else' statement");
     }
+    next_token();
 
-    if (token() == tok_newline){
-        next_token();
+    if (token() != ':'){
+        RETURN_ERROR("expected ':'");
     }
+    next_token();
 
     AST::Expression* el = parse_multiline_expression(idt + 1);
                         //parse_expression(idt + 1);
@@ -448,23 +452,11 @@ AST::Prototype* Parser::parse_prototype(int idt)
         }
         break;
 //    default:
-
     }
-
-    /*
-    if (token() != tok_identifier)
-        return error<AST::Prototype>("Expected function name in prototype");
-
-    std::string fnname = lexer.identifier();
-
-
-    // get parens
-    next_token();*/
 
     if (token() != '('){
         RETURN_ERRORP("Expected '(' in prototype");
     }
-
 
     // Read the list of argument names.
     AST::Prototype::Arguments argname;
@@ -491,8 +483,7 @@ AST::Prototype* Parser::parse_prototype(int idt)
     // success.
     next_token();  // eat ')'
 
-    // TODO
-    // ':' is optional =(
+    // TODO  ':' is optional =(
     if (token() == ':'){
         next_token(); // eat ':'
 
@@ -567,14 +558,6 @@ AST::Expression* Parser::parse_for_expression(int idt)
 
     next_token();  // eat the for.
 
-//    std::cout << token() << "\t"
-//              << tok_identifier << "\t"
-//              << int(token() != tok_identifier) << "\n";
-
-//    _out << token() << "\t"
-//              << tok_identifier << "\t"
-//              << int(token() != tok_identifier) << "\n";
-
     if (int(token() != tok_identifier)){
         RETURN_ERROR("expected identifier after for");
     }
@@ -613,54 +596,6 @@ AST::Expression* Parser::parse_for_expression(int idt)
     AST::Expression* body = parse_multiline_expression(idt + 1);
 
     return NEW_EXPR(AST::ForExpression(idname, start, body));
-
-    // Now there are multiple possibilities
-
-////  this is matlab kindof for
-//    if (token() != '=')
-//        RETURN_ERROR("expected '=' after for");
-//    next_token();  // eat '='.
-
-    //// C For
-//    AST::Expression* start = parse_simple_expression(idt + 1);
-
-//    if (start == 0)
-//        return 0;
-
-//    if (token() != ',')
-//        RETURN_ERROR("expected ',' after for start value");
-
-//    next_token();
-
-//    AST::Expression *end = parse_simple_expression(idt + 1);
-
-//    if (end == 0)
-//        return 0;
-
-//    // The step value is optional.
-//    AST::Expression* step = 0;
-
-//    if (token() == ',')
-//    {
-//        next_token();
-//        step = parse_simple_expression(idt + 1);
-
-//        if (step == 0)
-//            return 0;
-//    }
-
-//    if (token() != tok_in)
-//        RETURN_ERROR("expected 'in' after for");
-
-//    next_token();  // eat 'in'.
-
-//    AST::Expression *body = parse_multiline_expression(idt + 1);
-//                          //parse_expression(idt + 1);
-
-//    if (body == 0)
-//        return 0;
-
-//    return NEW_EXPR(AST::ForExpression(idname, start, end, step, body));
 }
 
 
@@ -870,33 +805,11 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
     if (token() == tok_indent)
         next_token();
 
-    // save indent level
-    // int level = lexer.indent();
-
     // Save all expression
     AST::MultilineExpression* m = (AST::MultilineExpression*) NEW_EXPR(AST::MultilineExpression());
 
     while(1)
     {
-//        AST::Expression* lhs = parse_unary(idt + 1);
-
-//        if (!lhs)
-//        {
-//            // Simplify
-//            if (m->expressions.size() == 1)
-//                return (m->expressions)[0];
-//            else
-//               return m;
-//        }
-
-//        PRINT_EXPR(lhs);
-
-////        // newline == new expression
-////        if (token() == tok_newline)
-////            m->add(lhs);
-////        else
-//        m->add(parse_bin_op_rhs(0, lhs, idt + 1));
-
         m->add(parse_simple_expression(idt + 1));
 
         while(token() == tok_newline)
@@ -906,15 +819,16 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
         {
             m->add(parse_multiline_expression(idt + 1)/*parse_expression()*/);
         }
-        else if (token() == tok_desindent || token() == tok_eof)
+        else if (token() == tok_desindent || token() == tok_eof )
         {
             // Eat Token
             next_token();
-            // Simplify
-            if (m->expressions.size() == 1)
-                return (m->expressions)[0];
-            else
-                return m;
+            RETURN_VECTOR(m)
+        }
+        // dont eat else tok we need it
+        else if (token() == tok_else)
+        {
+            RETURN_VECTOR(m)
         }
     }
 }

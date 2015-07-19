@@ -79,35 +79,4 @@ protected:
 }
 
 
-//        int c = ' ';
-
-//        // if new line: indentation = 0
-//        if (c == '\n')
-//        {
-//            indent = 0;
-
-//            // count indentation
-//            while(isspace(c))
-//            {
-//                indent++;
-//                c = buffer.getc();
-//            }
-
-//            // temp scope
-//            _tscope = indent % 4;
-
-//            // open/close scope
-//            if (_tscope != _scope)
-//                return tok_scope;
-//        }
-
-//        // update scope
-//        _scope = _tscope;
-
-//int& scope()    {   return _scope;   }
-//int _scope;
-//int _tscope;
-
-//int indent;
-
 #endif

@@ -41,7 +41,6 @@ class Parser
         const int& next_token();
         const int  precendence();
 
-//        AST::Expression* parse_expression(int idt=0);
         AST::Expression* parse_multiline_expression(int idt=0);
         AST::Expression* parse_bin_op_rhs(int exppre, AST::Expression* lhs,int idt=0);
         AST::Expression* parse_number_expression(int idt=0);
@@ -53,7 +52,6 @@ class Parser
         AST::Expression* parse_variable_expression(int idt=0);
         AST::Expression* parse_simple_expression(int idt=0);
 
-        // identifier '(' expression* ')'
         AST::Expression* parse_identifier_expression(int idt=0);
         AST::Expression* parse_primary(int idt=0);
 
@@ -94,6 +92,7 @@ class Parser
 #if PARSER_DBG
         Traceback     _intern_trace;
 #endif
+        // internal trace not used yet
 //        Traceback     _lython_trace;
 };
 }
