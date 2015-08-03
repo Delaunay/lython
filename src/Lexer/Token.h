@@ -3,9 +3,11 @@
 
 #include <string>
 
+#include "../config.h"
+
 using namespace std;
 
-namespace lython{
+namespace LIBNAMESPACE{
 
 enum TokenEnum
 {

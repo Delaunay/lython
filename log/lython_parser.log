@@ -2,16 +2,29 @@
                    Buffer
 ===============================================================================
 
-Size   : 37
+Size   : 312
 Cursor : -1
 File   :
 ------BEG------
-print()
-print(a)
+def out_side_function2(a):
+    a = 5
+    return a
 
-print[]
-print[a]
+class class_name():
+    a = 2
+    b = 3
+    c = 5
 
+    def __init__(self):
+        self.a = 2
+        
+    def my_function(self, a, v, c):
+        a = c + v
+        return a + c + c
+        
+def out_side_function2(a):
+    a = 2
+    return a
 ÿ
 ------END------
 ===============================================================================
@@ -19,72 +32,252 @@ print[a]
 ===============================================================================
 
 Tokens = [
-    0001: (tok: [-10, 'ö'], ide: 'print')
-    0002: (tok: [40, '('], chr: '(')
-    0003: (tok: [41, ')'], chr: ')')
-    0004: (tok: [-2, 'þ'], Newline)
-    0005: (tok: [-10, 'ö'], ide: 'print')
-    0006: (tok: [40, '('], chr: '(')
-    0007: (tok: [-10, 'ö'], ide: 'a')
-    0008: (tok: [41, ')'], chr: ')')
-    0009: (tok: [-2, 'þ'], Newline)
-    0010: (tok: [-2, 'þ'], Newline)
-    0011: (tok: [-10, 'ö'], ide: 'print')
-    0012: (tok: [91, '['], chr: '[')
-    0013: (tok: [93, ']'], chr: ']')
-    0014: (tok: [-2, 'þ'], Newline)
-    0015: (tok: [-10, 'ö'], ide: 'print')
-    0016: (tok: [91, '['], chr: '[')
-    0017: (tok: [-10, 'ö'], ide: 'a')
-    0018: (tok: [93, ']'], chr: ']')
-    0019: (tok: [-2, 'þ'], Newline)
-    0020: (tok: [-2, 'þ'], Newline)
-    0021: (tok: [-1, 'ÿ'], EOF)
-] (size: 21)
+    0001: (tok: [- 006], def       : 'def')
+    0002: (tok: [- 010], identifier: 'out_side_function2')
+    0003: (tok: [  040], Char      : '(')
+    0004: (tok: [- 010], identifier: 'a')
+    0005: (tok: [  041], Char      : ')')
+    0006: (tok: [  058], Char      : ':')
+    0007: (tok: [- 002], Newline   )
+    0008: (tok: [- 003], indent    : '4')
+    0009: (tok: [- 010], identifier: 'a')
+    0010: (tok: [- 010], identifier: '=')
+    0011: (tok: [- 011], Value     : '5')
+    0012: (tok: [- 002], Newline   )
+    0013: (tok: [- 010], identifier: 'return')
+    0014: (tok: [- 010], identifier: 'a')
+    0015: (tok: [- 002], Newline   )
+    0016: (tok: [- 002], Newline   )
+    0017: (tok: [- 004], desindent : '0')
+    0018: (tok: [- 007], class     : '0')
+    0019: (tok: [- 010], identifier: 'class_name')
+    0020: (tok: [  040], Char      : '(')
+    0021: (tok: [  041], Char      : ')')
+    0022: (tok: [  058], Char      : ':')
+    0023: (tok: [- 002], Newline   )
+    0024: (tok: [- 003], indent    : '4')
+    0025: (tok: [- 010], identifier: 'a')
+    0026: (tok: [- 010], identifier: '=')
+    0027: (tok: [- 011], Value     : '2')
+    0028: (tok: [- 002], Newline   )
+    0029: (tok: [- 010], identifier: 'b')
+    0030: (tok: [- 010], identifier: '=')
+    0031: (tok: [- 011], Value     : '3')
+    0032: (tok: [- 002], Newline   )
+    0033: (tok: [- 010], identifier: 'c')
+    0034: (tok: [- 010], identifier: '=')
+    0035: (tok: [- 011], Value     : '5')
+    0036: (tok: [- 002], Newline   )
+    0037: (tok: [- 002], Newline   )
+    0038: (tok: [- 006], def       : 'def')
+    0039: (tok: [- 010], identifier: '__init__')
+    0040: (tok: [  040], Char      : '(')
+    0041: (tok: [- 010], identifier: 'self')
+    0042: (tok: [  041], Char      : ')')
+    0043: (tok: [  058], Char      : ':')
+    0044: (tok: [- 002], Newline   )
+    0045: (tok: [- 003], indent    : '8')
+    0046: (tok: [- 010], identifier: 'self.a')
+    0047: (tok: [- 010], identifier: '=')
+    0048: (tok: [- 011], Value     : '2')
+    0049: (tok: [- 002], Newline   )
+    0050: (tok: [- 002], Newline   )
+    0051: (tok: [- 004], desindent : '4')
+    0052: (tok: [- 006], def       : 'def')
+    0053: (tok: [- 010], identifier: 'my_function')
+    0054: (tok: [  040], Char      : '(')
+    0055: (tok: [- 010], identifier: 'self')
+    0056: (tok: [  044], Char      : ',')
+    0057: (tok: [- 010], identifier: 'a')
+    0058: (tok: [  044], Char      : ',')
+    0059: (tok: [- 010], identifier: 'v')
+    0060: (tok: [  044], Char      : ',')
+    0061: (tok: [- 010], identifier: 'c')
+    0062: (tok: [  041], Char      : ')')
+    0063: (tok: [  058], Char      : ':')
+    0064: (tok: [- 002], Newline   )
+    0065: (tok: [- 003], indent    : '8')
+    0066: (tok: [- 010], identifier: 'a')
+    0067: (tok: [- 010], identifier: '=')
+    0068: (tok: [- 010], identifier: 'c')
+    0069: (tok: [- 010], identifier: '+')
+    0070: (tok: [- 010], identifier: 'v')
+    0071: (tok: [- 002], Newline   )
+    0072: (tok: [- 010], identifier: 'return')
+    0073: (tok: [- 010], identifier: 'a')
+    0074: (tok: [- 010], identifier: '+')
+    0075: (tok: [- 010], identifier: 'c')
+    0076: (tok: [- 010], identifier: '+')
+    0077: (tok: [- 010], identifier: 'c')
+    0078: (tok: [- 002], Newline   )
+    0079: (tok: [- 002], Newline   )
+    0080: (tok: [- 004], desindent : '0')
+    0081: (tok: [- 006], def       : 'def')
+    0082: (tok: [- 010], identifier: 'out_side_function2')
+    0083: (tok: [  040], Char      : '(')
+    0084: (tok: [- 010], identifier: 'a')
+    0085: (tok: [  041], Char      : ')')
+    0086: (tok: [  058], Char      : ':')
+    0087: (tok: [- 002], Newline   )
+    0088: (tok: [- 003], indent    : '4')
+    0089: (tok: [- 010], identifier: 'a')
+    0090: (tok: [- 010], identifier: '=')
+    0091: (tok: [- 011], Value     : '2')
+    0092: (tok: [- 002], Newline   )
+    0093: (tok: [- 010], identifier: 'return')
+    0094: (tok: [- 010], identifier: 'a')
+    0095: (tok: [- 002], Newline   )
+    0096: (tok: [- 004], desindent : '0')
+    0097: (tok: [- 001], EOF       )
+] (size: 97)
 ===============================================================================
                    Parser
 ===============================================================================
 
-fn  ()
-    print()
-    print(v[a])
-    print[]
-    print[v[a]]
+fn out_side_function2 (a)
+    bin'='(v[a], 5)
+    Un'return'(v[a])
 
 
-[Ln:    7, Col:    2]      /!\ Info         Parser Trace Info
-       0) File: Parser/Parser.cpp Line:  654  Function: parse
-       1) File: Parser/Parser.cpp Line:  722 L Function: handle_top_level_expression
-       2) File: Parser/Parser.cpp Line:  540  L Function: parse_top_level_expression
-       3) File: Parser/Parser.cpp Line:  803   L Function: parse_multiline_expression
-       4) File: Parser/Parser.cpp Line:  285    L Function: parse_simple_expression
-       5) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
-       6) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
-       7) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
-       8) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
-       9) File: Parser/Parser.cpp Line:  285 ____ Function: parse_simple_expression
-      10) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
-      11) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
-      12) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
-      13) File: Parser/Parser.cpp Line:  285        L Function: parse_simple_expression
-      14) File: Parser/Parser.cpp Line:  605         L Function: parse_unary
-      15) File: Parser/Parser.cpp Line:  224          L Function: parse_primary
-      16) File: Parser/Parser.cpp Line:  173           L Function: parse_identifier_expression
-      17) File: Parser/Parser.cpp Line:  306 _________ Function: parse_bin_op_rhs
-      18) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
-      19) File: Parser/Parser.cpp Line:  285 ____ Function: parse_simple_expression
-      20) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
-      21) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
-      22) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
-      23) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
-      24) File: Parser/Parser.cpp Line:  285 ____ Function: parse_simple_expression
-      25) File: Parser/Parser.cpp Line:  605     L Function: parse_unary
-      26) File: Parser/Parser.cpp Line:  224      L Function: parse_primary
-      27) File: Parser/Parser.cpp Line:  173       L Function: parse_identifier_expression
-      28) File: Parser/Parser.cpp Line:  285        L Function: parse_simple_expression
-      29) File: Parser/Parser.cpp Line:  605         L Function: parse_unary
-      30) File: Parser/Parser.cpp Line:  224          L Function: parse_primary
-      31) File: Parser/Parser.cpp Line:  173           L Function: parse_identifier_expression
-      32) File: Parser/Parser.cpp Line:  306 _________ Function: parse_bin_op_rhs
-      33) File: Parser/Parser.cpp Line:  306 _____ Function: parse_bin_op_rhs
+[Ln:    5, Col:    7]      /!\ Info         Parser Trace Info
+       0) File: Parser/Parser.cpp Line:  656 +- Function: parse
+       1) File: Parser/Parser.cpp Line:  695 :+- Function: handle_definition
+       2) File: Parser/Parser.cpp Line:  510 :|+- Function: parse_definition
+       3) File: Parser/Parser.cpp Line:  401 :|:+- Function: parse_prototype
+       4) File: Parser/Parser.cpp Line:  827 :|:+- Function: parse_multiline_expression
+       5) File: Parser/Parser.cpp Line:  287 :|:|+- Function: parse_simple_expression
+       6) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+       7) File: Parser/Parser.cpp Line:  226 :|:|:|+- Function: parse_primary
+       8) File: Parser/Parser.cpp Line:  175 :|:|:|:+- Function: parse_identifier_expression
+       9) File: Parser/Parser.cpp Line:  308 :|:|:+- Function: parse_bin_op_rhs
+      10) File: Parser/Parser.cpp Line:  607 :|:|:|+- Function: parse_unary
+      11) File: Parser/Parser.cpp Line:  226 :|:|:|:+- Function: parse_primary
+      12) File: Parser/Parser.cpp Line:  124 :|:|:|:|+- Function: parse_number_expression
+      13) File: Parser/Parser.cpp Line:  308 :|:|:+- Function: parse_bin_op_rhs
+      14) File: Parser/Parser.cpp Line:  287 :|:|+- Function: parse_simple_expression
+      15) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+      16) File: Parser/Parser.cpp Line:  287 :|:|:|+- Function: parse_simple_expression
+      17) File: Parser/Parser.cpp Line:  607 :|:|:|:+- Function: parse_unary
+      18) File: Parser/Parser.cpp Line:  226 :|:|:|:|+- Function: parse_primary
+      19) File: Parser/Parser.cpp Line:  175 :|:|:|:|:+- Function: parse_identifier_expression
+      20) File: Parser/Parser.cpp Line:  308 :|:|:|:+- Function: parse_bin_op_rhs
+      21) File: Parser/Parser.cpp Line:  308 :|:|:+- Function: parse_bin_op_rhs
+
+class class_name:
+    v[c]
+    v[b]
+    v[a]
+    
+    fn my_function (self, a, v, c)
+        bin'='(v[a], bin'+'(v[c], v[v]))
+        Un'return'(bin'+'(bin'+'(v[a], v[c]), v[c]))
+
+    fn __init__ (self)
+        bin'='(v[self.a], 2)
+
+[Ln:   17, Col:    5]      /!\ Info         Parser Trace Info
+       0) File: Parser/Parser.cpp Line:  656 +- Function: parse
+       1) File: Parser/Parser.cpp Line:  712 :+- Function: handle_class
+       2) File: Parser/Parser.cpp Line:  863 :|+- Function: parse_class
+       3) File: Parser/Parser.cpp Line:  287 :|:+- Function: parse_simple_expression
+       4) File: Parser/Parser.cpp Line:  607 :|:|+- Function: parse_unary
+       5) File: Parser/Parser.cpp Line:  226 :|:|:+- Function: parse_primary
+       6) File: Parser/Parser.cpp Line:  175 :|:|:|+- Function: parse_identifier_expression
+       7) File: Parser/Parser.cpp Line:  308 :|:|+- Function: parse_bin_op_rhs
+       8) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+       9) File: Parser/Parser.cpp Line:  226 :|:|:|+- Function: parse_primary
+      10) File: Parser/Parser.cpp Line:  124 :|:|:|:+- Function: parse_number_expression
+      11) File: Parser/Parser.cpp Line:  308 :|:|+- Function: parse_bin_op_rhs
+      12) File: Parser/Parser.cpp Line:  287 :|:+- Function: parse_simple_expression
+      13) File: Parser/Parser.cpp Line:  607 :|:|+- Function: parse_unary
+      14) File: Parser/Parser.cpp Line:  226 :|:|:+- Function: parse_primary
+      15) File: Parser/Parser.cpp Line:  175 :|:|:|+- Function: parse_identifier_expression
+      16) File: Parser/Parser.cpp Line:  308 :|:|+- Function: parse_bin_op_rhs
+      17) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+      18) File: Parser/Parser.cpp Line:  226 :|:|:|+- Function: parse_primary
+      19) File: Parser/Parser.cpp Line:  124 :|:|:|:+- Function: parse_number_expression
+      20) File: Parser/Parser.cpp Line:  308 :|:|+- Function: parse_bin_op_rhs
+      21) File: Parser/Parser.cpp Line:  287 :|:+- Function: parse_simple_expression
+      22) File: Parser/Parser.cpp Line:  607 :|:|+- Function: parse_unary
+      23) File: Parser/Parser.cpp Line:  226 :|:|:+- Function: parse_primary
+      24) File: Parser/Parser.cpp Line:  175 :|:|:|+- Function: parse_identifier_expression
+      25) File: Parser/Parser.cpp Line:  308 :|:|+- Function: parse_bin_op_rhs
+      26) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+      27) File: Parser/Parser.cpp Line:  226 :|:|:|+- Function: parse_primary
+      28) File: Parser/Parser.cpp Line:  124 :|:|:|:+- Function: parse_number_expression
+      29) File: Parser/Parser.cpp Line:  308 :|:|+- Function: parse_bin_op_rhs
+      30) File: Parser/Parser.cpp Line:  510 :|:+- Function: parse_definition
+      31) File: Parser/Parser.cpp Line:  401 :|:|+- Function: parse_prototype
+      32) File: Parser/Parser.cpp Line:  827 :|:|+- Function: parse_multiline_expression
+      33) File: Parser/Parser.cpp Line:  287 :|:|:+- Function: parse_simple_expression
+      34) File: Parser/Parser.cpp Line:  607 :|:|:|+- Function: parse_unary
+      35) File: Parser/Parser.cpp Line:  226 :|:|:|:+- Function: parse_primary
+      36) File: Parser/Parser.cpp Line:  175 :|:|:|:|+- Function: parse_identifier_expression
+      37) File: Parser/Parser.cpp Line:  308 :|:|:|+- Function: parse_bin_op_rhs
+      38) File: Parser/Parser.cpp Line:  607 :|:|:|:+- Function: parse_unary
+      39) File: Parser/Parser.cpp Line:  226 :|:|:|:|+- Function: parse_primary
+      40) File: Parser/Parser.cpp Line:  124 :|:|:|:|:+- Function: parse_number_expression
+      41) File: Parser/Parser.cpp Line:  308 :|:|:|+- Function: parse_bin_op_rhs
+      42) File: Parser/Parser.cpp Line:  510 :|:+- Function: parse_definition
+      43) File: Parser/Parser.cpp Line:  401 :|:|+- Function: parse_prototype
+      44) File: Parser/Parser.cpp Line:  827 :|:|+- Function: parse_multiline_expression
+      45) File: Parser/Parser.cpp Line:  287 :|:|:+- Function: parse_simple_expression
+      46) File: Parser/Parser.cpp Line:  607 :|:|:|+- Function: parse_unary
+      47) File: Parser/Parser.cpp Line:  226 :|:|:|:+- Function: parse_primary
+      48) File: Parser/Parser.cpp Line:  175 :|:|:|:|+- Function: parse_identifier_expression
+      49) File: Parser/Parser.cpp Line:  308 :|:|:|+- Function: parse_bin_op_rhs
+      50) File: Parser/Parser.cpp Line:  607 :|:|:|:+- Function: parse_unary
+      51) File: Parser/Parser.cpp Line:  226 :|:|:|:|+- Function: parse_primary
+      52) File: Parser/Parser.cpp Line:  175 :|:|:|:|:+- Function: parse_identifier_expression
+      53) File: Parser/Parser.cpp Line:  308 :|:|:|:+- Function: parse_bin_op_rhs
+      54) File: Parser/Parser.cpp Line:  607 :|:|:|:|+- Function: parse_unary
+      55) File: Parser/Parser.cpp Line:  226 :|:|:|:|:+- Function: parse_primary
+      56) File: Parser/Parser.cpp Line:  175 :|:|:|:|:|+- Function: parse_identifier_expression
+      57) File: Parser/Parser.cpp Line:  308 :|:|:|:+- Function: parse_bin_op_rhs
+      58) File: Parser/Parser.cpp Line:  308 :|:|:|+- Function: parse_bin_op_rhs
+      59) File: Parser/Parser.cpp Line:  287 :|:|:+- Function: parse_simple_expression
+      60) File: Parser/Parser.cpp Line:  607 :|:|:|+- Function: parse_unary
+      61) File: Parser/Parser.cpp Line:  287 :|:|:|:+- Function: parse_simple_expression
+      62) File: Parser/Parser.cpp Line:  607 :|:|:|:|+- Function: parse_unary
+      63) File: Parser/Parser.cpp Line:  226 :|:|:|:|:+- Function: parse_primary
+      64) File: Parser/Parser.cpp Line:  175 :|:|:|:|:|+- Function: parse_identifier_expression
+      65) File: Parser/Parser.cpp Line:  308 :|:|:|:|+- Function: parse_bin_op_rhs
+      66) File: Parser/Parser.cpp Line:  607 :|:|:|:|:+- Function: parse_unary
+      67) File: Parser/Parser.cpp Line:  226 :|:|:|:|:|+- Function: parse_primary
+      68) File: Parser/Parser.cpp Line:  175 :|:|:|:|:|:+- Function: parse_identifier_expression
+      69) File: Parser/Parser.cpp Line:  308 :|:|:|:|+- Function: parse_bin_op_rhs
+      70) File: Parser/Parser.cpp Line:  607 :|:|:|:|:+- Function: parse_unary
+      71) File: Parser/Parser.cpp Line:  226 :|:|:|:|:|+- Function: parse_primary
+      72) File: Parser/Parser.cpp Line:  175 :|:|:|:|:|:+- Function: parse_identifier_expression
+      73) File: Parser/Parser.cpp Line:  308 :|:|:|:|+- Function: parse_bin_op_rhs
+      74) File: Parser/Parser.cpp Line:  308 :|:|:|+- Function: parse_bin_op_rhs
+
+fn out_side_function2 (a)
+    bin'='(v[a], 2)
+    Un'return'(v[a])
+
+
+[Ln:   20, Col:    2]      /!\ Info         Parser Trace Info
+       0) File: Parser/Parser.cpp Line:  656 +- Function: parse
+       1) File: Parser/Parser.cpp Line:  695 :+- Function: handle_definition
+       2) File: Parser/Parser.cpp Line:  510 :|+- Function: parse_definition
+       3) File: Parser/Parser.cpp Line:  401 :|:+- Function: parse_prototype
+       4) File: Parser/Parser.cpp Line:  827 :|:+- Function: parse_multiline_expression
+       5) File: Parser/Parser.cpp Line:  287 :|:|+- Function: parse_simple_expression
+       6) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+       7) File: Parser/Parser.cpp Line:  226 :|:|:|+- Function: parse_primary
+       8) File: Parser/Parser.cpp Line:  175 :|:|:|:+- Function: parse_identifier_expression
+       9) File: Parser/Parser.cpp Line:  308 :|:|:+- Function: parse_bin_op_rhs
+      10) File: Parser/Parser.cpp Line:  607 :|:|:|+- Function: parse_unary
+      11) File: Parser/Parser.cpp Line:  226 :|:|:|:+- Function: parse_primary
+      12) File: Parser/Parser.cpp Line:  124 :|:|:|:|+- Function: parse_number_expression
+      13) File: Parser/Parser.cpp Line:  308 :|:|:+- Function: parse_bin_op_rhs
+      14) File: Parser/Parser.cpp Line:  287 :|:|+- Function: parse_simple_expression
+      15) File: Parser/Parser.cpp Line:  607 :|:|:+- Function: parse_unary
+      16) File: Parser/Parser.cpp Line:  287 :|:|:|+- Function: parse_simple_expression
+      17) File: Parser/Parser.cpp Line:  607 :|:|:|:+- Function: parse_unary
+      18) File: Parser/Parser.cpp Line:  226 :|:|:|:|+- Function: parse_primary
+      19) File: Parser/Parser.cpp Line:  175 :|:|:|:|:+- Function: parse_identifier_expression
+      20) File: Parser/Parser.cpp Line:  308 :|:|:|:+- Function: parse_bin_op_rhs
+      21) File: Parser/Parser.cpp Line:  308 :|:|:+- Function: parse_bin_op_rhs
 

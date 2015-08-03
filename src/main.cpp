@@ -17,7 +17,7 @@ extern "C" double putchard(double X)
     return 0;
 }
 
-using namespace lython;
+using namespace LIBNAMESPACE;
 
 #define LEXER  1
 #define PARSER 1
@@ -30,9 +30,9 @@ int main()
     //lython::FileBuffer buf("../code/test5.ly");
     //lython::FileBuffer buf("../code/for_test.ly");
 
-//    lython::FileBuffer buf("../code/unary_op.ly");
-//    lython::FileBuffer buf("../code/return_stmt.ly");
-    lython::FileBuffer buf("../code/python_test.ly");
+    //lython::FileBuffer buf("../code/unary_op.ly");
+    //lython::FileBuffer buf("../code/return_stmt.ly");
+    lython::FileBuffer buf("../code/class_test.ly");
 
 #if LEXER
     lython::Lexer      lex(buf);

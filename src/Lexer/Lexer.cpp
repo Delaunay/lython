@@ -8,7 +8,7 @@
 //#include <string>
 //#include <vector>
 
-namespace lython
+namespace LIBNAMESPACE
 {
 
 Lexer::Lexer(AbstractBuffer& buf):
@@ -26,7 +26,9 @@ Lexer::Lexer(AbstractBuffer& buf):
     _keywords["binary"] = tok_binary;
     _keywords["in"]     = tok_in;
     _keywords["class"]  = tok_class;
+    _keywords["elif"]   = tok_elif;
 
+    //
     special_char['+'] = 1;
     special_char['-'] = 1;
     special_char['/'] = 1;
@@ -49,6 +51,11 @@ int Lexer::get_token()
     if (c == '\n')
     {
         c = nextc();
+
+        // dont return useless newlines
+        if (empty_line())
+            return get_token();
+
         return tok_newline;
     }
 
@@ -60,25 +67,30 @@ int Lexer::get_token()
         if (c == '\n')
         {
             c = nextc();
+
+            // dont return useless newlines
+            if (empty_line())
+                return get_token();
+
             return tok_newline;
         }
     }
 
     // if the line is empty the indentation change does not matter
-    if (_previous_indent < indent() && !empty_line())
+    if (_previous_indent < indent())
     {
         _previous_indent = indent();
         return tok_indent;
     }
 
-    if (_previous_indent > indent() && !empty_line())
+    if (_previous_indent > indent())
     {
         _previous_indent = indent();
         return tok_desindent;
     }
 
     // Group digits/words
-    if (isalpha(c) || isdigit(c))
+    if (isalpha(c) || isdigit(c) || c == '_')
     {
         if (isalpha(c))
             _type = String;
@@ -184,11 +196,51 @@ int Lexer::get_token()
 const double& Lexer::value() const {   return _value;  }
 const string& Lexer::identifier() const {  return _identifier; }
 
+std::string byte_int_format(int& i)
+{
+    std::string ret = "";
+
+    if (i < 0)
+        ret += "- ";
+    else
+        ret += "  ";
+
+    if (-100 < i && i < 100)
+        ret += "0";
+
+    if (-10 < i && i < 10)
+        ret += "0";
+
+    ret += std::to_string(abs(i));
+
+    return ret;
+}
+
+std::string name_format_str(std::string str, int s = 20)
+{
+    std::string ret = "";
+
+    if (str.size() > s)
+    {
+        for (int i = 0; i < s; i++)
+            ret += str[i];
+
+        return ret;
+    }
+
+    int n = s - str.size();
+
+    for (int i = 0; i < n; i++)
+        str += " ";
+
+    return str;
+}
+
+//
+#define NAME_FORMAT(str, color) color << name_format_str(str, 10) << MRESET
+
 void Lexer::print(std::ostream& str)
 {
-    // save cursor position
-    //int curs = _buffer.cursor();
-
     // restart
     _buffer.restart();
     c = ' ';
@@ -215,57 +267,59 @@ void Lexer::print(std::ostream& str)
         else if (k < 1000)
             str << "0";
 
-        str << k << ": (tok: [" << t << ", '" << char(t) << "'], ";
+        str << k << ": (tok: [" << byte_int_format(t) << "], ";
 
         switch(t)
         {
         case tok_def:
-            str << MBLUE  "def" MRESET ": '" << identifier() << "'";
+            str << NAME_FORMAT("def", MBLUE) << ": '" << identifier() << "'";
             break;
 
         case tok_string_lit:
-            str << MBLUE  "string" MRESET ": '" << identifier() << "'";
+            str << NAME_FORMAT("string", MBLUE) << ": '" << identifier() << "'";
             break;
 
         case tok_extern:
-            str << MBLUE  "ext" MRESET ": '" << identifier() << "'";
+            str << NAME_FORMAT("extern", MBLUE) << ": '" << identifier() << "'";
             break;
 
         case tok_identifier:
         case tok_if:
-//        case tok_then:
-//        case tok_var:
         case tok_else:
         case tok_in:
         case tok_for:
         case tok_unary:
         case tok_binary:
 
-            str << MGREEN "ide" MRESET ": '" << identifier() << "'";
+            str << NAME_FORMAT("identifier", MGREEN) << ": '" << identifier() << "'";
+            break;
+
+        case tok_class:
+            str << NAME_FORMAT("class", MGREEN) << ": '" << indent() << "'";
             break;
 
         case tok_indent:
-            str << MGREEN "Indent" MRESET ": '" << indent() << "'";
+            str << NAME_FORMAT("indent", MGREEN) << ": '" << indent() << "'";
             break;
 
         case tok_desindent:
-            str << MGREEN "Desindent" MRESET ": '" << indent() << "'";
+            str << NAME_FORMAT("desindent", MGREEN) << ": '" << indent() << "'";
             break;
 
         case tok_newline:
-            str << MGREEN "Newline" MRESET;
+            str << NAME_FORMAT("Newline", MGREEN);
             break;
 
         case tok_number:
-            str << MYELLOW "Value" MRESET ": '" << value() << "'";
+            str << NAME_FORMAT("Value", MYELLOW) << ": '" << value() << "'";
             break;
 
         case tok_eof:
-            str << MGREEN "EOF" MRESET;
+            str << NAME_FORMAT("EOF", MGREEN);
             break;
 
         default:
-            str << MRED "chr" MRESET ": '" << char(t) << "'";
+            str << NAME_FORMAT("Char", MRED) << ": '" << char(t) << "'";
             break;
         }
 

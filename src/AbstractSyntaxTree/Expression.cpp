@@ -3,8 +3,26 @@
 #include <cassert>
 
 
-namespace lython{
+namespace LIBNAMESPACE{
 namespace AbstractSyntaxTree{
+
+Pointer<const string>& none_type()
+{
+    static Pointer<const string> none(new const string("None"));
+    return none;
+}
+
+Pointer<const string>& void_type()
+{
+    static Pointer<const string> void_v(new const string("void"));
+    return void_v;
+}
+
+Pointer<const string>& double_type()
+{
+    static Pointer<const string> double_v(new const string("double"));
+    return double_v;
+}
 
 string I(unsigned int n)
 {
@@ -57,7 +75,6 @@ Function::Function(Prototype *proto, Expression *body):
 
 void Function::print(ostream& str, int i)
 {
-    str << I(i);
     prototype->print(str, i);
 
     body->print(str, i + 1);
@@ -67,8 +84,8 @@ void Function::print(ostream& str, int i)
 
 Prototype::Prototype(const string &name, const Arguments& args,
                      bool isoperator, unsigned prec):
-    name(name), args(args), _is_operator(isoperator), _precedence(prec)
-  //, Expression(Type_Prototype)
+    name(name), args(args), _is_operator(isoperator), _precedence(prec),
+    return_type_t(void_type())
 {}
 
 
@@ -91,6 +108,7 @@ void Prototype::print(ostream& str, int i)
 
     for (size_t i = 0, n = args.size(); i < n; i++)
     {
+//        str << args[i].first;
         str << args[i];
 
         if (i != n - 1)
@@ -101,12 +119,12 @@ void Prototype::print(ostream& str, int i)
 }
 
 CallExpression::CallExpression(const std::string &callee, Arguments& args, char c):
-    callee(callee), args(args), Expression(Type_CallExpression), type(c)
+    callee(callee), args(args), Expression(Type_CallExpression), ptype(c)
 {}
 
 void CallExpression::print(ostream& str, int i)
 {
-    str << I(i) << callee << type;
+    str << I(i) << callee << ptype;
 
     for (size_t i = 0, n = args.size(); i < n; i++)
     {
@@ -116,7 +134,7 @@ void CallExpression::print(ostream& str, int i)
             str << ", ";
     }
 
-    if (type == '(')
+    if (ptype == '(')
         str << ")";
     else
         str << "]";
@@ -194,18 +212,23 @@ void UnaryExpression::print(ostream& str, int i)
     str << ")";
 }
 
-//const string Expression        ::idendity()   { return "Raw Expression";        }
-const string VariableExpression::idendity()   { return "Variable Expression";   }
-const string BinaryExpression  ::idendity()   { return "Binary Expression";     }
-const string CallExpression    ::idendity()   { return "Call Expression";       }
-const string Prototype         ::idendity()   { return "Prototype";             }
-const string Function          ::idendity()   { return "Function";              }
-const string IfExpression      ::idendity()   { return "if Expression";         }
-const string ForExpression     ::idendity()   { return "For Expression";        }
-const string UnaryExpression   ::idendity()   { return "Unary Expression";      }
-const string MutableVariableExpression::
-                                 idendity()   { return "Mutable Variable "
-                                                                 "Expression";  }
+void ClassExpression::print(ostream& str, int idt)
+{
+    str << I(idt) << "class " + (*type) + ":\n";
+
+    for(auto i = attributes.begin(); i != attributes.end(); ++i)
+    {
+        (*i).second->print(str, idt + 1);
+        str << "\n";
+    }
+
+    for(auto i = methods.begin(); i != methods.end(); ++i)
+    {
+        (*i).second->print(str, idt + 1);
+        //str << "\n";
+    }
+}
+
 
 }
 }

@@ -5,7 +5,7 @@
 
 #include "../config.h"
 
-namespace lython{
+namespace LIBNAMESPACE{
 
 AbstractBuffer::AbstractBuffer()
 {}
@@ -60,7 +60,7 @@ const int StandardInputBuffer::cursor() const
 
 FileBuffer::FileBuffer(const char* str):
     _cursor(-1), _line(1), _col(1), _doc_line(0),
-    _indent(0)
+    _indent(0), _empty_line(true)
 {
     char c = ' ';
 
@@ -120,6 +120,8 @@ const char& FileBuffer::nextc()
     else
     {
         _col++;
+
+//        if (_file[_cursor + 1] != ' ')
         _empty_line = false;
     }
 

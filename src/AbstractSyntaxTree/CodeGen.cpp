@@ -17,7 +17,7 @@ typedef llvm::Value Value;
 
 #define global_context() llvm::getGlobalContext()
 
-namespace lython
+namespace LIBNAMESPACE
 {
 namespace AbstractSyntaxTree{
 

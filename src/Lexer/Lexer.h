@@ -9,7 +9,7 @@ using namespace std;
 #include "Token.h"
 #include "Buffer.h"
 
-namespace lython{
+namespace LIBNAMESPACE{
 
 /*! Lexer - This provides a simple interface that turns a text buffer into a
  *  stream of tokens.  This provides no support for file reading or buffering,

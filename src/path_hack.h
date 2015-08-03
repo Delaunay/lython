@@ -2,7 +2,10 @@
 #define PROGRAM_PATH_HACK
 
 #include <string>
+#include "config.h"
 
-extern const std::string SOURCE_PATH;
+namespace LIBNAMESPACE{
+    extern const std::string SOURCE_PATH;
+}
 
 #endif

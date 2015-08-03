@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include "../config.h"
 
 #ifdef _MSC_VER
 #   define _CRT_SECURE_NO_WARNINGS
@@ -10,7 +11,7 @@
 
 using namespace std;
 
-namespace lython{
+namespace LIBNAMESPACE{
 
 class AbstractBuffer
 {
@@ -25,9 +26,7 @@ class AbstractBuffer
         {}
 
         virtual void set_cursor(int x)
-        {
-
-        }
+        {}
 
         virtual const int&    current_line () const = 0;
         virtual const int&    current_col  () const = 0;

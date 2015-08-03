@@ -1,16 +1,15 @@
 #ifndef LYTHON_PARSER_PARSER_HEADER
 #define LYTHON_PARSER_PARSER_HEADER
 
-#include "../Generator/Generator.h"
+#include <cstdio>
 
+#include "../Generator/Generator.h"
 #include "../Lexer/Lexer.h"
 #include "../AbstractSyntaxTree/Expression.h"
 #include "../AbstractSyntaxTree/Operators.h"
 
 #include "ObjectManager.h"
 #include "Error.h"
-
-#include <cstdio>
 
 #define PARSER_DBG 1
 
@@ -26,7 +25,7 @@
 
 #define HST_SIZE 10
 
-namespace lython
+namespace LIBNAMESPACE
 {
 
 class Parser
@@ -40,6 +39,7 @@ class Parser
 
         const int& next_token();
         const int  precendence();
+        const int& indent() const { return lexer.indent();  }
 
         AST::Expression* parse_multiline_expression(int idt=0);
         AST::Expression* parse_bin_op_rhs(int exppre, AST::Expression* lhs,int idt=0);
@@ -59,16 +59,20 @@ class Parser
         AST::Prototype*  parse_prototype(int idt=0);
         AST::Function*   parse_top_level_expression(int idt=0);
         AST::Function*   parse_definition(int idt=0);
+        AST::Expression* parse_class(int idt=0);
 
         void handle_definition(int idt=0);
         void handle_extern(int idt=0);
         void handle_top_level_expression(int idt=0);
+        void handle_class(int idt=0);
 
         void parse();
 
+        // 0 return current item
+        // 1 return past item
         const int& past_token(const int& i)
         {
-            return _past_token[(_tk_idx - i) % HST_SIZE];
+            return _past_token[std::max((_tk_idx - i - 1) % HST_SIZE, 0)];
         }
 
     protected:

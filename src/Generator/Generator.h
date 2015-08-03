@@ -34,7 +34,7 @@
 #endif
 
 
-namespace lython{
+namespace LIBNAMESPACE{
 
 class Operators;
 class ObjectManager;

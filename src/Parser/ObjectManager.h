@@ -6,7 +6,7 @@
 // #include <vector>
 // using namespace std;
 
-namespace lython{
+namespace LIBNAMESPACE{
 
 /*  Stupid Garbage Colector, save adresses for deletion
  *
@@ -21,10 +21,6 @@ namespace lython{
  *
  * does they matter ? those are LLVM ineternal
  */
-
-// reads type, cast into correct type and delete it return true
-// if no cast were possible return false
-bool safe_delete(AbstractSyntaxTree::Expression *exp);
 
 class ObjectManager
 {

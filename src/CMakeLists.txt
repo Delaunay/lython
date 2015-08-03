@@ -37,7 +37,8 @@ SET(ADD_HEADERS
     config.h
     Lexer/Token.h
     AbstractSyntaxTree/Operators.h
-    path_hack.h)
+    path_hack.h
+    ptr.h)
 
 
 SET(ADD_SOURCE

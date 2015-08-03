@@ -59,9 +59,9 @@
 #endif
 
 // Garbage Collector Macro
-#define NEW_EXPR(x) _object.new_expr(new x);
-#define NEW_FUNCT(x) _object.new_function(new x)
-#define NEW_PROTO(x) _object.new_prototype(new x)
+#define NEW_EXPR(x)     _object.new_expr(new x);
+#define NEW_FUNCT(x)    _object.new_function(new x)
+#define NEW_PROTO(x)    _object.new_prototype(new x)
 #define NEW_GEN(x) x
 
 // Simplify the expression if possible
@@ -86,7 +86,9 @@
                             RETURN_ERROR(err); \
                         next_token()\
 
-namespace lython
+#define PRINT_TOK() printf("%d [%d %d] %c\n", token(), lexer.line(), lexer.col(), token())
+
+namespace LIBNAMESPACE
 {
 
 const int& Parser::token() const
@@ -121,7 +123,7 @@ AST::Expression* Parser::parse_number_expression(int idt)
 {
     ADD_TRACE
 
-    AST::Expression* expr = NEW_EXPR(AST::DoubleExpression(lexer.value()));
+    AST::Expression* expr = NEW_EXPR(AST::FloatExpression(lexer.value()));
     next_token();
 
     PRINT_EXPR(expr)
@@ -164,7 +166,7 @@ AST::Expression* Parser::parse_parent_expression(int idt)
 }
 
 // identifier '(' expression* ')'
-#define PARENS_OPEN (x) ((x == '(') || (x == '['))
+#define PARENS_OPEN(x) ((x == '(') || (x == '['))
 #define PARENS_CLOSE(x) ((x == ')') || (x == ']'))
 
 
@@ -470,7 +472,8 @@ AST::Prototype* Parser::parse_prototype(int idt)
             next_token();
         else
         {
-            argname.push_back(lexer.identifier());
+            AST::Prototype::add_param(argname, lexer.identifier());
+            //argname.push_back(lexer.identifier());
             next_token();
         }
     }
@@ -506,7 +509,7 @@ AST::Function* Parser::parse_definition(int idt)
 {
     ADD_TRACE
 
-    // Previous tokken is 'def'
+    // Previous token is 'def'
     next_token();
 
     // get the prototype
@@ -646,7 +649,7 @@ void Parser::parse()
     if (_tk_idx == 0)
         next_token();
 
-    int idt = 0;
+    int idt = 1;
 
     while(1)
     {
@@ -657,7 +660,7 @@ void Parser::parse()
             case tok_eof:
                 return;
 
-            case ';':
+            //case ';':
             case tok_desindent:
             case tok_indent:
             case tok_newline:
@@ -666,6 +669,10 @@ void Parser::parse()
 
             case tok_def:
                 handle_definition(idt + 1);
+                break;
+
+            case tok_class:
+                handle_class(idt + 1);
                 break;
 
             case tok_extern:
@@ -679,8 +686,9 @@ void Parser::parse()
 
         SHOWTRACE
     }
-}
 
+
+}
 
 void Parser::handle_definition(int idt)
 {
@@ -697,6 +705,23 @@ void Parser::handle_definition(int idt)
         next_token();
     }
 
+}
+
+void Parser::handle_class(int idt)
+{
+    ADD_TRACE
+
+    AST::Expression* f = parse_class(idt + 1);
+
+    if (f)
+    {
+        PRINT_PARSED_EXPR(f)
+        LLVM_CODE_GEN(f)
+    }
+    else
+    {
+        next_token();
+    }
 }
 
 void Parser::handle_extern(int idt)
@@ -819,7 +844,7 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
         {
             m->add(parse_multiline_expression(idt + 1)/*parse_expression()*/);
         }
-        else if (token() == tok_desindent || token() == tok_eof )
+        else if (token() == tok_desindent || token() == tok_eof)
         {
             // Eat Token
             next_token();
@@ -831,6 +856,90 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
             RETURN_VECTOR(m)
         }
     }
+}
+
+AST::Expression* Parser::parse_class(int idt)
+{
+    ADD_TRACE
+
+    // eat class token
+    next_token();
+
+    if (token() != tok_identifier){
+        RETURN_ERROR("expected class name after 'class'");
+    }
+
+    int class_indent = indent();
+
+    AST::ClassExpression* c = (AST::ClassExpression*)
+            NEW_EXPR(AST::ClassExpression(identifier()));
+
+
+    // eat name identifier
+    next_token();
+
+    // Skip () no inheritance yet
+    if (token() == '(')
+    {
+        next_token();
+
+        while(token() != ')')
+            next_token();
+
+        // eat ')'
+        next_token();
+    }
+
+    // eat ':'
+    if (token() != ':'){
+        RETURN_ERROR("expected class class_name():\\n'");
+    }
+    next_token();
+
+    while(token() == tok_newline)
+        next_token();
+
+    // WTF, empty class
+    if (token() != tok_indent)
+    {
+        next_token();
+        return c;
+    }
+
+    next_token();
+
+    // while(token() != tok_desindent) <= does not work
+    //                  because only one desindent is sent evenif two indent level
+    //                  are lost
+    while(indent() > class_indent)
+    {
+        if (token() == tok_def)
+        {
+            AST::Function* f = parse_definition(idt + 1);
+            c->add_method(f->prototype->name, f);
+        }
+        else if (token() == tok_identifier)
+        {
+            AST::Expression* e = parse_simple_expression(idt + 1);
+
+            if (e->etype != AST::Type_BinaryExpression){
+                RETURN_ERROR("expected attribute assignment");
+            }
+
+            AST::BinaryExpression* be = (AST::BinaryExpression*) e;
+
+            c->add_attr(((AST::VariableExpression*)be->lhs)->name, be->lhs);
+
+            while (token() == tok_newline)
+                next_token();
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return c;
 }
 
 }

@@ -1,13 +1,13 @@
 #ifndef KIWI_PARSER_ERROR_HEADER
 #define KIWI_PARSER_ERROR_HEADER
 
-#include "../config.h"
-#include "../path_hack.h"
-
 #include <string>
 #include <vector>
 #include <iostream>
 #include <algorithm>
+
+#include "../config.h"
+#include "../path_hack.h"
 
 namespace LIBNAMESPACE {
 
@@ -81,6 +81,8 @@ namespace LIBNAMESPACE {
         const std::string&  time(int k)      {   return traceback[k].time;  }
         const bool          intern(int k)    {   return traceback[k].intern;    }
         const int&          indent(int k)    {   return traceback[k].indent;    }
+
+        void flush()    {   out.flush(); }
 
         std::vector<Element> traceback;
         std::ostream& out;
@@ -191,22 +193,32 @@ namespace LIBNAMESPACE {
                     if (current_indent > old_indent)
                     {
                         for(int j = 0; j < old_indent; j++)
-                            out << " ";
-
-                        out << "L";
+                        {
+                            if (j % 2)
+                                out << "|";
+                            else
+                                out << ":";
+                        }
+                        out << "+";
 
                         for (int j = old_indent + 1; j < current_indent; j++)
-                            out << "_";
+                            out << "-";
                     }
                     else
                     {
-                        for (int j = 0; j < current_indent; j++)
-                            out << "_";
+                        for (int j = 0; j < current_indent - 1; j++)
+                        {
+                            if (j % 2)
+                                out << "|";
+                            else
+                                out << ":";
+                        }
+                        out << "+";
                     }
 
                     old_indent = tb->indent(i);
 
-                    out << " Function: " MYELLOW << tb->function(i)            << MRESET "\n";
+                    out << "- Function: " MYELLOW << tb->function(i)            << MRESET "\n";
                 }
                 else
                     for(int i = 0; i < tb->traceback.size(); ++i)

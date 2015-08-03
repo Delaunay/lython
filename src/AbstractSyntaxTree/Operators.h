@@ -2,8 +2,9 @@
 #define LYTHON_AST_OPERATORS_HEADER
 
 #include <unordered_map>
+#include "../config.h"
 
-namespace lython
+namespace LIBNAMESPACE
 {
 
 class Operators
