@@ -13,7 +13,10 @@ class class_name():
     def my_function(self, a, v, c):
         a = c + v
         return a + c + c
-        
+
 def out_side_function2(a):
     a = 2
     return a
+    
+    
+a = 2

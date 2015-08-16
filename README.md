@@ -1,27 +1,21 @@
-# Modified Kaleidoscope 
+# 'Python' Parser (Heavily Modified Kaleidoscope)
 
-Kaleidoscope is a LLVM tutorial in which we learn how to implements your own programming language. 
-If you read the tutorial you know that the tutorials cut some corners (to make our life easier). 
-This is a modified version of Kaleidoscope that cut less corners.
+Lython is based upon the Kaleidoscope tutorial. This is why you may find code
+that are not relevant anymore (especialy from the code generation part of lython
+which I have not yet modified)
 
-You can compile lython without LLVM dependency (it will be able to parse the language and print the resulting in memory representation)
 
-## Currently Implemented
-
-* Chapter 1, 2, 3, 5, 6 (5/9)
-    
 ## Implementation Specific Modification
 * Language Implementation broke down into modules
     * Lexer / Buffer
-        * Lexer does not eat '\n'
-		* new tok_plus_indent and tok_minus_indent
+        * Lexer does not (always) eat '\n' 
+		* new tok_indent and tok_desindent
         * Buffer from file
         * Buffer from standard inputs
         * debug print: print tokenized text 
     * Parser
-        * Object Manager: Keeps tracks of dynamic alloc
+        * Object Manager: Keeps tracks of dynamic alloc (for good conscience)
 		* Parser Traceback make it easier to debug the parser
-		* Lython traceback for code debugging
 		* multiline parsing
 		* [] call
     * Abstract Syntax Tree
@@ -42,11 +36,6 @@ You can compile lython without LLVM dependency (it will be able to parse the lan
 * no more global variables 
 * Dynamic alloc are freed, (LLVM allocs are not yet freed)
 * new code style (can be good or bad ^_^)
-
-## Kaleidoscope Syntax Modification
-
-* Language (sometimes) require ':' and '\n'
-    I basicly tried to make it look like python so just write super basic python
 
 
 Design

@@ -59,9 +59,15 @@
 #endif
 
 // Garbage Collector Macro
-#define NEW_EXPR(x)     _object.new_expr(new x);
-#define NEW_FUNCT(x)    _object.new_function(new x)
-#define NEW_PROTO(x)    _object.new_prototype(new x)
+//#if
+//#define NEW_EXPR(x)     _object.new_expr(new x);
+//#define NEW_FUNCT(x)    _object.new_function(new x)
+//#define NEW_PROTO(x)    _object.new_prototype(new x)
+//#define NEW_GEN(x) x
+
+#define NEW_EXPR(x)     new x;
+#define NEW_FUNCT(x)    new x
+#define NEW_PROTO(x)    new x
 #define NEW_GEN(x) x
 
 // Simplify the expression if possible
@@ -110,10 +116,11 @@ const int& Parser::next_token()
     return _token;
 }
 
-Parser::Parser(Lexer& lex, std::ostream& out):
+Parser::Parser(Lexer& lex, Module& m, std::ostream& out):
     lexer(lex), _token(0), _tk_idx(0),
     _print_out(true), _out(out), _indent(0),
-    _past_token(vector<int>(HST_SIZE))
+    _past_token(vector<int>(HST_SIZE)),
+    _module(m)
 #if LLVM_CODEGEN
     , _gen(_op, _object)
 #endif
@@ -537,19 +544,23 @@ AST::Prototype* Parser::parse_extern(int idt)
     return parse_prototype(idt + 1);
 }
 
-AST::Function* Parser::parse_top_level_expression(int idt)
+AST::Expression* Parser::parse_top_level_expression(int idt)
 {
     ADD_TRACE
 
-    AST::Expression* e = parse_multiline_expression(idt + 1);
+    AST::Expression* e = parse_simple_expression(idt + 1);
+                       // parse_multiline_expression(idt + 1);
                        //parse_expression(idt + 1);
 
     if (e)
     {
-        AST::Prototype* proto = NEW_PROTO(AST::Prototype("",
-                                          AST::Prototype::Arguments()));
+        return e;
 
-        return NEW_FUNCT(AST::Function(proto, e));
+        // this code made the expression callable using lambda function
+//        AST::Prototype* proto = NEW_PROTO(AST::Prototype("",
+//                                          AST::Prototype::Arguments()));
+
+//        return NEW_FUNCT(AST::Function(proto, e));
     }
 
     return 0;
@@ -650,6 +661,8 @@ void Parser::parse()
         next_token();
 
     int idt = 1;
+    AST::Expression* declaration = 0;
+
 
     while(1)
     {
@@ -668,29 +681,39 @@ void Parser::parse()
                 break;  // ignore top-level semicolons.
 
             case tok_def:
-                handle_definition(idt + 1);
+                declaration = handle_definition(idt + 1);
                 break;
 
             case tok_class:
-                handle_class(idt + 1);
+                declaration = handle_class(idt + 1);
                 break;
 
             case tok_extern:
-                handle_extern(idt + 1);
+                declaration = handle_extern(idt + 1);
                 break;
 
             default:
-                handle_top_level_expression(idt + 1);
+                declaration = handle_top_level_expression(idt + 1);
                 break;
         }
 
+        // Save Parsed Expression
+        if (declaration != 0 && declaration->sign() != std::string())
+        {
+            bool r = _module.add_definition(declaration->sign(), declaration);
+
+            if (!r){
+                warning<int>("Object Redefinition", lexer.line(), lexer.col(), &_intern_trace, _out);
+            }
+        }
+        declaration = 0;
         SHOWTRACE
     }
 
 
 }
 
-void Parser::handle_definition(int idt)
+AST::Expression* Parser::handle_definition(int idt)
 {
     ADD_TRACE
 
@@ -705,9 +728,10 @@ void Parser::handle_definition(int idt)
         next_token();
     }
 
+    return f;
 }
 
-void Parser::handle_class(int idt)
+AST::Expression* Parser::handle_class(int idt)
 {
     ADD_TRACE
 
@@ -722,9 +746,11 @@ void Parser::handle_class(int idt)
     {
         next_token();
     }
+
+    return f;
 }
 
-void Parser::handle_extern(int idt)
+AST::Expression* Parser::handle_extern(int idt)
 {
     ADD_TRACE
 
@@ -739,13 +765,17 @@ void Parser::handle_extern(int idt)
     {
         next_token();
     }
+
+    // why extern
+    assert(true);
+    return 0;
 }
 
-void Parser::handle_top_level_expression(int idt)
+AST::Expression* Parser::handle_top_level_expression(int idt)
 {
     ADD_TRACE
 
-    AST::Function* f = parse_top_level_expression(idt + 1);
+    AST::Expression* f = parse_top_level_expression(idt + 1);
 
     if (f)
     {
@@ -759,6 +789,8 @@ void Parser::handle_top_level_expression(int idt)
     else{
         next_token();
     }
+
+    return f;
 }
 
 AST::Expression* Parser::parse_variable_expression(int idt)
@@ -858,6 +890,9 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
     }
 }
 
+//
+//  Object Manager start to be  inadequate
+//
 AST::Expression* Parser::parse_class(int idt)
 {
     ADD_TRACE
@@ -908,18 +943,24 @@ AST::Expression* Parser::parse_class(int idt)
 
     next_token();
 
+    AST::Prototype* proto_ctor = nullptr;
+    AST::MultilineExpression* implied_ctor_body = (AST::MultilineExpression*) NEW_EXPR(AST::MultilineExpression());
+    AST::MultilineExpression* explicit_ctor_body = nullptr;
+
+    bool attribute_def = true;
+
     // while(token() != tok_desindent) <= does not work
     //                  because only one desindent is sent evenif two indent level
     //                  are lost
     while(indent() > class_indent)
     {
-        if (token() == tok_def)
+        if (token() == tok_identifier)
         {
-            AST::Function* f = parse_definition(idt + 1);
-            c->add_method(f->prototype->name, f);
-        }
-        else if (token() == tok_identifier)
-        {
+            if (!attribute_def){
+                RETURN_ERROR("Attribute definition must happen inside __init__\n"
+                             "or just after class declaration");
+            }
+
             AST::Expression* e = parse_simple_expression(idt + 1);
 
             if (e->etype != AST::Type_BinaryExpression){
@@ -928,16 +969,59 @@ AST::Expression* Parser::parse_class(int idt)
 
             AST::BinaryExpression* be = (AST::BinaryExpression*) e;
 
+            // add the attribute name and its 'type'
             c->add_attr(((AST::VariableExpression*)be->lhs)->name, be->lhs);
+
+            // Initialization will be moved to the constructor
+             implied_ctor_body->add(e);
 
             while (token() == tok_newline)
                 next_token();
         }
+        else if (token() == tok_def)
+        {
+            attribute_def = false;
+
+            AST::Function* f = parse_definition(idt + 1);
+
+            if (f->prototype->name == "__init__")
+            {
+                proto_ctor = f->prototype;
+
+                if (f->body->etype == AST::Type_MultilineExpression)
+                    explicit_ctor_body = (AST::MultilineExpression*) f->body;
+                else if (explicit_ctor_body != nullptr)
+                    explicit_ctor_body->add(f->body);
+                else
+                {
+                    // Here memory inefficiency
+                    explicit_ctor_body = (AST::MultilineExpression*) NEW_EXPR(AST::MultilineExpression());
+                    explicit_ctor_body->add(f->body);
+                }
+            }
+            else
+                c->add_method(f->prototype->name, f);
+        }
+
         else
         {
             break;
         }
     }
+
+    // if no constructor specified Create Default constructor
+    if (!proto_ctor)
+        proto_ctor = NEW_PROTO(AST::Prototype("__init__", AST::Prototype::Arguments()));
+
+    // generate new constructor body
+    if (explicit_ctor_body)
+        for(auto i  = explicit_ctor_body->expressions.begin();
+                 i != explicit_ctor_body->expressions.end(); ++i)
+            implied_ctor_body->add((*i));
+
+    AST::Function* constructor = NEW_FUNCT(AST::Function(proto_ctor, implied_ctor_body));
+
+    c->add_method("__init__", constructor);
 
     return c;
 }

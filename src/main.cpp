@@ -21,6 +21,7 @@ using namespace LIBNAMESPACE;
 
 #define LEXER  1
 #define PARSER 1
+#define MODULE 1
 
 int main()
 {
@@ -40,8 +41,10 @@ int main()
 
     std::ofstream file("../log/lython_parser.log");
 
+    Module module("class_test");
+
 #if PARSER
-    lython::Parser     par(lex, file);
+    lython::Parser     par(lex, module, file);
 #endif
 
     buf.restart();
@@ -55,6 +58,9 @@ int main()
     par.parse();
 #endif
 
+#if MODULE
+    module.print(std::cout);
+#endif
 
     return 0;
 }

@@ -8,6 +8,7 @@
 #include "../AbstractSyntaxTree/Expression.h"
 #include "../AbstractSyntaxTree/Operators.h"
 
+#include "Module.h"
 #include "ObjectManager.h"
 #include "Error.h"
 
@@ -32,7 +33,7 @@ class Parser
 {
     public:
 
-        Parser(Lexer& lex, std::ostream& out = std::cout);
+        Parser(Lexer& lex, Module& m, std::ostream& out = std::cout);
 
         const int& token() const;
         const string& identifier() const; // shortcut
@@ -57,14 +58,14 @@ class Parser
 
         AST::Prototype*  parse_extern(int idt=0);
         AST::Prototype*  parse_prototype(int idt=0);
-        AST::Function*   parse_top_level_expression(int idt=0);
+        AST::Expression* parse_top_level_expression(int idt=0);
         AST::Function*   parse_definition(int idt=0);
         AST::Expression* parse_class(int idt=0);
 
-        void handle_definition(int idt=0);
-        void handle_extern(int idt=0);
-        void handle_top_level_expression(int idt=0);
-        void handle_class(int idt=0);
+        AST::Expression* handle_definition(int idt=0);
+        AST::Expression* handle_extern(int idt=0);
+        AST::Expression* handle_top_level_expression(int idt=0);
+        AST::Expression* handle_class(int idt=0);
 
         void parse();
 
@@ -91,6 +92,7 @@ class Parser
         std::ostream& _out;
         int           _indent;
 
+        Module&       _module;
         vector<int>   _past_token;
 
 #if PARSER_DBG

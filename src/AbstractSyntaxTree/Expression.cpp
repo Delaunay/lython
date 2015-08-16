@@ -44,7 +44,7 @@ void Expression::print(ostream& str, int i)
 }
 
 VariableExpression::VariableExpression(const string &name):
-    name(name)
+    name(name), Expression(Type_VariableExpression)
 {}
 
 void VariableExpression::print(ostream& str, int i)
@@ -70,7 +70,7 @@ void BinaryExpression::print(ostream& str, int i)
 }
 
 Function::Function(Prototype *proto, Expression *body):
-    prototype(proto), body(body) //, Expression(Type_Function)
+    prototype(proto), body(body), Expression(Type_Function)
 {}
 
 void Function::print(ostream& str, int i)

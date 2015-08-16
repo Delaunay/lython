@@ -45,6 +45,12 @@
  *
  */
 
+
+// BaseExpression
+// \---- Statement      if/for/while
+// \---- Declaration    class/def/ variable declaration
+// \---- Expression     everything else
+
 using namespace std;
 
 namespace LIBNAMESPACE
@@ -89,6 +95,19 @@ namespace AbstractSyntaxTree
     // generate correct indent
     string I(unsigned int n);
 
+
+//    class AbstractExpression
+//    {
+//        virtual void print(ostream& str, int i = 0){}
+//    };
+
+//    class SignatureExpression : public AbstractExpression
+//    {
+//        typedef std::string Signature;
+
+//        virtual Signature sign();
+//    };
+
     class Expression
     {
         public:
@@ -103,6 +122,10 @@ namespace AbstractSyntaxTree
             virtual ~Expression();
 
             virtual void print(ostream& str, int i = 0);
+
+            typedef std::string Signature;
+
+            virtual Signature sign()    {   return Signature(); }
 
             // Expression Type
             const ExpressionType etype;
@@ -144,6 +167,8 @@ namespace AbstractSyntaxTree
 
             void print(ostream& str, int i = 0);
 
+            Signature sign()    {   return name; }
+
             DEFINE_CODE_GEN
 
             // TYPE
@@ -171,6 +196,18 @@ namespace AbstractSyntaxTree
                 //
                 type = lhs->type;
                 return type;
+            }
+
+            Signature sign()
+            {
+                // Assignment
+                if (op == "="){
+                    if (lhs->etype == Type_VariableExpression){
+                        return ((VariableExpression*) lhs)->sign();
+                    }
+                }
+
+                return Signature();
             }
 
             DEFINE_CODE_GEN
@@ -272,7 +309,7 @@ namespace AbstractSyntaxTree
 
     // prototype  => fn name(args1, args2, args3, ...)
     // expression =>
-    class Function
+    class Function: public Expression
     {
         public:
             Function(Prototype *proto, Expression *body);
@@ -282,6 +319,24 @@ namespace AbstractSyntaxTree
             const Pointer<const string>& return_type()
             {
                 return prototype->return_type();
+            }
+
+            Signature sign()
+            {
+//                // We check for assignment
+//                if (prototype->name == std::string())
+//                {
+//                    if (body->etype == Type_BinaryExpression)
+//                    {
+//                        BinaryExpression* n = (BinaryExpression*) body;
+
+//                        if (n->op == "=")
+//                            if (n->lhs->etype == Type_VariableExpression)
+//                                return ((VariableExpression*) n->lhs)->name;
+//                    }
+//                }
+
+                return prototype->name;
             }
 
             DEFINE_CODE_GEN
@@ -476,6 +531,9 @@ namespace AbstractSyntaxTree
             void set_docstring(string val) {   ((TypedExpression<string>*) attr("__docstring__"))->value = val;    }
 
             void print(ostream& str, int i = 0);
+
+
+            Signature sign()    {   return this->name(); }
 
             unordered_map<Signature, Expression*> attributes;
             unordered_map<Signature, Function*> methods;

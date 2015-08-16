@@ -5,7 +5,7 @@
 #include "config.h"
 
 namespace LIBNAMESPACE{
-    extern const std::string SOURCE_PATH;
+    extern const std::string& source_path();
 }
 
 #endif
