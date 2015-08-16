@@ -25,6 +25,8 @@ which I have not yet modified)
 		* Optional
     
 * New Error Reporting (still basic)
+
+
     => [Ln: 4, Col: 1]      /!\ Error     Expected ':' in prototype 
 	=>		0) File: Parser\Parser.cpp Line:  582 Function: parse
     => 	  	1) File: Parser\Parser.cpp Line:  682 Function:  handle_top_level_expression
@@ -74,7 +76,7 @@ token -*- my tokens -*-
 
 ## Syntax Tree
 
-    Implements memory representation of expression sources,
+Implements memory representation of expression sources,
     
 code -*- my_source -*-
 
@@ -122,5 +124,5 @@ IR Print -*- std::cout -*-
 
 ## Parser
     
-    Takes token and returns memory representation of the source as Expression
+Takes token and returns memory representation of the source as Expression
    
