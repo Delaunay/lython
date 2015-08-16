@@ -15,9 +15,9 @@ namespace LIBNAMESPACE
 class Module : private boost::noncopyable
 {
 public:
-    typedef std::string Signature;
-    typedef AST::Expression Object ;
-    typedef std::unordered_map<Signature, Object*> ObjectHolder;
+    ef std::string Signature;
+    ef AST::Expression Object ;
+    ef std::unordered_map<Signature, Object*> ObjectHolder;
 
     Module(const std::string& name, bool owning=true):
         _name(name), _owner(owning)
@@ -88,7 +88,7 @@ public:
                 if (b->lhs->etype == AST::Type_VariableExpression)
                     out << "Variable";
 
-                if (b->rhs->etype == AST::Type_TypedExpression){
+                if (b->rhs->etype == AST::Type_Expression){
                     out << " ";
                     b->rhs->print(out);
                 }

@@ -1,7 +1,7 @@
 # 'Python' Parser (Heavily Modified Kaleidoscope)
 
 Lython is based upon the Kaleidoscope tutorial. This is why you may find code
-that are not relevant anymore (especialy from the code generation part of lython
+that are not relevant anymore (especially from the code generation part of lython
 which I have not yet modified)
 
 
