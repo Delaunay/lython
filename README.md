@@ -27,13 +27,13 @@ which I have not yet modified)
 * New Error Reporting (still basic)
 
 
-    => [Ln: 4, Col: 1]      /!\ Error     Expected ':' in prototype 
-	=>		0) File: Parser\Parser.cpp Line:  582 Function: parse
-    => 	  	1) File: Parser\Parser.cpp Line:  682 Function:  handle_top_level_expression
-    =>   	2) File: Parser\Parser.cpp Line:  467 Function:   parse_top_level_expression
-    =>   	3) File: Parser\Parser.cpp Line:  191 Function:    parse_expression
-    =>   	4) File: Parser\Parser.cpp Line:  548 Function:     parse_unary
-    =>   	5) File: Parser\Parser.cpp Line:  548 Function:     parse_unary
+    [Ln: 4, Col: 1]      /!\ Error     Expected ':' in prototype 
+        0) File: Parser\Parser.cpp Line:  582 Function: parse
+        1) File: Parser\Parser.cpp Line:  682 Function:  handle_top_level_expression
+        2) File: Parser\Parser.cpp Line:  467 Function:   parse_top_level_expression
+        3) File: Parser\Parser.cpp Line:  191 Function:    parse_expression
+        4) File: Parser\Parser.cpp Line:  548 Function:     parse_unary
+        5) File: Parser\Parser.cpp Line:  548 Function:     parse_unary
     
 * no more global variables 
 * Dynamic alloc are freed, (LLVM allocs are not yet freed)
