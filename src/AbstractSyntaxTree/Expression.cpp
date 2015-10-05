@@ -24,17 +24,6 @@ Pointer<const string>& double_type()
     return double_v;
 }
 
-string I(unsigned int n)
-{
-    string str = "";
-
-    for (unsigned int i = 0; i < n; i++)
-        str += "    ";
-
-    return str;
-}
-
-
 Expression::~Expression()
 {}
 
@@ -43,8 +32,8 @@ void Expression::print(ostream& str, int i)
     str << "Empty Expression";
 }
 
-VariableExpression::VariableExpression(const string &name):
-    name(name), Expression(Type_VariableExpression)
+VariableExpression::VariableExpression(Scope& s, const string &name):
+    name(name), ScopedExpression(name, s, Type_VariableExpression)
 {}
 
 void VariableExpression::print(ostream& str, int i)
@@ -69,8 +58,8 @@ void BinaryExpression::print(ostream& str, int i)
     str << ")";
 }
 
-Function::Function(Prototype *proto, Expression *body):
-    prototype(proto), body(body), Expression(Type_Function)
+Function::Function(const std::string& name, Scope& s, Prototype *proto, Expression *body):
+    ScopedExpression(name, s, Type_Function), prototype(proto), body(body)
 {}
 
 void Function::print(ostream& str, int i)

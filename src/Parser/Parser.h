@@ -8,23 +8,25 @@
 #include "../AbstractSyntaxTree/Expression.h"
 #include "../AbstractSyntaxTree/Operators.h"
 
-#include "Module.h"
-#include "ObjectManager.h"
+#include "../AbstractSyntaxTree/Scope.h"
 #include "Error.h"
 
 #define PARSER_DBG 1
 
 #ifndef MRED
-#define MRED     "\x1b[31m"
-#define MGREEN   "\x1b[32m"
-#define MYELLOW  "\x1b[33m"
-#define MBLUE    "\x1b[34m"
-#define MMAGENTA "\x1b[35m"
-#define MCYAN    "\x1b[36m"
-#define MRESET   "\x1b[0m"
+#   define MRED     "\x1b[31m"
+#   define MGREEN   "\x1b[32m"
+#   define MYELLOW  "\x1b[33m"
+#   define MBLUE    "\x1b[34m"
+#   define MMAGENTA "\x1b[35m"
+#   define MCYAN    "\x1b[36m"
+#   define MRESET   "\x1b[0m"
 #endif
 
+// history size
 #define HST_SIZE 10
+
+#define COMM_ARGS Scope& s, int idt=0
 
 namespace LIBNAMESPACE
 {
@@ -33,7 +35,7 @@ class Parser
 {
     public:
 
-        Parser(Lexer& lex, Module& m, std::ostream& out = std::cout);
+        Parser(Lexer& lex, Scope& m, std::ostream& out = std::cout);
 
         const int& token() const;
         const string& identifier() const; // shortcut
@@ -43,29 +45,29 @@ class Parser
         const int& indent() const { return lexer.indent();  }
 
         AST::Expression* parse_multiline_expression(int idt=0);
-        AST::Expression* parse_bin_op_rhs(int exppre, AST::Expression* lhs,int idt=0);
+        AST::Expression* parse_bin_op_rhs(Scope &s, int exppre, AST::Expression* lhs, int idt=0);
         AST::Expression* parse_number_expression(int idt=0);
         AST::Expression* parse_string_expression(int idt=0);
-        AST::Expression* parse_parent_expression(int idt=0);
-        AST::Expression* parse_if_expression(int idt=0);
-        AST::Expression* parse_for_expression(int idt=0);
-        AST::Expression* parse_unary(int idt=0);
-        AST::Expression* parse_variable_expression(int idt=0);
-        AST::Expression* parse_simple_expression(int idt=0);
+        AST::Expression* parse_parent_expression(Scope &s, int idt=0);
+        AST::Expression* parse_if_expression(Scope& s, int idt=0);
+        AST::Expression* parse_for_expression(Scope& s, int idt=0);
+        AST::Expression* parse_unary(Scope &s, int idt=0);
+        AST::Expression* parse_variable_expression(Scope &s, int idt=0);
+        AST::Expression* parse_simple_expression(Scope &s, int idt=0);
 
-        AST::Expression* parse_identifier_expression(int idt=0);
-        AST::Expression* parse_primary(int idt=0);
+        AST::Expression* parse_identifier_expression(Scope& s, int idt=0);
+        AST::Expression* parse_primary(Scope &s, int idt=0);
 
         AST::Prototype*  parse_extern(int idt=0);
         AST::Prototype*  parse_prototype(int idt=0);
-        AST::Expression* parse_top_level_expression(int idt=0);
-        AST::Function*   parse_definition(int idt=0);
-        AST::Expression* parse_class(int idt=0);
+        AST::Expression* parse_top_level_expression(Scope &s, int idt=0);
+        AST::Function*   parse_definition(Scope &s, int idt=0);
+        AST::Expression* parse_class(Scope &s, int idt=0);
 
-        AST::Expression* handle_definition(int idt=0);
-        AST::Expression* handle_extern(int idt=0);
-        AST::Expression* handle_top_level_expression(int idt=0);
-        AST::Expression* handle_class(int idt=0);
+        AST::ScopedExpression* handle_definition(Scope &s, int idt=0);
+        AST::ScopedExpression* handle_extern(int idt=0);
+        AST::Expression* handle_top_level_expression(Scope &s, int idt=0);
+        AST::ScopedExpression* handle_class(Scope &s, int idt=0);
 
         void parse();
 
@@ -84,7 +86,6 @@ class Parser
 
         Operators     _op;
         int           _tk_idx;
-        ObjectManager _object;
         int           _token;
         Lexer          lexer;
 
@@ -92,7 +93,7 @@ class Parser
         std::ostream& _out;
         int           _indent;
 
-        Module&       _module;
+        Scope&        _module;
         vector<int>   _past_token;
 
 #if PARSER_DBG

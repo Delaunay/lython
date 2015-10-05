@@ -10,6 +10,7 @@
 
 #include "../Generator/Generator.h"
 #include "../ptr.h"
+#include "Scope.h"
 
 #include <string>
 #include <vector>
@@ -43,41 +44,57 @@
  *
  * Type is infered using TypeCreator's type
  *
+ * Memory Management
+ * ------------------
+ *
+ *  ScopedExpression delete their components themselves.
+ *  Every other expression should be managed by a ScopedExpression
+ *
  */
 
 
 // BaseExpression
-// \---- Statement      if/for/while
-// \---- Declaration    class/def/ variable declaration
-// \---- Expression     everything else
+// \-- Statement      if/for/while
+// \-- Declaration    class/def/ variable declaration
+// \-- Expression     everything else
 
 using namespace std;
 
 namespace LIBNAMESPACE
 {
+    class Scope;
+
 namespace AbstractSyntaxTree
 {
     typedef string Signature;
 
+    #define I(x) std::string(x * 4, ' ')
+
+    // variables/function/class declaration
+    // ScopedExpression must have a Signature which is unique for Similar item
+
     enum ExpressionType
     {
-        Type_Expression,
-        Type_BinaryExpression,
-        Type_CallExpression,
-        Type_ForExpression,
-        Type_Function,
-        Type_IfExpression,
-        Type_MultilineExpression,
-        Type_MutableVariableExpression,
-        Type_Prototype,
-        Type_TypedExpression,
-        Type_UnaryExpression,
-        Type_VariableExpression,
-        Type_ClassExpression,
+        Type_Expression                 =     0,        // Everything is an expression
+        Type_ScopedExpression           =     1,
+        Type_ScopeExpression            =     2,
+        Type_VariableExpression         =     4 | Type_ScopedExpression,
 
-        Type_Int,
-        Type_Float,
-        Type_String
+        Type_BinaryExpression           =     8,
+        Type_CallExpression             =    16,
+        Type_ForExpression              =    32,
+        Type_Function                   =    64 | Type_ScopedExpression,
+        Type_IfExpression               =   128,
+        Type_MultilineExpression        =   256 | Type_ScopeExpression,
+        Type_MutableVariableExpression  =   512,
+        Type_Prototype                  =  1024,
+        Type_TypedExpression            =  2048,
+        Type_UnaryExpression            =  4096,
+        Type_ClassExpression            =  8192 | Type_ScopedExpression | Type_ScopeExpression,
+
+        Type_Int                        = 16384 | Type_TypedExpression,
+        Type_Float                      = 32768 | Type_TypedExpression,
+        Type_String                     = 65536 | Type_TypedExpression
     };
 
     enum ValueType
@@ -90,10 +107,10 @@ namespace AbstractSyntaxTree
     // we are going to save some memory by defining a pointer to None
     Pointer<const string>& none_type();
     Pointer<const string>& void_type();     // functions return void by default
-    Pointer<const string>& double_type();   // to simplify: everything else is double by default
+    Pointer<const string>& double_type();   // to simplify: ev erything else is double by default
 
     // generate correct indent
-    string I(unsigned int n);
+    // string I(unsigned int n);
 
 
 //    class AbstractExpression
@@ -123,9 +140,7 @@ namespace AbstractSyntaxTree
 
             virtual void print(ostream& str, int i = 0);
 
-            typedef std::string Signature;
-
-            virtual Signature sign()    {   return Signature(); }
+            //bool is_scoped()    {   return etype | Type_ScopedExpression;    }
 
             // Expression Type
             const ExpressionType etype;
@@ -141,6 +156,49 @@ namespace AbstractSyntaxTree
             virtual llvm::Value* code_gen(Generator& g) = 0;
         #endif
     };
+
+    /*
+     *  Expression inside Scope
+     *
+     *  Scoped Expression register themselves into a scope
+     */
+    class ScopedExpression: public Expression
+    {
+    public:
+        ScopedExpression(const std::string& sig, Scope& scope, ExpressionType t = Type_ScopedExpression, bool tp = false):
+            Expression(t, tp)
+        {
+            scope.add_definition(sig, this);
+        }
+
+        ScopedExpression(const std::string& sig, Scope& scope, ExpressionType t, const string& st, bool tp = false):
+            Expression(t, st, tp)
+        {
+            scope.add_definition(sig, this);
+        }
+
+        virtual const Signature& sign()
+        {
+            return (*none_type());
+        }
+    };
+
+    /*
+     *  Expression with Scope
+     */
+    class ScopeExpression: public Expression
+    {
+    public:
+        ScopeExpression(ExpressionType t = Type_ScopeExpression, bool tp = false):
+            Expression(t, tp), _scope("", true)
+        {}
+
+        Scope& scope()  {   return _scope;   }
+
+    private:
+        Scope _scope;
+    };
+
 
     /// VarExprAST - Expression class for var/in
     /// for posterity
@@ -160,14 +218,14 @@ namespace AbstractSyntaxTree
     };
 
     /// VariableExprAST - Expression class for referencing a variable, like "a"
-    class VariableExpression: public Expression
+    class VariableExpression: public ScopedExpression
     {
         public:
-            VariableExpression(const string &name);
+            VariableExpression(Scope &s, const string &name);
 
             void print(ostream& str, int i = 0);
 
-            Signature sign()    {   return name; }
+            const Signature& sign()    {   return name; }
 
             DEFINE_CODE_GEN
 
@@ -198,24 +256,23 @@ namespace AbstractSyntaxTree
                 return type;
             }
 
-            Signature sign()
-            {
-                // Assignment
-                if (op == "="){
-                    if (lhs->etype == Type_VariableExpression){
-                        return ((VariableExpression*) lhs)->sign();
-                    }
-                }
+//            const Signature& sign()
+//            {
+//                // Assignment
+//                if (op == "="){
+//                    if (lhs->etype == Type_VariableExpression){
+//                        return ((VariableExpression*) lhs)->sign();
+//                    }
+//                }
 
-                return Signature();
-            }
+//                return Signature();
+//            }
 
             DEFINE_CODE_GEN
 
             string       op;
             Expression *lhs;
             Expression *rhs;
-
     };
 
     // represent a calling inside an expression
@@ -309,10 +366,10 @@ namespace AbstractSyntaxTree
 
     // prototype  => fn name(args1, args2, args3, ...)
     // expression =>
-    class Function: public Expression
+    class Function: public ScopedExpression
     {
         public:
-            Function(Prototype *proto, Expression *body);
+            Function(const std::string& n, Scope &s, Prototype *proto, Expression *body);
 
             void print(ostream& str, int i = 0);
 
@@ -321,7 +378,7 @@ namespace AbstractSyntaxTree
                 return prototype->return_type();
             }
 
-            Signature sign()
+            const Signature& sign() override
             {
 //                // We check for assignment
 //                if (prototype->name == std::string())
@@ -343,6 +400,7 @@ namespace AbstractSyntaxTree
 
             Prototype* prototype;
             Expression* body;
+            Scope* scope;
     };
 
     class IfExpression : public Expression
@@ -401,12 +459,12 @@ namespace AbstractSyntaxTree
         Expression* operand;
     };
 
-    class MultilineExpression : public Expression
+    class MultilineExpression : public ScopeExpression
     {
         public:
 
             MultilineExpression():
-                Expression(Type_MultilineExpression, true)
+                ScopeExpression(Type_MultilineExpression, true)
             {}
 
             ~MultilineExpression()
@@ -506,25 +564,41 @@ namespace AbstractSyntaxTree
             T value;
     };
 
-    class ClassExpression: public Expression
+    class ClassExpression: public ScopedExpression
     {
         public:
 
-            ClassExpression(string class_name):
-                Expression(Type_ClassExpression, class_name)
+            ClassExpression(Scope& scpe, string class_name):
+                ScopedExpression(class_name, scpe, Type_ClassExpression, class_name),
+                _scope("", false)
             {
                 add_attr("__docstring__", new StringExpression(""));
             }
 
-            ~ClassExpression() {   delete attr("__docstring__");   }
+            ~ClassExpression()
+            {
+                for (auto& i:attributes)
+                    delete i.second;
+
+                for (auto& i:methods)
+                    delete i.second;
+            }
 
             inline Expression* attr(const Signature& s)  {   return attributes[s];         }
             inline bool    has_attr(const Signature& s)  {   return attributes.count(s);   }
-            inline void    add_attr(const Signature& s, Expression* e)   {   attributes[s] = e;  }
+            inline void    add_attr(const Signature& s, Expression* e)
+            {
+                _scope.add_definition(s, e);
+                attributes[s] = e;
+            }
 
             inline Function* method(const Signature& s)   {   return methods[s];  }
             inline bool  has_method(const Signature& s)   {   return methods.count(s);    }
-            inline void  add_method(const Signature& s, Function* e)   {   methods[s] = e;    }
+            inline void  add_method(const Signature& s, Function* e)
+            {
+                _scope.add_definition(s, e);
+                methods[s] = e;
+            }
 
             inline const string& name() {   return (*type); }
 
@@ -532,40 +606,17 @@ namespace AbstractSyntaxTree
 
             void print(ostream& str, int i = 0);
 
-
-            Signature sign()    {   return this->name(); }
+            Signature& sign()    {   return (Signature &)(*type); }
 
             unordered_map<Signature, Expression*> attributes;
             unordered_map<Signature, Function*> methods;
+
+
+            Scope& scope()  {   return _scope;   }
+
+    private:
+            Scope _scope;
     };
-
-    // wrong way
-//    class PyFunction: public ClassExpression
-//    {
-//        PyFunction(string name):
-//            ClassExpression(name)
-//        {
-//            add_attr("__call__", 0);
-//        }
-
-//        ~PyFunction()
-//        {
-//            Expression* e = attr("__call__");
-//            if (e != nullptr)
-//                delete e;
-//        }
-
-
-//        // naaaa it is Function
-////        CallExpression* caller()
-////        {
-////            return (CallExpression*) attr("__call__");
-////        }
-//    };
-
-//    typedef TypedExpression<double> DoubleExpression;
-//    typedef TypedExpression<int>    IntExpression;
-//    typedef TypedExpression<std::string>    StringExpression;
 }
 
 namespace AST = AbstractSyntaxTree;

@@ -44,7 +44,7 @@ namespace LIBNAMESPACE {
                         out << ":";
                 }
                 out << "+";
-                out << "- Function: " << function         << "\n";
+                out << "- Function: " << function         << std::endl;
             }
 
             std::string file;
@@ -65,9 +65,11 @@ namespace LIBNAMESPACE {
         void add(std::string i, std::string j, unsigned int k, int idt=0, bool push_to_out=false)
         {
             traceback.push_back(Element(i, j, k, 0, true, idt));
+            if (idt == 1)
+                out << "\n";
 
-            if (push_to_out && idt < 100)
-                (*traceback.rbegin()).print(out, traceback.size());
+            if (/*push_to_out &&*/ idt < 100)
+                (*traceback.rbegin()).print(out, traceback.size() - 1);
         }
 
         void add_extern(std::string file, std::string function, unsigned int line, unsigned col)

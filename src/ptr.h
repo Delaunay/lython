@@ -62,22 +62,13 @@ public:
         ++(*_ref_count);
     }
 
-    ~Pointer()
-    {
-        if (--(*_ref_count) == 0){
-            delete _ptr;
-            delete _ref_count;
-        }
-    }
+    ~Pointer()  {   destroy();  }
 
     Pointer& operator=(const Pointer& rhs)
     {
         ++(*rhs._ref_count);
 
-        if (--(*_ref_count) == 0){
-                delete _ptr;
-                delete _ref_count;
-        }
+        destroy();
 
         _ref_count = rhs._ref_count;
         _ptr = rhs._ptr;
@@ -110,12 +101,20 @@ public:
         return _ptr;
     }
 
-    operator bool() const
-    {
-        return _ptr;
-    }
+    operator bool() const   {   return _ptr;    }
+
+    size_type count() const {   return *_ref_count; }
 
 protected:
+
+    inline void destroy()
+    {
+        if (--(*_ref_count) == 0){
+            delete _ptr;
+            delete _ref_count;
+        }
+    }
+
     T* _ptr;
     size_type* _ref_count;
 };

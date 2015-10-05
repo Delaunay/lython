@@ -7,7 +7,7 @@
 #   define ADD_TRACE add_trace(_intern_trace, idt);
 // Print partial results
 //#   define PRINT_EXPR(expr) expr->print(std::cout); std::cout << "\n";
-// Make the progrom print out trace info and force the program to crash
+// Make the program print out trace info and force the program to crash
 #   define CRASH_PARSER info<int>("Parser Trace Info", lexer.line(), lexer.col(), &_intern_trace, _out);\
                         _out.flush();\
                         assert(false);
@@ -23,7 +23,7 @@
 #endif
 
 #ifndef PRINT_EXPR
-#   define PRINT_EXPR(expr)
+#   define PRINT_EXPR(expr) //{expr->print(_out); _out << std::endl;}
 #endif
 
 // Print expression after a successful Parsing
@@ -71,10 +71,10 @@
 #define NEW_GEN(x) x
 
 // Simplify the expression if possible
-#define RETURN_VECTOR(m)    if (m->expressions.size() == 1)\
-                                return (m->expressions)[0];\
-                            else\
-                                return m;
+#define RETURN_VECTOR(m)    if (m->expressions.size() == 1){\
+                                return (m->expressions)[0];}\
+                            else{\
+                                return m;}
 
 #define RETURN_ERROR(msg)  add_trace(_intern_trace, idt); \
                            return error<AST::Expression>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
@@ -88,11 +88,11 @@
 #define ERRORP(msg) add_trace(_intern_trace, idt); \
                     error<AST::Prototype>(msg, lexer.line(), lexer.col(), &_intern_trace, _out)
 
-#define EAT_TOK(x, err) if (token() != x) \
-                            RETURN_ERROR(err); \
+#define EAT_TOK(x, err) if (token() != x){\
+                            RETURN_ERROR(err);}\
                         next_token()\
 
-#define PRINT_TOK() printf("%d [%d %d] %c\n", token(), lexer.line(), lexer.col(), token())
+#define PRINT_TOK() printf("%d [%d %d] %c %s\n", token(), lexer.line(), lexer.col(), token(), identifier().c_str())
 
 namespace LIBNAMESPACE
 {
@@ -116,7 +116,7 @@ const int& Parser::next_token()
     return _token;
 }
 
-Parser::Parser(Lexer& lex, Module& m, std::ostream& out):
+Parser::Parser(Lexer& lex, Scope& m, std::ostream& out):
     lexer(lex), _token(0), _tk_idx(0),
     _print_out(true), _out(out), _indent(0),
     _past_token(vector<int>(HST_SIZE)),
@@ -149,12 +149,12 @@ AST::Expression* Parser::parse_string_expression(int idt)
 }
 
 // Expression inside parenthesis
-AST::Expression* Parser::parse_parent_expression(int idt)
+AST::Expression* Parser::parse_parent_expression(Scope& s, int idt)
 {
     ADD_TRACE
     next_token();   // Eat '('
 
-    AST::Expression* expr = parse_simple_expression(idt + 1);
+    AST::Expression* expr = parse_simple_expression(s, idt + 1);
                           //parse_expression(idt + 1);
 
     if (!expr){
@@ -177,7 +177,7 @@ AST::Expression* Parser::parse_parent_expression(int idt)
 #define PARENS_CLOSE(x) ((x == ')') || (x == ']'))
 
 
-AST::Expression* Parser::parse_identifier_expression(int idt)
+AST::Expression* Parser::parse_identifier_expression(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -186,7 +186,7 @@ AST::Expression* Parser::parse_identifier_expression(int idt)
 
     // if it is not a function then it is a Variable
     if (!PARENS_OPEN(token())){
-        return NEW_EXPR(AST::VariableExpression(idname));
+        return NEW_EXPR(AST::VariableExpression(s, idname));
     }
 
     char c = token();
@@ -198,9 +198,8 @@ AST::Expression* Parser::parse_identifier_expression(int idt)
     {
         // extract arguments
         while(1)
-        {
-            AST::Expression* arg = parse_simple_expression(idt + 1);
-                                 //parse_expression(idt + 1);
+        {                        //parse_expression(idt + 1);
+            AST::Expression* arg = parse_simple_expression(s, idt + 1);
 
             if (!arg)
                 return 0;
@@ -228,7 +227,7 @@ AST::Expression* Parser::parse_identifier_expression(int idt)
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-AST::Expression* Parser::parse_primary(int idt)
+AST::Expression* Parser::parse_primary(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -238,7 +237,7 @@ AST::Expression* Parser::parse_primary(int idt)
     switch(token())
     {
     case tok_identifier: // - 4
-        return parse_identifier_expression(idt + 1);
+        return parse_identifier_expression(s, idt + 1);
 
     case tok_number:     // - 5
         return parse_number_expression(idt + 1);
@@ -247,16 +246,16 @@ AST::Expression* Parser::parse_primary(int idt)
         return parse_string_expression(idt + 1);
 
     case '(':
-        return parse_parent_expression(idt + 1);
+        return parse_parent_expression(s, idt + 1);
 
     case tok_indent:
         return parse_multiline_expression(idt + 1); //parse_expression(idt + 1);
 
     case tok_if:
-        return parse_if_expression(idt + 1);
+        return parse_if_expression(s, idt + 1);
 
     case tok_for:
-        return parse_for_expression(idt + 1);
+        return parse_for_expression(s, idt + 1);
 
     case tok_else:
     case tok_def:
@@ -289,11 +288,11 @@ const int Parser::precendence()
     return tokpre;
 }
 
-AST::Expression* Parser::parse_simple_expression(int idt)
+AST::Expression* Parser::parse_simple_expression(Scope& s, int idt)
 {
     ADD_TRACE
 
-    AST::Expression* lhs = parse_unary(idt + 1);
+    AST::Expression* lhs = parse_unary(s, idt + 1);
 
     PRINT_EXPR(lhs)
 
@@ -305,10 +304,11 @@ AST::Expression* Parser::parse_simple_expression(int idt)
     if (!lhs)
         return 0;
 
-    return parse_bin_op_rhs(0, lhs, idt + 1);
+    //std::cout << __FUNCTION__ << std::endl;
+    return parse_bin_op_rhs(s, 0, lhs, idt + 1);
 }
 
-AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs, int idt)
+AST::Expression* Parser::parse_bin_op_rhs(Scope& s, int exppre, AST::Expression* lhs, int idt)
 {
     while(1 && token())
     {
@@ -316,18 +316,20 @@ AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs, int 
 
         int tokpre = precendence();
 
-        if (tokpre < exppre)
+        if (tokpre < exppre){
             return lhs;
+        }
 
         string binop;
 
         // Bin op is an identifier
-        if (token() == tok_identifier)
+        if (token() == tok_identifier){
             binop = identifier();
-
+        }
         // Bin op is a character
-        else
+        else{
             binop += token();
+        }
 
         next_token();
 
@@ -337,16 +339,17 @@ AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs, int 
             return NEW_EXPR(AST::UnaryExpression(binop, lhs));
         }
 
-        AST::Expression* rhs = parse_unary(idt + 1);
+        AST::Expression* rhs = parse_unary(s, idt + 1);
 
-        if (!rhs)
+        if (!rhs){
             return 0;
+        }
 
         int nextpre = precendence();
 
         if (tokpre < nextpre)
         {
-            rhs = parse_bin_op_rhs(tokpre + 1, rhs, idt + 1);
+            rhs = parse_bin_op_rhs(s, tokpre + 1, rhs, idt + 1);
 
             if (rhs == 0){
                 return 0;
@@ -354,17 +357,18 @@ AST::Expression* Parser::parse_bin_op_rhs(int exppre, AST::Expression* lhs, int 
         }
 
         lhs = NEW_EXPR(AST::BinaryExpression(binop, lhs, rhs));
+
         PRINT_EXPR(lhs)
     }
 }
 
-AST::Expression* Parser::parse_if_expression(int idt)
+AST::Expression* Parser::parse_if_expression(Scope& s, int idt)
 {
     ADD_TRACE
 
     next_token();
 
-    AST::Expression* cond = parse_simple_expression(idt + 1);
+    AST::Expression* cond = parse_simple_expression(s, idt + 1);
 
     if (!cond){
         return 0;
@@ -379,8 +383,9 @@ AST::Expression* Parser::parse_if_expression(int idt)
     AST::Expression* then = parse_multiline_expression(idt + 1);
                           //parse_expression(idt + 1);
 
-    if (then == 0)
+    if (then == 0){
         return 0;
+    }
 
     if (token() != tok_else){
         RETURN_ERROR("expected 'else' statement");
@@ -452,7 +457,7 @@ AST::Prototype* Parser::parse_prototype(int idt)
         if (token() == tok_number)
         {
             if (lexer.value() < 1 || lexer.value() > 100){
-                RETURN_ERRORP("Invalid precedecnce: must be 1..100");
+                RETURN_ERRORP("Invalid precedence: must be 1..100");
             }
 
             prec = (unsigned) lexer.value();
@@ -475,8 +480,9 @@ AST::Prototype* Parser::parse_prototype(int idt)
     // extract arguments
     while (token() == tok_identifier || token() == ',')
     {
-        if (token() == ',')
+        if (token() == ','){
             next_token();
+        }
         else
         {
             AST::Prototype::add_param(argname, lexer.identifier());
@@ -497,8 +503,9 @@ AST::Prototype* Parser::parse_prototype(int idt)
     if (token() == ':'){
         next_token(); // eat ':'
 
-        if (token() == tok_newline) // eat '\n'
+        if (token() == tok_newline){ // eat '\n'
             next_token();
+        }
     }
     else{
         RETURN_ERRORP("Expected ':' in prototype");
@@ -512,7 +519,7 @@ AST::Prototype* Parser::parse_prototype(int idt)
     return NEW_PROTO(AST::Prototype(fnname, argname, kind != 0, prec));
 }
 
-AST::Function* Parser::parse_definition(int idt)
+AST::Function* Parser::parse_definition(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -530,7 +537,7 @@ AST::Function* Parser::parse_definition(int idt)
     AST::Expression* e = parse_multiline_expression(idt + 1);
 
     if (e){
-        return NEW_FUNCT(AST::Function(proto, e));
+        return NEW_FUNCT(AST::Function(proto->name, s, proto, e));
     }
 
     return 0;
@@ -544,11 +551,11 @@ AST::Prototype* Parser::parse_extern(int idt)
     return parse_prototype(idt + 1);
 }
 
-AST::Expression* Parser::parse_top_level_expression(int idt)
+AST::Expression* Parser::parse_top_level_expression(Scope&s, int idt)
 {
     ADD_TRACE
 
-    AST::Expression* e = parse_simple_expression(idt + 1);
+    AST::Expression* e = parse_simple_expression(s, idt + 1);
                        // parse_multiline_expression(idt + 1);
                        //parse_expression(idt + 1);
 
@@ -566,7 +573,7 @@ AST::Expression* Parser::parse_top_level_expression(int idt)
     return 0;
 }
 
-AST::Expression* Parser::parse_for_expression(int idt)
+AST::Expression* Parser::parse_for_expression(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -588,7 +595,7 @@ AST::Expression* Parser::parse_for_expression(int idt)
     next_token();  // eat 'in'.
 
     // range(0, 1):
-    AST::Expression *start = parse_simple_expression(idt + 1);
+    AST::Expression *start = parse_simple_expression(s, idt + 1);
 
     if (token() != ':'){
         RETURN_ERROR("expected ':'");
@@ -613,7 +620,7 @@ AST::Expression* Parser::parse_for_expression(int idt)
 }
 
 
-AST::Expression* Parser::parse_unary(int idt)
+AST::Expression* Parser::parse_unary(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -623,7 +630,7 @@ AST::Expression* Parser::parse_unary(int idt)
         (token() == tok_identifier && _op.is_operator(identifier()) != 1) ||
          token() != tok_identifier)
     {
-        return parse_primary(idt + 1);
+        return parse_primary(s, idt + 1);
     }
 
     // If this is a unary operator, read it.
@@ -637,7 +644,7 @@ AST::Expression* Parser::parse_unary(int idt)
     next_token();
 
     // it not unary anymore
-    AST::Expression *operand = parse_simple_expression(idt + 1);
+    AST::Expression *operand = parse_simple_expression(s, idt + 1);
                              //parse_primary(idt + 1);
                              //parse_unary(idt + 1);
 
@@ -661,7 +668,7 @@ void Parser::parse()
         next_token();
 
     int idt = 1;
-    AST::Expression* declaration = 0;
+    AST::ScopedExpression* declaration = 0;
 
 
     while(1)
@@ -681,11 +688,11 @@ void Parser::parse()
                 break;  // ignore top-level semicolons.
 
             case tok_def:
-                declaration = handle_definition(idt + 1);
+                declaration = handle_definition(_module, idt + 1);
                 break;
 
             case tok_class:
-                declaration = handle_class(idt + 1);
+                declaration = handle_class(_module, idt + 1);
                 break;
 
             case tok_extern:
@@ -693,31 +700,33 @@ void Parser::parse()
                 break;
 
             default:
-                declaration = handle_top_level_expression(idt + 1);
+                handle_top_level_expression(_module, idt + 1);
                 break;
         }
 
         // Save Parsed Expression
-        if (declaration != 0 && declaration->sign() != std::string())
-        {
-            bool r = _module.add_definition(declaration->sign(), declaration);
+        //if (declaration->etype)
 
-            if (!r){
-                warning<int>("Object Redefinition", lexer.line(), lexer.col(), &_intern_trace, _out);
-            }
-        }
-        declaration = 0;
+//        if (declaration != 0 && declaration->sign() != std::string())
+//        {
+//            bool r = _module.add_definition(declaration->sign(), declaration);
+
+//            if (!r){
+//                warning<int>("Object Redefinition", lexer.line(), lexer.col(), &_intern_trace, _out);
+//            }
+//        }
+//        declaration = 0;
         SHOWTRACE
     }
 
 
 }
 
-AST::Expression* Parser::handle_definition(int idt)
+AST::ScopedExpression* Parser::handle_definition(Scope& s, int idt)
 {
     ADD_TRACE
 
-    AST::Function* f = parse_definition(idt + 1);
+    AST::Function* f = parse_definition(s, idt + 1);
 
     if(f)
     {
@@ -731,11 +740,11 @@ AST::Expression* Parser::handle_definition(int idt)
     return f;
 }
 
-AST::Expression* Parser::handle_class(int idt)
+AST::ScopedExpression *Parser::handle_class(Scope& s, int idt)
 {
     ADD_TRACE
 
-    AST::Expression* f = parse_class(idt + 1);
+    AST::ScopedExpression* f = (AST::ScopedExpression*) parse_class(s, idt + 1);
 
     if (f)
     {
@@ -750,7 +759,7 @@ AST::Expression* Parser::handle_class(int idt)
     return f;
 }
 
-AST::Expression* Parser::handle_extern(int idt)
+AST::ScopedExpression* Parser::handle_extern(int idt)
 {
     ADD_TRACE
 
@@ -771,11 +780,11 @@ AST::Expression* Parser::handle_extern(int idt)
     return 0;
 }
 
-AST::Expression* Parser::handle_top_level_expression(int idt)
+AST::Expression* Parser::handle_top_level_expression(Scope& s, int idt)
 {
     ADD_TRACE
 
-    AST::Expression* f = parse_top_level_expression(idt + 1);
+    AST::Expression* f = parse_top_level_expression(s, idt + 1);
 
     if (f)
     {
@@ -793,7 +802,7 @@ AST::Expression* Parser::handle_top_level_expression(int idt)
     return f;
 }
 
-AST::Expression* Parser::parse_variable_expression(int idt)
+AST::Expression* Parser::parse_variable_expression(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -819,7 +828,7 @@ AST::Expression* Parser::parse_variable_expression(int idt)
         {
            next_token(); // eat the '='.
 
-           init = parse_simple_expression(idt + 1);
+           init = parse_simple_expression(s, idt + 1);
 
            if (init == 0)
                return 0;
@@ -845,7 +854,7 @@ AST::Expression* Parser::parse_variable_expression(int idt)
 
     next_token();  // eat 'in'.
 
-    AST::Expression *body = parse_simple_expression(idt + 1);
+    AST::Expression *body = parse_simple_expression(s, idt + 1);
 
     if (body == 0)
         return 0;
@@ -867,7 +876,7 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
 
     while(1)
     {
-        m->add(parse_simple_expression(idt + 1));
+        m->add(parse_simple_expression(m->scope(), idt + 1));
 
         while(token() == tok_newline)
             next_token();
@@ -893,7 +902,7 @@ AST::Expression* Parser::parse_multiline_expression(int idt)
 //
 //  Object Manager start to be  inadequate
 //
-AST::Expression* Parser::parse_class(int idt)
+AST::Expression* Parser::parse_class(Scope& s, int idt)
 {
     ADD_TRACE
 
@@ -907,7 +916,7 @@ AST::Expression* Parser::parse_class(int idt)
     int class_indent = indent();
 
     AST::ClassExpression* c = (AST::ClassExpression*)
-            NEW_EXPR(AST::ClassExpression(identifier()));
+            NEW_EXPR(AST::ClassExpression(s, identifier()));
 
 
     // eat name identifier
@@ -961,7 +970,7 @@ AST::Expression* Parser::parse_class(int idt)
                              "or just after class declaration");
             }
 
-            AST::Expression* e = parse_simple_expression(idt + 1);
+            AST::Expression* e = parse_simple_expression(c->scope(), idt + 1);
 
             if (e->etype != AST::Type_BinaryExpression){
                 RETURN_ERROR("expected attribute assignment");
@@ -973,7 +982,7 @@ AST::Expression* Parser::parse_class(int idt)
             c->add_attr(((AST::VariableExpression*)be->lhs)->name, be->lhs);
 
             // Initialization will be moved to the constructor
-             implied_ctor_body->add(e);
+            implied_ctor_body->add(e);
 
             while (token() == tok_newline)
                 next_token();
@@ -982,7 +991,7 @@ AST::Expression* Parser::parse_class(int idt)
         {
             attribute_def = false;
 
-            AST::Function* f = parse_definition(idt + 1);
+            AST::Function* f = parse_definition(c->scope(), idt + 1);
 
             if (f->prototype->name == "__init__")
             {
@@ -1019,7 +1028,7 @@ AST::Expression* Parser::parse_class(int idt)
                  i != explicit_ctor_body->expressions.end(); ++i)
             implied_ctor_body->add((*i));
 
-    AST::Function* constructor = NEW_FUNCT(AST::Function(proto_ctor, implied_ctor_body));
+    AST::Function* constructor = NEW_FUNCT(AST::Function(proto_ctor->name, c->scope(), proto_ctor, implied_ctor_body));
 
     c->add_method("__init__", constructor);
 

@@ -41,7 +41,7 @@ int main()
 
     std::ofstream file("../log/lython_parser.log");
 
-    Module module("class_test");
+    Scope module("class_test");
 
 #if PARSER
     lython::Parser     par(lex, module, file);
@@ -59,7 +59,9 @@ int main()
 #endif
 
 #if MODULE
-    module.print(std::cout);
+    std::cout << "\n\n";
+//    module.print(std::cout);
+    module.print(file);
 #endif
 
     return 0;

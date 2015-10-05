@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 # Enable C++11
 # `llvm-config --cxxflags --ldflags --system-libs --libs core jit native`
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fPIC")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fPIC")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
 #===============================================================================
@@ -48,13 +49,13 @@ SET(ADD_SOURCE
 #           Compiling
 #===============================================================================
 
-SET(LLVM_LINKING -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen
-                 -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMObject
-                 -lLLVMMCParser -lLLVMBitReader -lLLVMX86Info -lLLVMX86AsmPrinter
-                 -lLLVMX86Utils -lLLVMJIT -lLLVMExecutionEngine -lLLVMCodeGen
-                 -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils
-                 -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMCore
-                 -lLLVMSupport -lrt -ldl -ltinfo -lpthread -lz)
+#SET(LLVM_LINKING -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen
+#                 -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMObject
+#                 -lLLVMMCParser -lLLVMBitReader -lLLVMX86Info -lLLVMX86AsmPrinter
+#                 -lLLVMX86Utils -lLLVMJIT -lLLVMExecutionEngine -lLLVMCodeGen
+#                 -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils
+#                 -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMCore
+#                 -lLLVMSupport -lrt -ldl -ltinfo -lpthread -lz)
 
 # testing
 #==================
