@@ -1,22 +1,6 @@
 project(lython)
 cmake_minimum_required(VERSION 2.8)
 
-# Enable C++11
-# `llvm-config --cxxflags --ldflags --system-libs --libs core jit native`
-#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fPIC")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
-
-#===============================================================================
-#           LLVM Source
-#===============================================================================
-
-SET(LLVM_DIR "~/llvm/build/")
-SET(LLVM_BUILD_DIR "~/llvm/")
-
-include_directories("${LLVM_DIR}/include")
-include_directories("${LLVM_BUILD_DIR}/include")
-
 #===============================================================================
 #           Project Source
 #===============================================================================
@@ -35,7 +19,6 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/Generator")
 
 # Source
 SET(ADD_HEADERS
-<<<<<<< HEAD
     AbstractSyntaxTree/Expressions.h
     AbstractSyntaxTree/Names.h
     # AbstractSyntaxTree/Types.h
@@ -58,32 +41,6 @@ SET(ADD_SOURCE
     Parser/Parser.cpp
 )
 
-# Compile
-=======
-    config.h
-    Lexer/Token.h
-    AbstractSyntaxTree/Operators.h
-    path_hack.h
-    ptr.h)
-
-
-SET(ADD_SOURCE
-    path_hack.cpp)
-
-#===============================================================================
-#           Compiling
-#===============================================================================
-
-#SET(LLVM_LINKING -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen
-#                 -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMObject
-#                 -lLLVMMCParser -lLLVMBitReader -lLLVMX86Info -lLLVMX86AsmPrinter
-#                 -lLLVMX86Utils -lLLVMJIT -lLLVMExecutionEngine -lLLVMCodeGen
-#                 -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils
-#                 -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMCore
-#                 -lLLVMSupport -lrt -ldl -ltinfo -lpthread -lz)
-
-# testing
->>>>>>> parent of 9b637c4... Lexer
 #==================
 add_executable(${PROJECT_NAME} "${PROJECT_SOURCE_DIR}/main.cpp"
                                 ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
