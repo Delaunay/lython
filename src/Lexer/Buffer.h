@@ -1,7 +1,8 @@
-#pragma once
+#ifndef LYTHON_LEXER_BUFFER_HEADER
+#define LYTHON_LEXER_BUFFER_HEADER
 
-#include <cstdio>
 #include <string>
+<<<<<<< HEAD
 #include "../Types.h"
 
 /*
@@ -58,92 +59,115 @@ private:
     uint32 _indent{0};
     bool _empty_line{true};
 };
+=======
+#include <iostream>
+#include "../config.h"
+>>>>>>> parent of 9b637c4... Lexer
 
-class FileError{
-public:
-    const char* what() noexcept{
-        return "FileError : File does not exist";
-    }
+#ifdef _MSC_VER
+#   define _CRT_SECURE_NO_WARNINGS
+#endif
+
+using namespace std;
+
+namespace LIBNAMESPACE{
+
+class AbstractBuffer
+{
+    public:
+         AbstractBuffer();
+        ~AbstractBuffer();
+
+        virtual const char& nextc() = 0;
+        virtual const int cursor() const = 0;    // postion
+
+        virtual void restart()
+        {}
+
+        virtual void set_cursor(int x)
+        {}
+
+        virtual const int&    current_line () const = 0;
+        virtual const int&    current_col  () const = 0;
+        virtual const string& file         () const = 0;
+        virtual const int&    indent       () const = 0;
+        virtual const bool& is_line_empty() const  = 0;
+
+        // virtual const bool end() = 0;
+};
+
+class StandardInputBuffer : public AbstractBuffer
+{
+    public:
+        // TODO
+         StandardInputBuffer();
+        ~StandardInputBuffer();
+
+        const char& nextc();
+        const int cursor() const;
+
+        const int&    current_line () const {   return _line;     }
+        const int&    current_col  () const {   return _col;      }
+        const string& file         () const {   return _string;     }
+        const int&    indent       () const {   return _indent;     }
+        const bool&   is_line_empty() const {   return _empty_line;}
+
+        void print(std::ostream& str);
+
+    protected:
+
+        string _string;
+
+        int _cursor;
+        int _line;
+        int _col;
+        int _indent;
+        bool _empty_line;
+
+        char c;
+        int p;
 };
 
 class FileBuffer : public AbstractBuffer
 {
-public:
-    FileBuffer(const std::string& name):
-        _file_name(name)
-    {
-        _file = fopen(_file_name.c_str(), "r");
+    public:
+         FileBuffer(const char* str);
+        ~FileBuffer();
 
-        if (!_file)
-            throw FileError();
-    }
+        const char& operator[] (int idx) const;
 
-    ~FileBuffer(){
-        fclose(_file);
-    }
+        const char& nextc();
+        const char& prevc();
 
-    virtual char getc(){
-        return ::getc(_file);
-    }
+        const int cursor() const;
+        const size_t size() const;
 
-    virtual const std::string& file_name(){ return _file_name;  }
+        const int&    current_line () const;
+        const int&    current_col  () const;
+        const int&    document_line() const;
+        const string& file         () const;
 
-private:
-    std::string _file_name;
-    FILE*       _file{nullptr};
-};
+        void restart();
+        void set_cursor(int x);
 
-class StringBuffer: public AbstractBuffer
-{
-public:
-    StringBuffer(std::string& code):
-        _code(code), _file_name("c++ string")
-    {}
+        void print(std::ostream& str);
 
-    virtual char getc(){
+        const int& indent() const   {   return _indent; }
+        const bool& is_line_empty() const { return _empty_line;}
 
-        if (_pos >= _code.size())
-            return EOF;
+    protected:
 
-        _pos += 1;
-        return _code[_pos - 1];
-    }
+        int _indent;
+        int _doc_line;
+        bool _empty_line;
 
-    virtual const std::string& file_name(){ return _file_name;  }
+        string _file;
 
-private:
-    uint32  _pos{0};
-    std::string& _code;
-    const std::string _file_name;
-
-public:
-    // helper for testing
-    void read_all(){
-        char c;
-        do{ c = nextc();    }
-        while(c);
-    }
-
-    void load_code(const std::string& code){
-        _code = code;
-        _pos = 0;
-    }
-};
-
-// Quick solution but not satisfactory
-class ConsoleBuffer: public AbstractBuffer
-{
-public:
-    ConsoleBuffer():
-        _file_name("console")
-    {}
-
-    virtual char getc(){    return std::getchar(); }
-
-    virtual const std::string& file_name(){ return _file_name;  }
-
-private:
-    const std::string _file_name;
+        int _cursor;
+        int _line;
+        int _col;
 };
 
 }
+
+#endif

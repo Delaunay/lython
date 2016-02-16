@@ -22,7 +22,7 @@ Makefile*
 *.depend
 *.layout
 *.save
-*.user*
+*.user
 
 /build/
 /build*/
