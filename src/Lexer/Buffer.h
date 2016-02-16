@@ -1,114 +1,161 @@
-#ifndef LYTHON_LEXER_BUFFER_HEADER
-#define LYTHON_LEXER_BUFFER_HEADER
+#pragma once
 
+#include <cstdio>
 #include <string>
-#include <iostream>
-#include "../config.h"
+#include "../Types.h"
 
-#ifdef _MSC_VER
-#   define _CRT_SECURE_NO_WARNINGS
-#endif
-
-using namespace std;
-
-namespace LIBNAMESPACE{
-
+/*
+ *  Buffers are special reader that keep track of current line/col and indent level
+ *  they only need getc() to be defined to work properly
+ *
+ *  StringBuffer is made to make debugging easy (might be useful for
+ *  the eval option and macro gen)
+ *
+ *  FileBuffer is the usual reader
+ */
+namespace lython{
 class AbstractBuffer
 {
-    public:
-         AbstractBuffer();
-        ~AbstractBuffer();
+public:
 
-        virtual const char& nextc() = 0;
-        virtual const int cursor() const = 0;    // postion
+    virtual char getc() = 0;
+    virtual const std::string& file_name() = 0;
 
-        virtual void restart()
-        {}
+    char nextc(){
 
-        virtual void set_cursor(int x)
-        {}
+        c = getc();
 
-        virtual const int&    current_line () const = 0;
-        virtual const int&    current_col  () const = 0;
-        virtual const string& file         () const = 0;
-        virtual const int&    indent       () const = 0;
-        virtual const bool& is_line_empty() const  = 0;
+        if (c == '\n'){
+            _line += 1;
+            _col = 0;
+            _indent = 0;
+            _empty_line = true;
+            return c;
+        }
 
-        // virtual const bool end() = 0;
+        if (c == ' '){
+            if (_empty_line)
+                _indent += 1;
+
+            _col += utf8_inc(c);
+            return c;
+        }
+
+        _col += utf8_inc(c);
+        _empty_line = false;
+        return c;
+    }
+
+    // UTF8 Char position
+    uint32 utf8_inc(char cc){
+        if (cc < 128 || cc >= 192)
+            return 1;
+        return 0;
+    }
+
+    uint32 line()      {    return _line;   }
+    uint32 col()       {    return _col;    }
+    uint32 indent()    {    return _indent; }
+    bool empty_line() { return _empty_line; }
+
+    operator bool(){
+        return c != EOF;
+    }
+
+private:
+    char   c{'%'};
+    uint32 _line{1};
+    uint32 _col{0};
+    uint32 _indent{0};
+    bool _empty_line{true};
+    bool _run_once{true};
 };
 
-class StandardInputBuffer : public AbstractBuffer
-{
-    public:
-        // TODO
-         StandardInputBuffer();
-        ~StandardInputBuffer();
-
-        const char& nextc();
-        const int cursor() const;
-
-        const int&    current_line () const {   return _line;     }
-        const int&    current_col  () const {   return _col;      }
-        const string& file         () const {   return _string;     }
-        const int&    indent       () const {   return _indent;     }
-        const bool&   is_line_empty() const {   return _empty_line;}
-
-        void print(std::ostream& str);
-
-    protected:
-
-        string _string;
-
-        int _cursor;
-        int _line;
-        int _col;
-        int _indent;
-        bool _empty_line;
-
-        char c;
-        int p;
+class FileError{
+public:
+    const char* what() noexcept{
+        return "FileError : File does not exist";
+    }
 };
 
 class FileBuffer : public AbstractBuffer
 {
-    public:
-         FileBuffer(const char* str);
-        ~FileBuffer();
+public:
+    FileBuffer(const std::string& name):
+        _file_name(name)
+    {
+        _file = fopen(_file_name.c_str(), "r");
 
-        const char& operator[] (int idx) const;
+        if (!_file)
+            throw FileError();
+    }
 
-        const char& nextc();
-        const char& prevc();
+    ~FileBuffer(){
+        fclose(_file);
+    }
 
-        const int cursor() const;
-        const size_t size() const;
+    virtual char getc(){
+        return ::getc(_file);
+    }
 
-        const int&    current_line () const;
-        const int&    current_col  () const;
-        const int&    document_line() const;
-        const string& file         () const;
+    virtual const std::string& file_name(){ return _file_name;  }
 
-        void restart();
-        void set_cursor(int x);
+private:
+    std::string _file_name;
+    FILE*       _file{nullptr};
+};
 
-        void print(std::ostream& str);
+class StringBuffer: public AbstractBuffer
+{
+public:
+    StringBuffer(std::string& code):
+        _code(code), _file_name("c++ string")
+    {}
 
-        const int& indent() const   {   return _indent; }
-        const bool& is_line_empty() const { return _empty_line;}
+    virtual char getc(){
 
-    protected:
+        if (_pos >= _code.size())
+            return EOF;
 
-        int _indent;
-        int _doc_line;
-        bool _empty_line;
+        _pos += 1;
+        return _code[_pos - 1];
+    }
 
-        string _file;
+    virtual const std::string& file_name(){ return _file_name;  }
 
-        int _cursor;
-        int _line;
-        int _col;
+private:
+    uint32  _pos{0};
+    std::string& _code;
+    const std::string _file_name;
+
+public:
+    // helper for testing
+    void read_all(){
+        char c;
+        do{ c = nextc();    }
+        while(c);
+    }
+
+    void load_code(const std::string& code){
+        _code = code;
+        _pos = 0;
+    }
+};
+
+// Quick solution but not satisfactory
+class ConsoleBuffer: public AbstractBuffer
+{
+public:
+    ConsoleBuffer():
+        _file_name("console")
+    {}
+
+    virtual char getc(){    return std::getchar(); }
+
+    virtual const std::string& file_name(){ return _file_name;  }
+
+private:
+    const std::string _file_name;
 };
 
 }
-
-#endif

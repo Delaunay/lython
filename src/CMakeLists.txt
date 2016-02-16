@@ -1,79 +1,59 @@
-project(lython)
-cmake_minimum_required(VERSION 2.8)
-
-# Enable C++11
-# `llvm-config --cxxflags --ldflags --system-libs --libs core jit native`
-#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -fPIC")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
-
-#===============================================================================
-#           LLVM Source
-#===============================================================================
-
-SET(LLVM_DIR "~/llvm/build/")
-SET(LLVM_BUILD_DIR "~/llvm/")
-
-include_directories("${LLVM_DIR}/include")
-include_directories("${LLVM_BUILD_DIR}/include")
-
 #===============================================================================
 #           Project Source
 #===============================================================================
 
+INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+
 # Sources
-aux_source_directory("${PROJECT_SOURCE_DIR}/AbstractSyntaxTree" SRC_LIST)
-aux_source_directory("${PROJECT_SOURCE_DIR}/Lexer"              SRC_LIST)
-aux_source_directory("${PROJECT_SOURCE_DIR}/Parser"             SRC_LIST)
-aux_source_directory("${PROJECT_SOURCE_DIR}/Generator"          SRC_LIST)
+# aux_source_directory("${PROJECT_SOURCE_DIR}/AbstractSyntaxTree" SRC_LIST)
+#AUX_SOURCE_DIRECTORY("${PROJECT_SOURCE_DIR}/Lexer"              SRC_LIST)
+# aux_source_directory("${PROJECT_SOURCE_DIR}/Parser"             SRC_LIST)
+# aux_source_directory("${PROJECT_SOURCE_DIR}/Generator"          SRC_LIST)
 
 # directories
-add_subdirectory("${PROJECT_SOURCE_DIR}/AbstractSyntaxTree")
-add_subdirectory("${PROJECT_SOURCE_DIR}/Lexer")
-add_subdirectory("${PROJECT_SOURCE_DIR}/Parser")
-add_subdirectory("${PROJECT_SOURCE_DIR}/Generator")
+ADD_SUBDIRECTORY(AbstractSyntaxTree)
+ADD_SUBDIRECTORY(Lexer)
+ADD_SUBDIRECTORY(Parser)
+ADD_SUBDIRECTORY(Generator)
 
 # Source
 SET(ADD_HEADERS
-    config.h
-    Lexer/Token.h
-    AbstractSyntaxTree/Operators.h
-    path_hack.h
-    ptr.h)
-
+    AbstractSyntaxTree/Expressions.h
+    AbstractSyntaxTree/Names.h
+    # AbstractSyntaxTree/Types.h
+    Lexer/Lexer.h
+    Lexer/PreLexer.h
+    Lexer/Buffer.h
+    Lexer/Tokens.h
+    Parser/Parser.h
+    fmt.h
+)
 
 SET(ADD_SOURCE
-    path_hack.cpp)
+    AbstractSyntaxTree/Expressions.cpp
+    AbstractSyntaxTree/Names.cpp
+    # AbstractSyntaxTree/Types.cpp
+    Lexer/Lexer.cpp
+    Lexer/PreLexer.cpp
+    Lexer/Buffer.cpp
+    Lexer/Tokens.cpp
+    Parser/Parser.cpp
+)
 
-#===============================================================================
-#           Compiling
-#===============================================================================
-
-#SET(LLVM_LINKING -lLLVMX86Disassembler -lLLVMX86AsmParser -lLLVMX86CodeGen
-#                 -lLLVMSelectionDAG -lLLVMAsmPrinter -lLLVMX86Desc -lLLVMObject
-#                 -lLLVMMCParser -lLLVMBitReader -lLLVMX86Info -lLLVMX86AsmPrinter
-#                 -lLLVMX86Utils -lLLVMJIT -lLLVMExecutionEngine -lLLVMCodeGen
-#                 -lLLVMScalarOpts -lLLVMInstCombine -lLLVMTransformUtils
-#                 -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMMC -lLLVMCore
-#                 -lLLVMSupport -lrt -ldl -ltinfo -lpthread -lz)
-
-# testing
+# Compile
 #==================
-add_executable(${PROJECT_NAME} "${PROJECT_SOURCE_DIR}/main.cpp"
-                                ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
+# Compile as a library to avoid double compilation
+ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
 
-target_link_libraries(${PROJECT_NAME} ${LLVM_LINKING})
+ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} liblython)
 
-
-## default Compiler
-##==================
-#add_executable(ilython "${PROJECT_SOURCE_DIR}/interpreter/interpreter.cpp"
-#                        ${SRC_LIST} ${LEXER_HEADERS})
-
-#target_link_libraries(ilython ${LLVM_LINKING})
+# Enable C++11
+SET(${CXX_STANDARD_REQUIRED} ON)
+SET_PROPERTY(TARGET liblython PROPERTY CXX_STANDARD 11)
+SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 
 
-## Compiling Original Source Code! (Check is all flags are here)
-##==================
-#add_executable(full_source "${PROJECT_SOURCE_DIR}/test/full_source.cpp")
-#target_link_libraries(full_source ${LLVM_LINKING})
+
+
