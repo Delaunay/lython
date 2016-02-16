@@ -5,7 +5,7 @@
 #include "Lexer/Buffer.h"
 #include "Lexer/Lexer.h"
 
-// #include "Lexer/Prelexer.h"
+#include "Lexer/Prelexer.h"
 
 #include "revision_data.h"
 
@@ -40,14 +40,14 @@ int main()
         "a = 3\n"
     );
 
-    //StringBuffer reader(code);
+    StringBuffer reader(code);
 
     //for(int i = 0; i < 10; ++i)
     //    std::cout << reader.nextc() << std::endl;
 
-    //Prelexer pl(reader);
+    Prelexer pl(reader);
 
-    //pl.debug_print(std::cout);
+    pl.debug_print(std::cout);
 
     //pl.next_pretoken().debug_print(std::cout);
 
@@ -55,7 +55,7 @@ int main()
     //auto pl1 = AST::Placeholder("name", "double");
     //auto pl2 = AST::Placeholder("name", "int");
 
-    //*
+    /*
     // debug info
     std::cout << "\n"
                  "[0] Lython Interpreter \n"
@@ -69,7 +69,7 @@ int main()
     Lexer lex(reader);
 
     // print back what the user just inputed
-    lex.print(std::cout); //*/
+    lex.print(std::cout);*/
 
     return 0;
 }

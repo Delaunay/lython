@@ -23,7 +23,7 @@ SET(ADD_HEADERS
     AbstractSyntaxTree/Names.h
     # AbstractSyntaxTree/Types.h
     Lexer/Lexer.h
-    # Lexer/PreLexer.h
+    Lexer/PreLexer.h
     Lexer/Buffer.h
     Lexer/Tokens.h
     Parser/Parser.h
@@ -35,7 +35,7 @@ SET(ADD_SOURCE
     AbstractSyntaxTree/Names.cpp
     # AbstractSyntaxTree/Types.cpp
     Lexer/Lexer.cpp
-    # Lexer/PreLexer.cpp
+    Lexer/PreLexer.cpp
     Lexer/Buffer.cpp
     Lexer/Tokens.cpp
     Parser/Parser.cpp
