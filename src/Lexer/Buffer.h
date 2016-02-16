@@ -23,7 +23,7 @@ public:
 
     char nextc(){
 
-        c = getc();
+        char c = getc();
 
         if (c == '\n'){
             _line += 1;
@@ -37,20 +37,13 @@ public:
             if (_empty_line)
                 _indent += 1;
 
-            _col += utf8_inc(c);
+            _col += 1;
             return c;
         }
 
-        _col += utf8_inc(c);
+        _col += 1;
         _empty_line = false;
         return c;
-    }
-
-    // UTF8 Char position
-    uint32 utf8_inc(char cc){
-        if (cc < 128 || cc >= 192)
-            return 1;
-        return 0;
     }
 
     uint32 line()      {    return _line;   }
@@ -58,17 +51,12 @@ public:
     uint32 indent()    {    return _indent; }
     bool empty_line() { return _empty_line; }
 
-    operator bool(){
-        return c != EOF;
-    }
-
 private:
-    char   c{'%'};
+
     uint32 _line{1};
     uint32 _col{0};
     uint32 _indent{0};
     bool _empty_line{true};
-    bool _run_once{true};
 };
 
 class FileError{
