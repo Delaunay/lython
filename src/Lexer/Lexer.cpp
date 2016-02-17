@@ -9,12 +9,13 @@ std::ostream& Lexer::debug_print(std::ostream& out){
     int k = 1;
     do{
         out << to_string(k, 4) << "  ";
-        t.debug_print(out) << std::endl;
+        t->debug_print(out) << std::endl;
         k += 1;
-    }while(t = next_token());
+        t = next_token();
+    }while((*this));
 
     out << to_string(k, 4) << "  ";
-    t.debug_print(out) << std::endl;    // eof
+    t->debug_print(out) << std::endl;    // eof
 
     return out;
 }
@@ -23,11 +24,12 @@ std::ostream& Lexer::print(std::ostream& out){
 
     Token t = next_token();
     do{
-        t.print(out);
-    }while(t = next_token());
+        t->print(out);
+        t = next_token();
+    }while((*this));
 
     // send eof for reset
-    t.print(out);
+    t->print(out);
 
     return out;
 }

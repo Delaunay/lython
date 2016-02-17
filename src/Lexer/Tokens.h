@@ -5,101 +5,147 @@
 #include <vector>
 #include <algorithm>
 
+#include "Prelexer.h"
 #include "../Types.h"
 
-/*
- *  incorrect is used when the input is known to be wrong
- *  but we want to parse the project anyway
- *
- *  Add?
- *      Hex: 0x000A9F
- *      bin: bx010101
- */
-#define LYTHON_INDENT 4
-#define LYTHON_TOKEN \
-    X(tok_identifier, -1)\
-    X(tok_float,      -2)\
-    X(tok_string,     -3)\
-    X(tok_int,        -4)\
-    X(tok_newline,    -5)\
-    X(tok_indent,     -6)\
-    X(tok_desindent,  -7)\
-    X(tok_incorrect,  -8)\
-    X(tok_eof,        -9)
-    
 namespace lython{
 
-enum TokenType{
-#define X(name, nb) name = nb,
-    LYTHON_TOKEN
-#undef X
-};
-
-uint8 tok_name_size();
-std::string tok_to_string(int8 t);
-
-class Token{
+class SyntaticExpression
+{
 public:
-    Token(TokenType t, uint32 l, uint32 c):
-        _type(t), _line(l), _col(c)
+    virtual ~SyntaticExpression() {}
+
+    SyntaticExpression(uint32 line, uint32 col):
+        _line(line), _col(col)
     {}
 
-    Token(int8 t, uint32 l, uint32 c):
-        _type(t), _line(l), _col(c)
-    {}
-
-     int8  type()   {   return _type;   }
-    uint32 line()   {   return _line;   }
-    uint32 col()    {   return _col;    }
-
-    int32 end_line() { return col() - 1;} // Lexer is one char in advance
-    int32 begin_line() {   return col() - identifier().size() - 1; }
-
-    std::string& identifier() { return _identifier; }
-    float64      as_float()   { return std::stod(_identifier); }
-    int32        as_integer() { return std::stoi(_identifier); }
-
-    operator bool(){
-        return _type != tok_eof;
-    }
+    virtual std::ostream& print(std::ostream& out) {    return out; }
+    virtual std::ostream& debug_print(std::ostream& out) {  return out; }
 
 private:
-    int8    _type;
-    uint32  _line;
-    uint32  _col;
-
-    // Data
-    std::string _identifier;
-
-public:
-    // print all tokens and their info
-    std::ostream& debug_print(std::ostream& out);
-
-    // could be used for code formatting
-    std::ostream& print(std::ostream& out);
+    uint32 _line;
+    uint32 _col;
 };
 
-inline
-Token& dummy(){
-    static Token dy = Token(tok_incorrect, -1, -1);
-    return dy;
-}
+class Epsilon: public SyntaticExpression
+{
+public:
+    Epsilon():
+        SyntaticExpression(0, 0)
+    {}
 
-// Make something that look like clang's error underlining.
-// offset is used if you need to print multiple underline on a same line
-inline
-std::ostream& underline(std::ostream& out, Token& t, int32 offset = 0){
-    int32 start = t.begin_line() - offset;
-    if (start > 0){
-        out << std::string(start, ' ');
+    std::ostream& print(std::ostream& out)       {  out << "eps";   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << "eps";   return out; }
+};
 
-        if (t.identifier().size() > 0)
-            out << std::string(t.identifier().size(), '~');
-        else
-            out << "~";
+typedef std::shared_ptr<SyntaticExpression> Sexp;
+
+class Block: public SyntaticExpression
+{
+public:
+    typedef PreToken::Block PreTokenBlock;
+
+    Block(PreToken& block):
+        SyntaticExpression(block.line(), block.col()),
+        _block(block.as_block())
+    {}
+
+    PreTokenBlock& block(){
+        return _block;
     }
 
-    return out;
-}
+    std::ostream& print(std::ostream& out)       {  out << "block";   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << "block";   return out; }
 
+private:
+    PreTokenBlock _block;
+};
+
+class Symbol: public SyntaticExpression
+{
+public:
+    Symbol(const std::string& name, uint32 l=0, uint32 c=0):
+        SyntaticExpression(l, c), _name(name)
+    {}
+
+    Symbol(char x, uint32 l=0, uint32 c=0):
+        SyntaticExpression(l, c), _name(1, x)
+    {}
+
+    const std::string& name() {   return _name;   }
+
+    std::ostream& print(std::ostream& out)       {  out << "[sym]" << _name;   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << "[sym]" << _name;   return out; }
+private:
+    std::string _name;
+};
+
+class String: public SyntaticExpression
+{
+public:
+    String(PreToken& tok):
+        SyntaticExpression(tok.line(), tok.col()), _str(tok.as_string())
+    {}
+
+    std::string& string() { return _str;    }
+
+    std::ostream& print(std::ostream& out)       {  out << '"' << _str << '"';   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << '"' << _str << '"';   return out; }
+
+private:
+    std::string _str;
+};
+
+class Integer: public SyntaticExpression
+{
+public:
+    Integer(int32 val, uint32 l=0, uint32 c=0):
+        SyntaticExpression(l, c), _int32(val)
+    {}
+
+    int32 value()   {   return _int32;  }
+
+    std::ostream& print(std::ostream& out)       {  out << _int32;   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << _int32;   return out; }
+
+private:
+    int32 _int32;
+};
+
+class Float: public SyntaticExpression
+{
+public:
+    Float(float64 v, uint32 l=0, uint32 c=0):
+        SyntaticExpression(l, c), _float64(v)
+    {}
+
+    float64 value() {   return _float64;    }
+
+    std::ostream& print(std::ostream& out)       {  out << _float64;   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << _float64;   return out; }
+
+private:
+    float64 _float64;
+};
+
+class Node: public SyntaticExpression
+{
+public:
+    Node(uint32 l, uint32 c):
+        SyntaticExpression(l, c)
+    {}
+
+    std::vector<Sexp> children() {  return _children;   }
+    Sexp parent() { return _parent; }
+
+    std::ostream& print(std::ostream& out)       {  out << "Node";   return out; }
+    std::ostream& debug_print(std::ostream& out) {  out << "Node";   return out; }
+
+private:
+
+    std::vector<Sexp> _children;
+    Sexp    _parent;
+};
+
+typedef Sexp Token;
 }

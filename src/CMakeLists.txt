@@ -7,7 +7,7 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # Sources
 # aux_source_directory("${PROJECT_SOURCE_DIR}/AbstractSyntaxTree" SRC_LIST)
-#AUX_SOURCE_DIRECTORY("${PROJECT_SOURCE_DIR}/Lexer"              SRC_LIST)
+AUX_SOURCE_DIRECTORY(Lexer SRC_LIST)
 # aux_source_directory("${PROJECT_SOURCE_DIR}/Parser"             SRC_LIST)
 # aux_source_directory("${PROJECT_SOURCE_DIR}/Generator"          SRC_LIST)
 

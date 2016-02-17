@@ -1,13 +1,13 @@
 #pragma once
 
-#include <unordered_map>
-#include <ostream>
+#include <unordered_set>
+#include <queue>
+#include <list> // Queue is not a real container and it was badly design to not support vector
 
-#include "Buffer.h"
+#include "Prelexer.h"
 #include "Tokens.h"
 
 #include "../Types.h"
-
 
 /*
  *  Lexer is a stream of tokens
@@ -18,157 +18,186 @@
 
 namespace lython{
 
+enum NumType
+{
+    integer_num,
+    exp_num,
+    float_num,
+    not_num
+};
+
+#define SAFE_INCREMENT  index += 1;\
+                        if (index >= n){\
+                            return next_token();}
+
+#define SAFE_INCREMENT_BK   index += 1;\
+                            if (index >= n){\
+                                break;}
+
 class Lexer
 {
 public:
+    typedef std::list<Sexp> TokenVector;
+    typedef std::queue<Sexp,  TokenVector> TokenQueue;
 
     Lexer(AbstractBuffer& reader):
-        _reader(reader)
+        _plex(reader), _ptok()
     {}
 
-    // shortcuts
-    const std::string& file_name()   {   return _reader.file_name();  }
-    uint32 line()      {    return _reader.line();      }
-    uint32 col()       {    return _reader.col();       }
-    uint32 indent()    {    return _reader.indent();    }
-    char   nextc()     {    return _reader.nextc();     }
-    bool   empty_line(){    return _reader.empty_line();}
-    Token& token()     {    return _token;              }
-
-    // what characters are allowed in identifiers
-    bool is_identifier(char c){
-        if (std::isalnum(c) || c == '-' || c == '_' || c == '?' || c == '!')
-            return true;
-        return false;
+    void print_error(const char* msg, int err_code){
+        printf("[Lexer ERROR] [l:%d c:%d]  EC %d: %s\n",
+               line(), col(), err_code, msg);
     }
 
-    //
     Token next_token(){
-        // get first char
-        // humm I am not sure it is a good idea
-        // I think those value will be shared with all Lexer Instances (bad)
-        static char c = nextc();
-        static uint32 oindent = indent();
-        static uint32 cindent = indent();
 
-        // newline
-        if (c == '\n'){
-            oindent = cindent;
-            cindent = 0;
-            c = nextc();
-            return make_token(tok_newline);
+        if (_pending.size()){
+            Token tok = _pending.front();
+            _pending.pop();
+            return tok;
         }
 
-        if (c == EOF)
-            return make_token(tok_eof);
+        //
+        PreToken tok = next_pretoken();
 
-        // indent
-        if (c == ' ' && empty_line()){
-            int k = 1;
-            do{
-                c = nextc();
-                k++;
-
-                if (k == LYTHON_INDENT){
-                    c = nextc();
-                    break;
-                }
-            } while(c == ' ');
-
-            cindent += LYTHON_INDENT;
-
-            // if current indent is the same do nothing
-            if (cindent <= oindent)
-                return next_token();
-
-            // else increase indent
-            return make_token(tok_indent);
+        // Preblock
+        if (tok.type() == pretok_preblock){
+            return Sexp(new Block(tok));
         }
 
-        if (cindent < oindent){
-            oindent -= LYTHON_INDENT;
-            return make_token(tok_desindent);
+        // PreString
+        if (tok.type() == pretok_prestring){
+            return Sexp(new String(tok));
         }
 
-        // remove white space
-        while (c == ' '){
-            c = nextc();
-        }
+        // PreToken Where the lex work is done
+        if (tok.type() != pretok_pretok)
+            print_error("Expected Pretok Pretoken", -1);
 
-        // Identifiers
-        if (isalpha(c)){
-            std::string ident;
-            ident.push_back(c);
+        // Get Data
+        std::string& val = tok.as_string();
+        uint32 n = val.size();
+        NumType t = integer_num;
+        int index = 0;
 
-            while(is_identifier(c = nextc())){
-                ident.push_back(c);
-            }
+        while(index < n){
+            // read number
+            if (isdigit(val[index] /*|| +/- */)){
+                // Create a substring
+                std::string num;
+                num.push_back(val[index]);
 
-            return make_token(tok_identifier, ident);
-        }
+                while(true){
 
-        // Numbers
-        if (std::isdigit(c)){
-            std::string num;
-            TokenType ntype = tok_int;
+                    if (val[index] == '.'){
+                        if (t == integer_num)
+                            t = float_num;
+                        else // we already found a '.'
+                            t = not_num;
 
-            while(c != ' ' && c != EOF && c != '\n')
-            {
-                num.push_back(c);
+                        num.push_back(val[index]);
+                        SAFE_INCREMENT_BK
+                        continue;
+                    }
 
-                // if it is not a digit
-                if (!std::isdigit(c) && c != ' '){
-                    if (c == '.'){
-                        if (ntype == tok_int)
-                            ntype = tok_float;
+                    if (val[index] == 'e' || val[index] == 'E'){
+                        if (t == integer_num || t == float_num)
+                            t = exp_num;
+                        else // we already found a 'e'
+                            t = not_num;
+
+                        num.push_back(val[index]);
+                        SAFE_INCREMENT_BK
+                        continue;
+                    }
+
+                    if (val[index] == '+' || val[index] == '-'){
+
+                        if (t == exp_num && (num[num.size() - 1] == 'e' ||
+                                             num[num.size() - 1] == 'E')){
+                            num.push_back(val[index]);
+                            SAFE_INCREMENT_BK
+                            continue;
+                        }
+                        // Number is done reading
                         else
-                            ntype = tok_incorrect;    // 12.12.12 is an incorrect token
+                            break;
+                    }
+
+                    if (std::isdigit(val[index])){
+                        num.push_back(val[index]);
+                        SAFE_INCREMENT_BK
                     }
                     else
-                        ntype = tok_incorrect;        // 1abc is an incorrect token
+                        break;
                 }
 
-                c = nextc();
+                switch(t){
+                case integer_num:
+                    _pending.push(Sexp(new Integer(std::stoi(num))));
+                    break;
+                case float_num:
+                case exp_num:
+                    _pending.push(Sexp(new Float(std::stod(num))));
+                    break;
+                default:
+                    print_error("Not a correct Number", -2);
+                    _pending.push(Sexp(new Symbol(std::stod(num))));
+                }
             }
 
-            return make_token(ntype, num);
-        }
+            if (index >= n)
+                break;
 
-        // strings
-        if (c == '"'){
-            std::string str;
-
-            while((c = nextc()) != '"'){
-                str.push_back(c);
+            // Separator
+            if (_default_stt.count(val[index]) > 0){
+                _pending.push(Sexp(new Symbol(val[index])));
+                SAFE_INCREMENT
             }
+            else{
+                std::string sym;
+                sym.push_back(val[index]);
+                SAFE_INCREMENT
 
-            c = nextc();
-            return make_token(tok_string, str);
+                while(_default_stt.count(val[index]) <= 0){
+                    sym.push_back(val[index]);
+                    SAFE_INCREMENT
+                }
+
+                _pending.push(Sexp(new Symbol(sym)));
+            }
         }
 
-        // get next char
-        make_token(c);
-        c = nextc();
-
-        // and return the char as a token;
-        return _token;
+        // return pending tokens
+        if (_pending.size()){
+            Token tok = _pending.front();
+            _pending.pop();
+            return tok;
+        }
     }
 
-    Token make_token(int8 t){
-        _token = Token(t, line(), col());
-        return _token;
+    PreToken& pretok()  {   return _ptok;   }
+    PreToken& next_pretoken() {
+        _ptok = _plex.next_pretoken();
+        return _ptok;
     }
 
-    Token make_token(int8 t, const std::string& identifier){
-        _token = Token(t, line(), col());
-        _token.identifier() = identifier;
-        return _token;
+    uint32 line() { return _plex.line();   }
+    uint32 col()  { return _plex.col();    }
+
+    operator bool(){
+        return bool(_plex);
     }
 
 private:
 
-    AbstractBuffer& _reader;
-    Token           _token{dummy()};
+    PreToken _ptok;
+    Prelexer _plex;     // AbstractBuffer& _reader;
+
+    std::unordered_set<char> _default_stt{';', ',', '(', ')'};
+
+    //std::vector<Sexp> _pending;
+    TokenQueue    _pending;
 
 // debug
 public:

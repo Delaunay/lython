@@ -36,6 +36,11 @@ namespace lython{
             _type(pretok_preblock), _data(block), _line(line), _col(col)
         {}
 
+        // default
+        PreToken(uint32 line=0, uint32 col=0):
+            _type(pretok_pretok), _line(line), _col(col)
+        {}
+
         uint32 line()   {   return _line;   }
         uint32 col()    {   return _col;    }
 
@@ -149,7 +154,6 @@ namespace lython{
                 while (c != '}' && c != EOF){
                     // we don't want to start reading an empty pretoken
                     eat_invisible();
-
                     block.push_back(next_pretoken());
                 }
 
@@ -175,8 +179,9 @@ namespace lython{
                 return next_pretoken();
             }
 
+            PreToken tok = make_pretoken(str);
             eat_invisible();
-            return make_pretoken(str);
+            return tok;
         }
 
         PreToken make_prestring(const std::string& str){
@@ -189,6 +194,10 @@ namespace lython{
 
         PreToken make_pretoken(const std::string& str){
             return PreToken(pretok_pretok, str, line(), col());
+        }
+
+        operator bool(){
+            return bool(_reader);
         }
 
     private:

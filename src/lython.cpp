@@ -45,9 +45,11 @@ int main()
     //for(int i = 0; i < 10; ++i)
     //    std::cout << reader.nextc() << std::endl;
 
-    Prelexer pl(reader);
+    //Prelexer pl(reader);
 
-    pl.debug_print(std::cout);
+    Lexer l(reader);
+
+    l.debug_print(std::cout);
 
     //pl.next_pretoken().debug_print(std::cout);
 
