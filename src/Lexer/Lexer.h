@@ -26,6 +26,10 @@ enum NumType
     not_num
 };
 
+#define SAFE_ACT(act)  index += 1;\
+                        if (index >= n){\
+                            act;}
+
 #define SAFE_INCREMENT  index += 1;\
                         if (index >= n){\
                             return next_token();}
@@ -86,8 +90,9 @@ public:
                 // Create a substring
                 std::string num;
                 num.push_back(val[index]);
+                index += 1;
 
-                while(true){
+                while(index < n){
 
                     if (val[index] == '.'){
                         if (t == integer_num)
@@ -155,13 +160,14 @@ public:
                 SAFE_INCREMENT
             }
             else{
+
                 std::string sym;
                 sym.push_back(val[index]);
-                SAFE_INCREMENT
+                index += 1;
 
-                while(_default_stt.count(val[index]) <= 0){
+                while(index < n && _default_stt.count(val[index]) <= 0){
                     sym.push_back(val[index]);
-                    SAFE_INCREMENT
+                    SAFE_INCREMENT_BK
                 }
 
                 _pending.push(Sexp(new Symbol(sym)));
@@ -174,6 +180,8 @@ public:
             _pending.pop();
             return tok;
         }
+
+        print_error("No More Tokens", -3);
     }
 
     PreToken& pretok()  {   return _ptok;   }
@@ -186,7 +194,7 @@ public:
     uint32 col()  { return _plex.col();    }
 
     operator bool(){
-        return bool(_plex);
+        return _pending.size() || bool(_plex);
     }
 
 private:
