@@ -7,8 +7,22 @@
 #include <string>
 #include <memory>
 
+#include <iostream>
+
 namespace lython{
 // /!\ string a allocated twice
+
+class Exception{
+public:
+    Exception(const std::string& msg):
+        msg(msg)
+    {}
+    const char* what() const noexcept {  return msg.c_str(); }
+private:
+    std::string msg;
+};
+
+#define ASSERT(pred, msg) {if (!(pred)) {throw Exception(msg);}}
 
 // hold information about operators
 struct OperatorImpl{
@@ -33,7 +47,7 @@ class NameManager
     
     Name make_name(const std::string& name){
         
-        assert(_types.count(name) == 0 && "Name not available. Used by a Type");
+        ASSERT(_types.count(name) == 0, "Name not available. Used by a Type");
     
         if (_names.count(name))
             return _names[name];
@@ -44,7 +58,7 @@ class NameManager
     
     Type make_type(const std::string& type){
         
-        assert(_names.count(type) == 0 && "Type name not available. Used by a Name");
+        ASSERT(_names.count(type) == 0, "Type name not available. Used by a Name");
 
         if (_types.count(type))
             return _types[type];

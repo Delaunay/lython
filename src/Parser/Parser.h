@@ -19,10 +19,12 @@
  *
  * if a body is incorrect it has not impact if the function is not used
  *
+ *  I can't have an incorrect identifier. Only Numbers can be incorrect
+ *
  */
 
 #define EAT(tok) if (token().type() == tok){ next_token();   }
-#define EXPECT(tok, msg) if(token().type() != tok) throw msg;
+#define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
 //assert(token().type() == tok && msg)
 #define TRACE(out)  out << "function " << std::endl;
 #define CHECK_TYPE(type) type
@@ -55,17 +57,11 @@ public:
 
     }
 
-    /*  Keep parsing if a token is incorrect */
     std::string& get_identifier(){
-        switch (token().type()){
-        case tok_identifier:
+        if (token().type() == tok_identifier)
             return token().identifier();
-        case tok_incorrect:
-            PARSE_ERROR("Incorrect Identifier");
-            return token().identifier();
-        default:
-            assert("An Identifier was expected");
-        }
+
+        ASSERT(true, "An Identifier was expected");
     }
 
     // Parsing routines
@@ -73,8 +69,8 @@ public:
         EAT(tok_def);
 
         // Get Name
-        EXPECT(tok_identifier, "An Identifier was expected");
-        AST::Function* fun = new AST::Function(token().identifier());
+        AST::Function* fun = new AST::Function(get_identifier());
+        std::string ret_type = "unknown";
         next_token();
 
         // Parse Args
@@ -82,7 +78,7 @@ public:
         while(token().type() != ')' && token()){
 
             std::string vname = CHECK_NAME(get_identifier());
-            std::string type = "void";
+            std::string type = "unknown";
             next_token();
 
             // type declaration
@@ -99,10 +95,20 @@ public:
         }
                                                       EAT(')');
         EXPECT(':', ": was expected");                EAT(':');
-        EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
-        EXPECT(tok_indent, "indent was expected"); // EAT(tok_indent);
 
-        /*  Dont think to much about what the function does */
+        // Read return type if any
+        if(token().type() == tok_arrow){
+            EAT(tok_arrow);
+            ret_type = CHECK_TYPE(get_identifier());
+            next_token();
+        }
+        fun->return_type() = make_type(ret_type);
+
+        EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
+        EXPECT(tok_indent, "indent was expected");    //EAT(tok_indent);
+                                                      //EAT(tok_docstring);
+
+        /*  Dont think too much about what the function does */
         AST::UnparsedBlock* body = new AST::UnparsedBlock();
 
         while(token().type() != tok_desindent && token()){

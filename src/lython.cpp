@@ -29,23 +29,35 @@ int main()
 
     //ConsoleBuffer reader;
 
-    std::string code = "def function(test:double, test):\n"
+    std::string code = "def function(test:double, test): -> double\n"
+                       //"    \"\"\" This is a docstring \"\"\"\n"
                        "    return 1 + 1\n"
-                       "def function(test:double, test):\n"
+                       "def function(test:int, test):\n"
                        "    return 1 + 1\n";
 
     StringBuffer reader(code);
 
-    //Lexer lex(reader);
+    /*
+    Lexer lex(reader);
+    lex.debug_print(std::cout);
 
-    Parser par(reader);
+    std::cout << std::endl;
+    reader.reset(); //*/
 
-    par.parse_one()->print(std::cout);
-    std::cout << "\n\n";
-    par.parse_one()->print(std::cout);
+    try{
+        Parser par(reader);
+
+        par.parse_one()->print(std::cout);
+        std::cout << "\n\n";
+        par.parse_one()->print(std::cout);
+    }
+    catch (lython::Exception e){
+        std::cout << "Error Occured:" << std::endl;
+        std::cout << "\t" << e.what() << std::endl;
+    }
 
     // print back what the user just inputed
-    //lex.print(std::cout); //*/
+    //*/
 
     std::cout << std::endl;
 

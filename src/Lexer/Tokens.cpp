@@ -112,6 +112,10 @@ std::ostream& Token::print(std::ostream& out, int indent){
 
     if (type() == tok_string)
         out << '"' << identifier() << '"' ;
+    else if (type() == tok_docstring)
+        out << "\"\"\"" << identifier() << "\"\"\"";
+    else if (type() == tok_int || type() == tok_float)
+        out << identifier() << ' ';
     else
         out << identifier();
 

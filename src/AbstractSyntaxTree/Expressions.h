@@ -53,7 +53,7 @@ namespace AbstractSyntaxTree{
 
             LYTHON_COMMFUNC(std::shared_ptr<Expression>, {})
 
-            KindExpr kind() { return KindExpr(-1);    }
+            virtual KindExpr kind() { return KindExpr(-1);    }
 
         private:
     };
@@ -211,7 +211,11 @@ namespace AbstractSyntaxTree{
         ST::Expr& body()    {   return _body;   }
         Arguments& args()   {   return _args;   }
         Type& return_type() {   return _return_type;    }
-        Name& name()        {   return _name;   }
+        Name& name()        {   return _name;           }
+
+        void set_return_type(const std::string& str){
+            _return_type = make_type(str);
+        }
 
         //LYTHON_COMMFUNCCHILD
         LYTHON_KIND(KindFunction)
@@ -226,7 +230,10 @@ namespace AbstractSyntaxTree{
                     out << ", ";
             }
 
-            out << "):\n";
+            if(_return_type)
+                out << "): -> " << *(_return_type.get()) << "\n";
+            else
+                out << "):\n";
 
             _body->print(out, indent + 1);
             return out;

@@ -117,6 +117,10 @@ private:
     const std::string _file_name;
 
 public:
+    void reset(){
+        _pos = 0;
+    }
+
     // helper for testing
     void read_all(){
         char c;

@@ -35,7 +35,7 @@ public:
 
     // what characters are allowed in identifiers
     bool is_identifier(char c){
-        if (std::isalnum(c) || c == '-' || c == '_' || c == '?' || c == '!')
+        if (std::isalnum(c) || c == '_' || c == '?' || c == '!')
             return true;
         return false;
     }
@@ -107,6 +107,20 @@ public:
             return make_token(tok_identifier, ident);
         }
 
+        // Arrow
+        if (c == '-'){
+            make_token('-');
+            c = nextc();
+
+            if (c == '>'){
+                c = nextc();
+                return make_token(tok_arrow);
+            }
+
+            // return '-'
+            return _token;
+        }
+
         // Numbers
         if (std::isdigit(c)){
             std::string num;
@@ -124,7 +138,9 @@ public:
                         else
                             ntype = tok_incorrect;    // 12.12.12 is an incorrect token
                     }
-                    else
+                    else  // 0x for hex is okay
+                          // bx is not  since it would be a correct identifier
+                          // 0b ?
                         ntype = tok_incorrect;        // 1abc is an incorrect token
                 }
 
@@ -141,6 +157,27 @@ public:
             while((c = nextc()) != '"'){
                 str.push_back(c);
             }
+
+            /* Check for doc string
+            if (c == '"'){
+                c = nextc();
+                if (c == '"'){
+                    int k = 0;
+                    c = nextc();
+                    while(k != 3){
+                        if (c == '"'){
+                            k += 1;
+                        }
+                        else {
+                            k = 0;
+                            str.push_back(c);
+                            c = nextc();
+                        }
+                    }
+                    c = nextc();
+                    return make_token(tok_docstring, str);
+                }
+            }*/
 
             c = nextc();
             return make_token(tok_string, str);

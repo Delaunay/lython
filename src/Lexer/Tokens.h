@@ -10,9 +10,13 @@
 
 /*
  *  incorrect is used when the input is known to be wrong
- *  but we want to parse the project anyway
+ *  but we want to parse as much as we can anyway
  *
- *  Add?
+ *  incorrect is also the first token and eof the last
+ *
+ *  I could add an error policy arg
+ *
+ *  I think those would be nice to have
  *      Hex: 0x000A9F
  *      bin: bx010101
  */
@@ -27,10 +31,13 @@
     X(tok_desindent,  -7)\
     X(tok_incorrect,  -8)\
     X(tok_eof,        -9)\
-    X(tok_def,        -10)
+    X(tok_def,        -10)\
+    X(tok_docstring,  -11)\
+    X(tok_arrow,      -12)
 
 #define LYTHON_KEYWORDS \
-    X("def", tok_def)
+    X("def", tok_def)\
+    X("->", tok_arrow)
     
 namespace lython{
 
