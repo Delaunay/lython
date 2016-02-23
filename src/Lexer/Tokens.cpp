@@ -43,11 +43,14 @@ std::ostream& Token::debug_print(std::ostream& out){
 }
 
 // could be used for code formatting
-std::ostream& Token::print(std::ostream& out){
+std::ostream& Token::print(std::ostream& out, int indent){
     // Keep track of some variable for correct printing
     static int8 indent_level = 0;
     static bool emptyline = true;   // To generate indent when needed
     static bool open_parens = false;
+
+    if (indent > 0)
+        indent_level = indent;
 
     // because indent_level is static we need a token to reset the value
     if (type() == tok_eof){
@@ -72,6 +75,12 @@ std::ostream& Token::print(std::ostream& out){
         out << std::endl;
         emptyline = true;
         return out;
+    }
+
+    std::string& str = keyword_as_string()[type()];
+
+    if (str.size() > 0){
+        return out << str << " ";
     }
 
     // Indentation
@@ -110,6 +119,24 @@ std::ostream& Token::print(std::ostream& out){
     emptyline = false;
 
     return out;
+}
+
+ReservedKeyword& keywords(){
+    static ReservedKeyword _keywords = {
+    #define X(str, tok) {str, tok},
+        LYTHON_KEYWORDS
+    #undef X
+    };
+    return _keywords;
+}
+
+KeywordToString& keyword_as_string(){
+    static KeywordToString _keywords = {
+    #define X(str, tok) {tok, str},
+        LYTHON_KEYWORDS
+    #undef X
+    };
+    return _keywords;
 }
 
 }

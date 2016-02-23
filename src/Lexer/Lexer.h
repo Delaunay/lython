@@ -1,6 +1,5 @@
 #pragma once
 
-#include <unordered_map>
 #include <ostream>
 
 #include "Buffer.h"
@@ -12,8 +11,7 @@
 /*
  *  Lexer is a stream of tokens
  *
- *      Add lython keywords in a map
- *
+ *      TODO:   DocString support
  */
 
 namespace lython{
@@ -104,6 +102,8 @@ public:
                 ident.push_back(c);
             }
 
+            TokenType t = keywords()[ident];
+            if (t)  return make_token(t);
             return make_token(tok_identifier, ident);
         }
 

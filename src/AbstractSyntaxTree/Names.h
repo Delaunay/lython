@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LYTHON_SRC_AST_HEADER
+#define LYTHON_SRC_AST_HEADER
 
 #include <cassert>
 
@@ -68,20 +69,24 @@ class NameManager
         std::unordered_map<std::string, Operator> _operators;
 };
 
+inline
 NameManager& name_manager(){
     static NameManager m;
     return m;
 }
 
 // use to create or retrieve a name
+inline
 Name make_name(const std::string& name){
     return name_manager().make_name(name);
 }
 
+inline
 Type make_type(const std::string& name){
     return name_manager().make_type(name);
 }
 
+inline
 Operator make_operator(const std::string& name, int pred){
     return name_manager().make_operator(name, pred);
 }
@@ -106,3 +111,5 @@ Type make_type_weak(const std::string& name){
 }*/
 
 }
+
+#endif

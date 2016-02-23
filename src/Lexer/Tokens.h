@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -25,7 +26,11 @@
     X(tok_indent,     -6)\
     X(tok_desindent,  -7)\
     X(tok_incorrect,  -8)\
-    X(tok_eof,        -9)
+    X(tok_eof,        -9)\
+    X(tok_def,        -10)
+
+#define LYTHON_KEYWORDS \
+    X("def", tok_def)
     
 namespace lython{
 
@@ -34,6 +39,12 @@ enum TokenType{
     LYTHON_TOKEN
 #undef X
 };
+
+typedef std::unordered_map<std::string, TokenType> ReservedKeyword;
+typedef std::unordered_map<int, std::string> KeywordToString;
+
+ReservedKeyword& keywords();
+KeywordToString& keyword_as_string();
 
 uint8 tok_name_size();
 std::string tok_to_string(int8 t);
@@ -76,7 +87,7 @@ public:
     std::ostream& debug_print(std::ostream& out);
 
     // could be used for code formatting
-    std::ostream& print(std::ostream& out);
+    std::ostream& print(std::ostream& out, int indent = 0);
 };
 
 inline
