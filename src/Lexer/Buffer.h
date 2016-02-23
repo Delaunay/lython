@@ -113,6 +113,10 @@ public:
         return _code[_pos - 1];
     }
 
+    void reset(){
+        _pos = 0;
+    }
+
     virtual const std::string& file_name(){ return _file_name;  }
 
 private:

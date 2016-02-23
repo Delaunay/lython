@@ -42,7 +42,7 @@ class Lexer
 {
 public:
     typedef std::list<Sexp> TokenVector;
-    typedef std::queue<Sexp,  TokenVector> TokenQueue;
+    typedef std::queue<Sexp, TokenVector> TokenQueue;
 
     Lexer(AbstractBuffer& reader):
         _plex(reader), _ptok()
@@ -80,6 +80,8 @@ public:
 
         // Get Data
         std::string& val = tok.as_string();
+        uint32 line = tok.line_begin();
+        uint32 col = tok.col();
         uint32 n = val.size();
         NumType t = integer_num;
         int index = 0;
@@ -139,15 +141,16 @@ public:
 
                 switch(t){
                 case integer_num:
-                    _pending.push(Sexp(new Integer(std::stoi(num))));
+                    _pending.push(Sexp(new Integer(std::stoi(num), line, col + index)));
                     break;
                 case float_num:
                 case exp_num:
-                    _pending.push(Sexp(new Float(std::stod(num))));
+                    _pending.push(Sexp(new Float(std::stod(num), line, col + index)));
                     break;
                 default:
                     print_error("Not a correct Number", -2);
-                    _pending.push(Sexp(new Symbol(std::stod(num))));
+                    // we still produce a symbol || Ocaml Code does not handle this
+                    _pending.push(Sexp(new Symbol(std::stod(num), line, col + index)));
                 }
             }
 
@@ -156,7 +159,7 @@ public:
 
             // Separator
             if (_default_stt.count(val[index]) > 0){
-                _pending.push(Sexp(new Symbol(val[index])));
+                _pending.push(Sexp(new Symbol(val[index], line, col + index)));
                 SAFE_INCREMENT
             }
             else{
@@ -170,7 +173,7 @@ public:
                     SAFE_INCREMENT_BK
                 }
 
-                _pending.push(Sexp(new Symbol(sym)));
+                _pending.push(Sexp(new Symbol(sym, line, col + index)));
             }
         }
 
@@ -181,6 +184,7 @@ public:
             return tok;
         }
 
+        // just in case
         print_error("No More Tokens", -3);
     }
 
@@ -223,7 +227,8 @@ public:
         Token t = next_token();
         do{
             v.push_back(t);
-        }while(t = next_token());
+            t = next_token();
+        }while((*this));
 
         v.push_back(t); // push eof token
         return v;

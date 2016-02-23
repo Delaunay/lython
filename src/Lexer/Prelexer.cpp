@@ -1,7 +1,7 @@
 #include "Prelexer.h"
 #include "../fmt.h"
 
-#define PRETOK_SIZE 20
+#define PRETOK_SIZE 10
 
 namespace lython {
 
@@ -9,14 +9,14 @@ std::ostream& PreToken::debug_print(std::ostream& out){
     //static int indent_level = 0;
 
     if(type() == pretok_prestring){
-        out << "    [l:" << to_string(line(), 4) << " c:"<< to_string(col(), 4) << "] "
-            << align_right("pretok_prestring", PRETOK_SIZE) << " => "
+        out << MGREEN "[l:" << to_string(line(), 4) << " c:" << to_string(col(), 4) << "] " MRESET
+            << align_right("prestring", PRETOK_SIZE) << " => "
             << as_string() << std::endl;
         return out;
     }
     if(type() == pretok_pretok){
-        out << "    [l:" << to_string(line(), 4) << " c:"<< to_string(col(), 4) << "] "
-            << align_right("pretok_pretok", PRETOK_SIZE) << " => "
+        out << MGREEN "[l:" << to_string(line(), 4) << " c:" << to_string(col(), 4) << "] " MRESET
+            << align_right("pretok", PRETOK_SIZE) << " => "
             << "\"" << as_string() << "\" len:" << as_string().size()
             << std::endl;
         return out;
@@ -24,11 +24,14 @@ std::ostream& PreToken::debug_print(std::ostream& out){
 
     Block& bls = as_block();
 
-    out << "[l:" << to_string(line(), 4) << " c:"<< to_string(col(), 4) << "] "
-        << align_right("pretok_preblock", PRETOK_SIZE) << ": \n";
+    out << MGREEN "[l:" << to_string(line_begin(), 4) << " c:" << to_string(col(), 4) << "] " MRESET
+        << align_right("preblock", PRETOK_SIZE)
+        << MGREEN " [l:" << to_string(line(), 4) << " c:" << to_string(col(), 4) << "] " MRESET
+        << ": \n";
 
     for(auto& i:bls){
-        //out << "    ";
+        if (i.type() != pretok_preblock)
+            out << "    ";
         i.debug_print(out);
     }
 

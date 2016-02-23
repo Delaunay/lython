@@ -1,8 +1,12 @@
 #ifndef PRELEXER_H
 #define PRELEXER_H
 
-#include "Buffer.h"
+/*
+ *  Small inconvenience: Prelexer one pretoken in advance which makes
+ *  location info (col/ligne) to be translated forward
+ */
 
+#include "Buffer.h"
 
 #include <unordered_set>
 #include <cstdio>
@@ -18,6 +22,9 @@ namespace lython{
         pretok_preblock
     };
 
+    // I don't wanted to use Polymorphism for sur a small graph
+    // I don't have to make dynamic alloc. I am not sure if it is better
+    // but whatever
     class PreToken
     {
     public:

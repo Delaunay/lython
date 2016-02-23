@@ -9,13 +9,25 @@
 
 #include "revision_data.h"
 
-#define CODE
-
+/*
+ *  One of the problem of using streams instead of vector of tokens
+ *  is that i becomes harder to add intermediate steps between
+ *      Prelexing and lexing
+ *
+ *  The lexer can extract its Token into a vector if needed.
+ */
 
 using namespace lython;
 
 int main()
 {
+    std::cout << "\n"
+                 "[0] Lython Interpreter \n"
+                 "[0]   Compiler: " COMPILER_ID " " COMPILER_VERSION "\n"
+                 "[0]     Branch: " _BRANCH "\n"
+                 "[0]    Version: " _HASH "\n"
+                 "[0]       Date: " _DATE "\n\n";
+
     std::string code(
         "%% Preblock\n"
         "{\n"
@@ -37,19 +49,39 @@ int main()
         "\n"
         "%% Pretoken\n"
         "%% --> Everything else\n"
-        "a = 3\n"
+        "a = 3;\n"
+        "b = 2.12;"
     );
 
+    std::cout << "\n\n====\n"
+                 "     PreLexer - PreToken\n"
+                 "==============================" << std::endl;
+
     StringBuffer reader(code);
+
+    Prelexer pl(reader);
+    pl.debug_print(std::cout);
+
+    std::cout << "\n\n====\n"
+                 "     Lexer - Sexp\n"
+                 "==============================" << std::endl;
+
+    reader.reset();
+
+    Lexer l(reader);
+    l.debug_print(std::cout);
+
+    std::cout << "\n\n====\n"
+                 "     Parsing - Pexp\n"
+                 "==============================" << std::endl;
+
+
+
 
     //for(int i = 0; i < 10; ++i)
     //    std::cout << reader.nextc() << std::endl;
 
-    //Prelexer pl(reader);
-
-    Lexer l(reader);
-
-    l.debug_print(std::cout);
+    //
 
     //pl.next_pretoken().debug_print(std::cout);
 
@@ -59,12 +91,7 @@ int main()
 
     /*
     // debug info
-    std::cout << "\n"
-                 "[0] Lython Interpreter \n"
-                 "[0]   Compiler: " COMPILER_ID " " COMPILER_VERSION "\n"
-                 "[0]     Branch: " _BRANCH "\n"
-                 "[0]    Version: " _HASH "\n"
-                 "[0]       Date: " _DATE "\n\n";
+
 
     ConsoleBuffer reader;
 
