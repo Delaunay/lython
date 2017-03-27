@@ -21,42 +21,51 @@ public:
     virtual char getc() = 0;
     virtual const std::string& file_name() = 0;
 
-    char nextc(){
+    AbstractBuffer(){}
+    ~AbstractBuffer(){}
 
-        char c = getc();
-
-        if (c == '\n'){
-            _line += 1;
-            _col = 0;
-            _indent = 0;
-            _empty_line = true;
-            return c;
-        }
-
-        if (c == ' '){
-            if (_empty_line)
-                _indent += 1;
-
-            _col += 1;
-            return c;
-        }
+    void init() { _next_char = getc(); }
+    
+    void consume(){
+        if (_next_char == EOF)
+            return;
 
         _col += 1;
+
+        if (_next_char == '\n'){
+            _line += 1;
+            _col = 0;
+
+            _indent = 0;
+            _empty_line = true;
+            _next_char = getc();
+            return;
+        }
+
+        if (_next_char  == ' '){
+            if (_empty_line)
+                _indent += 1;
+            _next_char = getc();
+            return;
+        }
+
         _empty_line = false;
-        return c;
+        _next_char = getc();
     }
 
-    uint32 line()      {    return _line;   }
-    uint32 col()       {    return _col;    }
-    uint32 indent()    {    return _indent; }
-    bool empty_line() { return _empty_line; }
+    char   peek()        {    return _next_char;  }
+    uint32 line()        {    return _line;       }
+    uint32 col()         {    return _col;        }
+    uint32 indent()      {	return _indent;       }
+    bool   empty_line()  {	return _empty_line;   }
 
 private:
+    char   _next_char{' '};
+    uint32 _line=1;
+    uint32 _col=0;
 
-    uint32 _line{1};
-    uint32 _col{0};
     uint32 _indent{0};
-    bool _empty_line{true};
+    bool   _empty_line{true};
 };
 
 class FileError{
@@ -76,6 +85,7 @@ public:
 
         if (!_file)
             throw FileError();
+        init();
     }
 
     ~FileBuffer(){
@@ -98,7 +108,9 @@ class StringBuffer: public AbstractBuffer
 public:
     StringBuffer(std::string& code):
         _code(code), _file_name("c++ string")
-    {}
+    {
+        init();
+    }
 
     virtual char getc(){
 
@@ -124,7 +136,7 @@ public:
     // helper for testing
     void read_all(){
         char c;
-        do{ c = nextc();    }
+        do{ c = peek(); consume();    }
         while(c);
     }
 
@@ -140,7 +152,9 @@ class ConsoleBuffer: public AbstractBuffer
 public:
     ConsoleBuffer():
         _file_name("console")
-    {}
+    {
+        init();
+    }
 
     virtual char getc(){    return std::getchar(); }
 

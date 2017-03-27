@@ -30,20 +30,21 @@ int main()
     //ConsoleBuffer reader;
 
     std::string code = "def function(test:double, test): -> double\n"
-                       //"    \"\"\" This is a docstring \"\"\"\n"
-                       "    return 1 + 1\n"
-                       "def function(test:int, test):\n"
-                       "    return 1 + 1\n";
+            //"    \"\"\" This is a docstring \"\"\"\n"
+            "    return 1 + 1\n"
+            "def function(test:int, test):\n"
+            "    return 1 + 1\n";
 
     StringBuffer reader(code);
 
-    /*
+    ///*
     Lexer lex(reader);
-    lex.debug_print(std::cout);
+    lex.print(std::cout);
 
     std::cout << std::endl;
     reader.reset(); //*/
 
+    /*
     try{
         Parser par(reader);
 

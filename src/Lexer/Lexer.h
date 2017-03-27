@@ -7,6 +7,7 @@
 
 #include "../Types.h"
 
+#include <iostream>
 
 /*
  *  Lexer is a stream of tokens
@@ -21,7 +22,7 @@ class Lexer
 public:
 
     Lexer(AbstractBuffer& reader):
-        _reader(reader)
+        _reader(reader), _cindent(indent()), _oindent(indent())
     {}
 
     // shortcuts
@@ -29,31 +30,31 @@ public:
     uint32 line()      {    return _reader.line();      }
     uint32 col()       {    return _reader.col();       }
     uint32 indent()    {    return _reader.indent();    }
-    char   nextc()     {    return _reader.nextc();     }
+    void   consume()   {    return _reader.consume();   }
+    char   peek()      {    return _reader.peek();      }
     bool   empty_line(){    return _reader.empty_line();}
     Token& token()     {    return _token;              }
+    char   nextc(){
+        _reader.consume();
+        return _reader.peek();
+    }
 
     // what characters are allowed in identifiers
     bool is_identifier(char c){
-        if (std::isalnum(c) || c == '_' || c == '?' || c == '!')
+        if (std::isalnum(c) || c == '_' || c == '?' || c == '!' || c == '-')
             return true;
         return false;
     }
 
-    //
+
     Token next_token(){
-        // get first char
-        // humm I am not sure it is a good idea
-        // I think those value will be shared with all Lexer Instances (bad)
-        static char c = nextc();
-        static uint32 oindent = indent();
-        static uint32 cindent = indent();
+        char c = peek();
 
         // newline
         if (c == '\n'){
-            oindent = cindent;
-            cindent = 0;
-            c = nextc();
+            _oindent = _cindent;
+            _cindent = 0;
+            consume();
             return make_token(tok_newline);
         }
 
@@ -67,24 +68,24 @@ public:
                 c = nextc();
                 k++;
 
-                if (k == LYTHON_INDENT){
-                    c = nextc();
+                if (k == LYTHON_INDENT && c == ' '){
+                    consume();
                     break;
                 }
             } while(c == ' ');
 
-            cindent += LYTHON_INDENT;
+            _cindent += LYTHON_INDENT;
 
             // if current indent is the same do nothing
-            if (cindent <= oindent)
+            if (_cindent <= _oindent)
                 return next_token();
 
             // else increase indent
             return make_token(tok_indent);
         }
 
-        if (cindent < oindent){
-            oindent -= LYTHON_INDENT;
+        if (_cindent < _oindent){
+            _oindent -= LYTHON_INDENT;
             return make_token(tok_desindent);
         }
 
@@ -109,16 +110,15 @@ public:
 
         // Arrow
         if (c == '-'){
-            make_token('-');
             c = nextc();
 
             if (c == '>'){
-                c = nextc();
+                consume();
+
                 return make_token(tok_arrow);
             }
 
-            // return '-'
-            return _token;
+            return make_token('-');;
         }
 
         // Numbers
@@ -179,16 +179,14 @@ public:
                 }
             }*/
 
-            c = nextc();
+            consume();
             return make_token(tok_string, str);
         }
 
         // get next char
-        make_token(c);
-        c = nextc();
-
-        // and return the char as a token;
-        return _token;
+        c = peek();
+        consume();
+        return make_token(c);
     }
 
     Token make_token(int8 t){
@@ -203,9 +201,10 @@ public:
     }
 
 private:
-
     AbstractBuffer& _reader;
     Token           _token{dummy()};
+    uint32          _oindent;
+    uint32          _cindent;
 
 // debug
 public:

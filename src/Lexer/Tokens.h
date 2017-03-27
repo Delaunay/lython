@@ -70,8 +70,8 @@ public:
     uint32 line()   {   return _line;   }
     uint32 col()    {   return _col;    }
 
-    int32 end_line() { return col() - 1;} // Lexer is one char in advance
-    int32 begin_line() {   return col() - identifier().size() - 1; }
+    int32 end_line()   {	return col();}
+    int32 begin_line() {    return col() - identifier().size(); }
 
     std::string& identifier() { return _identifier; }
     float64      as_float()   { return std::stod(_identifier); }
@@ -99,7 +99,7 @@ public:
 
 inline
 Token& dummy(){
-    static Token dy = Token(tok_incorrect, -1, -1);
+    static Token dy = Token(tok_incorrect, 0, 0);
     return dy;
 }
 

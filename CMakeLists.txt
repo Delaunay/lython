@@ -37,7 +37,7 @@ OPTION(BUILD_SPHINX         "Build Sphinx docs"  ON)
 # ====================================
 
 # Quick fix
-SET(BOOST_ROOT C:/local/boost_1_59_0)
+# SET(BOOST_ROOT C:/local/boost_1_59_0)
 
 FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(Git REQUIRED)
