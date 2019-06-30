@@ -20,277 +20,244 @@
 // I don't have to add them to the class declaration one by one
 // not best design but since I am experiencing this might change
 // quite a lot
-#define LYTHON_COMMFUNC(type, body)\
-    virtual type partial_eval() body\
-    virtual type derivate() body \
-    virtual std::ostream& print(std::ostream&, int indent=0) body
+//#define LYTHON_COMMFUNC(type, body)                                            \
+//    virtual type partial_eval() body                                           \
+//    virtual type derivate()                                                    \
+//        body                                                                   \
+//    virtual std::ostream& print(std::ostream &, int indent = 0) body
 
-#define LYTHON_COMMFUNCCHILD LYTHON_COMMFUNC(ST::Expr, {})
+//#define LYTHON_COMMFUNCCHILD LYTHON_COMMFUNC(ST::Expr, {})
 
-#define LYTHON_KIND(_kind) Expression::KindExpr kind() { return _kind;}
+#define LYTHON_KIND(_kind)                                                     \
+    Expression::KindExpr kind() override { return _kind; }
 
-namespace lython{
+#define LYTHON_COMMFUNCCHILD
+#define LYTHON_COMMFUNC(...)
+
+namespace lython {
 
 // Private Object
-namespace AbstractSyntaxTree{
-    class Expression
-    {
-        public:
-            // Explicit RTTI
-            enum KindExpr{
-                KindPlaceholder,
-                KindConstant,
-                KindBinaryOperator,
-                KindUnaryOperator,
-                KindSeqBlock,
-                KindFunction,
-                KindUnparsedBlock
-            };
-
-            // this is here but currently no classes are doing dyn-alloc
-            // so it is not necessary
-            ~Expression(){}
-
-            LYTHON_COMMFUNC(std::shared_ptr<Expression>, {})
-
-            virtual KindExpr kind() { return KindExpr(-1);    }
-
-        private:
+namespace AbstractSyntaxTree {
+class Expression {
+  public:
+    // Explicit RTTI
+    enum KindExpr {
+        KindPlaceholder,
+        KindConstant,
+        KindBinaryOperator,
+        KindUnaryOperator,
+        KindSeqBlock,
+        KindFunction,
+        KindUnparsedBlock
     };
-}
+
+    // this is here but currently no classes are doing dyn-alloc
+    // so it is not necessary
+    virtual ~Expression();
+
+    LYTHON_COMMFUNC(std::shared_ptr<Expression>, {})
+
+    virtual std::ostream& print(std::ostream &, int32 indent = 0) = 0;
+    virtual KindExpr kind() { return KindExpr(-1); }
+
+  private:
+};
+} // namespace AbstractSyntaxTree
 namespace AST = AbstractSyntaxTree;
 
 // Public Object
-namespace SyntaxTree{
-    // I am using shared_ptr because it is the simpliest to handle
-    // but I may want to change in the future
-    typedef std::shared_ptr<AST::Expression> Expr;
+namespace SyntaxTree {
+// I am using shared_ptr because it is the simpliest to handle
+// but I may want to change in the future
+typedef std::shared_ptr<AST::Expression> Expr;
 
-    template<typename T, typename... Args>
-    Expr make_expr(Args&&... args){
-        return Expr(new T(std::forward<Args>(args)...));
-    }
-
+template <typename T, typename... Args> Expr make_expr(Args &&... args) {
+    return Expr(new T(std::forward<Args>(args)...));
 }
+
+} // namespace SyntaxTree
 namespace ST = SyntaxTree;
 
-namespace AbstractSyntaxTree{
-    // We declare the leafs of our program
-    // -----------------------------------
-    
-    // A Placeholder is a special construct that represent a unknown value
-    // that is unknown at compile time but will be known at runtime
-    class Placeholder : public Expression
-    {
-        public:
-            Placeholder(const std::string& name, const std::string& type):
-                _name(make_name(name)), _type(make_type(type))
-            {}
+namespace AbstractSyntaxTree {
+// We declare the leafs of our program
+// -----------------------------------
 
-            Placeholder(Name name, Type type):
-                _name(name), _type(type)
-            {}
+// A Placeholder is a special construct that represent a unknown value
+// that is unknown at compile time but will be known at runtime
+class Placeholder : public Expression {
+  public:
+    Placeholder(const std::string &name, const std::string &type)
+        : _name(make_name(name)), _type(make_type(type)) {}
 
-            Name& name() {  return _name;   }
-            Type& type() {  return _type;   }
+    Placeholder(Name name, Type type) : _name(name), _type(type) {}
 
-            LYTHON_COMMFUNCCHILD
-            LYTHON_KIND(KindPlaceholder)
-        
-        private:
-            Name _name;
-            Type _type; // Only used for compile type
-                        // type info are discarded later
-    };
+    Name &name() { return _name; }
+    Type &type() { return _type; }
 
-    // I want placeholder to be hashable
-    struct pl_hash{
-        std::size_t operator() (Placeholder& v) const noexcept;
-        std::hash<std::string> _h;
-    };
+    LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindPlaceholder)
 
-    typedef std::unordered_map<Placeholder, ST::Expr, pl_hash> Variables;
-    
-    // A Constant is a value known at compile time
-    template<typename T>
-    class Constant : public Expression
-    {
-        public:
-            Constant(T value, const std::string& type):
-                _value(value), _type(make_type(type))
-            {}
+    ~Placeholder() override;
+    std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
-            Constant(T value, Type type):
-                _value(value), _type(type)
-            {}
+  private:
+    Name _name;
+    Type _type; // Only used for compile type
+                // type info are discarded later
+};
 
-            T value()    {  return _value;  }
-            Type& type() {  return _type;   }
+// I want placeholder to be hashable
+struct pl_hash {
+    std::size_t operator()(Placeholder &v) const noexcept;
+    std::hash<std::string> _h;
+};
 
-            LYTHON_COMMFUNCCHILD
-            LYTHON_KIND(KindConstant)
-            
-        private:
-            T    _value;
-            Type _type;
-    };
+typedef std::unordered_map<Placeholder, ST::Expr, pl_hash> Variables;
 
-    // We declare Basic nodes of our program
-    // -------------------------------------
+// A Constant is a value known at compile time
+template <typename T> class Constant : public Expression {
+  public:
+    Constant(T value, const std::string &type)
+        : _value(value), _type(make_type(type)) {}
 
-    // A binary operator is a function with two parameters
-    // Some language specify binary operator as function
-    // we want our language to be readable
-    class BinaryOperator : public Expression
-    {
-        public:
-            BinaryOperator(ST::Expr rhs, ST::Expr lhs, Operator op):
-                _rhs(rhs), _lhs(lhs), _op(op)
-            {}
+    Constant(T value, Type type) : _value(value), _type(type) {}
 
-            LYTHON_COMMFUNCCHILD
-            LYTHON_KIND(KindBinaryOperator)
+    T value() { return _value; }
+    Type &type() { return _type; }
 
-        private:
-            ST::Expr _rhs;
-            ST::Expr _lhs;
-            Operator _op;
-    };
+    LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindConstant)
 
-    class UnaryOperator: public Expression
-    {
-        public:
-            UnaryOperator(ST::Expr expr, Operator op):
-                _expr(expr), _op(op)
-            {}
+    ~Constant() override;
 
-            LYTHON_COMMFUNCCHILD
-            LYTHON_KIND(KindUnaryOperator)
+    std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
-        private:
-            ST::Expr _expr;
-            Operator _op;
-    };
+  private:
+    T _value;
+    Type _type;
+};
 
-    // Block Instruction
-    // -------------------------------------
+// We declare Basic nodes of our program
+// -------------------------------------
 
-    // Should I make a sequential + Parallel Intruction Block ?
-    // similar to let and let* in scheme
+// A binary operator is a function with two parameters
+// Some language specify binary operator as function
+// we want our language to be readable
+class BinaryOperator : public Expression {
+  public:
+    BinaryOperator(ST::Expr rhs, ST::Expr lhs, Operator op)
+        : _rhs(rhs), _lhs(lhs), _op(op) {}
 
-    // Add get_return_type()
-    class SeqBlock: public Expression
-    {
-    public:
-        typedef std::vector<ST::Expr> Block;
+    LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindBinaryOperator)
 
-        SeqBlock(){}
+    ~BinaryOperator() override;
 
-        Block get_block() { return _block;  }
+    std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
-        LYTHON_COMMFUNCCHILD
-        LYTHON_KIND(KindSeqBlock)
+  private:
+    ST::Expr _rhs;
+    ST::Expr _lhs;
+    Operator _op;
+};
 
-    private:
-        Block _block;
-    };
+class UnaryOperator : public Expression {
+  public:
+    UnaryOperator(ST::Expr expr, Operator op) : _expr(expr), _op(op) {}
 
+    LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindUnaryOperator)
 
-    // Functions
-    // -------------------------------------
+    ~UnaryOperator() override;
 
-    // Functions are Top level expression
-    class Function: public Expression{
-    public:
-        typedef std::vector<Placeholder> Arguments;
+    std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
-        Function(const std::string& name):
-            _name(make_name(name))
-        {}
+  private:
+    ST::Expr _expr;
+    Operator _op;
+};
 
-        ST::Expr& body()    {   return _body;   }
-        Arguments& args()   {   return _args;   }
-        Type& return_type() {   return _return_type;    }
-        Name& name()        {   return _name;           }
+// Block Instruction
+// -------------------------------------
 
-        void set_return_type(const std::string& str){
-            _return_type = make_type(str);
-        }
+// Should I make a sequential + Parallel Intruction Block ?
+// similar to let and let* in scheme
 
-        //LYTHON_COMMFUNCCHILD
-        LYTHON_KIND(KindFunction)
+// Add get_return_type()
+class SeqBlock : public Expression {
+  public:
+    typedef std::vector<ST::Expr> Block;
 
-        std::ostream& print(std::ostream& out, int indent=0){
-            out << "def " << *(_name.get()) << "(";
+    SeqBlock() {}
 
-            for(int i = 0, n = _args.size(); i < n; ++i){
-                out << *(_args[i].name().get()) << ": " << *(_args[i].type().get());
+    Block get_block() { return _block; }
 
-                if (i < n - 1)
-                    out << ", ";
-            }
+    LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindSeqBlock)
 
-            if(_return_type)
-                out << "): -> " << *(_return_type.get()) << "\n";
-            else
-                out << "):\n";
+    ~SeqBlock() override;
 
-            _body->print(out, indent + 1);
-            return out;
-        }
+    std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
-        // Parse Doc String !!
+  private:
+    Block _block;
+};
 
-    private:
+// Functions
+// -------------------------------------
 
-        ST::Expr  _body;
-        Arguments _args;
-        Type      _return_type;
-        Name      _name;
-    };
+// Functions are Top level expression
+class Function : public Expression {
+  public:
+    typedef std::vector<Placeholder> Arguments;
 
-    //  This allow me to read an entire file but only process
-    //  used entities
-    class UnparsedBlock: public Expression{
-    public:
-        typedef std::vector<Token> Tokens;
+    Function(const std::string &name) : _name(make_name(name)) {}
 
-        UnparsedBlock() = default;
+    ST::Expr &body() { return _body; }
+    Arguments &args() { return _args; }
+    Type &return_type() { return _return_type; }
+    Name &name() { return _name; }
 
-        UnparsedBlock(Tokens& toks):
-            _toks(toks)
-        {}
+    ~Function() override;
 
-        //LYTHON_COMMFUNCCHILD
-        LYTHON_KIND(KindUnparsedBlock)
+    void set_return_type(const std::string &str) {
+        _return_type = make_type(str);
+    }
 
-        Tokens& tokens() {   return _toks;   }
+    // LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindFunction)
 
-        // Parse current expression
-        // ST::Expr get_expr()   {}
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-        std::ostream& print(std::ostream& out, int indent=0){
-            for(auto& tok:_toks)
-                tok.print(out, indent);
-            return out;
-        }
+  private:
+    ST::Expr _body;
+    Arguments _args;
+    Type _return_type;
+    Name _name;
+};
 
-    private:
-        Tokens _toks;
-    };
+//  This allow me to read an entire file but only process
+//  used ens
+class UnparsedBlock : public Expression {
+  public:
+    typedef std::vector<Token> Tokens;
 
-}
-}
+    UnparsedBlock() = default;
 
-/*
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
+    UnparsedBlock(Tokens &toks) : _toks(toks) {}
+
+    ~UnparsedBlock() override;
+
+    // LYTHON_COMMFUNCCHILD
+    LYTHON_KIND(KindUnparsedBlock)
+
+    Tokens &tokens() { return _toks; }
+
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+
+  private:
+    Tokens _toks;
+};
+
+} // namespace AbstractSyntaxTree
+} // namespace lython

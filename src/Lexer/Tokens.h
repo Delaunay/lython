@@ -53,25 +53,25 @@ typedef std::unordered_map<int, std::string> KeywordToString;
 ReservedKeyword& keywords();
 KeywordToString& keyword_as_string();
 
-uint8 tok_name_size();
+int8 tok_name_size();
 std::string tok_to_string(int8 t);
 
 class Token{
 public:
-    Token(TokenType t, uint32 l, uint32 c):
+    Token(TokenType t, int32 l, int32 c):
         _type(t), _line(l), _col(c)
     {}
 
-    Token(int8 t, uint32 l, uint32 c):
+    Token(int8 t, int32 l, int32 c):
         _type(t), _line(l), _col(c)
     {}
 
-     int8  type()   {   return _type;   }
-    uint32 line()   {   return _line;   }
-    uint32 col()    {   return _col;    }
+     int8 type()   {   return _type;   }
+    int32 line()   {   return _line;   }
+    int32 col()    {   return _col;    }
 
     int32 end_line()   {	return col();}
-    int32 begin_line() {    return col() - identifier().size(); }
+    int32 begin_line() {    return col() - int32(identifier().size()); }
 
     std::string& identifier() { return _identifier; }
     float64      as_float()   { return std::stod(_identifier); }
@@ -82,9 +82,9 @@ public:
     }
 
 private:
-    int8    _type;
-    uint32  _line;
-    uint32  _col;
+    int8   _type;
+    int32  _line;
+    int32  _col;
 
     // Data
     std::string _identifier;
@@ -109,7 +109,7 @@ inline
 std::ostream& underline(std::ostream& out, Token& t, int32 offset = 0){
     int32 start = t.begin_line() - offset;
     if (start > 0){
-        out << std::string(start, ' ');
+        out << std::string(uint32(start), ' ');
 
         if (t.identifier().size() > 0)
             out << std::string(t.identifier().size(), '~');

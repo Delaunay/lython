@@ -27,9 +27,9 @@ public:
 
     // shortcuts
     const std::string& file_name()   {   return _reader.file_name();  }
-    uint32 line()      {    return _reader.line();      }
-    uint32 col()       {    return _reader.col();       }
-    uint32 indent()    {    return _reader.indent();    }
+    int32  line()      {    return _reader.line();      }
+    int32  col()       {    return _reader.col();       }
+    int32  indent()    {    return _reader.indent();    }
     void   consume()   {    return _reader.consume();   }
     char   peek()      {    return _reader.peek();      }
     bool   empty_line(){    return _reader.empty_line();}
@@ -203,8 +203,9 @@ public:
 private:
     AbstractBuffer& _reader;
     Token           _token{dummy()};
-    uint32          _oindent;
-    uint32          _cindent;
+    int32           _cindent;
+    int32           _oindent;
+
 
 // debug
 public:

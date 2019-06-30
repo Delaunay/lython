@@ -18,7 +18,7 @@ std::string tok_to_string(int8 t){
 
 // this should be computed at compile time
 // this is used for pretty printing
-uint8 tok_name_size()
+int8 tok_name_size()
 {
     std::vector<std::string> v = {
     #define X(name, nb) #name,
@@ -26,10 +26,10 @@ uint8 tok_name_size()
     #undef X
     };
 
-    std::string::size_type max = 0;
+    int8 max = 0;
 
     for (auto& i:v)
-        max = std::max(i.size(), max);
+        max = std::max(int8(i.size()), max);
 
     return max;
 }

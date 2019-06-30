@@ -22,7 +22,8 @@ public:
     virtual const std::string& file_name() = 0;
 
     AbstractBuffer(){}
-    ~AbstractBuffer(){}
+
+    virtual ~AbstractBuffer();
 
     void init() { _next_char = getc(); }
     
@@ -53,18 +54,17 @@ public:
         _next_char = getc();
     }
 
-    char   peek()        {    return _next_char;  }
-    uint32 line()        {    return _line;       }
-    uint32 col()         {    return _col;        }
-    uint32 indent()      {	return _indent;       }
-    bool   empty_line()  {	return _empty_line;   }
+    char  peek()        {    return _next_char;  }
+    int32 line()        {    return _line;       }
+    int32 col()         {    return _col;        }
+    int32 indent()      {	return _indent;       }
+    bool  empty_line()  {	return _empty_line;   }
 
 private:
     char   _next_char{' '};
-    uint32 _line=1;
-    uint32 _col=0;
-
-    uint32 _indent{0};
+    int32 _line=1;
+    int32 _col=0;
+    int32 _indent{0};
     bool   _empty_line{true};
 };
 
@@ -88,15 +88,13 @@ public:
         init();
     }
 
-    ~FileBuffer(){
-        fclose(_file);
+    ~FileBuffer() override;
+
+    char getc()override {
+        return char(::getc(_file));
     }
 
-    virtual char getc(){
-        return ::getc(_file);
-    }
-
-    virtual const std::string& file_name(){ return _file_name;  }
+    const std::string& file_name() override { return _file_name;  }
 
 private:
     std::string _file_name;
@@ -112,8 +110,7 @@ public:
         init();
     }
 
-    virtual char getc(){
-
+    char getc() override{
         if (_pos >= _code.size())
             return EOF;
 
@@ -121,7 +118,9 @@ public:
         return _code[_pos - 1];
     }
 
-    virtual const std::string& file_name(){ return _file_name;  }
+    ~StringBuffer() override;
+
+    const std::string& file_name() override { return _file_name;  }
 
 private:
     uint32  _pos{0};
@@ -156,9 +155,11 @@ public:
         init();
     }
 
-    virtual char getc(){    return std::getchar(); }
+    char getc() override {  return char(std::getchar()); }
 
-    virtual const std::string& file_name(){ return _file_name;  }
+    const std::string& file_name() override { return _file_name;  }
+
+    ~ConsoleBuffer() override;
 
 private:
     const std::string _file_name;
