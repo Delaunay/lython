@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "../Logging/logging.h"
 #include "../Types.h"
 
 /*
@@ -34,12 +35,18 @@
     X(tok_def,        -10)\
     X(tok_docstring,  -11)\
     X(tok_arrow,      -12)\
-    X(tok_struct,     -13)
+    X(tok_struct,     -13)\
+    X(tok_return,     -14)\
+    X(tok_yield,     -15)\
+    X(tok_async,     -16)
 
 #define LYTHON_KEYWORDS \
     X("def", tok_def)\
     X("->", tok_arrow)\
-    X("struct", tok_struct)
+    X("struct", tok_struct)\
+    X("return", tok_return)\
+    X("yield", tok_yield)\
+    X("async", tok_async)
     
 namespace lython{
 

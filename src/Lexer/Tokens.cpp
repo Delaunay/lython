@@ -77,15 +77,17 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
         return out;
     }
 
-    std::string& str = keyword_as_string()[type()];
-
-    if (str.size() > 0){
-        return out << str << " ";
-    }
-
     // Indentation
     if (emptyline && indent_level > 0)
         out << std::string(std::size_t(indent_level * LYTHON_INDENT), ' ');
+
+
+    std::string& str = keyword_as_string()[type()];
+
+    if (str.size() > 0){
+        emptyline = false;
+        return out << str << " ";
+    }
 
     // Single Char
     if (type() > 0){

@@ -43,12 +43,15 @@ class Expression {
     // Explicit RTTI
     enum KindExpr {
         KindPlaceholder,
-        KindConstant,
         KindBinaryOperator,
         KindUnaryOperator,
         KindSeqBlock,
         KindFunction,
-        KindUnparsedBlock
+        KindUnparsedBlock,
+        KindStatement,
+        KindValue,
+        KindCall,
+        KindReference
     };
 
     // this is here but currently no classes are doing dyn-alloc
@@ -114,26 +117,44 @@ struct pl_hash {
 
 typedef std::unordered_map<Placeholder, ST::Expr, pl_hash> Variables;
 
-// A Constant is a value known at compile time
-template <typename T> class Constant : public Expression {
-  public:
-    Constant(T value, const std::string &type)
-        : _value(value), _type(make_type(type)) {}
+class Value: public Expression{
+public:
+    template<typename T>
+    Value(T val, Type type):
+        _value(new ValueHolder<T>(val)), _type(type){
+    }
 
-    Constant(T value, Type type) : _value(value), _type(type) {}
+    LYTHON_KIND(KindValue)
 
-    T value() { return _value; }
-    Type &type() { return _type; }
+    ~Value() override {
+        delete _value;
+    }
 
-    LYTHON_COMMFUNCCHILD
-    LYTHON_KIND(KindConstant)
+    std::ostream& print(std::ostream & out, int32 indent = 0) override{
+        return _value->print(out, indent);
+    }
 
-    ~Constant() override;
+private:
+    struct BaseHolder{
+        virtual std::ostream& print(std::ostream & out, int32 indent = 0) = 0;
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+        virtual ~BaseHolder(){}
+    };
 
-  private:
-    T _value;
+    template<typename T>
+    struct ValueHolder: public BaseHolder{
+        ValueHolder(T val):
+            value(val)
+        {}
+
+        std::ostream& print(std::ostream & out, int32 = 0) override{
+            return out << value;
+        }
+
+        T value;
+    };
+
+    BaseHolder* _value = nullptr;
     Type _type;
 };
 
@@ -145,7 +166,7 @@ template <typename T> class Constant : public Expression {
 // we want our language to be readable
 class BinaryOperator : public Expression {
   public:
-    BinaryOperator(ST::Expr rhs, ST::Expr lhs, Operator op)
+    BinaryOperator(ST::Expr rhs, ST::Expr lhs, ST::Expr op)
         : _rhs(rhs), _lhs(lhs), _op(op) {}
 
     LYTHON_COMMFUNCCHILD
@@ -158,7 +179,7 @@ class BinaryOperator : public Expression {
   private:
     ST::Expr _rhs;
     ST::Expr _lhs;
-    Operator _op;
+    ST::Expr _op;
 };
 
 class UnaryOperator : public Expression {
@@ -177,6 +198,26 @@ class UnaryOperator : public Expression {
     Operator _op;
 };
 
+class Call : public Expression {
+  public:
+    typedef std::vector<ST::Expr> Arguments;
+
+    Call() {}
+
+    LYTHON_KIND(KindCall)
+
+    ~Call() override;
+
+    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+
+    ST::Expr& function() {return _function;}
+    Arguments& arguments() { return _arguments;}
+
+  private:
+    ST::Expr _function;
+    Arguments _arguments;
+};
+
 // Block Instruction
 // -------------------------------------
 
@@ -186,11 +227,11 @@ class UnaryOperator : public Expression {
 // Add get_return_type()
 class SeqBlock : public Expression {
   public:
-    typedef std::vector<ST::Expr> Block;
+    typedef std::vector<ST::Expr> Blocks;
 
     SeqBlock() {}
 
-    Block get_block() { return _block; }
+    Blocks& blocks() { return _block; }
 
     LYTHON_COMMFUNCCHILD
     LYTHON_KIND(KindSeqBlock)
@@ -200,7 +241,7 @@ class SeqBlock : public Expression {
     std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
   private:
-    Block _block;
+    Blocks _block;
 };
 
 // Functions
@@ -229,11 +270,15 @@ class Function : public Expression {
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
+    std::string& docstring(){
+        return _docstring;
+    }
   private:
-    ST::Expr _body;
+    ST::Expr _body = nullptr;
     Arguments _args;
     Type _return_type;
     Name _name;
+    std::string _docstring;
 };
 
 //  This allow me to read an entire file but only process
@@ -257,6 +302,43 @@ class UnparsedBlock : public Expression {
 
   private:
     Tokens _toks;
+};
+
+class Statement: public Expression{
+  public:
+    Statement(){}
+
+    LYTHON_KIND(KindStatement)
+
+    int8& statement() {
+        return _statement;
+    }
+
+    ST::Expr& expr(){
+        return _expr;
+    }
+
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+
+  private:
+    int8 _statement;
+    ST::Expr _expr;
+};
+
+class Ref: public Expression{
+public:
+    Ref() = default;
+
+    LYTHON_KIND(KindReference)
+
+    std::string& name(){
+        return _name;
+    }
+
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+
+private:
+    std::string _name;
 };
 
 } // namespace AbstractSyntaxTree

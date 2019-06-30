@@ -228,7 +228,6 @@ private:
     int32           _cindent;
     int32           _oindent;
 
-
 // debug
 public:
 

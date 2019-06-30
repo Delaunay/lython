@@ -3,6 +3,7 @@
 
 #include "../Lexer/Lexer.h"
 #include "../Logging/logging.h"
+#include "../Utilities/optional.h"
 
 #include "Module.h"
 #include <iostream>
@@ -29,12 +30,15 @@
     if (token().type() == tok) {                                               \
         next_token();                                                          \
     }
-#define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
+
 // assert(token().type() == tok && msg)
 #define TRACE(out) out << "function " << std::endl;
 #define CHECK_TYPE(type) type
 #define CHECK_NAME(name) name
 #define PARSE_ERROR(msg) std::cout << msg;
+
+#define show_token(tok) debug(tok_to_string(tok.type()));
+#define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
 
 namespace lython {
 
@@ -53,27 +57,29 @@ class Parser {
     // which means type will be an expression too
     Type parse_type() {}
 
-    std::string &get_identifier() {
-        if (token().type() == tok_identifier)
+    std::string get_identifier() {
+        if (token().type() == tok_identifier){
             return token().identifier();
+        }
 
-        ASSERT(true, "An Identifier was expected");
+        debug("Missing identifier");
+        return std::string("--expected-identifier--");
     }
 
     // Parsing routines
-    ST::Expr parse_function() {
-        info("");
-
+    ST::Expr parse_function(bool eager, int depth) {
+        trace(depth, "Function");
         EAT(tok_def);
 
         // Get Name
         AST::Function *fun = new AST::Function(get_identifier());
         std::string ret_type = "unknown";
-        next_token();
 
-        // Parse Args
-        EXPECT('(', "( was expected");
-        EAT('(');
+        Token tok = next_token();
+
+        EXPECT('(', "( was expected"); EAT('(');
+
+        debug("Parse Arguments");
         while (token().type() != ')' && token()) {
 
             std::string vname = CHECK_NAME(get_identifier());
@@ -95,45 +101,187 @@ class Parser {
             fun->args().push_back(AST::Placeholder(vname, type));
         }
         EAT(')');
-        EXPECT(':', ": was expected");
-        EAT(':');
-
         // Read return type if any
-        if (token().type() == tok_arrow) {
+        tok = token();
+        if (tok.type() == tok_arrow) {
             EAT(tok_arrow);
             ret_type = CHECK_TYPE(get_identifier());
-            next_token();
+
+            tok = next_token();
         }
         fun->return_type() = make_type(ret_type);
 
-        EXPECT(tok_newline, "new line was expected");
-        EAT(tok_newline);
-        EXPECT(tok_indent, "indent was expected"); // EAT(tok_indent);
-                                                   // EAT(tok_docstring);
+        EXPECT(':', ": was expected")               ; EAT(':');
+        EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
+        EXPECT(tok_indent , "indent was expected")  ; EAT(tok_indent);
+        tok = token();
 
-        /*  Dont think too much about what the function does */
-        AST::UnparsedBlock *body = new AST::UnparsedBlock();
+        if (tok.type() == tok_docstring){
+            fun->docstring() = tok.identifier();
 
-        while (token().type() != tok_desindent && token()) {
-            body->tokens().push_back(next_token());
+            tok = next_token();
+            EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
         }
 
-        fun->body() = ST::Expr(body);
+        if (! eager){
+            AST::UnparsedBlock *body = new AST::UnparsedBlock();
+
+            while (token().type() != tok_desindent && token()) {
+                body->tokens().push_back(token());
+                next_token();
+            }
+
+            fun->body() = ST::Expr(body);
+        } else {
+            debug("Parse body");
+            ST::Expr body = parse_block(depth + 1);
+            fun->body() = body;
+        }
+
+        EXPECT(tok_desindent , "desindent was expected")  ; EAT(tok_desindent);
         return ST::Expr(fun);
     }
 
+    ST::Expr parse_value(int depth){
+        trace(depth, "Parse value (%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+
+        AST::Value* val = nullptr;
+        int8 type = token().type();
+
+        switch(type){
+        case tok_string:
+            val = new AST::Value(token().identifier(), make_type("string"));
+            EAT(tok_string);
+            break;
+        case tok_float:
+            val = new AST::Value(token().as_float(), make_type("float"));
+            EAT(tok_float);
+            break;
+        case tok_int:
+            val = new AST::Value(token().as_integer(), make_type("int"));
+            EAT(tok_int);
+            break;
+        }
+        return ST::Expr(val);
+    }
+
+    ST::Expr parse_statement(int8 statement, int depth){
+        trace(depth, "Parse statement");
+
+        EXPECT(statement, ": was expected"); EAT(statement);
+
+        AST::Statement* stmt = new AST::Statement();
+        stmt->statement() = statement;
+
+        stmt->expr() = parse_expression(depth + 1);
+        return ST::Expr(stmt);
+    }
+
+    ST::Expr parse_function_call(ST::Expr function, int depth){
+        trace(depth, "Parse function call");
+        AST::Call* fun = new AST::Call();
+        fun->function() = function;
+
+        EXPECT('(', "`(` was expected"); EAT('(');
+
+        while(token().type() != ')'){
+            fun->arguments().push_back(parse_expression(depth + 1));
+        }
+
+        EXPECT(')', "`)` was expected"); EAT(')');
+        return ST::Expr(fun);
+    }
+
+    ST::Expr parse_operator(int depth){
+        trace(depth, "Parse operator (%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+
+        ST::Expr lhs = parse_value(depth + 1);
+
+        AST::Ref* op = new AST::Ref();
+        if (token().type() == tok_identifier){
+            op->name() = get_identifier();
+            EAT(tok_identifier);
+        } else{
+            op->name() = token().type();
+            next_token();
+        }
+
+        ST::Expr rhs = parse_value(depth + 1);
+        AST::BinaryOperator* bin = new AST::BinaryOperator(rhs, lhs, ST::Expr(op));
+
+        return ST::Expr(bin);
+    }
+
+    // parse function_name(args...)
+    ST::Expr parse_expression(int depth){
+        trace(depth, "Parse Expression (%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+
+        switch(token().type()){
+            case tok_async:
+            case tok_yield:
+            case tok_return:
+                return parse_statement(token().type(), depth + 1);
+                break;
+
+            case tok_def:
+                return parse_function(true, depth + 1);
+
+            // value probably an operation X + Y
+            case tok_identifier:{
+                AST::Ref* fun_name = new AST::Ref();
+                fun_name->name() = get_identifier(); EAT(tok_identifier);
+                return parse_function_call(ST::Expr(fun_name), depth + 1);
+            }/*
+            case tok_string:
+            case tok_int:
+            case tok_float:
+                return parse_value();*/
+
+            default:
+                return parse_operator(depth + 1);
+            /*
+                AST::Ref* name = new AST::Ref();
+                name->name() += token().type();
+                next_token();
+                return ST::Expr(name);*/
+        }
+    }
+
+    ST::Expr parse_block(int depth){
+        trace(depth, "Parse block");
+
+        AST::SeqBlock* block = new AST::SeqBlock();
+
+        Token tok = token();
+
+        while (tok.type() != tok_desindent){
+            auto expr = parse_expression(depth + 1);
+            block->blocks().push_back(expr);
+
+            tok = token();
+            while (tok.type() == tok_newline){
+                tok = next_token();
+            }
+        }
+
+        return ST::Expr(block);
+    }
+
     // return One Top level Expression (Functions)
-    ST::Expr parse_one() {
-        Token tok = next_token();
+    ST::Expr parse_one(int depth = 0) {
+        Token tok = token();
+        if (tok.type() == tok_incorrect){
+            tok = next_token();
+        }
 
-        tok.print(std::cout) << "\n";
-
-        info(tok_to_string(token().type()));
+        while (tok.type() == tok_newline){
+            tok = next_token();
+        }
 
         switch (tok.type()) {
 
         case tok_def:
-            return parse_function();
+            return parse_function(true, depth);
         default:
             assert("Unknown Token");
         }
@@ -141,8 +289,6 @@ class Parser {
 
     //
     BaseScope parse_all() {
-        info("");
-
         // first token is tok_incorrect
         while (token()) {
             _scope.insert(parse_one());
