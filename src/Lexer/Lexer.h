@@ -148,10 +148,8 @@ public:
                           // 0b ?
                         ntype = tok_incorrect;        // 1abc is an incorrect token
                 }
-
                 c = nextc();
             }
-
             return make_token(ntype, num);
         }
 

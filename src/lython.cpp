@@ -42,6 +42,7 @@ int main()
             "    return 1 + 1\n\n"
 
             "struct Object:\n"
+            "    \"\"\"This is a docstring\"\"\"\n"
             "    a: Type\n";
 
     StringBuffer reader(code);
@@ -58,6 +59,8 @@ int main()
     try{
         Parser par(reader);
 
+        par.parse_one()->print(std::cout);
+        std::cout << "\n\n";
         par.parse_one()->print(std::cout);
         std::cout << "\n\n";
         par.parse_one()->print(std::cout);

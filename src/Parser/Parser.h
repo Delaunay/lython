@@ -40,6 +40,12 @@
 #define show_token(tok) debug(tok_to_string(tok.type()));
 #define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
 
+#define WITH_EXPECT(tok, msg)\
+    if(token().type() != tok) {\
+        error("Got (tok: %s, %d)", tok_to_string(token().type()).c_str(), token().type());\
+        throw Exception(msg);\
+    } else
+
 namespace lython {
 
 class Parser {
@@ -247,6 +253,60 @@ class Parser {
         }
     }
 
+    ST::Expr parse_struct(int depth){
+        trace(depth, "Parse Struct");
+        EAT(tok_struct);
+
+        Token tok = token();
+        EXPECT(tok_identifier, "Expect an identifier");
+        std::string name = tok.identifier(); EAT(tok_identifier);
+
+        AST::Struct* data = new AST::Struct();
+        data->name() = name;
+
+        EXPECT(':', ": was expected"); EAT(':');
+        EXPECT(tok_newline, "newline was expected"); EAT(tok_newline);
+        EXPECT(tok_indent, "indentation was expected"); EAT(tok_indent);
+
+        tok = token();
+
+        // docstring
+        if (tok.type() == tok_docstring){
+            data->docstring() = tok.identifier();
+            tok = next_token();
+        }
+
+        while(tok.type() == tok_newline){
+            tok = next_token();
+        }
+
+        tok = token();
+        while(tok.type() != tok_desindent && tok.type() != tok_eof){
+
+            WITH_EXPECT(tok_identifier, "Expected identifier 1"){
+                name = tok.identifier(); EAT(tok_identifier);
+            }
+
+            EXPECT(':', "Expect :"); EAT(':');
+            tok = token();
+
+            WITH_EXPECT(tok_identifier, "Expect type identifier"){
+                AST::Ref* ref = new AST::Ref();
+                ref->name() = tok.identifier();
+                data->attributes()[name] = ST::Expr(ref);
+                EAT(tok_identifier);
+                tok = token();
+            }
+
+            while(tok.type() == tok_newline){
+                tok = next_token();
+            }
+
+        }
+
+        return ST::Expr(data);
+    }
+
     ST::Expr parse_block(int depth){
         trace(depth, "Parse block");
 
@@ -282,6 +342,10 @@ class Parser {
 
         case tok_def:
             return parse_function(true, depth);
+
+        case tok_struct:
+            return parse_struct(depth);
+
         default:
             assert("Unknown Token");
         }

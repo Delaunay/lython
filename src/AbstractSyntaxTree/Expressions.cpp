@@ -64,6 +64,12 @@ std::ostream &Function::print(std::ostream &out, int32 indent) {
     else
         out << "):\n";
 
+    std::string indentation = std::string((indent + 1) * 4, ' ');
+
+    if (docstring().size() > 0){
+        out << indentation << "\"\"\"" << docstring() << "\"\"\"\n";
+    }
+
     _body->print(out, indent + 1);
     return out;
 }
@@ -94,6 +100,21 @@ std::ostream& Call::print(std::ostream & out, int32 indent){
 
 std::ostream &Ref::print(std::ostream &out, int32 indent){
     out << name();
+    return out;
+}
+
+std::ostream &Struct::print(std::ostream &out, int32 indent){
+    out << "struct " << name() << ":\n";
+    std::string indentation = std::string((indent + 1) * 4, ' ');
+
+    if (docstring().size() > 0){
+        out << indentation << "\"\"\"" << docstring() << "\"\"\"\n";
+    }
+
+    for(auto& item : attributes()){
+        out << indentation << item.first << ": ";  item.second->print(out, indent);
+        out << "\n";
+    }
     return out;
 }
 

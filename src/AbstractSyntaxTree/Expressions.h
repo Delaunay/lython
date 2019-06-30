@@ -51,7 +51,8 @@ class Expression {
         KindStatement,
         KindValue,
         KindCall,
-        KindReference
+        KindReference,
+        KindStruct
     };
 
     // this is here but currently no classes are doing dyn-alloc
@@ -340,6 +341,36 @@ public:
 private:
     std::string _name;
 };
+
+
+class Struct: public Expression{
+public:
+    typedef std::unordered_map<std::string, ST::Expr> Attributes;
+
+    Struct() = default;
+
+    LYTHON_KIND(KindStruct)
+
+    std::string& name(){
+        return _name;
+    }
+
+    Attributes& attributes(){
+        return _attributes;
+    }
+
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+
+    std::string& docstring(){
+        return _docstring;
+    }
+
+private:
+    std::string _name;
+    Attributes _attributes;
+    std::string _docstring;
+};
+
 
 } // namespace AbstractSyntaxTree
 } // namespace lython
