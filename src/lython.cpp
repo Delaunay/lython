@@ -6,6 +6,8 @@
 #include "Lexer/Lexer.h"
 #include "Parser/Parser.h"
 
+#include "Logging/logging.h"
+
 // #include "Lexer/Prelexer.h"
 
 #include "revision_data.h"
@@ -14,6 +16,8 @@ using namespace lython;
 
 int main()
 {
+    info("Enter");
+
     //auto cst = AST::Constant<int>(10, "int");
     //auto pl1 = AST::Placeholder("name", "double");
     //auto pl2 = AST::Placeholder("name", "int");
@@ -29,7 +33,8 @@ int main()
 
     //ConsoleBuffer reader;
 
-    std::string code = "def function(test:double, test) -> double:\n"
+    std::string code =
+            "def function(test:double, test) -> double:\n"
             "    \"\"\"This is a docstring\"\"\"\n"
             "    return 1 + 1\n\n"
             "def function(test:int, test):\n"
@@ -39,15 +44,15 @@ int main()
 
     StringBuffer reader(code);
 
-    ///*
-    Lexer lex(reader);
-    lex.print(std::cout);
-    //lex.debug_print(std::cout);
+    {
+        Lexer lex(reader);
+        lex.print(std::cout);
+        //lex.debug_print(std::cout);
+        std::cout << std::endl;
+    }
 
-    std::cout << std::endl;
-    reader.reset(); //*/
+    reader.reset();
 
-    /*
     try{
         Parser par(reader);
 

@@ -243,9 +243,9 @@ public:
         std::vector<Token> v;
 
         Token t = next_token();
-        do{
+        do {
             v.push_back(t);
-        }while(t = next_token());
+        } while((t = next_token()));
 
         v.push_back(t); // push eof token
         return v;

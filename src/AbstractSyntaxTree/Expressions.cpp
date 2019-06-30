@@ -37,6 +37,13 @@ std::ostream &UnparsedBlock::print(std::ostream &out, int32 indent) {
     return out;
 }
 
+std::ostream &SeqBlock::print(std::ostream &out, int32 indent) {
+    for(auto& g: _block){
+        g->print(out, indent);
+    }
+    return out;
+}
+
 std::ostream &Function::print(std::ostream &out, int32 indent) {
     out << "def " << *(_name.get()) << "(";
 

@@ -54,18 +54,27 @@ public:
         _next_char = getc();
     }
 
-    char  peek()        {    return _next_char;  }
-    int32 line()        {    return _line;       }
-    int32 col()         {    return _col;        }
-    int32 indent()      {	return _indent;       }
-    bool  empty_line()  {	return _empty_line;   }
+    char  peek()        {   return _next_char;   }
+    int32 line()        {   return _line;        }
+    int32 col()         {   return _col;         }
+    int32 indent()      {	return _indent;      }
+    bool  empty_line()  {	return _empty_line;  }
+
+    virtual void reset(){
+        _next_char = ' ';
+        _line = 1;
+        _col = 0;
+        _indent = 0;
+        _empty_line = true;
+        init();
+    }
 
 private:
-    char   _next_char{' '};
+    char  _next_char{' '};
     int32 _line=1;
     int32 _col=0;
     int32 _indent{0};
-    bool   _empty_line{true};
+    bool  _empty_line{true};
 };
 
 class FileError{
@@ -128,8 +137,9 @@ private:
     const std::string _file_name;
 
 public:
-    void reset(){
+    void reset() override {
         _pos = 0;
+        AbstractBuffer::reset();
     }
 
     // helper for testing

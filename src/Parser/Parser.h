@@ -2,6 +2,8 @@
 #define PARSER_H
 
 #include "../Lexer/Lexer.h"
+#include "../Logging/logging.h"
+
 #include "Module.h"
 #include <iostream>
 
@@ -60,6 +62,8 @@ class Parser {
 
     // Parsing routines
     ST::Expr parse_function() {
+        info("");
+
         EAT(tok_def);
 
         // Get Name
@@ -120,10 +124,14 @@ class Parser {
 
     // return One Top level Expression (Functions)
     ST::Expr parse_one() {
-        if (tok_incorrect)
-            next_token();
+        Token tok = next_token();
 
-        switch (token().type()) {
+        tok.print(std::cout) << "\n";
+
+        info(tok_to_string(token().type()));
+
+        switch (tok.type()) {
+
         case tok_def:
             return parse_function();
         default:
@@ -133,6 +141,8 @@ class Parser {
 
     //
     BaseScope parse_all() {
+        info("");
+
         // first token is tok_incorrect
         while (token()) {
             _scope.insert(parse_one());

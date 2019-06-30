@@ -16,6 +16,7 @@ ADD_SUBDIRECTORY(AbstractSyntaxTree)
 ADD_SUBDIRECTORY(Lexer)
 ADD_SUBDIRECTORY(Parser)
 ADD_SUBDIRECTORY(Generator)
+ADD_SUBDIRECTORY(Logging)
 
 # Source
 SET(ADD_HEADERS
@@ -45,9 +46,10 @@ SET(ADD_SOURCE
 #==================
 # Compile as a library to avoid double compilation
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
+ADD_LIBRARY(liblogging Logging/logging.cpp Logging/logging.h)
 
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} liblython)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} liblython liblogging)
 
 # Enable C++11
 SET(${CXX_STANDARD_REQUIRED} ON)
