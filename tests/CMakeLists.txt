@@ -5,6 +5,9 @@
 # tests need source header
 INCLUDE_DIRECTORIES(../src)
 
+SET(gtest_DIR ../build/)
+FIND_PACKAGE(GTest)
+
 # I am not sure we need this
 INCLUDE_DIRECTORIES(${gtest_dir})
 INCLUDE_DIRECTORIES(${gtest_dir}/include/)

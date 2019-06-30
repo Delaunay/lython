@@ -8,5 +8,4 @@ IF(BUILD_TESTING)
     # does this work ?
     SET(${BUILD_GMOCK} ON)
     SET(${BUILD_GTEST} ON)
-
 ENDIF(BUILD_TESTING)

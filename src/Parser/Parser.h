@@ -130,7 +130,7 @@ class Parser {
         }
 
         if (! eager){
-            AST::UnparsedBlock *body = new AST::UnparsedBlock();
+           auto *body = new AST::UnparsedBlock();
 
             while (token().type() != tok_desindent && token()) {
                 body->tokens().push_back(token());
@@ -176,7 +176,7 @@ class Parser {
 
         EXPECT(statement, ": was expected"); EAT(statement);
 
-        AST::Statement* stmt = new AST::Statement();
+        auto* stmt = new AST::Statement();
         stmt->statement() = statement;
 
         stmt->expr() = parse_expression(depth + 1);
@@ -185,7 +185,7 @@ class Parser {
 
     ST::Expr parse_function_call(ST::Expr function, int depth){
         trace(depth, "Parse function call");
-        AST::Call* fun = new AST::Call();
+        auto fun = new AST::Call();
         fun->function() = function;
 
         EXPECT('(', "`(` was expected"); EAT('(');
@@ -203,7 +203,7 @@ class Parser {
 
         ST::Expr lhs = parse_value(depth + 1);
 
-        AST::Ref* op = new AST::Ref();
+        auto op = new AST::Ref();
         if (token().type() == tok_identifier){
             op->name() = get_identifier();
             EAT(tok_identifier);
@@ -261,7 +261,7 @@ class Parser {
         EXPECT(tok_identifier, "Expect an identifier");
         std::string name = tok.identifier(); EAT(tok_identifier);
 
-        AST::Struct* data = new AST::Struct();
+        auto* data = new AST::Struct();
         data->name() = name;
 
         EXPECT(':', ": was expected"); EAT(':');
@@ -310,7 +310,7 @@ class Parser {
     ST::Expr parse_block(int depth){
         trace(depth, "Parse block");
 
-        AST::SeqBlock* block = new AST::SeqBlock();
+        auto* block = new AST::SeqBlock();
 
         Token tok = token();
 
