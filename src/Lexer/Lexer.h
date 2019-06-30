@@ -52,8 +52,11 @@ public:
 
         // newline
         if (c == '\n'){
-            _oindent = _cindent;
-            _cindent = 0;
+            // Only reset current indentation once in case of double new_lines
+            if (_cindent != 0){
+                _oindent = _cindent;
+                _cindent = 0;
+            }
             consume();
             return make_token(tok_newline);
         }
@@ -104,7 +107,9 @@ public:
             }
 
             TokenType t = keywords()[ident];
-            if (t)  return make_token(t);
+            if (t)
+                return make_token(t);
+
             return make_token(tok_identifier, ident);
         }
 
@@ -153,34 +158,51 @@ public:
         // strings
         if (c == '"'){
             std::string str;
+            TokenType tok = tok_string;
+            char c2 = nextc();
+            char c3 = '\0';
 
-            while((c = nextc()) != '"'){
-                str.push_back(c);
+            if (c2 == '"'){
+                char c3 = nextc();
+                if (c3 == '"'){
+                    tok = tok_docstring;
+                } else{
+                    str.push_back(c2);
+                    str.push_back(c3);
+                }
+            } else{
+                str.push_back(c2);
             }
 
-            /* Check for doc string
-            if (c == '"'){
-                c = nextc();
-                if (c == '"'){
-                    int k = 0;
-                    c = nextc();
-                    while(k != 3){
-                        if (c == '"'){
-                            k += 1;
-                        }
-                        else {
-                            k = 0;
-                            str.push_back(c);
-                            c = nextc();
-                        }
-                    }
-                    c = nextc();
-                    return make_token(tok_docstring, str);
+            if (tok == tok_string)
+                while((c = nextc()) != '"'){
+                    str.push_back(c);
                 }
-            }*/
-
+            else{
+                while(true){
+                    c = nextc();
+                    if (c == '"'){
+                        c2 = nextc();
+                        if (c2 == '"'){
+                            c3 = nextc();
+                            if (c3 == '"'){
+                                break;
+                            } else {
+                                str.push_back(c);
+                                str.push_back(c2);
+                                str.push_back(c3);
+                            }
+                        } else {
+                            str.push_back(c);
+                            str.push_back(c2);
+                        }
+                    } else{
+                        str.push_back(c);
+                    }
+                }
+            }
             consume();
-            return make_token(tok_string, str);
+            return make_token(tok, str);
         }
 
         // get next char

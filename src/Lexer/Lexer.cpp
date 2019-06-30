@@ -11,7 +11,7 @@ std::ostream& Lexer::debug_print(std::ostream& out){
         out << to_string(k, 4) << "  ";
         t.debug_print(out) << std::endl;
         k += 1;
-    }while(t = next_token());
+    }while((t = next_token()));
 
     out << to_string(k, 4) << "  ";
     t.debug_print(out) << std::endl;    // eof
@@ -24,7 +24,7 @@ std::ostream& Lexer::print(std::ostream& out){
     Token t = next_token();
     do{
         t.print(out);
-    }while(t = next_token());
+    }while((t = next_token()));
 
     // send eof for reset
     t.print(out);

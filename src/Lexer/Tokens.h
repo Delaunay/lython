@@ -94,7 +94,7 @@ public:
     std::ostream& debug_print(std::ostream& out);
 
     // could be used for code formatting
-    std::ostream& print(std::ostream& out, int indent = 0);
+    std::ostream& print(std::ostream& out, int32 indent = 0);
 };
 
 inline

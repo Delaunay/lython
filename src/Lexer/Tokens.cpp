@@ -43,9 +43,9 @@ std::ostream& Token::debug_print(std::ostream& out){
 }
 
 // could be used for code formatting
-std::ostream& Token::print(std::ostream& out, int indent){
+std::ostream& Token::print(std::ostream& out, int32 indent){
     // Keep track of some variable for correct printing
-    static int8 indent_level = 0;
+    static int32 indent_level = 0;
     static bool emptyline = true;   // To generate indent when needed
     static bool open_parens = false;
 
@@ -85,7 +85,7 @@ std::ostream& Token::print(std::ostream& out, int indent){
 
     // Indentation
     if (emptyline && indent_level > 0)
-        out << std::string(indent_level * LYTHON_INDENT, ' ');
+        out << std::string(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
     // Single Char
     if (type() > 0){
