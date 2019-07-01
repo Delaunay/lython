@@ -61,7 +61,7 @@ namespace lython {
 //      <compound-statement>
 
 AST::ParameterList Parser::parse_parameter_list(std::size_t depth){
-    TRACE_TOK();
+    TRACE_START();
     EXPECT('(', "Expected start of parameter list"); EAT('(');
 
     AST::ParameterList list;
@@ -85,12 +85,12 @@ AST::ParameterList Parser::parse_parameter_list(std::size_t depth){
         list.push_back(AST::Parameter(vname, type));
     }
     EXPECT(')', "Expected end of parameter list"); EAT(')');
-    TRACE_TOK();
+    TRACE_END();
     return list;
 }
 
 ST::Expr Parser::parse_type(size_t depth){
-    TRACE_TOK();
+    TRACE_START();
 
     auto name = new AST::Ref();
     name->name() = "<typename>";
@@ -99,12 +99,12 @@ ST::Expr Parser::parse_type(size_t depth){
         name->name() = token().identifier();
     }; EAT(tok_identifier);
 
-    TRACE_TOK();
+    TRACE_END();
     return ST::Expr(name);
 }
 
 ST::Expr Parser::parse_function(std::size_t depth){
-    TRACE_TOK();
+    TRACE_START();
 
     EXPECT(tok_def, "Expected function to start by `def`"); EAT(tok_def);
 
@@ -124,16 +124,18 @@ ST::Expr Parser::parse_function(std::size_t depth){
        fun->return_type() = parse_type(depth + 1);
     };
 
-    EXPECT(':', "Expected function to end with a `:`")             ; EAT(':');
-    EXPECT(tok_newline, "Expected function to end with a new line"); EAT(tok_newline);
+    EXPECT(':'        , "Expected function to end with a `:`")                ; EAT(':');
+    EXPECT(tok_newline, "Expected function to end with a new line")           ; EAT(tok_newline);
+    EXPECT(tok_indent , "Expected function body to start with an indentation"); EAT(tok_indent);
 
     if (token().type() == tok_docstring){
         fun->docstring() = token().identifier();
+        EAT(tok_docstring);
         EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
     }
 
     fun->body() = parse_compound_statement(depth + 1);
-    TRACE_TOK();
+    TRACE_END();
     return ST::Expr(fun);
 }
 
@@ -146,8 +148,9 @@ Token Parser::ignore_newlines(){
 }
 
 ST::Expr Parser::parse_compound_statement(std::size_t depth){
-    TRACE_TOK();
-    EXPECT(tok_indent, "Expected start of compound statement"); EAT(tok_indent);
+    TRACE_START();
+    // if a docstring is present the indent token was already eaten
+    // EXPECT(tok_indent, "Expected start of compound statement"); EAT(tok_indent);
 
     auto* block = new AST::SeqBlock();
     Token tok = token();
@@ -165,10 +168,7 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth){
     }
 
     EXPECT(tok_desindent, "Expected end of compound statement"); EAT(tok_desindent);
-    TRACE_TOK();
+    TRACE_END();
     return ST::Expr(block);
 }
-
-
-
 }

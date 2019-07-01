@@ -20,15 +20,15 @@ bool is_log_enabled(LogLevel level);
 
 void log(LogLevel level, const char* file, int line, const char* function, std::string format, ...);
 
-void log_trace(LogLevel level, size_t depth, const char* file, int line, const char* function, std::string format, ...);
+void log_trace(LogLevel level, bool end, size_t depth, const char* file, int line, const char* function, std::string format, ...);
 
 } // namespace lython
 
 #define LOG_HELPER(level, ...)\
     log(level, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
-#define LOG_TRACE_HELPER(level, depth, ...)\
-    log_trace(level, depth, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_TRACE_HELPER(level, end, depth, ...)\
+    log_trace(level, end, depth, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 // info("test %s", "const char*")
 #define info(...) LOG_HELPER(lython::Info , __VA_ARGS__)
@@ -38,4 +38,10 @@ void log_trace(LogLevel level, size_t depth, const char* file, int line, const c
 #define fatal(...) LOG_HELPER(lython::Fatal, __VA_ARGS__)
 
 #define trace(depth, ...)\
-    LOG_TRACE_HELPER(lython::Trace, depth, __VA_ARGS__)
+    LOG_TRACE_HELPER(lython::Trace, false, depth, __VA_ARGS__)
+
+#define trace_start(depth, ...)\
+    LOG_TRACE_HELPER(lython::Trace, false, depth, __VA_ARGS__)
+
+#define trace_end(depth, ...)\
+    LOG_TRACE_HELPER(lython::Trace, true, depth, __VA_ARGS__)

@@ -35,7 +35,9 @@
     }
 
 // assert(token().type() == tok && msg)
-#define TRACE_TOK() trace(depth, "(%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+#define TRACE_START() trace_start(depth, "(%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+#define TRACE_END() trace_end(depth, "(%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+
 #define CHECK_TYPE(type) type
 #define CHECK_NAME(name) name
 #define PARSE_ERROR(msg) std::cout << msg;
@@ -130,7 +132,7 @@ class Parser {
     AST::ParameterList parse_parameter_list(std::size_t depth);
 
     ST::Expr parse_value(std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
 
         AST::Value* val = nullptr;
         int8 type = token().type();
@@ -165,11 +167,12 @@ class Parser {
 
         ST::Expr rhs = parse_value(depth + 1);
         AST::BinaryOperator* bin = new AST::BinaryOperator(rhs, ST::Expr(val), ST::Expr(op));
+        TRACE_END();
         return ST::Expr(bin);
     }
 
     ST::Expr parse_statement(int8 statement, std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
         EXPECT(statement, ": was expected"); EAT(statement);
 
         auto* stmt = new AST::Statement();
@@ -180,7 +183,7 @@ class Parser {
     }
 
     ST::Expr parse_function_call(ST::Expr function, std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
         auto fun = new AST::Call();
         fun->function() = function;
 
@@ -195,7 +198,7 @@ class Parser {
     }
 
     ST::Expr parse_operator(std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
         ST::Expr lhs = parse_value(depth + 1);
 
         auto op = new AST::Ref();
@@ -215,7 +218,7 @@ class Parser {
 
     // parse function_name(args...)
     ST::Expr parse_expression(std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
 
         switch(token().type()){
             case tok_async:
@@ -249,7 +252,7 @@ class Parser {
                                       | <struct-or-union> <identifier>
      */
     ST::Expr parse_struct(std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
         EAT(tok_struct);
 
         Token tok = token();
@@ -301,7 +304,7 @@ class Parser {
     }
 
     ST::Expr parse_block(std::size_t depth){
-        TRACE_TOK();
+        TRACE_START();
 
         auto* block = new AST::SeqBlock();
         Token tok = token();
