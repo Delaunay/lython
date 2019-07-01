@@ -1,5 +1,5 @@
 # required for C++11 features
-CMAKE_MINIMUM_REQUIRED(VERSION 3.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # project name + language used
 PROJECT(lython CXX)
@@ -58,7 +58,6 @@ ADD_SUBDIRECTORY(src)
 # Compile tests ?
 IF(BUILD_TESTING)
     ENABLE_TESTING()
-
     MESSAGE(STATUS "Building tests")
     ADD_SUBDIRECTORY(tests)
 ENDIF(BUILD_TESTING)

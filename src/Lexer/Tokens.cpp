@@ -86,7 +86,10 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
 
     if (str.size() > 0){
         emptyline = false;
-        return out << str << " ";
+        if (type() == tok_arrow)
+            out << " ";
+
+        return out << str;
     }
 
     // Single Char
@@ -117,7 +120,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
     else if (type() == tok_docstring)
         out << "\"\"\"" << identifier() << "\"\"\"";
     else if (type() == tok_int || type() == tok_float)
-        out << identifier() << ' ';
+        out << identifier();
     else
         out << identifier();
 
