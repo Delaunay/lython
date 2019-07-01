@@ -14,23 +14,23 @@ enum LogLevel{
     Trace
 };
 
-void log(LogLevel level, std::string format, const char* file, int line, const char* function, ...);
+void log(LogLevel level, const char* file, int line, const char* function, std::string format, ...);
 
-void log_trace(LogLevel level, std::string format, int depth, const char* file, int line, const char* function, ...);
+void log_trace(LogLevel level, int depth, const char* file, int line, const char* function, std::string format, ...);
 
 } // namespace lython
 
-#define LOG_HELPER(level, fmt, ...)\
-    log(level, fmt, __FILE__, __LINE__, __FUNCTION__ __VA_OPT__(,) __VA_ARGS__)\
+#define LOG_HELPER(level, ...)\
+    log(level, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
-#define LOG_TRACE_HELPER(level, depth, fmt, ...)\
-    log_trace(level, fmt, depth, __FILE__, __LINE__, __FUNCTION__ __VA_OPT__(,) __VA_ARGS__)
+#define LOG_TRACE_HELPER(level, depth, ...)\
+    log_trace(level, depth, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
-#define info(fmt , ...) LOG_HELPER(lython::Info , fmt __VA_OPT__(,) __VA_ARGS__)
-#define warn(fmt , ...) LOG_HELPER(lython::Warn , fmt __VA_OPT__(,) __VA_ARGS__)
-#define debug(fmt, ...) LOG_HELPER(lython::Debug, fmt __VA_OPT__(,) __VA_ARGS__)
-#define error(fmt, ...) LOG_HELPER(lython::Error, fmt __VA_OPT__(,) __VA_ARGS__)
-#define fatal(fmt, ...) LOG_HELPER(lython::Fatal, fmt __VA_OPT__(,) __VA_ARGS__)
+#define info(...) LOG_HELPER(lython::Info , __VA_ARGS__)
+#define warn(...) LOG_HELPER(lython::Warn , __VA_ARGS__)
+#define debug(...) LOG_HELPER(lython::Debug, __VA_ARGS__)
+#define error(...) LOG_HELPER(lython::Error, __VA_ARGS__)
+#define fatal(...) LOG_HELPER(lython::Fatal, __VA_ARGS__)
 
-#define trace(depth, fmt, ...)\
-    LOG_TRACE_HELPER(lython::Trace, depth, fmt __VA_OPT__(,) __VA_ARGS__)
+#define trace(depth, ...)\
+    LOG_TRACE_HELPER(lython::Trace, depth, __VA_ARGS__)

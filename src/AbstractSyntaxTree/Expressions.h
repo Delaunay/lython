@@ -185,7 +185,7 @@ class BinaryOperator : public Expression {
 
 class UnaryOperator : public Expression {
   public:
-    UnaryOperator(ST::Expr expr, Operator op) : _expr(expr), _op(op) {}
+    UnaryOperator() {}
 
     LYTHON_COMMFUNCCHILD
     LYTHON_KIND(KindUnaryOperator)
@@ -194,9 +194,17 @@ class UnaryOperator : public Expression {
 
     std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
+    ST::Expr& expr(){
+        return _expr;
+    }
+
+    std::string& operation(){
+        return _op;
+    }
+
   private:
     ST::Expr _expr;
-    Operator _op;
+    std::string _op;
 };
 
 class Call : public Expression {

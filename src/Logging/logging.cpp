@@ -14,7 +14,7 @@ const char* log_level_str[] = {
     "[T] TRACE"
 };
 
-void log(LogLevel level, std::string format, const char* file, int line, const char* function, ...){
+void log(LogLevel level, const char* file, int line, const char* function, std::string format, ...){
     static const int BUFFER_SIZE = 120;
     char buffer [BUFFER_SIZE];
 
@@ -27,7 +27,7 @@ void log(LogLevel level, std::string format, const char* file, int line, const c
 }
 
 
-void log_trace(LogLevel level, std::string format, int depth, const char* file, int line, const char* function, ...){
+void log_trace(LogLevel level, int depth, const char* file, int line, const char* function, std::string format, ...){
     static const int BUFFER_SIZE = 120;
     char buffer [BUFFER_SIZE];
 

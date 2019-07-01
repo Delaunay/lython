@@ -6,7 +6,10 @@
 #include "../Utilities/optional.h"
 
 #include "Module.h"
+
 #include <iostream>
+#include <unordered_set>
+#include <unordered_map>
 
 /*
  *  TODO:
@@ -63,6 +66,18 @@ class Parser {
     // which means type will be an expression too
     Type parse_type() {}
 
+    ST::Expr parse_unary_operator(){
+        static const std::unordered_set<char> operators{'&', '*', '+', '-', '~', '!'};
+
+        Token tok = token();
+        int8 count = int8(operators.count(char(tok.type())));
+        if (count == 1){
+            auto unary_op = new AST::UnaryOperator();
+            unary_op->operation() = tok.type();
+            return ST::Expr(unary_op);
+        }
+    }
+
     std::string get_identifier() {
         if (token().type() == tok_identifier){
             return token().identifier();
@@ -72,7 +87,38 @@ class Parser {
         return std::string("<identifier>");
     }
 
-    // Parsing routines
+
+    ST::Expr parse_storage_class_specifier(){
+        static const std::unordered_set<std::string> storage{
+            "auto", "register", "static", "extern", "typedef"
+        };
+
+        Token tok = token();
+        int8 count = int8(storage.count(tok.identifier()));
+        if (count == 1){
+            //
+        }
+    }
+
+    ST::Expr parse_type_specifier(){
+        static const std::unordered_set<std::string> type_specifier{
+            "void", "char", "short", "int", "long", "float", "double", "signed", "unsigned"
+        }; // + struct | union | enum | typedef
+    }
+
+
+    /* <declaration-specifier> ::= <storage-class-specifier>
+                          | <type-specifier>
+                          | <type-qualifier><declaration-specifier> ::= <storage-class-specifier>
+                          | <type-specifier>
+                          | <type-qualifier>
+     */
+    ST::Expr parse_declaration_specifier(){
+
+    }
+
+    /*  <function-definition> ::= {<declaration-specifier>}* <declarator> {<declaration>}* <compound-statement>
+     */
     ST::Expr parse_function(bool eager, int depth) {
         trace(depth, "Function");
         EAT(tok_def);
@@ -362,6 +408,14 @@ class Parser {
         default:
             assert("Unknown Token");
         }
+    }
+
+    /*
+     * <external-declaration> ::= <function-definition>
+     *                          | <declaration>
+     */
+    ST::Expr parse_external_declaration(){
+
     }
 
     //
