@@ -2,7 +2,7 @@
 
 namespace lython {
 namespace AbstractSyntaxTree {
-std::size_t pl_hash::operator()(Placeholder &v) const noexcept {
+std::size_t pl_hash::operator()(Parameter &v) const noexcept {
     return _h(*(v.name().get()));
 }
 
@@ -12,11 +12,13 @@ Function::~Function() {}
 SeqBlock::~SeqBlock() {}
 UnaryOperator::~UnaryOperator() {}
 BinaryOperator::~BinaryOperator() {}
-Placeholder::~Placeholder() {}
+Parameter::~Parameter() {}
 Call::~Call() {}
 
+// FunctionPrototype::~FunctionPrototype(){}
 
-std::ostream &Placeholder::print(std::ostream &out, int32) {
+
+std::ostream &Parameter::print(std::ostream &out, int32) {
     return out << this->name();
 }
 
@@ -53,18 +55,21 @@ std::ostream &Function::print(std::ostream &out, int32 indent) {
     out << "def " << *(_name.get()) << "(";
 
     for (uint32 i = 0, n = uint32(_args.size()); i < n; ++i) {
-        out << *(_args[i].name().get()) << ": " << *(_args[i].type().get());
+        out << *(_args[i].name().get()) << ": ";
+        _args[i].type()->print(out, indent);
 
         if (i < n - 1)
             out << ", ";
     }
 
-    if (_return_type)
-        out << ") -> " << *(_return_type.get()) << ":\n";
-    else
+    if (_return_type){
+        out << ") -> ";
+        return_type()->print(out, indent);
+        out << ":\n";
+    } else
         out << "):\n";
 
-    std::string indentation = std::string((indent + 1) * 4, ' ');
+    std::string indentation = std::string(size_t(indent + 1) * 4, ' ');
 
     if (docstring().size() > 0){
         out << indentation << "\"\"\"" << docstring() << "\"\"\"\n";

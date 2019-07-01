@@ -22,7 +22,14 @@ TEST(Parser, Function){
             "def my_function(a: b, c: d) -> e:\n"
             "    return 1\n";
 
-    ASSERT_EQ(parse_it(code), code);
+    try{
+        ASSERT_EQ(parse_it(code), code);
+    }
+    catch (lython::Exception& e){
+        std::cout << "Error Occured:" << std::endl;
+        std::cout << "\t" << e.what() << std::endl;
+        throw e;
+    }
 }
 
 TEST(Parser, FunctionNoArgs){
@@ -30,7 +37,14 @@ TEST(Parser, FunctionNoArgs){
             "def my_function() -> e:\n"
             "    return 1\n";
 
-    ASSERT_EQ(parse_it(code), code);
+    try{
+        ASSERT_EQ(parse_it(code), code);
+    }
+    catch (lython::Exception& e){
+        std::cout << "Error Occured:" << std::endl;
+        std::cout << "\t" << e.what() << std::endl;
+        throw e;
+    }
 }
 
 TEST(Parser, FunctionDocString){
@@ -39,7 +53,14 @@ TEST(Parser, FunctionDocString){
             "    \"\"\"This is a docstring\"\"\"\n"
             "    return 1\n";
 
-    ASSERT_EQ(parse_it(code), code);
+    try{
+        ASSERT_EQ(parse_it(code), code);
+    }
+    catch (lython::Exception& e){
+        std::cout << "Error Occured:" << std::endl;
+        std::cout << "\t" << e.what() << std::endl;
+        throw e;
+    }
 }
 
 TEST(Parser, Struct){
@@ -47,7 +68,14 @@ TEST(Parser, Struct){
             "struct a:\n"
             "    b: c\n";
 
-    ASSERT_EQ(parse_it(code), code);
+    try{
+        ASSERT_EQ(parse_it(code), code);
+    }
+    catch (lython::Exception& e){
+        std::cout << "Error Occured:" << std::endl;
+        std::cout << "\t" << e.what() << std::endl;
+        throw e;
+    }
 }
 
 TEST(Parser, StructDocString){
@@ -56,5 +84,12 @@ TEST(Parser, StructDocString){
             "    \"\"\"This is a docstring\"\"\"\n"
             "    b: c\n";
 
-    ASSERT_EQ(parse_it(code), code);
+    try{
+        ASSERT_EQ(parse_it(code), code);
+    }
+    catch (lython::Exception& e){
+        std::cout << "Error Occured:" << std::endl;
+        std::cout << "\t" << e.what() << std::endl;
+        throw e;
+    }
 }

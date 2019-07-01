@@ -42,6 +42,7 @@ SET(ADD_SOURCE
     Lexer/Buffer.cpp
     Lexer/Tokens.cpp
     Parser/Parser.cpp
+    Parser/Declarations.cpp
 )
 
 # Compile

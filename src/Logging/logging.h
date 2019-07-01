@@ -6,17 +6,21 @@
 namespace lython{
 
 enum LogLevel{
+    Trace,
     Info,
     Warn,
-    Debug,
+    Debug,  // force flush
     Error,
-    Fatal,
-    Trace
+    Fatal
 };
+
+void set_log_level(LogLevel level, bool enabled);
+
+bool is_log_enabled(LogLevel level);
 
 void log(LogLevel level, const char* file, int line, const char* function, std::string format, ...);
 
-void log_trace(LogLevel level, int depth, const char* file, int line, const char* function, std::string format, ...);
+void log_trace(LogLevel level, size_t depth, const char* file, int line, const char* function, std::string format, ...);
 
 } // namespace lython
 
@@ -26,6 +30,7 @@ void log_trace(LogLevel level, int depth, const char* file, int line, const char
 #define LOG_TRACE_HELPER(level, depth, ...)\
     log_trace(level, depth, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
+// info("test %s", "const char*")
 #define info(...) LOG_HELPER(lython::Info , __VA_ARGS__)
 #define warn(...) LOG_HELPER(lython::Warn , __VA_ARGS__)
 #define debug(...) LOG_HELPER(lython::Debug, __VA_ARGS__)

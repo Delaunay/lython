@@ -35,7 +35,7 @@
     }
 
 // assert(token().type() == tok && msg)
-#define TRACE(out) out << "function " << std::endl;
+#define TRACE_TOK() trace(depth, "(%s: %i)", tok_to_string(token().type()).c_str(), token().type());
 #define CHECK_TYPE(type) type
 #define CHECK_NAME(name) name
 #define PARSE_ERROR(msg) std::cout << msg;
@@ -45,7 +45,7 @@
 
 #define WITH_EXPECT(tok, msg)\
     if(token().type() != tok) {\
-        error("Got (tok: %s, %d)", tok_to_string(token().type()).c_str(), token().type());\
+        debug("Got (tok: %s, %d)", tok_to_string(token().type()).c_str(), token().type());\
         throw Exception(msg);\
     } else
 
@@ -119,89 +119,18 @@ class Parser {
 
     /*  <function-definition> ::= {<declaration-specifier>}* <declarator> {<declaration>}* <compound-statement>
      */
-    ST::Expr parse_function(bool eager, int depth) {
-        trace(depth, "Function");
-        EAT(tok_def);
+    ST::Expr parse_function(std::size_t depth);
 
-        // Get Name
-        AST::Function *fun = new AST::Function(get_identifier());
-        std::string ret_type = "<unknown>";
+    ST::Expr parse_compound_statement(std::size_t depth);
 
-        Token tok = next_token();
+    Token ignore_newlines();
 
-        EXPECT('(', "( was expected"); EAT('(');
+    ST::Expr parse_type(std::size_t depth);
 
-        debug("Parse Arguments");
-        while (token().type() != ')' && token()) {
+    AST::ParameterList parse_parameter_list(std::size_t depth);
 
-            std::string vname = CHECK_NAME(get_identifier());
-            std::string type = "<unknown>";
-            next_token();
-
-            // type declaration
-            if (token().type() == ':') {
-                next_token();
-                type = CHECK_TYPE(get_identifier());
-                next_token();
-            }
-
-            if (token().type() == ',') {
-                next_token();
-            }
-
-            // Add parameter
-            fun->args().push_back(AST::Placeholder(vname, type));
-        }
-        EAT(')');
-        // Read return type if any
-        tok = token();
-        if (tok.type() == tok_arrow) {
-            EAT(tok_arrow);
-            ret_type = CHECK_TYPE(get_identifier());
-
-            tok = next_token();
-        }
-        fun->return_type() = make_type(ret_type);
-
-        EXPECT(':', ": was expected")               ; EAT(':');
-        EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
-        EXPECT(tok_indent , "indent was expected")  ; EAT(tok_indent);
-        tok = token();
-
-        if (tok.type() == tok_docstring){
-            fun->docstring() = tok.identifier();
-
-            tok = next_token();
-            EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
-        }
-
-        if (! eager){
-           auto *body = new AST::UnparsedBlock();
-
-            while (token().type() != tok_desindent && token()) {
-                body->tokens().push_back(token());
-                next_token();
-            }
-
-            fun->body() = ST::Expr(body);
-        } else {
-            debug("Parse body");
-            ST::Expr body = parse_block(depth + 1);
-            fun->body() = body;
-        }
-
-        tok = token();
-        while(tok == tok_newline){
-            tok = next_token();
-        }
-        if (tok.type() == tok_desindent)    {   EAT(tok_desindent); }
-        else if (tok.type() == tok_newline) {   EAT(tok_newline);   }
-
-        return ST::Expr(fun);
-    }
-
-    ST::Expr parse_value(int depth){
-        trace(depth, "Parse value (%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+    ST::Expr parse_value(std::size_t depth){
+        TRACE_TOK();
 
         AST::Value* val = nullptr;
         int8 type = token().type();
@@ -239,9 +168,8 @@ class Parser {
         return ST::Expr(bin);
     }
 
-    ST::Expr parse_statement(int8 statement, int depth){
-        trace(depth, "Parse statement");
-
+    ST::Expr parse_statement(int8 statement, std::size_t depth){
+        TRACE_TOK();
         EXPECT(statement, ": was expected"); EAT(statement);
 
         auto* stmt = new AST::Statement();
@@ -251,8 +179,8 @@ class Parser {
         return ST::Expr(stmt);
     }
 
-    ST::Expr parse_function_call(ST::Expr function, int depth){
-        trace(depth, "Parse function call");
+    ST::Expr parse_function_call(ST::Expr function, std::size_t depth){
+        TRACE_TOK();
         auto fun = new AST::Call();
         fun->function() = function;
 
@@ -266,9 +194,8 @@ class Parser {
         return ST::Expr(fun);
     }
 
-    ST::Expr parse_operator(int depth){
-        trace(depth, "Parse operator (%s: %i)", tok_to_string(token().type()).c_str(), token().type());
-
+    ST::Expr parse_operator(std::size_t depth){
+        TRACE_TOK();
         ST::Expr lhs = parse_value(depth + 1);
 
         auto op = new AST::Ref();
@@ -287,8 +214,8 @@ class Parser {
     }
 
     // parse function_name(args...)
-    ST::Expr parse_expression(int depth){
-        trace(depth, "Parse Expression (%s: %i)", tok_to_string(token().type()).c_str(), token().type());
+    ST::Expr parse_expression(std::size_t depth){
+        TRACE_TOK();
 
         switch(token().type()){
             case tok_async:
@@ -298,7 +225,7 @@ class Parser {
                 break;
 
             case tok_def:
-                return parse_function(true, depth + 1);
+                return parse_function(depth + 1);
 
             // value probably an operation X + Y
             case tok_identifier:{
@@ -316,8 +243,13 @@ class Parser {
         }
     }
 
-    ST::Expr parse_struct(int depth){
-        trace(depth, "Parse Struct");
+    /*  <struct-or-union> ::= struct | union
+        <struct-or-union-specifier> ::= <struct-or-union> <identifier> { {<struct-declaration>}+ }
+                                      | <struct-or-union> { {<struct-declaration>}+ }
+                                      | <struct-or-union> <identifier>
+     */
+    ST::Expr parse_struct(std::size_t depth){
+        TRACE_TOK();
         EAT(tok_struct);
 
         Token tok = token();
@@ -368,8 +300,8 @@ class Parser {
         return ST::Expr(data);
     }
 
-    ST::Expr parse_block(int depth){
-        trace(depth, "Parse block");
+    ST::Expr parse_block(std::size_t depth){
+        TRACE_TOK();
 
         auto* block = new AST::SeqBlock();
         Token tok = token();
@@ -388,7 +320,7 @@ class Parser {
     }
 
     // return One Top level Expression (Functions)
-    ST::Expr parse_one(int depth = 0) {
+    ST::Expr parse_one(std::size_t depth = 0) {
         Token tok = token();
         if (tok.type() == tok_incorrect){
             tok = next_token();
@@ -400,7 +332,7 @@ class Parser {
 
         switch (tok.type()) {
         case tok_def:
-            return parse_function(true, depth);
+            return parse_function(depth);
 
         case tok_struct:
             return parse_struct(depth);

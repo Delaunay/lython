@@ -4,11 +4,11 @@
 namespace lython{
 
     std::string get_name(const ST::Expr& v){
-        AST::Placeholder* p = dynamic_cast<AST::Placeholder*>(v.get());
+        AST::Parameter* p = dynamic_cast<AST::Parameter*>(v.get());
         AST::Function* f = dynamic_cast<AST::Function*>(v.get());
 
         switch (v->kind()){
-        case AST::Expression::KindPlaceholder:
+        case AST::Expression::KindParameter:
             return *(p->name().get());
 
         case AST::Expression::KindFunction:

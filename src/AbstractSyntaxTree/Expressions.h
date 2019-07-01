@@ -42,7 +42,7 @@ class Expression {
   public:
     // Explicit RTTI
     enum KindExpr {
-        KindPlaceholder,
+        KindParameter,
         KindBinaryOperator,
         KindUnaryOperator,
         KindSeqBlock,
@@ -86,37 +86,37 @@ namespace AbstractSyntaxTree {
 // We declare the leafs of our program
 // -----------------------------------
 
-// A Placeholder is a special construct that represent a unknown value
+// A Parameter is a special construct that represent a unknown value
 // that is unknown at compile time but will be known at runtime
-class Placeholder : public Expression {
+class Parameter : public Expression {
   public:
-    Placeholder(const std::string &name, const std::string &type)
-        : _name(make_name(name)), _type(make_type(type)) {}
+    Parameter(const std::string &name, ST::Expr type)
+        : _name(make_name(name)), _type(type) {}
 
-    Placeholder(Name name, Type type) : _name(name), _type(type) {}
+    Parameter(Name name, ST::Expr type) : _name(name), _type(type) {}
 
     Name &name() { return _name; }
-    Type &type() { return _type; }
+    ST::Expr &type() { return _type; }
 
     LYTHON_COMMFUNCCHILD
-    LYTHON_KIND(KindPlaceholder)
+    LYTHON_KIND(KindParameter)
 
-    ~Placeholder() override;
+    ~Parameter() override;
     std::ostream& print(std::ostream & out, int32 indent = 0) override;
 
   private:
     Name _name;
-    Type _type; // Only used for compile type
+    ST::Expr _type; // Only used for compile type
                 // type info are discarded later
 };
 
 // I want placeholder to be hashable
 struct pl_hash {
-    std::size_t operator()(Placeholder &v) const noexcept;
+    std::size_t operator()(Parameter &v) const noexcept;
     std::hash<std::string> _h;
 };
 
-typedef std::unordered_map<Placeholder, ST::Expr, pl_hash> Variables;
+typedef std::unordered_map<Parameter, ST::Expr, pl_hash> Variables;
 
 class Value: public Expression{
 public:
@@ -255,24 +255,19 @@ class SeqBlock : public Expression {
 
 // Functions
 // -------------------------------------
+typedef std::vector<Parameter> ParameterList;
 
 // Functions are Top level expression
 class Function : public Expression {
   public:
-    typedef std::vector<Placeholder> Arguments;
-
     Function(const std::string &name) : _name(make_name(name)) {}
 
     ST::Expr &body() { return _body; }
-    Arguments &args() { return _args; }
-    Type &return_type() { return _return_type; }
+    ParameterList &args() { return _args; }
+    ST::Expr &return_type() { return _return_type; }
     Name &name() { return _name; }
 
     ~Function() override;
-
-    void set_return_type(const std::string &str) {
-        _return_type = make_type(str);
-    }
 
     // LYTHON_COMMFUNCCHILD
     LYTHON_KIND(KindFunction)
@@ -284,8 +279,8 @@ class Function : public Expression {
     }
   private:
     ST::Expr _body = nullptr;
-    Arguments _args;
-    Type _return_type;
+    ParameterList _args;
+    ST::Expr _return_type;
     Name _name;
     std::string _docstring;
 };
