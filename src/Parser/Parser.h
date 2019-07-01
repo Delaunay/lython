@@ -69,7 +69,7 @@ class Parser {
         }
 
         debug("Missing identifier");
-        return std::string("--expected-identifier--");
+        return std::string("<identifier>");
     }
 
     // Parsing routines
@@ -79,7 +79,7 @@ class Parser {
 
         // Get Name
         AST::Function *fun = new AST::Function(get_identifier());
-        std::string ret_type = "unknown";
+        std::string ret_type = "<unknown>";
 
         Token tok = next_token();
 
@@ -89,7 +89,7 @@ class Parser {
         while (token().type() != ')' && token()) {
 
             std::string vname = CHECK_NAME(get_identifier());
-            std::string type = "unknown";
+            std::string type = "<unknown>";
             next_token();
 
             // type declaration
@@ -144,7 +144,13 @@ class Parser {
             fun->body() = body;
         }
 
-        EXPECT(tok_desindent , "desindent was expected")  ; EAT(tok_desindent);
+        tok = token();
+        while(tok == tok_newline){
+            tok = next_token();
+        }
+        if (tok.type() == tok_desindent)    {   EAT(tok_desindent); }
+        else if (tok.type() == tok_newline) {   EAT(tok_newline);   }
+
         return ST::Expr(fun);
     }
 
@@ -168,7 +174,23 @@ class Parser {
             EAT(tok_int);
             break;
         }
-        return ST::Expr(val);
+
+        // are we done ?
+        if (token().type() == tok_newline || token().type() == tok_eof)
+            return ST::Expr(val);
+
+        auto op = new AST::Ref();
+        if (token().type() == tok_identifier){
+            op->name() = get_identifier();
+            EAT(tok_identifier);
+        } else{
+            op->name() = token().type();
+            next_token();
+        }
+
+        ST::Expr rhs = parse_value(depth + 1);
+        AST::BinaryOperator* bin = new AST::BinaryOperator(rhs, ST::Expr(val), ST::Expr(op));
+        return ST::Expr(bin);
     }
 
     ST::Expr parse_statement(int8 statement, int depth){
@@ -237,19 +259,14 @@ class Parser {
                 AST::Ref* fun_name = new AST::Ref();
                 fun_name->name() = get_identifier(); EAT(tok_identifier);
                 return parse_function_call(ST::Expr(fun_name), depth + 1);
-            }/*
+            }
             case tok_string:
             case tok_int:
             case tok_float:
-                return parse_value();*/
+                return parse_value(depth + 1);
 
             default:
                 return parse_operator(depth + 1);
-            /*
-                AST::Ref* name = new AST::Ref();
-                name->name() += token().type();
-                next_token();
-                return ST::Expr(name);*/
         }
     }
 
@@ -301,9 +318,7 @@ class Parser {
             while(tok.type() == tok_newline){
                 tok = next_token();
             }
-
         }
-
         return ST::Expr(data);
     }
 
@@ -311,10 +326,9 @@ class Parser {
         trace(depth, "Parse block");
 
         auto* block = new AST::SeqBlock();
-
         Token tok = token();
 
-        while (tok.type() != tok_desindent){
+        while (tok.type() != tok_desindent && tok.type() != tok_eof){
             auto expr = parse_expression(depth + 1);
             block->blocks().push_back(expr);
 
@@ -339,7 +353,6 @@ class Parser {
         }
 
         switch (tok.type()) {
-
         case tok_def:
             return parse_function(true, depth);
 

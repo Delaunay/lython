@@ -24,7 +24,7 @@ void log_trace(LogLevel level, std::string format, int depth, const char* file, 
     log(level, fmt, __FILE__, __LINE__, __FUNCTION__ __VA_OPT__(,) __VA_ARGS__)\
 
 #define LOG_TRACE_HELPER(level, depth, fmt, ...)\
-    log(level, fmt, __FILE__, __LINE__, __FUNCTION__ __VA_OPT__(,) __VA_ARGS__)
+    log_trace(level, fmt, depth, __FILE__, __LINE__, __FUNCTION__ __VA_OPT__(,) __VA_ARGS__)
 
 #define info(fmt , ...) LOG_HELPER(lython::Info , fmt __VA_OPT__(,) __VA_ARGS__)
 #define warn(fmt , ...) LOG_HELPER(lython::Warn , fmt __VA_OPT__(,) __VA_ARGS__)

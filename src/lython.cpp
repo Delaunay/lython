@@ -34,6 +34,10 @@ int main()
     //ConsoleBuffer reader;
 
     std::string code =
+            "def my_function() -> e:\n"
+            "    return 1\n"
+            "\n"
+
             "def function(test: double, test) -> double:\n"
             "    \"\"\"This is a docstring\"\"\"\n"
             "    return 1 + 1\n\n"
