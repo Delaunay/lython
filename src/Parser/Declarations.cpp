@@ -171,4 +171,35 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth){
     TRACE_END();
     return ST::Expr(block);
 }
+
+/* <statement> ::= <labeled-statement>  <labeled-statement>     ::= <identifier> : <statement> | case <constant-expression> : <statement>  | default : <statement>
+              | <selection-statement>   <selection-statement>   ::= if ( <expression> ) <statement>    | if ( <expression> ) <statement> else <statement> | switch ( <expression> ) <statement>
+              | <iteration-statement>   <iteration-statement>   ::= while ( <expression> ) <statement> | do <statement> while ( <expression> ) ;  | for ( {<expression>}? ; {<expression>}? ; {<expression>}? ) <statement>
+              | <jump-statement>        <jump-statement>        ::= goto <identifier> ;   | continue ; | break ;   | return {<expression>}? ;
+              | <expression-statement>  <expression-statement>  ::= {<expression>}? ;
+              | <compound-statement>    <compound-statement>    ::= { {<declaration>}* {<statement>}* }
+ */
+ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
+    // labeled statement
+    if (token().type() == tok_identifier){
+        std::string label = token().identifier();
+
+        // <selection-statement>
+        if (label == "if") {}
+        if (label == "switch") {}
+
+        // <iteration-statement>
+        if (label == "while") {}
+        if (label == "do") {}
+        if (label == "for") {}
+
+        // <jump-statement>
+        if (label == "goto") {}
+        if (label == "continue") {}
+        if (label == "return") {}
+
+    }
+}
+
+
 }

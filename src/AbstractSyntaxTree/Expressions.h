@@ -308,6 +308,42 @@ class UnparsedBlock : public Expression {
     Tokens _toks;
 };
 
+
+class QualifiedType: public Expression{
+public:
+    enum TypeSpecifier{
+        Void,
+        Char,
+        Short,
+        Int,
+        Long,
+        Float,
+        Double,
+        Signed,
+        Unsigned,
+        UserStruct,
+        UserEnum,
+        UserUnion,
+        UserTypedef
+    };
+    enum StorageSpecifier{
+        Auto,
+        Register,
+        Static,
+        Extern,
+        Typedef
+    };
+    enum TypeQualifier{
+        Const,
+        Volatile
+    };
+
+    std::string      name;
+    TypeSpecifier    spec_type;
+    StorageSpecifier spec_storage;
+    TypeQualifier    type_qualifier;
+};
+
 class Statement: public Expression{
   public:
     Statement(){}

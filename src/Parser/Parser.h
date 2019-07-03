@@ -303,25 +303,6 @@ class Parser {
         return ST::Expr(data);
     }
 
-    ST::Expr parse_block(std::size_t depth){
-        TRACE_START();
-
-        auto* block = new AST::SeqBlock();
-        Token tok = token();
-
-        while (tok.type() != tok_desindent && tok.type() != tok_eof){
-            auto expr = parse_expression(depth + 1);
-            block->blocks().push_back(expr);
-
-            tok = token();
-            while (tok.type() == tok_newline){
-                tok = next_token();
-            }
-        }
-
-        return ST::Expr(block);
-    }
-
     // return One Top level Expression (Functions)
     ST::Expr parse_one(std::size_t depth = 0) {
         Token tok = token();
