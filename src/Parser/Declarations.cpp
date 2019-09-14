@@ -179,6 +179,7 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth){
               | <expression-statement>  <expression-statement>  ::= {<expression>}? ;
               | <compound-statement>    <compound-statement>    ::= { {<declaration>}* {<statement>}* }
  */
+/*
 ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
     // labeled statement
     if (token().type() == tok_identifier){
@@ -198,7 +199,7 @@ ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
         if (label == "continue") {}
         if (label == "return") {}
     }
-}
+}*/
 
 
 }

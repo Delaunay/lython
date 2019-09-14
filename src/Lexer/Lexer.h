@@ -131,25 +131,20 @@ public:
             std::string num;
             TokenType ntype = tok_int;
 
-            while(c != ' ' && c != EOF && c != '\n')
-            {
+            while(std::isdigit(c)){
                 num.push_back(c);
-
-                // if it is not a digit
-                if (!std::isdigit(c) && c != ' '){
-                    if (c == '.'){
-                        if (ntype == tok_int)
-                            ntype = tok_float;
-                        else
-                            ntype = tok_incorrect;    // 12.12.12 is an incorrect token
-                    }
-                    else  // 0x for hex is okay
-                          // bx is not  since it would be a correct identifier
-                          // 0b ?
-                        ntype = tok_incorrect;        // 1abc is an incorrect token
-                }
                 c = nextc();
             }
+
+            if (c == '.'){
+                num.push_back(c);
+                c = nextc();
+                while(std::isdigit(c)){
+                    num.push_back(c);
+                    c = nextc();
+                }
+            }
+
             return make_token(ntype, num);
         }
 

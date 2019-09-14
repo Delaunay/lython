@@ -40,10 +40,10 @@ int main()
 
             "def function(test: double, test) -> double:\n"
             "    \"\"\"This is a docstring\"\"\"\n"
-            "    return 1 + 1\n\n"
+            "    return add(1, 1)\n\n"
 
-            "def function(test: int, test):\n"
-            "    return 1 + 1\n\n"
+            "def function(test: int, test) -> e:\n"
+            "    return add(1, 1)\n\n"
 
             "struct Object:\n"
             "    \"\"\"This is a docstring\"\"\"\n"
@@ -65,7 +65,10 @@ int main()
 
         par.parse_one()->print(std::cout);
         std::cout << "\n\n";
-        par.parse_one()->print(std::cout);
+        auto expr = par.parse_one();
+        std::cout << "--\n\n";
+        expr->print(std::cout);
+
         std::cout << "\n\n";
         par.parse_one()->print(std::cout);
     }

@@ -153,7 +153,8 @@ class Parser {
         }
 
         // are we done ?
-        if (token().type() == tok_newline || token().type() == tok_eof)
+        auto ttype = token().type();
+        if (ttype == tok_newline || ttype == tok_eof || ttype == ',' || ttype == ')')
             return ST::Expr(val);
 
         auto op = new AST::Ref();
@@ -190,7 +191,13 @@ class Parser {
         EXPECT('(', "`(` was expected"); EAT('(');
 
         while(token().type() != ')'){
+            // token().debug_print(std::cout);
+
             fun->arguments().push_back(parse_expression(depth + 1));
+
+            if (token().type() == ','){
+               next_token();
+            }
         }
 
         EXPECT(')', "`)` was expected"); EAT(')');
@@ -233,7 +240,8 @@ class Parser {
             // value probably an operation X + Y
             case tok_identifier:{
                 AST::Ref* fun_name = new AST::Ref();
-                fun_name->name() = get_identifier(); EAT(tok_identifier);
+                fun_name->name() = token().identifier();
+                EAT(tok_identifier);
                 return parse_function_call(ST::Expr(fun_name), depth + 1);
             }
             case tok_string:

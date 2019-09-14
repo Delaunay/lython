@@ -1,4 +1,9 @@
 #include "Expressions.h"
+#include "../Logging/logging.h"
+
+#define TRACE_START() trace_start(0, "");
+#define TRACE_END() trace_end(0, "");
+
 
 namespace lython {
 namespace AbstractSyntaxTree {
@@ -55,8 +60,12 @@ std::ostream &Function::print(std::ostream &out, int32 indent) {
     out << "def " << *(_name.get()) << "(";
 
     for (uint32 i = 0, n = uint32(_args.size()); i < n; ++i) {
-        out << *(_args[i].name().get()) << ": ";
-        _args[i].type()->print(out, indent);
+        out << *(_args[i].name().get());
+
+        if (_args[i].type()){
+            out << ": ";
+            _args[i].type()->print(out, indent);
+        }
 
         if (i < n - 1)
             out << ", ";
@@ -87,7 +96,6 @@ std::ostream &Statement::print(std::ostream &out, int32 indent){
 
 std::ostream& Call::print(std::ostream & out, int32 indent){
     function()->print(out, indent);
-
     out << "(";
 
     int32 n = int32(arguments().size()) - 1;
