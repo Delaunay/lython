@@ -136,7 +136,9 @@ ST::Expr Parser::parse_function(std::size_t depth){
 
     fun->body() = parse_compound_statement(depth + 1);
     TRACE_END();
-    return ST::Expr(fun);
+
+    return register_function(module, fun);
+    // return ST::Expr(fun);
 }
 
 Token Parser::ignore_newlines(){

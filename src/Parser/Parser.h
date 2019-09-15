@@ -8,8 +8,8 @@
 #include "Module.h"
 
 #include <iostream>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 /*
  *  TODO:
@@ -23,7 +23,7 @@
  *  The parser should be able to parse definition 2 (which is correct)
  *  correctly
  *
- * if a body is incorrect it has not impact if the function is not used
+ * if a body is incorrect it has no impact if the function is not used
  *
  *  I can't have an incorrect identifier. Only Numbers can be incorrect
  *
@@ -45,17 +45,75 @@
 #define show_token(tok) debug(tok_to_string(tok.type()));
 #define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
 
+
+class ParserException: public std::exception{
+public:
+    ParserException(std::string const& msg):
+        msg(msg)
+    {}
+
+    const char* what() const noexcept override{
+        return msg.c_str();
+    }
+
+    const std::string msg;
+};
+
 #define WITH_EXPECT(tok, msg)\
     if(token().type() != tok) {\
         debug("Got (tok: %s, %d)", tok_to_string(token().type()).c_str(), token().type());\
-        throw Exception(msg);\
+        throw ParserException(msg);\
     } else
 
 namespace lython {
 
+template<typename K, typename V>
+using Dict = std::unordered_map<K, V>;
+
+
+using Module = Dict<std::string, ST::Expr>;
+
+inline
+Module new_module(){
+    Module mod;
+    mod ["Type"] = nullptr;
+    return mod;
+}
+
+
+inline
+ST::Expr register_struct(Module& module, AST::Struct* struct_expr){
+    auto expr = module[struct_expr->name()];
+    if (expr != nullptr){
+        warn("overriding definition %s", struct_expr->name().c_str());
+    }
+
+    auto r = ST::Expr(struct_expr);
+    module[struct_expr->name()] = r;
+    return r;
+}
+
+inline
+ST::Expr register_function(Module& module, AST::Function* fun_expr){
+    auto name = fun_expr->name();
+    std::string str_name(begin(name), end(name));
+
+    auto expr = module[str_name];
+    if (expr != nullptr){
+        warn("overriding definition %s", str_name.c_str());
+    }
+
+    auto r = ST::Expr(fun_expr);
+    module[str_name] = r;
+    return r;
+}
+
+
 class Parser {
   public:
-    Parser(AbstractBuffer &buffer) : _lex(buffer) {}
+    Parser(AbstractBuffer &buffer, Module& module) :
+        module(module), _lex(buffer)
+    {}
 
     // Shortcut
     Token next_token() { return _lex.next_token(); }
@@ -66,7 +124,7 @@ class Parser {
     // currently type is a string
     // nevertheless we want to support advanced typing
     // which means type will be an expression too
-    Type parse_type() {}
+    ST::Expr parse_type() {}
 
     ST::Expr parse_unary_operator(){
         static const std::unordered_set<char> operators{'&', '*', '+', '-', '~', '!'};
@@ -308,7 +366,8 @@ class Parser {
                 tok = next_token();
             }
         }
-        return ST::Expr(data);
+
+        return register_struct(module, data);
     }
 
     // return One Top level Expression (Functions)
@@ -351,6 +410,7 @@ class Parser {
     }
 
   private:
+    Dict<std::string, ST::Expr>& module;
     Lexer _lex;
     BaseScope _scope;
 };

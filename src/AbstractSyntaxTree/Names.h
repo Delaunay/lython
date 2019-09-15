@@ -3,11 +3,12 @@
 
 #include <cassert>
 
-#include <unordered_map>
-#include <string>
-#include <memory>
-
 #include <iostream>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+
 
 namespace lython{
 // /!\ string a allocated twice
@@ -37,10 +38,11 @@ struct OperatorImpl{
 /*
  *  Prevent the creation of two equivalent entities (strings)
  */
-typedef std::shared_ptr<const std::string> Name;
-typedef std::shared_ptr<const std::string> Type;
-typedef std::shared_ptr<OperatorImpl> Operator;
+using Name = std::string_view;
+using TypeName = std::string_view;
+using Operator = std::shared_ptr<OperatorImpl>;
  
+
 class NameManager
 {
     public:
@@ -52,18 +54,18 @@ class NameManager
         if (_names.count(name))
             return _names[name];
         
-        _names[name] = Name(new std::string(name));
+        _names[name] = name;
         return _names[name];
     }
     
-    Type make_type(const std::string& type){
+    TypeName make_type(const std::string& type){
         
         ASSERT(_names.count(type) == 0, "Type name not available. Used by a Name");
 
         if (_types.count(type))
             return _types[type];
         
-        _types[type] = Type(new std::string(type));
+        _types[type] = TypeName(type);
         return _types[type];
     }
 
@@ -72,14 +74,14 @@ class NameManager
         if (_operators.count(op))
             return _operators[op];
 
-        _operators[op] = Operator(new OperatorImpl(op, pred));
+        _operators[op] = std::make_shared<OperatorImpl>(op, pred);
         return _operators[op];
     }
     
     private:
         
         std::unordered_map<std::string, Name> _names;
-        std::unordered_map<std::string, Type> _types;
+        std::unordered_map<std::string, TypeName> _types;
         std::unordered_map<std::string, Operator> _operators;
 };
 
@@ -96,7 +98,7 @@ Name make_name(const std::string& name){
 }
 
 inline
-Type make_type(const std::string& name){
+TypeName make_type(const std::string& name){
     return name_manager().make_type(name);
 }
 

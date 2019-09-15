@@ -17,6 +17,7 @@ ADD_SUBDIRECTORY(Lexer)
 ADD_SUBDIRECTORY(Parser)
 ADD_SUBDIRECTORY(Generator)
 ADD_SUBDIRECTORY(Logging)
+ADD_SUBDIRECTORY(Sema)
 
 # Source
 SET(ADD_HEADERS
@@ -31,6 +32,7 @@ SET(ADD_HEADERS
     Utilities/optional.h
     fmt.h
     AbstractSyntaxTree/ValueHolders.h
+    Sema/SemanticAnalyse.h
 )
 
 SET(ADD_SOURCE
@@ -43,6 +45,7 @@ SET(ADD_SOURCE
     Lexer/Tokens.cpp
     Parser/Parser.cpp
     Parser/Declarations.cpp
+    Sema/SemanticAnalyse.cpp
 )
 
 # Compile
@@ -56,8 +59,8 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} liblython liblogging)
 
 # Enable C++11
 SET(${CXX_STANDARD_REQUIRED} ON)
-SET_PROPERTY(TARGET liblython PROPERTY CXX_STANDARD 11)
-SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+SET_PROPERTY(TARGET liblython PROPERTY CXX_STANDARD 17)
+SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 
 

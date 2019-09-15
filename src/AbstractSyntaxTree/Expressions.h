@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LYTHON_AST
+#define LYTHON_AST
 /*
  *  What is a Program ?
  *
@@ -52,7 +53,8 @@ class Expression {
         KindValue,
         KindCall,
         KindReference,
-        KindStruct
+        KindStruct,
+        KindType
     };
 
     // this is here but currently no classes are doing dyn-alloc
@@ -73,7 +75,7 @@ namespace AST = AbstractSyntaxTree;
 namespace SyntaxTree {
 // I am using shared_ptr because it is the simpliest to handle
 // but I may want to change in the future
-typedef std::shared_ptr<AST::Expression> Expr;
+using Expr = std::shared_ptr<AST::Expression>;
 
 template <typename T, typename... Args> Expr make_expr(Args &&... args) {
     return Expr(new T(std::forward<Args>(args)...));
@@ -116,7 +118,23 @@ struct pl_hash {
     std::hash<std::string> _h;
 };
 
-typedef std::unordered_map<Parameter, ST::Expr, pl_hash> Variables;
+using Variables = std::unordered_map<Parameter, ST::Expr, pl_hash>;
+
+
+class Type: public Expression{
+  public:
+    Type(TypeName name):
+        name(name)
+    {}
+
+    LYTHON_KIND(KindType)
+
+    std::ostream& print(std::ostream & out, int32 indent = 0) override{
+        return out << name;
+    }
+
+    TypeName name;
+};
 
 class Value: public Expression{
 public:
@@ -209,7 +227,7 @@ class UnaryOperator : public Expression {
 
 class Call : public Expression {
   public:
-    typedef std::vector<ST::Expr> Arguments;
+    using Arguments = std::vector<ST::Expr>;
 
     Call() {}
 
@@ -236,7 +254,7 @@ class Call : public Expression {
 // Add get_return_type()
 class SeqBlock : public Expression {
   public:
-    typedef std::vector<ST::Expr> Blocks;
+    using Blocks = std::vector<ST::Expr>;
 
     SeqBlock() {}
 
@@ -255,7 +273,7 @@ class SeqBlock : public Expression {
 
 // Functions
 // -------------------------------------
-typedef std::vector<Parameter> ParameterList;
+using ParameterList = std::vector<Parameter>;
 
 // Functions are Top level expression
 class Function : public Expression {
@@ -289,7 +307,7 @@ class Function : public Expression {
 //  used ens
 class UnparsedBlock : public Expression {
   public:
-    typedef std::vector<Token> Tokens;
+    using Tokens = std::vector<Token>;
 
     UnparsedBlock() = default;
 
@@ -384,7 +402,7 @@ private:
 
 class Struct: public Expression{
 public:
-    typedef std::unordered_map<std::string, ST::Expr> Attributes;
+    using Attributes = std::unordered_map<std::string, ST::Expr>;
 
     Struct() = default;
 
@@ -413,3 +431,5 @@ private:
 
 } // namespace AbstractSyntaxTree
 } // namespace lython
+
+#endif

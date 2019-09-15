@@ -8,7 +8,9 @@
 namespace lython {
 namespace AbstractSyntaxTree {
 std::size_t pl_hash::operator()(Parameter &v) const noexcept {
-    return _h(*(v.name().get()));
+    auto n = v.name();
+    std::string tmp(std::begin(n), std::end(n));
+    return _h(tmp);
 }
 
 Expression::~Expression() {}
@@ -57,10 +59,10 @@ std::ostream &SeqBlock::print(std::ostream &out, int32 indent) {
 }
 
 std::ostream &Function::print(std::ostream &out, int32 indent) {
-    out << "def " << *(_name.get()) << "(";
+    out << "def " << _name << "(";
 
     for (uint32 i = 0, n = uint32(_args.size()); i < n; ++i) {
-        out << *(_args[i].name().get());
+        out << _args[i].name();
 
         if (_args[i].type()){
             out << ": ";
