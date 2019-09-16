@@ -6,13 +6,13 @@
 #include "../Utilities/optional.h"
 #include "../Utilities/stack.h"
 #include "../Utilities/trie.h"
+#include "../Types.h"
 
 #include "Module.h"
 
 #include <numeric>
 #include <iostream>
-#include <unordered_map>
-#include <unordered_set>
+
 
 /*
  *  TODO:
@@ -48,19 +48,6 @@
 #define show_token(tok) debug(tok_to_string(tok.type()));
 #define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
 
-
-enum class MathKind{
-    Operator,
-    Value,
-    Function,
-    None
-};
-
-struct MathNode{
-    MathKind kind;
-    std::string name;
-};
-
 class ParserException: public std::exception{
 public:
     ParserException(std::string const& msg):
@@ -82,53 +69,7 @@ public:
 
 namespace lython {
 
-template<typename K, typename V>
-using Dict = std::unordered_map<K, V>;
 
-template<typename V>
-using Array = std::vector<V>;
-
-template<typename V>
-using Set = std::unordered_set<V>;
-
-using String = std::string;
-
-using Module = Dict<std::string, ST::Expr>;
-
-inline
-Module new_module(){
-    Module mod;
-    mod["Type"] = nullptr;
-    return mod;
-}
-
-
-inline
-ST::Expr register_struct(Module& module, AST::Struct* struct_expr){
-    auto expr = module[struct_expr->name()];
-    if (expr != nullptr){
-        warn("overriding definition %s", struct_expr->name().c_str());
-    }
-
-    auto r = ST::Expr(struct_expr);
-    module[struct_expr->name()] = r;
-    return r;
-}
-
-inline
-ST::Expr register_function(Module& module, AST::Function* fun_expr){
-    auto name = fun_expr->name();
-    std::string str_name(begin(name), end(name));
-
-    auto expr = module[str_name];
-    if (expr != nullptr){
-        warn("overriding definition %s", str_name.c_str());
-    }
-
-    auto r = ST::Expr(fun_expr);
-    module[str_name] = r;
-    return r;
-}
 
 
 class Parser {
@@ -360,9 +301,9 @@ class Parser {
     // Parse a full line of function and stuff
     ST::Expr parse_expression(std::size_t depth){
         TRACE_START();
-        Stack<MathNode> output_stack;
-        Stack<MathNode> operator_stack;
-        MathNode node;
+        Stack<AST::MathNode> output_stack;
+        Stack<AST::MathNode> operator_stack;
+        AST::MathNode node;
 
         while (token().type() != tok_newline){
             Token tok = token();
@@ -379,7 +320,7 @@ class Parser {
                 debug("peek_token = %d %c %s", token().type(), char(token().type()), token().identifier().c_str());
 
                 if (tok2.type() == '('){
-                    operator_stack.push({MathKind::Function, tok.identifier()});
+                    operator_stack.push({AST::MathKind::Function, tok.identifier()});
                     debug("push %s to operator", tok.identifier().c_str());
                     next_token();
                     continue;
@@ -389,7 +330,7 @@ class Parser {
             }
             case tok_float:
             case tok_int:
-                output_stack.push({MathKind::Value, tok.identifier()});
+                output_stack.push({AST::MathKind::Value, tok.identifier()});
                 EAT(tok.type());
                 debug("Added %s in output stack", tok.identifier().c_str());
                 continue;
@@ -414,7 +355,11 @@ class Parser {
                     node = operator_stack.peek();
                     std::tie(operator_pred, is_left_asso) = precedence_table()[node.name];
 
-                    while((node.kind == MathKind::Function || (operator_pred > current_pred) || (operator_pred == current_pred && is_left_asso)) && (node.name != "(")){
+                    while(
+                          (node.kind == AST::MathKind::Function ||
+                           (operator_pred > current_pred) ||
+                           (operator_pred == current_pred && is_left_asso)) &&
+                          (node.name != "(")){
                         // debug("%s is_fun %d | %d > %d | is_left_asso %d", cop.c_str(), is_fun, operator_pred, current_pred, is_left_asso);
 
                         operator_stack.pop();
@@ -432,11 +377,11 @@ class Parser {
                     }
                 }
                 debug("push %s to operator", op_name.c_str());
-                operator_stack.push({MathKind::Operator, op_name});
+                operator_stack.push({AST::MathKind::Operator, op_name});
             }
 
             if (tok.type() == '('){
-                operator_stack.push({MathKind::None, "("});
+                operator_stack.push({AST::MathKind::None, "("});
                 debug("push %s to operator", "(");
                 next_token();
             }
@@ -478,10 +423,7 @@ class Parser {
          }
          std::cout << "\n";
 
-         auto ifix = output_stack.begin();
-         std::cout << to_infix(ifix) << "\n";
-
-         auto expr = new AST::Value(0, make_type("float"));
+         auto expr = new AST::ReversePolishExpression(output_stack);
          return ST::Expr(expr);
     }
 
@@ -507,63 +449,6 @@ class Parser {
             {"sin", 1}
         };
         return fun;
-    }
-
-    std::string to_infix(Stack<MathNode>::Iterator& iter, int prev=0){
-        int pred;
-        MathNode op = *iter;
-        iter++;
-
-        switch (op.kind){
-            case MathKind::Operator:{
-                std::tie(pred, std::ignore) = precedence_table()[op.name];
-
-                auto rhs = to_infix(iter, pred);
-                auto lhs = to_infix(iter, pred);
-
-                auto expr = lhs + ' ' + op.name + ' ' + rhs;
-
-                // if parent has lower priority we have to put parens
-                // if the priority is the same we still put parens for explicitness
-                // but we do not have to
-                if (prev >= pred)
-                    return '(' + expr + ')';
-
-                return expr;
-            }
-
-            case MathKind::Function:{
-                int nargs = dirty_fun()[op.name];
-
-                std::vector<String> args;
-                for (int i = 0; i < nargs - 1; ++i){
-                    args.push_back(to_infix(iter));
-                    args.emplace_back(", ");
-                }
-                if (nargs > 0){
-                    args.push_back(to_infix(iter));
-                }
-
-                // arguments are in reverse
-                String str_args = std::accumulate(
-                    std::rbegin(args),
-                    std::rend(args),
-                    String(),
-                    [](String acc, String& b){
-                        return acc + b;
-                    }
-                );
-
-                return op.name + '(' + str_args + ')';
-            }
-
-            case MathKind::Value:{
-                return op.name;
-            }
-
-            case MathKind::None:
-                return "";
-        }
     }
 
     ST::Expr parse_operator(std::size_t depth){

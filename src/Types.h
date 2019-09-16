@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace lython
 {
@@ -17,5 +20,16 @@ typedef float float32;
 typedef double float64;
 
 typedef unsigned char uchar;
+
+template<typename K, typename V>
+using Dict = std::unordered_map<K, V>;
+
+template<typename V>
+using Array = std::vector<V>;
+
+template<typename V>
+using Set = std::unordered_set<V>;
+
+using String = std::string;
 
 }

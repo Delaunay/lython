@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "../Lexer/Tokens.h"
+#include "../Utilities/stack.h"
 #include "Names.h"
 
 // declare common function
@@ -54,7 +55,9 @@ class Expression {
         KindCall,
         KindReference,
         KindStruct,
-        KindType
+        KindType,
+        KindReversePolish,
+        KindExternFunction
     };
 
     // this is here but currently no classes are doing dyn-alloc
@@ -134,6 +137,98 @@ class Type: public Expression{
     }
 
     TypeName name;
+};
+
+
+// Math Nodes for ReverPolish parsing
+enum class MathKind{
+    Operator,
+    Value,
+    Function,
+    None
+};
+
+struct MathNode{
+    MathKind kind;
+    std::string name;
+};
+
+
+/**
+ * instead of creating a billions expression node we create a single node
+ *  that holds all the expressions.
+ */
+class ReversePolishExpression: public Expression{
+public:
+    ReversePolishExpression(Stack<MathNode> str):
+        stack(std::move(str))
+    {}
+
+    LYTHON_KIND(KindReversePolish)
+
+    Stack<MathNode> stack;
+
+    std::ostream& print(std::ostream& out, int32 indent = 0) override {
+        auto iter = std::begin(stack);
+        return out << to_infix(iter);
+    }
+
+    std::string to_infix(Stack<MathNode>::Iterator& iter, int prev=0){
+        int pred;
+        MathNode op = *iter;
+        iter++;
+
+        switch (op.kind){
+            case MathKind::Operator:{
+                std::tie(pred, std::ignore) = precedence_table()[op.name];
+
+                auto rhs = to_infix(iter, pred);
+                auto lhs = to_infix(iter, pred);
+
+                auto expr = lhs + ' ' + op.name + ' ' + rhs;
+
+                // if parent has lower priority we have to put parens
+                // if the priority is the same we still put parens for explicitness
+                // but we do not have to
+                if (prev >= pred)
+                    return '(' + expr + ')';
+
+                return expr;
+            }
+
+            case MathKind::Function:{
+                int nargs = dirty_fun()[op.name];
+
+                std::vector<String> args;
+                for (int i = 0; i < nargs - 1; ++i){
+                    args.push_back(to_infix(iter));
+                    args.emplace_back(", ");
+                }
+                if (nargs > 0){
+                    args.push_back(to_infix(iter));
+                }
+
+                // arguments are in reverse
+                String str_args = std::accumulate(
+                    std::rbegin(args),
+                    std::rend(args),
+                    String(),
+                    [](String acc, String& b){
+                        return acc + b;
+                    }
+                );
+
+                return op.name + '(' + str_args + ')';
+            }
+
+            case MathKind::Value:{
+                return op.name;
+            }
+
+            case MathKind::None:
+                return "";
+        }
+    }
 };
 
 class Value: public Expression{
@@ -278,7 +373,7 @@ using ParameterList = std::vector<Parameter>;
 // Functions are Top level expression
 class Function : public Expression {
   public:
-    Function(const std::string &name) : _name(make_name(name)) {}
+    Function(const std::string &name, bool is_extern=false) : _name(make_name(name)) {}
 
     ST::Expr &body() { return _body; }
     ParameterList &args() { return _args; }
@@ -302,6 +397,7 @@ class Function : public Expression {
     Name _name;
     std::string _docstring;
 };
+
 
 //  This allow me to read an entire file but only process
 //  used ens

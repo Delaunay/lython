@@ -29,6 +29,7 @@ SET(ADD_HEADERS
     Lexer/Buffer.h
     Lexer/Tokens.h
     Parser/Parser.h
+    Parser/Module.h
     Utilities/optional.h
     fmt.h
     AbstractSyntaxTree/ValueHolders.h
