@@ -35,8 +35,16 @@ int main()
 
     std::string code =
             "def my_function1() -> e:\n"
-            "    return 1\n"
+            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
+            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
+
+            "def my_function3() -> e:\n"
+            "    return 2\n"
             "\n"
+
+            "def my_function1() -> e:\n"
+            "    return sin(max (2, 3) / 3 * pi)\n"
+            "\n"; // 2 3 max 3 ÷ π × sin
 
             "def function2(test: double, test) -> double:\n"
             "    \"\"\"This is a docstring\"\"\"\n"

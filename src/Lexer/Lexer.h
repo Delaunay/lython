@@ -48,6 +48,13 @@ public:
 
 
     Token next_token(){
+        // if we peeked ahead return that one
+        if (_buffered_token){
+            _buffered_token = false;
+            _token = _buffer;
+            return _token;
+        }
+
         char c = peek();
 
         // newline
@@ -215,11 +222,26 @@ public:
         return _token;
     }
 
+    Token peek_token(){
+        // we can only peek ahead once
+        if (_buffered_token)
+            return _buffer;
+
+        // Save current token a get next
+        Token current_token = _token;
+        _buffer = next_token();
+        _token = current_token;
+        _buffered_token = true;
+        return _buffer;
+    }
+
 private:
     AbstractBuffer& _reader;
     Token           _token{dummy()};
     int32           _cindent;
     int32           _oindent;
+    bool            _buffered_token = false;
+    Token           _buffer{dummy()};
 
 // debug
 public:

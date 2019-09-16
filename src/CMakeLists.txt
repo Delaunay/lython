@@ -33,6 +33,8 @@ SET(ADD_HEADERS
     fmt.h
     AbstractSyntaxTree/ValueHolders.h
     Sema/SemanticAnalyse.h
+    Utilities/trie.h
+    Utilities/stack.h
 )
 
 SET(ADD_SOURCE

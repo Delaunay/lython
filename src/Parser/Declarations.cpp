@@ -158,7 +158,7 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth){
     Token tok = token();
 
     while (tok.type() != tok_desindent && tok.type() != tok_eof){
-        auto expr = parse_expression(depth + 1);
+        auto expr = parse_top_expression(depth + 1);
 
         block->blocks().push_back(expr);
 

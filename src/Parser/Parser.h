@@ -4,9 +4,12 @@
 #include "../Lexer/Lexer.h"
 #include "../Logging/logging.h"
 #include "../Utilities/optional.h"
+#include "../Utilities/stack.h"
+#include "../Utilities/trie.h"
 
 #include "Module.h"
 
+#include <numeric>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
@@ -46,6 +49,18 @@
 #define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
 
 
+enum class MathKind{
+    Operator,
+    Value,
+    Function,
+    None
+};
+
+struct MathNode{
+    MathKind kind;
+    std::string name;
+};
+
 class ParserException: public std::exception{
 public:
     ParserException(std::string const& msg):
@@ -70,13 +85,20 @@ namespace lython {
 template<typename K, typename V>
 using Dict = std::unordered_map<K, V>;
 
+template<typename V>
+using Array = std::vector<V>;
+
+template<typename V>
+using Set = std::unordered_set<V>;
+
+using String = std::string;
 
 using Module = Dict<std::string, ST::Expr>;
 
 inline
 Module new_module(){
     Module mod;
-    mod ["Type"] = nullptr;
+    mod["Type"] = nullptr;
     return mod;
 }
 
@@ -118,6 +140,7 @@ class Parser {
     // Shortcut
     Token next_token() { return _lex.next_token(); }
     Token token() { return _lex.token(); }
+    Token peek_token() { return _lex.peek_token(); }
 
     ST::Expr get_unparsed_block() {}
 
@@ -262,6 +285,287 @@ class Parser {
         return ST::Expr(fun);
     }
 
+    String parse_operator(){
+        Trie<128> const* iter = &operator_trie();
+        String op_name;
+
+        // Operator is a string
+        // Currently this code path is not used
+        // not sure if we should allow identifier to be operators
+        if (token().type() == tok_identifier){
+            iter = iter->matching(token().identifier());
+
+            if (iter != nullptr){
+                if (iter->leaf()){
+                    op_name = token().identifier();
+                    debug("Operator is string");
+                } else {
+                    warn("Operator %s was not found, did you mean: ...", token().identifier().c_str());
+                }
+            }
+        } // ----
+        else {
+            // debug("Operator parsing");
+
+            bool operator_parsing = true;
+            while (operator_parsing){
+                // debug("Tok is %c", char(token().type()));
+
+                // check next token
+                iter = iter->matching(token().type());
+
+                if (iter != nullptr){
+                    // debug("Added tok to operator %c", char(token().type()));
+                    op_name.push_back(token().type());
+                    next_token();
+                } else {
+                    warn("Could not match %c %d", char(token().type()), token().type());
+                }
+
+                // token that stop operator parsing
+                switch(token().type()){
+                case '(':
+                case ')':
+                case tok_identifier:
+                case tok_float:
+                case tok_int:
+                case tok_newline:
+                    operator_parsing = false;
+                    // debug("Found terminal tok %c", char(token().type()));
+                    break;
+                }
+            }
+
+            if (!iter->leaf()){
+                 warn("Operator %s was not found, did you mean: ...", op_name.c_str());
+            }
+        }
+        return op_name;
+    }
+
+    static Trie<128> _make_operator_trie(){
+        Trie<128> operators;
+        for (auto c: {"+", "-", "*", "/", ".*", "./", "%", "^"}){
+            operators.insert(c);
+        }
+        return operators;
+    }
+
+    static Trie<128>& operator_trie(){
+        static Trie<128> trie = _make_operator_trie();
+        return trie;
+    }
+
+    // Shunting-yard_algorithm
+    // Parse a full line of function and stuff
+    ST::Expr parse_expression(std::size_t depth){
+        TRACE_START();
+        Stack<MathNode> output_stack;
+        Stack<MathNode> operator_stack;
+        MathNode node;
+
+        while (token().type() != tok_newline){
+            Token tok = token();
+            if (tok.type() == ','){
+                tok = next_token();
+            }
+
+            // if a variable or number is found, it is copied directly to the output
+            switch (tok.type()) {
+
+            // function call
+            case tok_identifier:{
+                Token tok2 = peek_token();
+                debug("peek_token = %d %c %s", token().type(), char(token().type()), token().identifier().c_str());
+
+                if (tok2.type() == '('){
+                    operator_stack.push({MathKind::Function, tok.identifier()});
+                    debug("push %s to operator", tok.identifier().c_str());
+                    next_token();
+                    continue;
+                }
+                // if it is not a function, it is a variable
+                [[fallthrough]];
+            }
+            case tok_float:
+            case tok_int:
+                output_stack.push({MathKind::Value, tok.identifier()});
+                EAT(tok.type());
+                debug("Added %s in output stack", tok.identifier().c_str());
+                continue;
+            }
+
+            // If the symbol is an operator, it is pushed onto the operator stack
+            // If the operator's precedence is less than that of the operators at the top of the stack
+            // or the precedences are equal and the operator is left associative
+            // then that operator is popped off the stack and added to the outpu
+
+            // parse an operator
+            // -------------------------------
+            if (token().type() != '(' && token().type() != ')'){
+                String op_name = parse_operator();
+
+                if (operator_stack.size() > 0){
+                    int current_pred; bool current_asso;
+                    int operator_pred; bool is_left_asso;
+
+                    std::tie(current_pred, current_asso) = precedence_table()[op_name];
+
+                    node = operator_stack.peek();
+                    std::tie(operator_pred, is_left_asso) = precedence_table()[node.name];
+
+                    while((node.kind == MathKind::Function || (operator_pred > current_pred) || (operator_pred == current_pred && is_left_asso)) && (node.name != "(")){
+                        // debug("%s is_fun %d | %d > %d | is_left_asso %d", cop.c_str(), is_fun, operator_pred, current_pred, is_left_asso);
+
+                        operator_stack.pop();
+                        debug("pop %s to operator", node.name.c_str());
+
+                        output_stack.push(node);
+                        debug("push %s to output",  node.name.c_str());
+
+                        if (operator_stack.size() == 0){
+                            break;
+                        }
+
+                        node = operator_stack.peek();
+                        std::tie(operator_pred, is_left_asso) = precedence_table()[node.name];
+                    }
+                }
+                debug("push %s to operator", op_name.c_str());
+                operator_stack.push({MathKind::Operator, op_name});
+            }
+
+            if (tok.type() == '('){
+                operator_stack.push({MathKind::None, "("});
+                debug("push %s to operator", "(");
+                next_token();
+            }
+            else if (tok.type() == ')'){
+                node = operator_stack.peek();
+                while (node.name != "(" && operator_stack.size() > 0){
+
+                    output_stack.push(operator_stack.pop());
+                    node = operator_stack.peek();
+                };
+
+                if (node.name != "("){
+                    warn("mismatched parentheses");
+                } else {
+                    operator_stack.pop();
+                }
+                next_token();
+            }
+        }
+
+        // Finally, any remaining operators are popped off the stack and added to the output
+         while (operator_stack.size() > 0){
+             output_stack.push(operator_stack.pop());
+         }
+
+         auto riter = output_stack.rbegin();
+         while (riter != output_stack.rend()){
+             std::cout << (*riter).name << " ";
+             ++riter;
+         }
+         std::cout << "\n";
+
+         auto iter = output_stack.begin();
+         while (iter != output_stack.end()){
+             auto op = *iter;
+
+             std::cout << (*iter).name << " ";
+             ++iter;
+         }
+         std::cout << "\n";
+
+         auto ifix = output_stack.begin();
+         std::cout << to_infix(ifix) << "\n";
+
+         auto expr = new AST::Value(0, make_type("float"));
+         return ST::Expr(expr);
+    }
+
+    // not const might be mutable in the future
+    static Dict<String, std::tuple<int, bool>>& precedence_table(){
+        static Dict<String, std::tuple<int, bool>> precedence = {
+            {"+" , {2, true}}, // Predecence, Left Associative
+            {"-" , {2, true}},
+            {"%" , {1, true}},
+            {"*" , {3, true}},
+            {"/" , {3, true}},
+            {".*", {2, true}},
+            {"./", {2, true}},
+            {"^",  {4, false}}
+        };
+        return precedence;
+    }
+
+    // just for now
+    static Dict<String, int>& dirty_fun(){
+        static Dict<String, int> fun = {
+            {"max", 2},
+            {"sin", 1}
+        };
+        return fun;
+    }
+
+    std::string to_infix(Stack<MathNode>::Iterator& iter, int prev=0){
+        int pred;
+        MathNode op = *iter;
+        iter++;
+
+        switch (op.kind){
+            case MathKind::Operator:{
+                std::tie(pred, std::ignore) = precedence_table()[op.name];
+
+                auto rhs = to_infix(iter, pred);
+                auto lhs = to_infix(iter, pred);
+
+                auto expr = lhs + ' ' + op.name + ' ' + rhs;
+
+                // if parent has lower priority we have to put parens
+                // if the priority is the same we still put parens for explicitness
+                // but we do not have to
+                if (prev >= pred)
+                    return '(' + expr + ')';
+
+                return expr;
+            }
+
+            case MathKind::Function:{
+                int nargs = dirty_fun()[op.name];
+
+                std::vector<String> args;
+                for (int i = 0; i < nargs - 1; ++i){
+                    args.push_back(to_infix(iter));
+                    args.emplace_back(", ");
+                }
+                if (nargs > 0){
+                    args.push_back(to_infix(iter));
+                }
+
+                // arguments are in reverse
+                String str_args = std::accumulate(
+                    std::rbegin(args),
+                    std::rend(args),
+                    String(),
+                    [](String acc, String& b){
+                        return acc + b;
+                    }
+                );
+
+                return op.name + '(' + str_args + ')';
+            }
+
+            case MathKind::Value:{
+                return op.name;
+            }
+
+            case MathKind::None:
+                return "";
+        }
+    }
+
     ST::Expr parse_operator(std::size_t depth){
         TRACE_START();
         ST::Expr lhs = parse_value(depth + 1);
@@ -282,7 +586,7 @@ class Parser {
     }
 
     // parse function_name(args...)
-    ST::Expr parse_expression(std::size_t depth){
+    ST::Expr parse_top_expression(std::size_t depth){
         TRACE_START();
 
         switch(token().type()){
@@ -290,25 +594,29 @@ class Parser {
             case tok_yield:
             case tok_return:
                 return parse_statement(token().type(), depth + 1);
-                break;
 
             case tok_def:
                 return parse_function(depth + 1);
 
             // value probably an operation X + Y
-            case tok_identifier:{
-                AST::Ref* fun_name = new AST::Ref();
-                fun_name->name() = token().identifier();
-                EAT(tok_identifier);
-                return parse_function_call(ST::Expr(fun_name), depth + 1);
-            }
+//            case tok_identifier:{
+//                AST::Ref* fun_name = new AST::Ref();
+//                fun_name->name() = token().identifier();
+//                EAT(tok_identifier);
+//                return parse_function_call(ST::Expr(fun_name), depth + 1);
+//            }
+
+            case tok_struct:
+                return parse_struct(depth + 1);
+
+            case tok_identifier:
             case tok_string:
             case tok_int:
             case tok_float:
-                return parse_value(depth + 1);
+                return parse_expression(depth + 1);
 
-            default:
-                return parse_operator(depth + 1);
+//            default:
+//                return parse_operator(depth + 1);
         }
     }
 
