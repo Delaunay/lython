@@ -52,6 +52,8 @@ class Module {
         return _precedence_table;
     }
 
+    Trie<128> const *operator_trie() const { return &_operators; }
+
     // just for now
     static Dict<String, int> &dirty_fun() {
         static Dict<String, int> fun = {{"max", 2}, {"sin", 1}};

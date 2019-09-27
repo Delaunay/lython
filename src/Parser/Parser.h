@@ -31,25 +31,29 @@
  *
  */
 
+// "" at the end of the macro remove a warning about unecessary ;
 #define EAT(tok)                                                               \
     if (token().type() == tok) {                                               \
         next_token();                                                          \
-    }
+    }                                                                          \
+    ""
 
 // assert(token().type() == tok && msg)
 #define TRACE_START()                                                          \
     trace_start(depth, "(%s: %i)", tok_to_string(token().type()).c_str(),      \
-                token().type());
+                token().type())
 #define TRACE_END()                                                            \
     trace_end(depth, "(%s: %i)", tok_to_string(token().type()).c_str(),        \
-              token().type());
+              token().type())
 
 #define CHECK_TYPE(type) type
 #define CHECK_NAME(name) name
-#define PARSE_ERROR(msg) std::cout << msg;
+#define PARSE_ERROR(msg) std::cout << msg
 
-#define show_token(tok) debug(tok_to_string(tok.type()));
-#define EXPECT(tok, msg) ASSERT(token().type() == tok, msg);
+#define show_token(tok) debug(tok_to_string(tok.type()))
+#define EXPECT(tok, msg)                                                       \
+    ASSERT(token().type() == tok, msg);                                        \
+    ""
 
 class ParserException : public std::exception {
   public:
@@ -227,7 +231,7 @@ class Parser {
     }
 
     String parse_operator() {
-        Trie<128> const *iter = &operator_trie();
+        Trie<128> const *iter = module->operator_trie();
         String op_name;
 
         // Operator is a string
@@ -285,19 +289,6 @@ class Parser {
             }
         }
         return op_name;
-    }
-
-    static Trie<128> _make_operator_trie() {
-        Trie<128> operators;
-        for (auto c : {"+", "-", "*", "/", ".*", "./", "%", "^"}) {
-            operators.insert(c);
-        }
-        return operators;
-    }
-
-    static Trie<128> &operator_trie() {
-        static Trie<128> trie = _make_operator_trie();
-        return trie;
     }
 
     // Shunting-yard_algorithm
