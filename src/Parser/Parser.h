@@ -231,13 +231,14 @@ class Parser {
     }
 
     String parse_operator() {
-        Trie<128> const *iter = module->operator_trie();
+        Trie<128> const *iter = nullptr;
         String op_name;
 
         // Operator is a string
         // Currently this code path is not used
         // not sure if we should allow identifier to be operators
         if (token().type() == tok_identifier) {
+            iter = module->operator_trie();
             iter = iter->matching(token().identifier());
 
             if (iter != nullptr) {
@@ -252,6 +253,7 @@ class Parser {
         } // ----
         else {
             // debug("Operator parsing");
+            iter = module->operator_trie();
 
             bool operator_parsing = true;
             while (operator_parsing) {
