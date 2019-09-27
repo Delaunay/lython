@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <sstream>
 
 #include "AbstractSyntaxTree/Expressions.h"
@@ -14,13 +14,12 @@
 
 using namespace lython;
 
-int main()
-{
+int main() {
     info("Enter");
 
-    //auto cst = AST::Constant<int>(10, "int");
-    //auto pl1 = AST::Placeholder("name", "double");
-    //auto pl2 = AST::Placeholder("name", "int");
+    // auto cst = AST::Constant<int>(10, "int");
+    // auto pl1 = AST::Placeholder("name", "double");
+    // auto pl2 = AST::Placeholder("name", "int");
 
     //*
     // debug info
@@ -31,46 +30,45 @@ int main()
                  "[0]    Version: " _HASH "\n"
                  "[0]       Date: " _DATE "\n\n";
 
-    //ConsoleBuffer reader;
+    // ConsoleBuffer reader;
 
-    std::string code =
-            "def my_function1() -> e:\n"
-            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
-            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
+    std::string code = "def my_function1() -> e:\n"
+                       "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
+                       "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
 
-            "def my_function3() -> e:\n"
-            "    return 2\n"
-            "\n"
+                       "def my_function3() -> e:\n"
+                       "    return 2\n"
+                       "\n"
 
-            "def my_function1() -> e:\n"
-            "    return sin(max (2, 3) / 3 * pi)\n"
-            "\n"; // 2 3 max 3 ÷ π × sin
+                       "def my_function1() -> e:\n"
+                       "    return sin(max (2, 3) / 3 * pi)\n"
+                       "\n"; // 2 3 max 3 ÷ π × sin
 
-            "def function2(test: double, test) -> double:\n"
-            "    \"\"\"This is a docstring\"\"\"\n"
-            "    return add(1, 1)\n\n"
+    "def function2(test: double, test) -> double:\n"
+    "    \"\"\"This is a docstring\"\"\"\n"
+    "    return add(1, 1)\n\n"
 
-            "def function3(test: int, test) -> e:\n"
-            "    return add(1, 1)\n\n"
+    "def function3(test: int, test) -> e:\n"
+    "    return add(1, 1)\n\n"
 
-            "struct Object:\n"
-            "    \"\"\"This is a docstring\"\"\"\n"
-            "    a: Type\n";
+    "struct Object:\n"
+    "    \"\"\"This is a docstring\"\"\"\n"
+    "    a: Type\n";
 
     StringBuffer reader(code);
 
     {
         Lexer lex(reader);
         lex.print(std::cout);
-        //lex.debug_print(std::cout);
+        // lex.debug_print(std::cout);
         std::cout << std::endl;
     }
 
     reader.reset();
-    Dict<std::string, ST::Expr> module;
+    Module module;
 
-    try{
-        Parser par(reader, module);
+    try {
+        Parser par(reader, &module);
 
         auto expr1 = par.parse_one();
         std::cout << "--\n\n";
@@ -87,15 +85,14 @@ int main()
         auto expr4 = par.parse_one();
         std::cout << "--\n\n";
         expr4->print(std::cout) << "\n";
-    }
-    catch (lython::Exception e){
+    } catch (lython::Exception e) {
         std::cout << "Error Occured:" << std::endl;
         std::cout << "\t" << e.what() << std::endl;
     }
 
     std::cout << std::string(80, '-') << '\n';
 
-    for(auto expr: module){
+    for (auto expr : module) {
         std::cout << expr.first << ":\n";
         expr.second->print(std::cout) << "\n\n";
     }

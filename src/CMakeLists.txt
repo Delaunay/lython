@@ -1,4 +1,4 @@
-#===============================================================================
+﻿#===============================================================================
 #           Project Source
 #===============================================================================
 
@@ -63,7 +63,9 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} liblython liblogging)
 # Enable C++11
 SET(${CXX_STANDARD_REQUIRED} ON)
 SET_PROPERTY(TARGET liblython PROPERTY CXX_STANDARD 17)
+SET_PROPERTY(TARGET liblogging PROPERTY CXX_STANDARD 17)
 SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
 
 
 

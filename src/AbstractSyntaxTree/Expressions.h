@@ -1,4 +1,4 @@
-#ifndef LYTHON_AST
+﻿#ifndef LYTHON_AST
 #define LYTHON_AST
 /*
  *  What is a Program ?
@@ -12,6 +12,7 @@
  */
 
 #include <memory>
+#include <numeric>
 #include <vector>
 
 #include "../Lexer/Tokens.h"
@@ -66,7 +67,7 @@ class Expression {
 
     LYTHON_COMMFUNC(std::shared_ptr<Expression>, {})
 
-    virtual std::ostream& print(std::ostream &, int32 indent = 0) = 0;
+    virtual std::ostream &print(std::ostream &, int32 indent = 0) = 0;
     virtual KindExpr kind() { return KindExpr(-1); }
 
   private:
@@ -107,12 +108,12 @@ class Parameter : public Expression {
     LYTHON_KIND(KindParameter)
 
     ~Parameter() override;
-    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
     Name _name;
     ST::Expr _type; // Only used for compile type
-                // type info are discarded later
+                    // type info are discarded later
 };
 
 // I want placeholder to be hashable
@@ -123,152 +124,78 @@ struct pl_hash {
 
 using Variables = std::unordered_map<Parameter, ST::Expr, pl_hash>;
 
-
-class Type: public Expression{
+class Type : public Expression {
   public:
-    Type(TypeName name):
-        name(name)
-    {}
+    Type(TypeName name) : name(name) {}
 
     LYTHON_KIND(KindType)
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override{
+    std::ostream &print(std::ostream &out, int32 indent = 0) override {
         return out << name;
     }
 
     TypeName name;
 };
 
-
 // Math Nodes for ReverPolish parsing
-enum class MathKind{
-    Operator,
-    Value,
-    Function,
-    None
-};
+enum class MathKind { Operator, Value, Function, None };
 
-struct MathNode{
+struct MathNode {
     MathKind kind;
     std::string name;
 };
-
 
 /**
  * instead of creating a billions expression node we create a single node
  *  that holds all the expressions.
  */
-class ReversePolishExpression: public Expression{
-public:
-    ReversePolishExpression(Stack<MathNode> str):
-        stack(std::move(str))
-    {}
+class ReversePolishExpression : public Expression {
+  public:
+    ReversePolishExpression(Stack<MathNode> str) : stack(std::move(str)) {}
 
     LYTHON_KIND(KindReversePolish)
 
     Stack<MathNode> stack;
 
-    std::ostream& print(std::ostream& out, int32 indent = 0) override {
+    std::ostream &print(std::ostream &out, int32 indent = 0) override {
         auto iter = std::begin(stack);
         return out << to_infix(iter);
     }
 
-    std::string to_infix(Stack<MathNode>::Iterator& iter, int prev=0){
-        int pred;
-        MathNode op = *iter;
-        iter++;
-
-        switch (op.kind){
-            case MathKind::Operator:{
-                std::tie(pred, std::ignore) = precedence_table()[op.name];
-
-                auto rhs = to_infix(iter, pred);
-                auto lhs = to_infix(iter, pred);
-
-                auto expr = lhs + ' ' + op.name + ' ' + rhs;
-
-                // if parent has lower priority we have to put parens
-                // if the priority is the same we still put parens for explicitness
-                // but we do not have to
-                if (prev >= pred)
-                    return '(' + expr + ')';
-
-                return expr;
-            }
-
-            case MathKind::Function:{
-                int nargs = dirty_fun()[op.name];
-
-                std::vector<String> args;
-                for (int i = 0; i < nargs - 1; ++i){
-                    args.push_back(to_infix(iter));
-                    args.emplace_back(", ");
-                }
-                if (nargs > 0){
-                    args.push_back(to_infix(iter));
-                }
-
-                // arguments are in reverse
-                String str_args = std::accumulate(
-                    std::rbegin(args),
-                    std::rend(args),
-                    String(),
-                    [](String acc, String& b){
-                        return acc + b;
-                    }
-                );
-
-                return op.name + '(' + str_args + ')';
-            }
-
-            case MathKind::Value:{
-                return op.name;
-            }
-
-            case MathKind::None:
-                return "";
-        }
-    }
+    std::string to_infix(Stack<MathNode>::Iterator &iter, int prev = 0);
 };
 
-class Value: public Expression{
-public:
-    template<typename T>
-    Value(T val, Type type):
-        _value(new ValueHolder<T>(val)), _type(type){
-    }
+class Value : public Expression {
+  public:
+    template <typename T>
+    Value(T val, Type type) : _value(new ValueHolder<T>(val)), _type(type) {}
 
     LYTHON_KIND(KindValue)
 
-    ~Value() override {
-        delete _value;
-    }
+    ~Value() override { delete _value; }
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override{
+    std::ostream &print(std::ostream &out, int32 indent = 0) override {
         return _value->print(out, indent);
     }
 
-private:
-    struct BaseHolder{
-        virtual std::ostream& print(std::ostream & out, int32 indent = 0) = 0;
+  private:
+    struct BaseHolder {
+        virtual std::ostream &print(std::ostream &out, int32 indent = 0) = 0;
 
-        virtual ~BaseHolder(){}
+        virtual ~BaseHolder() {}
     };
 
-    template<typename T>
-    struct ValueHolder: public BaseHolder{
-        ValueHolder(T val):
-            value(val)
-        {}
+    template <typename T> struct ValueHolder : public BaseHolder {
+        ValueHolder(T val) : value(val) {}
 
-        std::ostream& print(std::ostream & out, int32 = 0) override{
+        std::ostream &print(std::ostream &out, int32 = 0) override {
             return out << value;
         }
 
         T value;
     };
 
-    BaseHolder* _value = nullptr;
+    BaseHolder *_value = nullptr;
     Type _type;
 };
 
@@ -288,7 +215,7 @@ class BinaryOperator : public Expression {
 
     ~BinaryOperator() override;
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
     ST::Expr _rhs;
@@ -305,15 +232,11 @@ class UnaryOperator : public Expression {
 
     ~UnaryOperator() override;
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    ST::Expr& expr(){
-        return _expr;
-    }
+    ST::Expr &expr() { return _expr; }
 
-    std::string& operation(){
-        return _op;
-    }
+    std::string &operation() { return _op; }
 
   private:
     ST::Expr _expr;
@@ -330,10 +253,10 @@ class Call : public Expression {
 
     ~Call() override;
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    ST::Expr& function() {return _function;}
-    Arguments& arguments() { return _arguments;}
+    ST::Expr &function() { return _function; }
+    Arguments &arguments() { return _arguments; }
 
   private:
     ST::Expr _function;
@@ -353,14 +276,14 @@ class SeqBlock : public Expression {
 
     SeqBlock() {}
 
-    Blocks& blocks() { return _block; }
+    Blocks &blocks() { return _block; }
 
     LYTHON_COMMFUNCCHILD
     LYTHON_KIND(KindSeqBlock)
 
     ~SeqBlock() override;
 
-    std::ostream& print(std::ostream & out, int32 indent = 0) override;
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
     Blocks _block;
@@ -373,7 +296,8 @@ using ParameterList = std::vector<Parameter>;
 // Functions are Top level expression
 class Function : public Expression {
   public:
-    Function(const std::string &name, bool is_extern=false) : _name(make_name(name)) {}
+    Function(const std::string &name, bool is_extern = false)
+        : _name(make_name(name)) {}
 
     ST::Expr &body() { return _body; }
     ParameterList &args() { return _args; }
@@ -387,9 +311,8 @@ class Function : public Expression {
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    std::string& docstring(){
-        return _docstring;
-    }
+    std::string &docstring() { return _docstring; }
+
   private:
     ST::Expr _body = nullptr;
     ParameterList _args;
@@ -397,7 +320,6 @@ class Function : public Expression {
     Name _name;
     std::string _docstring;
 };
-
 
 //  This allow me to read an entire file but only process
 //  used ens
@@ -422,10 +344,9 @@ class UnparsedBlock : public Expression {
     Tokens _toks;
 };
 
-
-class QualifiedType: public Expression{
-public:
-    enum TypeSpecifier{
+class QualifiedType : public Expression {
+  public:
+    enum TypeSpecifier {
         Void,
         Char,
         Short,
@@ -440,37 +361,24 @@ public:
         UserUnion,
         UserTypedef
     };
-    enum StorageSpecifier{
-        Auto,
-        Register,
-        Static,
-        Extern,
-        Typedef
-    };
-    enum TypeQualifier{
-        Const,
-        Volatile
-    };
+    enum StorageSpecifier { Auto, Register, Static, Extern, Typedef };
+    enum TypeQualifier { Const, Volatile };
 
-    std::string      name;
-    TypeSpecifier    spec_type;
+    std::string name;
+    TypeSpecifier spec_type;
     StorageSpecifier spec_storage;
-    TypeQualifier    type_qualifier;
+    TypeQualifier type_qualifier;
 };
 
-class Statement: public Expression{
+class Statement : public Expression {
   public:
-    Statement(){}
+    Statement() {}
 
     LYTHON_KIND(KindStatement)
 
-    int8& statement() {
-        return _statement;
-    }
+    int8 &statement() { return _statement; }
 
-    ST::Expr& expr(){
-        return _expr;
-    }
+    ST::Expr &expr() { return _expr; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
@@ -479,51 +387,41 @@ class Statement: public Expression{
     ST::Expr _expr;
 };
 
-class Ref: public Expression{
-public:
+class Ref : public Expression {
+  public:
     Ref() = default;
 
     LYTHON_KIND(KindReference)
 
-    std::string& name(){
-        return _name;
-    }
+    std::string &name() { return _name; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-private:
+  private:
     std::string _name;
 };
 
-
-class Struct: public Expression{
-public:
+class Struct : public Expression {
+  public:
     using Attributes = std::unordered_map<std::string, ST::Expr>;
 
     Struct() = default;
 
     LYTHON_KIND(KindStruct)
 
-    std::string& name(){
-        return _name;
-    }
+    std::string &name() { return _name; }
 
-    Attributes& attributes(){
-        return _attributes;
-    }
+    Attributes &attributes() { return _attributes; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    std::string& docstring(){
-        return _docstring;
-    }
+    std::string &docstring() { return _docstring; }
 
-private:
+  private:
     std::string _name;
     Attributes _attributes;
     std::string _docstring;
 };
-
 
 } // namespace AbstractSyntaxTree
 } // namespace lython

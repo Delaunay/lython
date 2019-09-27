@@ -1,4 +1,4 @@
-# required for C++11 features
+﻿# required for C++11 features
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # project name + language used
@@ -39,7 +39,7 @@ OPTION(BUILD_SPHINX         "Build Sphinx docs"  ON)
 # Quick fix
 # SET(BOOST_ROOT C:/local/boost_1_59_0)
 
-FIND_PACKAGE(Boost REQUIRED)
+# FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(Git REQUIRED)
 
 # Subdirectories

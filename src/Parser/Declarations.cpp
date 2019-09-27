@@ -1,10 +1,10 @@
-#include "Parser.h"
-
+﻿#include "Parser.h"
 
 namespace lython {
 
 /*
-<function-definition> ::= {<declaration-specifier>}* <declarator> {<declaration>}* <compound-statement>
+<function-definition> ::= {<declaration-specifier>}* <declarator>
+{<declaration>}* <compound-statement>
 
 <declaration> ::=  {<declaration-specifier>}+ {<init-declarator>}* ;
 
@@ -60,9 +60,10 @@ namespace lython {
 //      tok_indent
 //      <compound-statement>
 
-AST::ParameterList Parser::parse_parameter_list(std::size_t depth){
+AST::ParameterList Parser::parse_parameter_list(std::size_t depth) {
     TRACE_START();
-    EXPECT('(', "Expected start of parameter list"); EAT('(');
+    EXPECT('(', "Expected start of parameter list");
+    EAT('(');
 
     AST::ParameterList list;
     while (token().type() != ')' && token()) {
@@ -84,80 +85,89 @@ AST::ParameterList Parser::parse_parameter_list(std::size_t depth){
         // Add parameter
         list.push_back(AST::Parameter(vname, type));
     }
-    EXPECT(')', "Expected end of parameter list"); EAT(')');
+    EXPECT(')', "Expected end of parameter list");
+    EAT(')');
     TRACE_END();
     return list;
 }
 
-ST::Expr Parser::parse_type(size_t depth){
+ST::Expr Parser::parse_type(size_t depth) {
     TRACE_START();
 
     auto name = new AST::Ref();
     name->name() = "<typename>";
 
-    WITH_EXPECT(tok_identifier, "expect type identifier"){
+    WITH_EXPECT(tok_identifier, "expect type identifier") {
         name->name() = token().identifier();
-    }; EAT(tok_identifier);
+    };
+    EAT(tok_identifier);
 
     TRACE_END();
     return ST::Expr(name);
 }
 
-ST::Expr Parser::parse_function(std::size_t depth){
+ST::Expr Parser::parse_function(std::size_t depth) {
     TRACE_START();
 
-    EXPECT(tok_def, "Expected function to start by `def`"); EAT(tok_def);
+    EXPECT(tok_def, "Expected function to start by `def`");
+    EAT(tok_def);
 
     std::string function_name = "<identifier>";
 
-    WITH_EXPECT(tok_identifier, "Expected an identifier"){
+    WITH_EXPECT(tok_identifier, "Expected an identifier") {
         function_name = token().identifier();
-    }; EAT(tok_identifier);
+    };
+    EAT(tok_identifier);
 
     auto parameters = parse_parameter_list(depth + 1);
     auto fun = new AST::Function(function_name);
 
     fun->args() = parameters;
 
-    WITH_EXPECT(tok_arrow, "Expected -> before return type"){
-       EAT(tok_arrow);
-       fun->return_type() = parse_type(depth + 1);
+    WITH_EXPECT(tok_arrow, "Expected -> before return type") {
+        EAT(tok_arrow);
+        fun->return_type() = parse_type(depth + 1);
     };
 
-    EXPECT(':'        , "Expected function to end with a `:`")                ; EAT(':');
-    EXPECT(tok_newline, "Expected function to end with a new line")           ; EAT(tok_newline);
-    EXPECT(tok_indent , "Expected function body to start with an indentation"); EAT(tok_indent);
+    EXPECT(':', "Expected function to end with a `:`");
+    EAT(':');
+    EXPECT(tok_newline, "Expected function to end with a new line");
+    EAT(tok_newline);
+    EXPECT(tok_indent, "Expected function body to start with an indentation");
+    EAT(tok_indent);
 
-    if (token().type() == tok_docstring){
+    if (token().type() == tok_docstring) {
         fun->docstring() = token().identifier();
         EAT(tok_docstring);
-        EXPECT(tok_newline, "new line was expected"); EAT(tok_newline);
+        EXPECT(tok_newline, "new line was expected");
+        EAT(tok_newline);
     }
 
     fun->body() = parse_compound_statement(depth + 1);
     TRACE_END();
 
-    return register_function(module, fun);
+    return module->register_function(fun);
     // return ST::Expr(fun);
 }
 
-Token Parser::ignore_newlines(){
+Token Parser::ignore_newlines() {
     Token tok = token();
-    while(tok.type() == tok_newline){
+    while (tok.type() == tok_newline) {
         tok = next_token();
     }
     return tok;
 }
 
-ST::Expr Parser::parse_compound_statement(std::size_t depth){
+ST::Expr Parser::parse_compound_statement(std::size_t depth) {
     TRACE_START();
     // if a docstring is present the indent token was already eaten
-    // EXPECT(tok_indent, "Expected start of compound statement"); EAT(tok_indent);
+    // EXPECT(tok_indent, "Expected start of compound statement");
+    // EAT(tok_indent);
 
-    auto* block = new AST::SeqBlock();
+    auto *block = new AST::SeqBlock();
     Token tok = token();
 
-    while (tok.type() != tok_desindent && tok.type() != tok_eof){
+    while (tok.type() != tok_desindent && tok.type() != tok_eof) {
         auto expr = parse_top_expression(depth + 1);
 
         block->blocks().push_back(expr);
@@ -165,21 +175,31 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth){
         tok = ignore_newlines();
     }
 
-    if (token().type() == tok_eof){
+    if (token().type() == tok_eof) {
         return ST::Expr(block);
     }
 
-    EXPECT(tok_desindent, "Expected end of compound statement"); EAT(tok_desindent);
+    EXPECT(tok_desindent, "Expected end of compound statement");
+    EAT(tok_desindent);
     TRACE_END();
     return ST::Expr(block);
 }
 
-/* <statement> ::= <labeled-statement>  <labeled-statement>     ::= <identifier> : <statement> | case <constant-expression> : <statement>  | default : <statement>
-              | <selection-statement>   <selection-statement>   ::= if ( <expression> ) <statement>    | if ( <expression> ) <statement> else <statement> | switch ( <expression> ) <statement>
-              | <iteration-statement>   <iteration-statement>   ::= while ( <expression> ) <statement> | do <statement> while ( <expression> ) ;  | for ( {<expression>}? ; {<expression>}? ; {<expression>}? ) <statement>
-              | <jump-statement>        <jump-statement>        ::= goto <identifier> ;   | continue ; | break ;   | return {<expression>}? ;
-              | <expression-statement>  <expression-statement>  ::= {<expression>}? ;
-              | <compound-statement>    <compound-statement>    ::= { {<declaration>}* {<statement>}* }
+/* <statement> ::= <labeled-statement>  <labeled-statement>     ::= <identifier>
+   : <statement> | case <constant-expression> : <statement>  | default :
+   <statement>
+              | <selection-statement>   <selection-statement>   ::= if (
+   <expression> ) <statement>    | if ( <expression> ) <statement> else
+   <statement> | switch ( <expression> ) <statement>
+              | <iteration-statement>   <iteration-statement>   ::= while (
+   <expression> ) <statement> | do <statement> while ( <expression> ) ;  | for (
+   {<expression>}? ; {<expression>}? ; {<expression>}? ) <statement>
+              | <jump-statement>        <jump-statement>        ::= goto
+   <identifier> ;   | continue ; | break ;   | return {<expression>}? ;
+              | <expression-statement>  <expression-statement>  ::=
+   {<expression>}? ;
+              | <compound-statement>    <compound-statement>    ::= {
+   {<declaration>}* {<statement>}* }
  */
 /*
 ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
@@ -202,6 +222,4 @@ ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
         if (label == "return") {}
     }
 }*/
-
-
 }
