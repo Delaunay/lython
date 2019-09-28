@@ -82,9 +82,9 @@ int main() {
         std::cout << "--\n\n";
         expr3->print(std::cout) << "\n";
 
-        auto expr4 = par.parse_one();
-        std::cout << "--\n\n";
-        expr4->print(std::cout) << "\n";
+        //        auto expr4 = par.parse_one();
+        //        std::cout << "--\n\n";
+        //        expr4->print(std::cout) << "\n";
     } catch (lython::Exception e) {
         std::cout << "Error Occured:" << std::endl;
         std::cout << "\t" << e.what() << std::endl;
@@ -93,7 +93,22 @@ int main() {
     std::cout << std::string(80, '-') << '\n';
 
     for (auto expr : module) {
-        std::cout << expr.first << ":\n";
+        if (expr.first == "sin")
+            continue;
+
+        if (expr.first == "min")
+            continue;
+
+        if (expr.first == "max")
+            continue;
+
+        if (expr.first == "Type")
+            continue;
+
+        if (expr.first == "Float")
+            continue;
+
+        std::cout << expr.first << ":" << std::endl;
         expr.second->print(std::cout) << "\n\n";
     }
 

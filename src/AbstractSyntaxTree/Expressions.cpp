@@ -113,14 +113,14 @@ std::ostream &Call::print(std::ostream &out, int32 indent) {
     return out << ")";
 }
 
-std::ostream &Ref::print(std::ostream &out, int32 indent) {
+std::ostream &Ref::print(std::ostream &out, int32) {
     out << name();
     return out;
 }
 
 std::ostream &Struct::print(std::ostream &out, int32 indent) {
     out << "struct " << name() << ":\n";
-    std::string indentation = std::string((indent + 1) * 4, ' ');
+    std::string indentation = std::string(std::size_t((indent + 1) * 4), ' ');
 
     if (docstring().size() > 0) {
         out << indentation << "\"\"\"" << docstring() << "\"\"\"\n";
@@ -159,7 +159,7 @@ std::string ReversePolishExpression::to_infix(Stack<MathNode>::Iterator &iter,
     }
 
     case MathKind::Function: {
-        int nargs = Module::dirty_fun()[op.name];
+        int nargs = op.arg_count;
 
         std::vector<String> args;
         for (int i = 0; i < nargs - 1; ++i) {

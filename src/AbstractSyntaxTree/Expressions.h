@@ -39,6 +39,8 @@
 
 namespace lython {
 
+class Module;
+
 // Private Object
 namespace AbstractSyntaxTree {
 class Expression {
@@ -70,7 +72,10 @@ class Expression {
     virtual std::ostream &print(std::ostream &, int32 indent = 0) = 0;
     virtual KindExpr kind() { return KindExpr(-1); }
 
+    // Module *module() { return _module; }
+
   private:
+    // Module *_module; //! Module this expression belong to
 };
 } // namespace AbstractSyntaxTree
 namespace AST = AbstractSyntaxTree;
@@ -143,6 +148,7 @@ enum class MathKind { Operator, Value, Function, None };
 struct MathNode {
     MathKind kind;
     std::string name;
+    int arg_count = 1;
 };
 
 /**
@@ -302,7 +308,7 @@ class Function : public Expression {
     ST::Expr &body() { return _body; }
     ParameterList &args() { return _args; }
     ST::Expr &return_type() { return _return_type; }
-    Name &name() { return _name; }
+    std::string &name() { return _name; }
 
     ~Function() override;
 
@@ -317,7 +323,7 @@ class Function : public Expression {
     ST::Expr _body = nullptr;
     ParameterList _args;
     ST::Expr _return_type;
-    Name _name;
+    std::string _name;
     std::string _docstring;
 };
 

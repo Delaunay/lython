@@ -318,8 +318,23 @@ class Parser {
                       char(token().type()), token().identifier().c_str());
 
                 if (tok2.type() == '(') {
+                    // check if the function exists
+                    auto function = module->find(tok.identifier());
+                    int nargs = 1;
+
+                    // fun
+                    if (function != nullptr &&
+                        function->kind() == AST::Expression::KindFunction) {
+                        AST::Function *fun =
+                            static_cast<AST::Function *>(function.get());
+                        nargs = int(fun->args().size());
+                    } else {
+                        debug("function %s was not declared",
+                              tok.identifier().c_str());
+                    }
                     operator_stack.push(
-                        {AST::MathKind::Function, tok.identifier()});
+                        {AST::MathKind::Function, tok.identifier(), nargs});
+
                     debug("push %s to operator", tok.identifier().c_str());
                     next_token();
                     continue;

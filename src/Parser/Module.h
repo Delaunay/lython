@@ -41,11 +41,16 @@ class Module {
         min_fun->args().push_back(AST::Parameter(make_name("a"), float_type));
         min_fun->args().push_back(AST::Parameter(make_name("b"), float_type));
 
+        auto max_fun = new AST::Function("max", true);
+        max_fun->args().push_back(AST::Parameter(make_name("a"), float_type));
+        max_fun->args().push_back(AST::Parameter(make_name("b"), float_type));
+
         auto sin_fun = new AST::Function("sin", true);
         sin_fun->args().push_back(AST::Parameter(make_name("x"), float_type));
 
         _module["min"] = ST::Expr(min_fun);
         _module["sin"] = ST::Expr(sin_fun);
+        _module["max"] = ST::Expr(max_fun);
     }
 
     Dict<String, std::tuple<int, bool>> &precedence_table() {
@@ -53,12 +58,6 @@ class Module {
     }
 
     Trie<128> const *operator_trie() const { return &_operators; }
-
-    // just for now
-    static Dict<String, int> &dirty_fun() {
-        static Dict<String, int> fun = {{"max", 2}, {"sin", 1}};
-        return fun;
-    }
 
     static Dict<String, std::tuple<int, bool>> default_precedence() {
         static Dict<String, std::tuple<int, bool>> val = {
@@ -111,6 +110,8 @@ class Module {
     auto begin() const { return _module.begin(); }
     auto end() { return _module.end(); }
     auto end() const { return _module.end(); }
+
+    ST::Expr find(std::string const &view) { return _module[view]; }
 
   private:
     // Functions and types
