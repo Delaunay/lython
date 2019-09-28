@@ -93,8 +93,8 @@ inline std::string make_name(const std::string &name) {
     return name; // name_manager().make_name(name);
 }
 
-inline TypeName make_type(const std::string &name) {
-    return name_manager().make_type(name);
+inline std::string make_type(const std::string &name) {
+    return name; // name_manager().make_type(name);
 }
 
 inline Operator make_operator(const std::string &name, int pred) {

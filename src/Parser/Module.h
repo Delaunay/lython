@@ -27,26 +27,38 @@ typedef std::unordered_set<ST::Expr, expr_hash, expr_equal> BaseScope;
 // ---
 class Module {
   public:
-    Module() {
-        auto float_type = ST::Expr(new AST::Type(make_type("Float")));
+    static ST::Expr type_type() {
+        static ST::Expr type = std::make_shared<AST::Type>("Type");
+        return type;
+    }
 
-        _module["Type"] = nullptr;
-        _module["Float"] = float_type;
+    static ST::Expr float_type() {
+        static ST::Expr type =
+            std::make_shared<AST::Builtin>("Float", type_type());
+        return type;
+    }
+
+    Module() {
+        _module["Type"] = type_type();
+        _module["Float"] = float_type();
 
         for (auto c : {"+", "-", "*", "/", ".*", "./", "%", "^"}) {
             _operators.insert(c);
         }
 
-        auto min_fun = new AST::Function("min", true);
-        min_fun->args().push_back(AST::Parameter(make_name("a"), float_type));
-        min_fun->args().push_back(AST::Parameter(make_name("b"), float_type));
+        auto min_type = new AST::Arrow();
+        min_type->params.push_back(
+            AST::Parameter(make_name("a"), float_type()));
+        min_type->params.push_back(
+            AST::Parameter(make_name("a"), float_type()));
+        auto min_fun = new AST::Builtin("min", ST::Expr(min_type));
 
         auto max_fun = new AST::Function("max", true);
-        max_fun->args().push_back(AST::Parameter(make_name("a"), float_type));
-        max_fun->args().push_back(AST::Parameter(make_name("b"), float_type));
+        max_fun->args().push_back(AST::Parameter(make_name("a"), float_type()));
+        max_fun->args().push_back(AST::Parameter(make_name("b"), float_type()));
 
         auto sin_fun = new AST::Function("sin", true);
-        sin_fun->args().push_back(AST::Parameter(make_name("x"), float_type));
+        sin_fun->args().push_back(AST::Parameter(make_name("x"), float_type()));
 
         _module["min"] = ST::Expr(min_fun);
         _module["sin"] = ST::Expr(sin_fun);
@@ -57,7 +69,7 @@ class Module {
         return _precedence_table;
     }
 
-    Trie<128> const *operator_trie() const { return &_operators; }
+    Trie<128> const *operator_trie() const { return &_operators.trie(); }
 
     static Dict<String, std::tuple<int, bool>> default_precedence() {
         static Dict<String, std::tuple<int, bool>> val = {
@@ -117,7 +129,7 @@ class Module {
     // Functions and types
     Dict<String, ST::Expr> _module;
     // This is more for parsing
-    Trie<128> _operators;
+    CoWTrie<128> _operators;
     Dict<String, std::tuple<int, bool>> _precedence_table =
         default_precedence();
 };

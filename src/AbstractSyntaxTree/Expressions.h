@@ -47,6 +47,8 @@ class Expression {
   public:
     // Explicit RTTI
     enum KindExpr {
+        KindArrow,
+        KindBuiltin,
         KindParameter,
         KindBinaryOperator,
         KindUnaryOperator,
@@ -120,6 +122,7 @@ class Parameter : public Expression {
     ST::Expr _type; // Only used for compile type
                     // type info are discarded later
 };
+using ParameterList = std::vector<Parameter>;
 
 // I want placeholder to be hashable
 struct pl_hash {
@@ -127,11 +130,55 @@ struct pl_hash {
     std::hash<std::string> _h;
 };
 
+class Builtin : public Expression {
+  public:
+    Builtin(String const &name, ST::Expr type) : name(name), type(type) {}
+
+    LYTHON_KIND(KindBuiltin)
+
+    std::ostream &print(std::ostream &out, int32 indent = 0) override {
+        out << name;
+        // out << "Builtin(" << name << ", ";
+        // type->print(out, indent);
+        // out << ")";
+    }
+
+    String name;
+    ST::Expr type;
+};
+
+class Arrow : public Expression {
+  public:
+    LYTHON_KIND(KindArrow)
+
+    ParameterList params;
+    ST::Expr return_type;
+
+    std::ostream &print(std::ostream &out, int32 indent = 0) override {
+        int n = int(params.size()) - 1;
+
+        out << "(";
+
+        for (int i = 0; i < n; ++i) {
+            params[i].print(out, indent);
+            out << ", ";
+        }
+
+        if (n >= 0) {
+            params[n].print(out, indent);
+        }
+
+        out << ") -> ";
+        return_type->print(out, indent);
+        return out;
+    }
+};
+
 using Variables = std::unordered_map<Parameter, ST::Expr, pl_hash>;
 
 class Type : public Expression {
   public:
-    Type(TypeName name) : name(name) {}
+    Type(String name) : name(name) {}
 
     LYTHON_KIND(KindType)
 
@@ -139,7 +186,7 @@ class Type : public Expression {
         return out << name;
     }
 
-    TypeName name;
+    String name;
 };
 
 // Math Nodes for ReverPolish parsing
@@ -297,13 +344,12 @@ class SeqBlock : public Expression {
 
 // Functions
 // -------------------------------------
-using ParameterList = std::vector<Parameter>;
 
 // Functions are Top level expression
 class Function : public Expression {
   public:
     Function(const std::string &name, bool is_extern = false)
-        : _name(make_name(name)) {}
+        : externed(is_extern), _name(make_name(name)) {}
 
     ST::Expr &body() { return _body; }
     ParameterList &args() { return _args; }
@@ -318,6 +364,8 @@ class Function : public Expression {
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
     std::string &docstring() { return _docstring; }
+
+    bool externed = false;
 
   private:
     ST::Expr _body = nullptr;
