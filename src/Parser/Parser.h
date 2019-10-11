@@ -568,7 +568,7 @@ class Parser {
             }
         }
 
-        return module->register_struct(data);
+        return module->insert(data);
     }
 
     // return One Top level Expression (Functions)

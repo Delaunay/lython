@@ -146,7 +146,7 @@ ST::Expr Parser::parse_function(std::size_t depth) {
     fun->body() = parse_compound_statement(depth + 1);
     TRACE_END();
 
-    return module->register_function(fun);
+    return module->insert(fun);
     // return ST::Expr(fun);
 }
 

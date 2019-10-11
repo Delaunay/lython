@@ -38,10 +38,11 @@ class Module {
         return type;
     }
 
-    Module() {
-        _module["Type"] = type_type();
-        _module["Float"] = float_type();
-
+    Module(Module const* parent = nullptr, int depth = 0):
+        depth(depth), _parent(parent)
+    {
+        insert("Type", type_type());
+        insert("Float", float_type());
         for (auto c : {"+", "-", "*", "/", ".*", "./", "%", "^"}) {
             _operators.insert(c);
         }
@@ -60,9 +61,19 @@ class Module {
         auto sin_fun = new AST::Function("sin", true);
         sin_fun->args().push_back(AST::Parameter(make_name("x"), float_type()));
 
-        _module["min"] = ST::Expr(min_fun);
-        _module["sin"] = ST::Expr(sin_fun);
-        _module["max"] = ST::Expr(max_fun);
+        insert("min", ST::Expr(min_fun));
+        insert("sin", ST::Expr(sin_fun));
+        insert("max", ST::Expr(max_fun));
+    }
+
+    // Copy a module as a submodule of the copied module
+    Module(Module const& cpy):
+        depth(cpy.depth + 1), _parent(&cpy), _operators(cpy._operators),
+        _precedence_table(cpy._precedence_table)
+    {}
+
+    Module enter(){
+        return Module(*this);
     }
 
     Dict<String, std::tuple<int, bool>> &precedence_table() {
@@ -82,7 +93,7 @@ class Module {
 
     int arg_count(std::string_view view) const {
         thread_local String _tmp(view.begin(), view.end());
-        ST::Expr fun_expr = _module.at(_tmp);
+        ST::Expr fun_expr = this->find(_tmp);
 
         if (fun_expr != nullptr &&
             fun_expr->kind() == AST::Expression::KindFunction) {
@@ -93,44 +104,106 @@ class Module {
         return -1;
     }
 
-    ST::Expr register_struct(AST::Struct *struct_expr) {
-        auto expr = _module[struct_expr->name()];
-        if (expr != nullptr) {
-            warn("overriding definition %s", struct_expr->name().c_str());
-        }
-
-        auto r = ST::Expr(struct_expr);
-        _module[struct_expr->name()] = r;
-        return r;
+    std::size_t insert(String const& name, AST::Expression* expr){
+        auto idx = _scope.size();
+        _name_idx[name] = idx;
+        _idx_name.push_back(name);
+        _scope.emplace_back(expr);
+        return idx;
     }
 
-    ST::Expr register_function(AST::Function *fun_expr) {
-        auto name = fun_expr->name();
-        std::string str_name(std::begin(name), std::end(name));
-
-        auto expr = _module[str_name];
-        if (expr != nullptr) {
-            warn("overriding definition %s", str_name.c_str());
-        }
-
-        auto r = ST::Expr(fun_expr);
-        _module[str_name] = r;
-        return r;
+    std::size_t insert(String const& name, ST::Expr const& expr){
+        auto idx = _scope.size();
+        _name_idx[name] = idx;
+        _idx_name.push_back(name);
+        _scope.push_back(expr);
+        return idx;
     }
 
-    auto begin() { return _module.begin(); }
-    auto begin() const { return _module.begin(); }
-    auto end() { return _module.end(); }
-    auto end() const { return _module.end(); }
+    ST::Expr insert(AST::Struct *struct_expr) {
+        String& name = struct_expr->name();
+        auto i = insert(name, struct_expr);
+        return _scope[i];
+    }
 
-    ST::Expr find(std::string const &view) { return _module[view]; }
+    ST::Expr insert(AST::Function *fun_expr) {
+        String& name = fun_expr->name();
+        auto i = insert(name, fun_expr);
+        return _scope[i];
+    }
+
+    ST::Expr find(std::string const &view) const {
+        auto idx = _name_idx.at(view);
+        return _scope[idx];
+    }
+
+    class ModuleIterator{
+    public:
+        ModuleIterator(Module const& iter, std::size_t index = 0):
+            iter(iter), index(int(index))
+        {}
+
+        bool operator==(ModuleIterator& iter){
+            return this->index == iter.index;
+        }
+
+        bool operator!=(ModuleIterator& iter){
+            return this->index != iter.index;
+        }
+
+        operator bool() const {
+            return std::size_t(this->index) == this->iter._scope.size();
+        }
+
+        std::pair<String, ST::Expr> operator*(){
+            return {
+                iter._idx_name[std::size_t(index)],
+                iter._scope[std::size_t(index)]
+            };
+        }
+
+        std::pair<String, ST::Expr> operator*() const{
+            return {
+                iter._idx_name[std::size_t(index)],
+                iter._scope[std::size_t(index)]
+            };
+        }
+
+        ModuleIterator& operator++(){
+            index += 1;
+            return *this;
+        }
+
+        ModuleIterator& operator--(){
+            index = std::max(index - 1, 0);
+            return *this;
+        }
+
+    private:
+        Module const& iter;
+        int index;
+    };
+
+    ModuleIterator       begin()        { return ModuleIterator(*this); }
+    ModuleIterator const begin() const  { return ModuleIterator(*this); }
+    ModuleIterator       end()          { return ModuleIterator(*this, _scope.size()); }
+    ModuleIterator const end() const    { return ModuleIterator(*this, _scope.size()); }
 
   private:
-    // Functions and types
-    Dict<String, ST::Expr> _module;
+    //
+    int const depth;
+    Module const* _parent = nullptr;
+
+    // stored in an array so we can do lookup by index
+    Array<ST::Expr> _scope;
+    Array<String>   _idx_name;
+    Dict<String, std::size_t> _name_idx;
+
     // This is more for parsing
+    // they are copied everytime a new scope is created
+    // will see if it will be an issue
     CoWTrie<128> _operators;
     Dict<String, std::tuple<int, bool>> _precedence_table =
         default_precedence();
 };
-}
+} // namespace lython
