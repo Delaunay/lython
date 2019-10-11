@@ -10,7 +10,7 @@ namespace lython {
 namespace AbstractSyntaxTree {
 std::size_t pl_hash::operator()(Parameter &v) const noexcept {
     auto n = v.name();
-    std::string tmp(std::begin(n), std::end(n));
+    String tmp(std::begin(n), std::end(n));
     return _h(tmp);
 }
 
@@ -134,7 +134,7 @@ std::ostream &Struct::print(std::ostream &out, int32 indent) {
     return out;
 }
 
-std::string ReversePolishExpression::to_infix(Stack<MathNode>::Iterator &iter,
+String ReversePolishExpression::to_infix(Stack<MathNode>::Iterator &iter,
                                               int prev) {
     int pred;
     MathNode op = *iter;

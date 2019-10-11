@@ -32,7 +32,7 @@ int main() {
 
     // ConsoleBuffer reader;
 
-    std::string code = "def my_function1() -> e:\n"
+    String code = "def my_function1() -> e:\n"
                        "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
                        "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
 
@@ -116,6 +116,7 @@ int main() {
     //*/
 
     std::cout << std::endl;
+    show_alloc_stats();
 
     return 0;
 }

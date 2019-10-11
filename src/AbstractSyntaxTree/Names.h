@@ -1,4 +1,6 @@
-﻿#ifndef LYTHON_SRC_AST_HEADER
+﻿#include <utility>
+
+#ifndef LYTHON_SRC_AST_HEADER
 #define LYTHON_SRC_AST_HEADER
 
 #include <cassert>
@@ -9,16 +11,19 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "../Types.h"
+
+
 namespace lython {
 // /!\ string a allocated twice
 
 class Exception {
   public:
-    Exception(const std::string &msg) : msg(msg) {}
+    Exception(String msg) : msg(std::move(msg)) {}
     const char *what() const noexcept { return msg.c_str(); }
 
   private:
-    std::string msg;
+    String msg;
 };
 
 #define ASSERT(pred, msg)                                                      \
@@ -30,9 +35,9 @@ class Exception {
 
 // hold information about operators
 struct OperatorImpl {
-    OperatorImpl(const std::string op_, int pred) : op(op_), pred(pred) {}
+    OperatorImpl(const String& op_, int pred) : op(op_), pred(pred) {}
 
-    const std::string op;
+    const String op;
     const int pred;
 };
 
@@ -45,7 +50,7 @@ using Operator = std::shared_ptr<OperatorImpl>;
 
 class NameManager {
   public:
-    Name make_name(const std::string &name) {
+    Name make_name(const String &name) {
 
         ASSERT(_types.count(name) == 0, "Name not available. Used by a Type");
 
@@ -56,7 +61,7 @@ class NameManager {
         return _names[name];
     }
 
-    TypeName make_type(const std::string &type) {
+    TypeName make_type(const String &type) {
 
         ASSERT(_names.count(type) == 0,
                "Type name not available. Used by a Name");
@@ -68,7 +73,7 @@ class NameManager {
         return _types[type];
     }
 
-    Operator make_operator(const std::string &op, int pred) {
+    Operator make_operator(const String &op, int pred) {
 
         if (_operators.count(op))
             return _operators[op];
@@ -78,9 +83,9 @@ class NameManager {
     }
 
   private:
-    std::unordered_map<std::string, Name> _names;
-    std::unordered_map<std::string, TypeName> _types;
-    std::unordered_map<std::string, Operator> _operators;
+    std::unordered_map<String, Name> _names;
+    std::unordered_map<String, TypeName> _types;
+    std::unordered_map<String, Operator> _operators;
 };
 
 inline NameManager &name_manager() {
@@ -89,34 +94,34 @@ inline NameManager &name_manager() {
 }
 
 // use to create or retrieve a name
-inline std::string make_name(const std::string &name) {
+inline String make_name(const String &name) {
     return name; // name_manager().make_name(name);
 }
 
-inline std::string make_type(const std::string &name) {
+inline String make_type(const String &name) {
     return name; // name_manager().make_type(name);
 }
 
-inline Operator make_operator(const std::string &name, int pred) {
+inline Operator make_operator(const String &name, int pred) {
     return name_manager().make_operator(name, pred);
 }
 
 /*
-Type make_type(const std::string& type){
+Type make_type(const String& type){
     if (name_manager().count(type) != 0)
         assert("Type Already Exists");
 
     return name_manager().make_name(type);
 }
 
-Type use_type(const std::string& type){
+Type use_type(const String& type){
     if (name_manager().count(type) == 0)
         assert("Type Does not Exists");
 
     return name_manager().make_name(type);
 }
 
-Type make_type_weak(const std::string& name){
+Type make_type_weak(const String& name){
     return name_manager().make_name(name);
 }*/
 }

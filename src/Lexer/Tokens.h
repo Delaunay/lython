@@ -56,14 +56,14 @@ enum TokenType{
 #undef X
 };
 
-typedef std::unordered_map<std::string, TokenType> ReservedKeyword;
-typedef std::unordered_map<int, std::string> KeywordToString;
+using ReservedKeyword = Dict<String, TokenType> ;
+using KeywordToString = Dict<int, String> ;
 
 ReservedKeyword& keywords();
 KeywordToString& keyword_as_string();
 
 int8 tok_name_size();
-std::string tok_to_string(int8 t);
+String tok_to_string(int8 t);
 
 class Token{
 public:
@@ -82,9 +82,9 @@ public:
     int32 end_line()   {	return col();}
     int32 begin_line() {    return col() - int32(identifier().size()); }
 
-    std::string& identifier() { return _identifier; }
-    float64      as_float()   { return std::stod(_identifier); }
-    int32        as_integer() { return std::stoi(_identifier); }
+    String&      identifier() { return _identifier; }
+    float64      as_float()   { return std::stod(_identifier.c_str()); }
+    int32        as_integer() { return std::stoi(_identifier.c_str()); }
 
     operator bool(){
         return _type != tok_eof;
@@ -96,7 +96,7 @@ private:
     int32  _col;
 
     // Data
-    std::string _identifier;
+    String _identifier;
 
 public:
     // print all tokens and their info

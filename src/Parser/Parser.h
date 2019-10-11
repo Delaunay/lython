@@ -55,13 +55,16 @@
     ASSERT(token().type() == tok, msg);                                        \
     ""
 
+
+namespace lython {
+
 class ParserException : public std::exception {
   public:
-    ParserException(std::string const &msg) : msg(msg) {}
+    ParserException(String const &msg) : msg(msg) {}
 
     const char *what() const noexcept override { return msg.c_str(); }
 
-    const std::string msg;
+    const String msg;
 };
 
 #define WITH_EXPECT(tok, msg)                                                  \
@@ -71,7 +74,6 @@ class ParserException : public std::exception {
         throw ParserException(msg);                                            \
     } else
 
-namespace lython {
 
 class Parser {
   public:
@@ -103,17 +105,17 @@ class Parser {
         }
     }
 
-    std::string get_identifier() {
+    String get_identifier() {
         if (token().type() == tok_identifier) {
             return token().identifier();
         }
 
         debug("Missing identifier");
-        return std::string("<identifier>");
+        return String("<identifier>");
     }
 
     ST::Expr parse_storage_class_specifier() {
-        static const std::unordered_set<std::string> storage{
+        static const std::unordered_set<String> storage{
             "auto", "register", "static", "extern", "typedef"};
 
         Token tok = token();
@@ -124,7 +126,7 @@ class Parser {
     }
 
     ST::Expr parse_type_specifier() {
-        static const std::unordered_set<std::string> type_specifier{
+        static const std::unordered_set<String> type_specifier{
             "void",  "char",   "short",  "int",     "long",
             "float", "double", "signed", "unsigned"}; // + struct | union | enum
                                                       // | typedef
@@ -518,7 +520,7 @@ class Parser {
 
         Token tok = token();
         EXPECT(tok_identifier, "Expect an identifier");
-        std::string name = tok.identifier();
+        String name = tok.identifier();
         EAT(tok_identifier);
 
         auto *data = new AST::Struct();
@@ -601,17 +603,17 @@ class Parser {
     ST::Expr parse_external_declaration() {}
 
     //
-    BaseScope parse_all() {
-        // first token is tok_incorrect
-        while (token()) {
-            _scope.insert(parse_one());
-        }
-    }
+//    BaseScope parse_all() {
+//        // first token is tok_incorrect
+//        while (token()) {
+//            _scope.insert(parse_one());
+//        }
+//    }
 
   private:
     Module *module;
     Lexer _lex;
-    BaseScope _scope;
+    // BaseScope _scope;
 };
 
 } // namespace lython

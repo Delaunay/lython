@@ -22,7 +22,7 @@ struct expr_equal {
     bool operator()(const ST::Expr &a, const ST::Expr &b) const noexcept;
 };
 
-typedef std::unordered_set<ST::Expr, expr_hash, expr_equal> BaseScope;
+// using BaseScope = std::unordered_set<ST::Expr, expr_hash, expr_equal>;
 
 // ---
 class Module {
@@ -132,7 +132,7 @@ class Module {
         return _scope[i];
     }
 
-    ST::Expr find(std::string const &view) const {
+    ST::Expr find(String const &view) const {
         auto idx = _name_idx.at(view);
         return _scope[idx];
     }
@@ -206,4 +206,14 @@ class Module {
     Dict<String, std::tuple<int, bool>> _precedence_table =
         default_precedence();
 };
+
+using Name2Idx = Dict<String, std::size_t>;
+DEFINE_METADATA(Name2Idx::value_type, Pair[String size_t])
+
+using PrededenceTable = Dict<String, std::tuple<int, bool>>;
+DEFINE_METADATA(PrededenceTable::value_type, Pair[String Tuple[int bool]])
+
+DEFINE_METADATA(Array<ST::Expr>::value_type, ST::Expr)
+
+
 } // namespace lython

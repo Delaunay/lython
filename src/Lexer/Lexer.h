@@ -26,7 +26,7 @@ public:
     {}
 
     // shortcuts
-    const std::string& file_name()   {   return _reader.file_name();  }
+    const String& file_name()   {   return _reader.file_name();  }
     int32  line()      {    return _reader.line();      }
     int32  col()       {    return _reader.col();       }
     int32  indent()    {    return _reader.indent();    }
@@ -106,7 +106,7 @@ public:
 
         // Identifiers
         if (isalpha(c)){
-            std::string ident;
+            String ident;
             ident.push_back(c);
 
             while(is_identifier(c = nextc())){
@@ -135,7 +135,7 @@ public:
 
         // Numbers
         if (std::isdigit(c)){
-            std::string num;
+            String num;
             TokenType ntype = tok_int;
 
             while(std::isdigit(c)){
@@ -157,7 +157,7 @@ public:
 
         // strings
         if (c == '"'){
-            std::string str;
+            String str;
             TokenType tok = tok_string;
             char c2 = nextc();
             char c3 = '\0';
@@ -216,7 +216,7 @@ public:
         return _token;
     }
 
-    Token make_token(int8 t, const std::string& identifier){
+    Token make_token(int8 t, const String& identifier){
         _token = Token(t, line(), col());
         _token.identifier() = identifier;
         return _token;

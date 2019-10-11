@@ -103,7 +103,7 @@ namespace AbstractSyntaxTree {
 // that is unknown at compile time but will be known at runtime
 class Parameter : public Expression {
   public:
-    Parameter(const std::string &name, ST::Expr type)
+    Parameter(const String &name, ST::Expr type)
         : _name(make_name(name)), _type(type) {}
 
     Parameter(Name name, ST::Expr type) : _name(name), _type(type) {}
@@ -127,7 +127,7 @@ using ParameterList = std::vector<Parameter>;
 // I want placeholder to be hashable
 struct pl_hash {
     std::size_t operator()(Parameter &v) const noexcept;
-    std::hash<std::string> _h;
+    std::hash<String> _h;
 };
 
 class Builtin : public Expression {
@@ -194,7 +194,7 @@ enum class MathKind { Operator, Value, Function, None };
 
 struct MathNode {
     MathKind kind;
-    std::string name;
+    String name;
     int arg_count = 1;
 };
 
@@ -215,7 +215,7 @@ class ReversePolishExpression : public Expression {
         return out << to_infix(iter);
     }
 
-    std::string to_infix(Stack<MathNode>::Iterator &iter, int prev = 0);
+    String to_infix(Stack<MathNode>::Iterator &iter, int prev = 0);
 };
 
 class Value : public Expression {
@@ -289,11 +289,11 @@ class UnaryOperator : public Expression {
 
     ST::Expr &expr() { return _expr; }
 
-    std::string &operation() { return _op; }
+    String &operation() { return _op; }
 
   private:
     ST::Expr _expr;
-    std::string _op;
+    String _op;
 };
 
 class Call : public Expression {
@@ -348,13 +348,13 @@ class SeqBlock : public Expression {
 // Functions are Top level expression
 class Function : public Expression {
   public:
-    Function(const std::string &name, bool is_extern = false)
+    Function(String const &name, bool is_extern = false)
         : externed(is_extern), _name(make_name(name)) {}
 
     ST::Expr &body() { return _body; }
     ParameterList &args() { return _args; }
     ST::Expr &return_type() { return _return_type; }
-    std::string &name() { return _name; }
+    String &name() { return _name; }
 
     ~Function() override;
 
@@ -363,7 +363,7 @@ class Function : public Expression {
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    std::string &docstring() { return _docstring; }
+    String &docstring() { return _docstring; }
 
     bool externed = false;
 
@@ -371,8 +371,8 @@ class Function : public Expression {
     ST::Expr _body = nullptr;
     ParameterList _args;
     ST::Expr _return_type;
-    std::string _name;
-    std::string _docstring;
+    String _name;
+    String _docstring;
 };
 
 //  This allow me to read an entire file but only process
@@ -418,7 +418,7 @@ class QualifiedType : public Expression {
     enum StorageSpecifier { Auto, Register, Static, Extern, Typedef };
     enum TypeQualifier { Const, Volatile };
 
-    std::string name;
+    String name;
     TypeSpecifier spec_type;
     StorageSpecifier spec_storage;
     TypeQualifier type_qualifier;
@@ -447,34 +447,34 @@ class Ref : public Expression {
 
     LYTHON_KIND(KindReference)
 
-    std::string &name() { return _name; }
+    String &name() { return _name; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
-    std::string _name;
+    String _name;
 };
 
 class Struct : public Expression {
   public:
-    using Attributes = std::unordered_map<std::string, ST::Expr>;
+    using Attributes = std::unordered_map<String, ST::Expr>;
 
     Struct() = default;
 
     LYTHON_KIND(KindStruct)
 
-    std::string &name() { return _name; }
+    String &name() { return _name; }
 
     Attributes &attributes() { return _attributes; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    std::string &docstring() { return _docstring; }
+    String &docstring() { return _docstring; }
 
   private:
-    std::string _name;
+    String _name;
     Attributes _attributes;
-    std::string _docstring;
+    String _docstring;
 };
 
 } // namespace AbstractSyntaxTree

@@ -1,3 +1,5 @@
+#include <utility>
+
 #pragma once
 
 #include <cstdio>
@@ -19,7 +21,7 @@ class AbstractBuffer
 public:
 
     virtual char getc() = 0;
-    virtual const std::string& file_name() = 0;
+    virtual const String& file_name() = 0;
 
     AbstractBuffer(){}
 
@@ -87,8 +89,8 @@ public:
 class FileBuffer : public AbstractBuffer
 {
 public:
-    FileBuffer(const std::string& name):
-        _file_name(name)
+    FileBuffer(String  name):
+        _file_name(std::move(name))
     {
         _file = fopen(_file_name.c_str(), "r");
 
@@ -103,18 +105,18 @@ public:
         return char(::getc(_file));
     }
 
-    const std::string& file_name() override { return _file_name;  }
+    const String& file_name() override { return _file_name;  }
 
 private:
-    std::string _file_name;
-    FILE*       _file{nullptr};
+    String _file_name;
+    FILE*  _file{nullptr};
 };
 
 class StringBuffer: public AbstractBuffer
 {
 public:
-    StringBuffer(std::string& code):
-        _code(code), _file_name("c++ string")
+    StringBuffer(String code):
+        _code(std::move(code)), _file_name("c++ string")
     {
         init();
     }
@@ -129,12 +131,12 @@ public:
 
     ~StringBuffer() override;
 
-    const std::string& file_name() override { return _file_name;  }
+    const String& file_name() override { return _file_name;  }
 
 private:
     uint32  _pos{0};
-    std::string& _code;
-    const std::string _file_name;
+    String _code;
+    const String _file_name;
 
 public:
     void reset() override {
@@ -167,12 +169,12 @@ public:
 
     char getc() override {  return char(std::getchar()); }
 
-    const std::string& file_name() override { return _file_name;  }
+    const String& file_name() override { return _file_name;  }
 
     ~ConsoleBuffer() override;
 
 private:
-    const std::string _file_name;
+    const String _file_name;
 };
 
 }

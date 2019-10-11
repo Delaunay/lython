@@ -4,13 +4,13 @@
 namespace lython
 {
 
-std::string tok_to_string(int8 t){
+String tok_to_string(int8 t){
     switch(t){
-#define X(name, nb) case nb: return std::string(#name);
+#define X(name, nb) case nb: return String(#name);
     LYTHON_TOKEN
 #undef X
     default:
-        std::string s = "' '";
+        String s = "' '";
         s[1] = t;
         return s;
     }
@@ -20,7 +20,7 @@ std::string tok_to_string(int8 t){
 // this is used for pretty printing
 int8 tok_name_size()
 {
-    std::vector<std::string> v = {
+    std::vector<String> v = {
     #define X(name, nb) #name,
         LYTHON_TOKEN
     #undef X
@@ -82,7 +82,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
         out << std::string(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
 
-    std::string& str = keyword_as_string()[type()];
+    String& str = keyword_as_string()[type()];
 
     if (str.size() > 0){
         emptyline = false;
@@ -141,7 +141,7 @@ ReservedKeyword& keywords(){
 
 KeywordToString& keyword_as_string(){
     static KeywordToString _keywords = {
-    #define X(str, tok) {tok, str},
+    #define X(str, tok) {int(tok), String(str)},
         LYTHON_KEYWORDS
     #undef X
     };

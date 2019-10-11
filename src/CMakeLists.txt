@@ -36,6 +36,8 @@ SET(ADD_HEADERS
     Sema/SemanticAnalyse.h
     Utilities/trie.h
     Utilities/stack.h
+    Utilities/allocator.h
+    Types.h
 )
 
 SET(ADD_SOURCE
@@ -49,6 +51,7 @@ SET(ADD_SOURCE
     Parser/Parser.cpp
     Parser/Declarations.cpp
     Sema/SemanticAnalyse.cpp
+    Utilities/allocator.cpp
 )
 
 # Compile

@@ -68,7 +68,7 @@ AST::ParameterList Parser::parse_parameter_list(std::size_t depth) {
     AST::ParameterList list;
     while (token().type() != ')' && token()) {
 
-        std::string vname = CHECK_NAME(get_identifier());
+        String vname = CHECK_NAME(get_identifier());
         ST::Expr type = nullptr;
         next_token();
 
@@ -112,7 +112,7 @@ ST::Expr Parser::parse_function(std::size_t depth) {
     EXPECT(tok_def, "Expected function to start by `def`");
     EAT(tok_def);
 
-    std::string function_name = "<identifier>";
+    String function_name = "<identifier>";
 
     WITH_EXPECT(tok_identifier, "Expected an identifier") {
         function_name = token().identifier();
@@ -205,7 +205,7 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth) {
 ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
     // labeled statement
     if (token().type() == tok_identifier){
-        std::string label = token().identifier();
+        String label = token().identifier();
 
         // <selection-statement>
         if (label == "if") {}
