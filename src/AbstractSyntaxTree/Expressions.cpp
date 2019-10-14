@@ -54,7 +54,6 @@ std::ostream &SeqBlock::print(std::ostream &out, int32 indent) {
     for (auto &g : blocks()) {
         out << std::string(std::size_t(indent) * 4, ' ');
         g->print(out, indent);
-        out << '\n';
     }
     return out;
 }
@@ -181,6 +180,7 @@ String ReversePolishExpression::to_infix(Stack<MathNode>::Iterator &iter,
         return op.name + '(' + str_args + ')';
     }
 
+    case MathKind::VarRef:
     case MathKind::Value: {
         return op.name;
     }

@@ -126,14 +126,14 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     ST::Expr fun_ptr = ST::Expr(fun);
 
     // Insert function for recursive calls
-    debug("Insert Function");
+    // debug("Insert Function");
     module.insert(function_name, fun_ptr);
 
     fun->args() = parameters;
 
     // Insert the parameters into the Scope
     for(AST::Parameter& param: parameters){
-        debug("Insert Parameter");
+        // debug("Insert Parameter");
         module.insert(param.name(), param.type());
     }
 
@@ -158,6 +158,8 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
 
     fun->body() = parse_compound_statement(module, depth + 1);
     TRACE_END();
+
+    module.print(std::cout);
 
     m.insert(function_name, fun_ptr);
     return fun_ptr;

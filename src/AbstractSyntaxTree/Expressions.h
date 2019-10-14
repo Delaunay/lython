@@ -200,7 +200,13 @@ class Type : public Expression {
 };
 
 // Math Nodes for ReverPolish parsing
-enum class MathKind { Operator, Value, Function, None };
+enum class MathKind {
+    Operator,
+    Value,
+    Function,
+    VarRef,
+    None
+};
 
 struct MathNode {
     MathKind kind;

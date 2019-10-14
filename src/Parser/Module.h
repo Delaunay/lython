@@ -96,29 +96,31 @@ class Module {
     Module(Module const* parent = nullptr, int depth = 0):
         depth(depth), _parent(parent)
     {
-        insert("Type", type_type());
-        insert("Float", float_type());
-        for (auto c : {"+", "-", "*", "/", ".*", "./", "%", "^"}) {
-            _operators.insert(c);
+        if (!parent){
+            insert("Type", type_type());
+            insert("Float", float_type());
+            for (auto c : {"+", "-", "*", "/", ".*", "./", "%", "^"}) {
+                _operators.insert(c);
+            }
+
+            auto min_type = new AST::Arrow();
+            min_type->params.push_back(
+                AST::Parameter(make_name("a"), float_type()));
+            min_type->params.push_back(
+                AST::Parameter(make_name("b"), float_type()));
+
+            auto sin_type = new AST::Arrow();
+            sin_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
+
+            auto double_double = ST::Expr(min_type);
+            auto min_fun = new AST::Builtin("min", double_double);
+            auto max_fun = new AST::Builtin("max", double_double);
+            auto sin_fun = new AST::Builtin("sin", ST::Expr(sin_type));
+
+            insert("min", ST::Expr(min_fun));
+            insert("sin", ST::Expr(sin_fun));
+            insert("max", ST::Expr(max_fun));
         }
-
-        auto min_type = new AST::Arrow();
-        min_type->params.push_back(
-            AST::Parameter(make_name("a"), float_type()));
-        min_type->params.push_back(
-            AST::Parameter(make_name("b"), float_type()));
-
-        auto sin_type = new AST::Arrow();
-        sin_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
-
-        auto double_double = ST::Expr(min_type);
-        auto min_fun = new AST::Builtin("min", double_double);
-        auto max_fun = new AST::Builtin("max", double_double);
-        auto sin_fun = new AST::Builtin("sin", ST::Expr(sin_type));
-
-        insert("min", ST::Expr(min_fun));
-        insert("sin", ST::Expr(sin_fun));
-        insert("max", ST::Expr(max_fun));
     }
 
     Module enter() const {
@@ -157,7 +159,7 @@ class Module {
     }
 
     Index insert(String const& name, ST::Expr const& expr){
-        info("Inserting ST::Expression");
+        // info("Inserting ST::Expression");
 
         auto idx = _scope.size();
         _name_idx[name] = idx;
@@ -168,8 +170,10 @@ class Module {
 
     ST::Expr find(String const &view) const {
         // Check in the current scope
-        auto idx = _name_idx.at(view);
-        if (idx){
+        auto iter = _name_idx.find(view);
+
+        if (iter != _name_idx.end()){
+            Index idx = (*iter).second;
             return _scope[idx];
         } else if (_parent){
             return _parent->find(view);
@@ -214,21 +218,26 @@ class Module {
     std::ostream& print(std::ostream& out, int depth = 0) const{
         auto line = String(80, '-');
 
+        if (depth == 0){
+            out << "Module dump print:\n";
+        }
+
         if (!_parent){
             out << line << "\n";
+            out << align_right("id", 4) << "   ";
             out << align_right("name", 30) << "   type\n";
             out << line << "\n";
         }
         else{
             _parent->print(out, depth + 1);
-            out << "---\n";
+            out << String(40, '-') << "\n";
         }
 
         for(Index i = 0; i < _scope.size(); ++i){
             auto name = _idx_name[i];
             auto expr = _scope[i];
 
-
+            out << to_string(int(i), 4) << "   ";
             out << align_right(name, 30) << "   ";
 
             std::stringstream ss;
@@ -236,13 +245,11 @@ class Module {
 
             auto str = ss.str();
 
-            out << replace(str, '\n', "\n" + std::string(33, ' ')) << '\n';
+            out << replace(str, '\n', "\n" + std::string(40, ' ')) << '\n';
         }
 
         if (depth == 0){
             out << line << "\n";
-        } else {
-            out << String(4 * (depth + 1), '-') << "\n";
         }
         return out;
     }
