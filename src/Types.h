@@ -54,28 +54,28 @@ struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>>{
 namespace lython {
 
 
-//template<typename _Key, typename _Tp,
-//     typename _Hash = hash<_Key>,
-//     typename _Pred = equal_to<_Key>,
-//     typename _Alloc = allocator<std::pair<const _Key, _Tp>>>
-//  class unordered_map
+template<typename ...Args>
+using Tuple = std::tuple<Args...>;
 
-template<typename K, typename V>
-using Dict = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, Allocator<std::pair<K const, V>>>;
+template<typename A, typename B>
+using Pair = std::pair<A, B>;
 
-//template<typename _Value,
-//     typename _Hash = hash<_Value>,
-//     typename _Pred = equal_to<_Value>,
-//     typename _Alloc = allocator<_Value>>
-//  class unordered_set
+template<typename K, typename V, typename H = std::hash<K>>
+using Dict = std::unordered_map<K, V, H, std::equal_to<K>, Allocator<std::pair<K const, V>>>;
 
 template<typename V>
 using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, Allocator<V>>;
 
+
+#define PREDNODE_TYPE Pair<String, Tuple<int, bool>>
+#define NAME_TO_IDX Pair<String, std::size_t>
+
 #define TYPES_METADATA(X)\
     X(String, String)\
     X(int, Int)\
-    X(char, Char)
+    X(char, Char)\
+    X(PREDNODE_TYPE, Pred)\
+    X(NAME_TO_IDX, NameIdx)
 
 #define DEFINE_METADATA(type, tname)\
     template <>\

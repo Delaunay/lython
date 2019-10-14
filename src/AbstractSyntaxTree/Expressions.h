@@ -1,4 +1,14 @@
-﻿#ifndef LYTHON_AST
+﻿#include <utility>
+
+#include <utility>
+
+#include <utility>
+
+#include <utility>
+
+#include <utility>
+
+#ifndef LYTHON_AST
 #define LYTHON_AST
 /*
  *  What is a Program ?
@@ -13,7 +23,6 @@
 
 #include <memory>
 #include <numeric>
-#include <vector>
 
 #include "../Lexer/Tokens.h"
 #include "../Utilities/stack.h"
@@ -104,9 +113,9 @@ namespace AbstractSyntaxTree {
 class Parameter : public Expression {
   public:
     Parameter(const String &name, ST::Expr type)
-        : _name(make_name(name)), _type(type) {}
+        : _name(make_name(name)), _type(std::move(type)) {}
 
-    Parameter(Name name, ST::Expr type) : _name(name), _type(type) {}
+    Parameter(Name name, ST::Expr type) : _name(name), _type(std::move(type)) {}
 
     Name &name() { return _name; }
     ST::Expr &type() { return _type; }
@@ -122,7 +131,7 @@ class Parameter : public Expression {
     ST::Expr _type; // Only used for compile type
                     // type info are discarded later
 };
-using ParameterList = std::vector<Parameter>;
+using ParameterList = Array<Parameter>;
 
 // I want placeholder to be hashable
 struct pl_hash {
@@ -132,7 +141,7 @@ struct pl_hash {
 
 class Builtin : public Expression {
   public:
-    Builtin(String const &name, ST::Expr type) : name(name), type(type) {}
+    Builtin(String name, ST::Expr type) : name(std::move(name)), type(std::move(type)) {}
 
     LYTHON_KIND(KindBuiltin)
 
@@ -141,6 +150,7 @@ class Builtin : public Expression {
         // out << "Builtin(" << name << ", ";
         // type->print(out, indent);
         // out << ")";
+        return out;
     }
 
     String name;
@@ -174,11 +184,11 @@ class Arrow : public Expression {
     }
 };
 
-using Variables = std::unordered_map<Parameter, ST::Expr, pl_hash>;
+using Variables = Dict<Parameter, ST::Expr, pl_hash>;
 
 class Type : public Expression {
   public:
-    Type(String name) : name(name) {}
+    Type(String name) : name(std::move(name)) {}
 
     LYTHON_KIND(KindType)
 
@@ -261,7 +271,7 @@ class Value : public Expression {
 class BinaryOperator : public Expression {
   public:
     BinaryOperator(ST::Expr rhs, ST::Expr lhs, ST::Expr op)
-        : _rhs(rhs), _lhs(lhs), _op(op) {}
+        : _rhs(std::move(rhs)), _lhs(std::move(lhs)), _op(std::move(op)) {}
 
     LYTHON_COMMFUNCCHILD
     LYTHON_KIND(KindBinaryOperator)
@@ -278,7 +288,7 @@ class BinaryOperator : public Expression {
 
 class UnaryOperator : public Expression {
   public:
-    UnaryOperator() {}
+    UnaryOperator() = default;
 
     LYTHON_COMMFUNCCHILD
     LYTHON_KIND(KindUnaryOperator)
@@ -300,7 +310,7 @@ class Call : public Expression {
   public:
     using Arguments = std::vector<ST::Expr>;
 
-    Call() {}
+    Call() = default;
 
     LYTHON_KIND(KindCall)
 
@@ -327,7 +337,7 @@ class SeqBlock : public Expression {
   public:
     using Blocks = std::vector<ST::Expr>;
 
-    SeqBlock() {}
+    SeqBlock() = default;
 
     Blocks &blocks() { return _block; }
 
@@ -426,7 +436,7 @@ class QualifiedType : public Expression {
 
 class Statement : public Expression {
   public:
-    Statement() {}
+    Statement() = default;
 
     LYTHON_KIND(KindStatement)
 

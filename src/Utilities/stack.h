@@ -1,15 +1,22 @@
 #ifndef LYTHON_STACK_H
 #define LYTHON_STACK_H
 
-#include <vector>
+#include "Types.h"
+
+namespace lython {
 
 template<typename V>
 class Stack{
 public:
-    using ReverseIterator = typename std::vector<V>::iterator;
-    using Iterator = typename std::vector<V>::reverse_iterator;
-    using ConstReverseIterator = typename std::vector<V>::const_iterator;
-    using ConstIterator = typename std::vector<V>::const_reverse_iterator;
+    using ReverseIterator = typename Array<V>::iterator;
+    using Iterator = typename Array<V>::reverse_iterator;
+    using ConstReverseIterator = typename Array<V>::const_iterator;
+    using ConstIterator = typename Array<V>::const_reverse_iterator;
+
+    Stack(){
+        type_id<V>();
+        type_name<V>();
+    }
 
     void push(V const& value){
         stack.push_back(value);
@@ -42,9 +49,10 @@ public:
     ConstReverseIterator rend    () const { return std::end(stack);     }
 
 private:
-    std::vector<V> stack;
+    Array<V> stack;
     int _size = -1;
 };
 
+}
 
 #endif
