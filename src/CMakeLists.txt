@@ -37,7 +37,9 @@ SET(ADD_HEADERS
     Utilities/trie.h
     Utilities/stack.h
     Utilities/allocator.h
+    Utilities/metadata.h
     Types.h
+
 )
 
 SET(ADD_SOURCE
@@ -52,6 +54,7 @@ SET(ADD_SOURCE
     Parser/Declarations.cpp
     Sema/SemanticAnalyse.cpp
     Utilities/allocator.cpp
+    Utilities/metadata.cpp
 )
 
 # Compile

@@ -253,8 +253,8 @@ public:
     std::ostream& print(std::ostream& out);
 
     // extract a token stream into a token vector
-    std::vector<Token> extract_token(){
-        std::vector<Token> v;
+    Array<Token> extract_token(){
+        Array<Token> v;
 
         Token t = next_token();
         do {

@@ -50,6 +50,7 @@ const char* _insert_typename(const char* str){
 
 template<typename T>
 const char* type_name(){
+    // using C = typename T::nothing;
     static const char* name = _insert_typename<T>(std::string("<undefined(id="+ std::to_string(type_id<T>()) +")>").c_str());
     return name;
 };
@@ -69,13 +70,13 @@ void show_alloc_stats();
 template<typename T>
 class Allocator: public std::allocator<T>{
 public:
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
-    typedef T *pointer;
-    typedef const T *const_pointer;
-    typedef T &reference;
-    typedef const T &const_reference;
-    typedef T value_type;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using pointer = T *;
+    using const_pointer = const T *;
+    using reference = T &;
+    using const_reference = const T &;
+    using value_type = T;
 
     template<typename _Tp1>
     struct rebind
@@ -96,7 +97,7 @@ public:
         return  std::allocator<T>::deallocate(p, n);
     }
 
-    pointer allocate(std::size_t n, const void *hint = nullptr){
+    T* allocate(std::size_t n, const void *hint = nullptr){
         allocated_count<T>() += n * sizeof(T);
         return  std::allocator<T>::allocate(n, hint);
     }

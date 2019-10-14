@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 #include <sstream>
 
+#include "Utilities/metadata.h"
+
 #include "AbstractSyntaxTree/Expressions.h"
 #include "Lexer/Buffer.h"
 #include "Lexer/Lexer.h"
@@ -33,17 +35,23 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = "def my_function1() -> e:\n"
-                           "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
-                           "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
+        String code =
+            "def my_function1() -> e:\n"
+            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
+            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
 
-                           "def my_function3() -> e:\n"
-                           "    return 2\n"
-                           "\n"
+            "def my_function3() -> e:\n"
+            "    return 2\n"
+            "\n"
 
-                           "def my_function1() -> e:\n"
-                           "    return sin(max (2, 3) / 3 * pi)\n"
-                           "\n"; // 2 3 max 3 ÷ π × sin
+            "def my_function1() -> e:\n"
+            "    return sin(max (2, 3) / 3 * pi)\n"
+            "\n" // 2 3 max 3 ÷ π × sin
+
+            "def my_max(a: Double, b: Double) -> Double:\n"
+            "    return max(a, b)\n"
+            "\n"
+            ;
 
         "def function2(test: double, test) -> double:\n"
         "    \"\"\"This is a docstring\"\"\"\n"
@@ -71,21 +79,24 @@ int main() {
         try {
             Parser par(reader, &module);
 
-            auto expr1 = par.parse_one();
+            auto expr1 = par.parse_one(module);
             std::cout << "--\n\n";
+
+            info("ptr = %llu", expr1.get());
             expr1->print(std::cout) << "\n";
 
-            auto expr2 = par.parse_one();
+            auto expr2 = par.parse_one(module);
             std::cout << "--\n\n";
             expr2->print(std::cout) << "\n";
 
-            auto expr3 = par.parse_one();
+            auto expr3 = par.parse_one(module);
             std::cout << "--\n\n";
             expr3->print(std::cout) << "\n";
 
-            //        auto expr4 = par.parse_one();
-            //        std::cout << "--\n\n";
-            //        expr4->print(std::cout) << "\n";
+            auto expr4 = par.parse_one(module);
+            std::cout << "--\n\n";
+            expr4->print(std::cout) << "\n";
+
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;
@@ -112,6 +123,9 @@ int main() {
             std::cout << expr.first << ":" << std::endl;
             expr.second->print(std::cout) << "\n\n";
         }
+
+
+        module.print(std::cout);
 
         // print back what the user just inputed
         //*/

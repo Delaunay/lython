@@ -30,6 +30,7 @@ std::ostream &Parameter::print(std::ostream &out, int32) {
 }
 
 std::ostream &UnaryOperator::print(std::ostream &out, int32 indent) {
+    // debug("UnaryPrint");
     this->_expr->print(out, indent);
     return out;
 }
@@ -59,6 +60,8 @@ std::ostream &SeqBlock::print(std::ostream &out, int32 indent) {
 }
 
 std::ostream &Function::print(std::ostream &out, int32 indent) {
+    // debug("Function Print");
+
     out << "def " << _name << "(";
 
     for (uint32 i = 0, n = uint32(_args.size()); i < n; ++i) {

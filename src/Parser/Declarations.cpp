@@ -106,7 +106,7 @@ ST::Expr Parser::parse_type(size_t depth) {
     return ST::Expr(name);
 }
 
-ST::Expr Parser::parse_function(std::size_t depth) {
+ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     TRACE_START();
 
     EXPECT(tok_def, "Expected function to start by `def`");
@@ -119,10 +119,23 @@ ST::Expr Parser::parse_function(std::size_t depth) {
     };
     EAT(tok_identifier);
 
+    // Creating a new module
+    Module module = m.enter();
     auto parameters = parse_parameter_list(depth + 1);
     auto fun = new AST::Function(function_name);
+    ST::Expr fun_ptr = ST::Expr(fun);
+
+    // Insert function for recursive calls
+    debug("Insert Function");
+    module.insert(function_name, fun_ptr);
 
     fun->args() = parameters;
+
+    // Insert the parameters into the Scope
+    for(AST::Parameter& param: parameters){
+        debug("Insert Parameter");
+        module.insert(param.name(), param.type());
+    }
 
     WITH_EXPECT(tok_arrow, "Expected -> before return type") {
         EAT(tok_arrow);
@@ -143,11 +156,11 @@ ST::Expr Parser::parse_function(std::size_t depth) {
         EAT(tok_newline);
     }
 
-    fun->body() = parse_compound_statement(depth + 1);
+    fun->body() = parse_compound_statement(module, depth + 1);
     TRACE_END();
 
-    return module->insert(fun);
-    // return ST::Expr(fun);
+    m.insert(function_name, fun_ptr);
+    return fun_ptr;
 }
 
 Token Parser::ignore_newlines() {
@@ -158,7 +171,7 @@ Token Parser::ignore_newlines() {
     return tok;
 }
 
-ST::Expr Parser::parse_compound_statement(std::size_t depth) {
+ST::Expr Parser::parse_compound_statement(Module& m, std::size_t depth) {
     TRACE_START();
     // if a docstring is present the indent token was already eaten
     // EXPECT(tok_indent, "Expected start of compound statement");
@@ -168,7 +181,7 @@ ST::Expr Parser::parse_compound_statement(std::size_t depth) {
     Token tok = token();
 
     while (tok.type() != tok_desindent && tok.type() != tok_eof) {
-        auto expr = parse_top_expression(depth + 1);
+        auto expr = parse_top_expression(m, depth + 1);
 
         block->blocks().push_back(expr);
 

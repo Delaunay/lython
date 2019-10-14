@@ -1,10 +1,65 @@
 ﻿#pragma once
 
 #include <unordered_set>
+#include <sstream>
 
+#include "../Logging/logging.h"
 #include "../Types.h"
 #include "../Utilities/trie.h"
 #include "AbstractSyntaxTree/Expressions.h"
+#include "fmt.h"
+
+
+// This is made to indicate if the mapped value was set or not
+struct Index{
+    int val;
+
+    Index(int value = -1):
+        val(value)
+    {}
+
+    Index(size_t value):
+        val(int(value))
+    {}
+
+    operator size_t(){
+        assert(val >= 0);
+        return size_t(val);
+    }
+
+    operator int(){
+        return val;
+    }
+
+    operator bool(){ return val >= 0; }
+
+    template<typename T> bool operator < (T i) { return val < int(i);}
+    template<typename T> bool operator > (T i) { return val > int(i);}
+    template<typename T> bool operator== (T i) { return val == int(i);}
+    template<typename T> bool operator!= (T i) { return val != int(i);}
+    template<typename T> Index operator+ (T i) {
+        return Index(val + int(i));
+    }
+    template<typename T>
+    Index& operator+= (T i) {
+        val += i;
+        return *this;
+    }
+    template<typename T>
+    Index& operator-= (T i) {
+        val -= i;
+        return *this;
+    }
+    Index& operator++ () {
+        val += 1;
+        return *this;
+    }
+    Index& operator-- () {
+        val -= 1;
+        return *this;
+    }
+};
+
 
 namespace lython {
 //  Module
@@ -51,29 +106,26 @@ class Module {
         min_type->params.push_back(
             AST::Parameter(make_name("a"), float_type()));
         min_type->params.push_back(
-            AST::Parameter(make_name("a"), float_type()));
-        auto min_fun = new AST::Builtin("min", ST::Expr(min_type));
+            AST::Parameter(make_name("b"), float_type()));
 
-        auto max_fun = new AST::Function("max", true);
-        max_fun->args().push_back(AST::Parameter(make_name("a"), float_type()));
-        max_fun->args().push_back(AST::Parameter(make_name("b"), float_type()));
+        auto sin_type = new AST::Arrow();
+        sin_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
 
-        auto sin_fun = new AST::Function("sin", true);
-        sin_fun->args().push_back(AST::Parameter(make_name("x"), float_type()));
+        auto double_double = ST::Expr(min_type);
+        auto min_fun = new AST::Builtin("min", double_double);
+        auto max_fun = new AST::Builtin("max", double_double);
+        auto sin_fun = new AST::Builtin("sin", ST::Expr(sin_type));
 
         insert("min", ST::Expr(min_fun));
         insert("sin", ST::Expr(sin_fun));
         insert("max", ST::Expr(max_fun));
     }
 
-    // Copy a module as a submodule of the copied module
-    Module(Module const& cpy):
-        depth(cpy.depth + 1), _parent(&cpy), _operators(cpy._operators),
-        _precedence_table(cpy._precedence_table)
-    {}
-
-    Module enter(){
-        return Module(*this);
+    Module enter() const {
+        auto m = Module(this, this->depth + 1);
+        m._operators = this->_operators;
+        m._precedence_table = this->_precedence_table;
+        return m;
     }
 
     Dict<String, std::tuple<int, bool>> &precedence_table() {
@@ -104,15 +156,9 @@ class Module {
         return -1;
     }
 
-    std::size_t insert(String const& name, AST::Expression* expr){
-        auto idx = _scope.size();
-        _name_idx[name] = idx;
-        _idx_name.push_back(name);
-        _scope.emplace_back(expr);
-        return idx;
-    }
+    Index insert(String const& name, ST::Expr const& expr){
+        info("Inserting ST::Expression");
 
-    std::size_t insert(String const& name, ST::Expr const& expr){
         auto idx = _scope.size();
         _name_idx[name] = idx;
         _idx_name.push_back(name);
@@ -120,21 +166,85 @@ class Module {
         return idx;
     }
 
-    ST::Expr insert(AST::Struct *struct_expr) {
-        String& name = struct_expr->name();
-        auto i = insert(name, struct_expr);
-        return _scope[i];
-    }
-
-    ST::Expr insert(AST::Function *fun_expr) {
-        String& name = fun_expr->name();
-        auto i = insert(name, fun_expr);
-        return _scope[i];
-    }
-
     ST::Expr find(String const &view) const {
+        // Check in the current scope
         auto idx = _name_idx.at(view);
-        return _scope[idx];
+        if (idx){
+            return _scope[idx];
+        } else if (_parent){
+            return _parent->find(view);
+        }
+
+        return nullptr;
+    }
+
+    template<typename T>
+    T replace(T const& t, char a, T const& b) const{
+        Index n = t.size();
+        auto iter = t.rbegin();
+        while (*iter == '\n'){
+            n -= 1;
+            iter -= 1;
+        }
+
+        int count = 0;
+        for (Index i = 0; i < n; ++i){
+            if (t[i] == a){
+                count += 1;
+            }
+        }
+
+        auto str = T(n + b.size() * size_t(count), ' ');
+        Index k = 0;
+        for(Index i = 0; i < n; ++i){
+            if (t[i] != a){
+                str[k] = t[i];
+                k += 1;
+            } else {
+                for(Index j = 0; j < b.size(); ++j){
+                    str[k] = b[j];
+                    k += 1;
+                }
+            }
+        }
+
+        return str;
+    }
+
+    std::ostream& print(std::ostream& out, int depth = 0) const{
+        auto line = String(80, '-');
+
+        if (!_parent){
+            out << line << "\n";
+            out << align_right("name", 30) << "   type\n";
+            out << line << "\n";
+        }
+        else{
+            _parent->print(out, depth + 1);
+            out << "---\n";
+        }
+
+        for(Index i = 0; i < _scope.size(); ++i){
+            auto name = _idx_name[i];
+            auto expr = _scope[i];
+
+
+            out << align_right(name, 30) << "   ";
+
+            std::stringstream ss;
+            expr->print(ss) << "\n";
+
+            auto str = ss.str();
+
+            out << replace(str, '\n', "\n" + std::string(33, ' ')) << '\n';
+        }
+
+        if (depth == 0){
+            out << line << "\n";
+        } else {
+            out << String(4 * (depth + 1), '-') << "\n";
+        }
+        return out;
     }
 
     class ModuleIterator{
@@ -197,7 +307,7 @@ class Module {
     // stored in an array so we can do lookup by index
     Array<ST::Expr> _scope;
     Array<String>   _idx_name;
-    Dict<String, std::size_t> _name_idx;
+    Dict<String, Index> _name_idx;
 
     // This is more for parsing
     // they are copied everytime a new scope is created
@@ -206,14 +316,5 @@ class Module {
     Dict<String, std::tuple<int, bool>> _precedence_table =
         default_precedence();
 };
-
-using Name2Idx = Dict<String, std::size_t>;
-DEFINE_METADATA(Name2Idx::value_type, Pair[String size_t])
-
-using PrededenceTable = Dict<String, std::tuple<int, bool>>;
-DEFINE_METADATA(PrededenceTable::value_type, Pair[String Tuple[int bool]])
-
-DEFINE_METADATA(Array<ST::Expr>::value_type, ST::Expr)
-
 
 } // namespace lython

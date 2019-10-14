@@ -92,7 +92,7 @@ class Parser {
     // which means type will be an expression too
     ST::Expr parse_type() {}
 
-    ST::Expr parse_unary_operator() {
+    ST::Expr parse_unary_operator(Module& m) {
         static const std::unordered_set<char> operators{'&', '*', '+',
                                                         '-', '~', '!'};
 
@@ -144,9 +144,9 @@ class Parser {
     /*  <function-definition> ::= {<declaration-specifier>}* <declarator>
      * {<declaration>}* <compound-statement>
      */
-    ST::Expr parse_function(std::size_t depth);
+    ST::Expr parse_function(Module& m, std::size_t depth);
 
-    ST::Expr parse_compound_statement(std::size_t depth);
+    ST::Expr parse_compound_statement(Module& m, std::size_t depth);
 
     Token ignore_newlines();
 
@@ -197,7 +197,7 @@ class Parser {
         return ST::Expr(bin);
     }
 
-    ST::Expr parse_statement(int8 statement, std::size_t depth) {
+    ST::Expr parse_statement(Module& m, int8 statement, std::size_t depth) {
         TRACE_START();
         EXPECT(statement, ": was expected");
         EAT(statement);
@@ -205,11 +205,11 @@ class Parser {
         auto *stmt = new AST::Statement();
         stmt->statement() = statement;
 
-        stmt->expr() = parse_expression(depth + 1);
+        stmt->expr() = parse_expression(m, depth + 1);
         return ST::Expr(stmt);
     }
 
-    ST::Expr parse_function_call(ST::Expr function, std::size_t depth) {
+    ST::Expr parse_function_call(Module& m, ST::Expr function, std::size_t depth) {
         TRACE_START();
         auto fun = new AST::Call();
         fun->function() = function;
@@ -220,7 +220,7 @@ class Parser {
         while (token().type() != ')') {
             // token().debug_print(std::cout);
 
-            fun->arguments().push_back(parse_expression(depth + 1));
+            fun->arguments().push_back(parse_expression(m, depth + 1));
 
             if (token().type() == ',') {
                 next_token();
@@ -297,7 +297,7 @@ class Parser {
 
     // Shunting-yard_algorithm
     // Parse a full line of function and stuff
-    ST::Expr parse_expression(std::size_t depth) {
+    ST::Expr parse_expression(Module& m, std::size_t depth) {
         TRACE_START();
         Stack<AST::MathNode> output_stack;
         Stack<AST::MathNode> operator_stack;
@@ -451,7 +451,7 @@ class Parser {
         return ST::Expr(expr);
     }
 
-    ST::Expr parse_operator(std::size_t depth) {
+    ST::Expr parse_operator(Module& m, std::size_t depth) {
         TRACE_START();
         ST::Expr lhs = parse_value(depth + 1);
 
@@ -472,17 +472,17 @@ class Parser {
     }
 
     // parse function_name(args...)
-    ST::Expr parse_top_expression(std::size_t depth) {
+    ST::Expr parse_top_expression(Module& m, std::size_t depth) {
         TRACE_START();
 
         switch (token().type()) {
         case tok_async:
         case tok_yield:
         case tok_return:
-            return parse_statement(token().type(), depth + 1);
+            return parse_statement(m, token().type(), depth + 1);
 
         case tok_def:
-            return parse_function(depth + 1);
+            return parse_function(m, depth + 1);
 
         // value probably an operation X + Y
         //            case tok_identifier:{
@@ -494,13 +494,13 @@ class Parser {
         //            }
 
         case tok_struct:
-            return parse_struct(depth + 1);
+            return parse_struct(m, depth + 1);
 
         case tok_identifier:
         case tok_string:
         case tok_int:
         case tok_float:
-            return parse_expression(depth + 1);
+            return parse_expression(m, depth + 1);
 
             //            default:
             //                return parse_operator(depth + 1);
@@ -514,7 +514,7 @@ class Parser {
        {<struct-declaration>}+ }
                                       | <struct-or-union> <identifier>
      */
-    ST::Expr parse_struct(std::size_t depth) {
+    ST::Expr parse_struct(Module& m, std::size_t depth) {
         TRACE_START();
         EAT(tok_struct);
 
@@ -570,11 +570,13 @@ class Parser {
             }
         }
 
-        return module->insert(data);
+        auto struct_ptr = ST::Expr(data);
+        module->insert(name, struct_ptr);
+        return struct_ptr;
     }
 
     // return One Top level Expression (Functions)
-    ST::Expr parse_one(std::size_t depth = 0) {
+    ST::Expr parse_one(Module& m, std::size_t depth = 0) {
         Token tok = token();
         if (tok.type() == tok_incorrect) {
             tok = next_token();
@@ -586,10 +588,10 @@ class Parser {
 
         switch (tok.type()) {
         case tok_def:
-            return parse_function(depth);
+            return parse_function(m, depth);
 
         case tok_struct:
-            return parse_struct(depth);
+            return parse_struct(m, depth);
 
         default:
             assert("Unknown Token");
@@ -611,6 +613,7 @@ class Parser {
 //    }
 
   private:
+    // Top Level Module
     Module *module;
     Lexer _lex;
     // BaseScope _scope;

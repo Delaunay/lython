@@ -117,7 +117,7 @@ class Parameter : public Expression {
 
     Parameter(Name name, ST::Expr type) : _name(name), _type(std::move(type)) {}
 
-    Name &name() { return _name; }
+    String &name() { return _name; }
     ST::Expr &type() { return _type; }
 
     LYTHON_COMMFUNCCHILD
@@ -127,7 +127,7 @@ class Parameter : public Expression {
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
-    Name _name;
+    String _name;
     ST::Expr _type; // Only used for compile type
                     // type info are discarded later
 };
@@ -308,7 +308,7 @@ class UnaryOperator : public Expression {
 
 class Call : public Expression {
   public:
-    using Arguments = std::vector<ST::Expr>;
+    using Arguments = Array<ST::Expr>;
 
     Call() = default;
 
@@ -376,7 +376,6 @@ class Function : public Expression {
     String &docstring() { return _docstring; }
 
     bool externed = false;
-
   private:
     ST::Expr _body = nullptr;
     ParameterList _args;
@@ -467,7 +466,7 @@ class Ref : public Expression {
 
 class Struct : public Expression {
   public:
-    using Attributes = std::unordered_map<String, ST::Expr>;
+    using Attributes = Dict<String, ST::Expr>;
 
     Struct() = default;
 

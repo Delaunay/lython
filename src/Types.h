@@ -11,10 +11,13 @@
 // ---------------
 namespace lython {
 
+using uint64 = std::uint64_t;
+using int64 = std::int64_t;
+
 using uint32 = std::uint32_t;
 using int32 = std::int32_t;
 
-using uint15 = std::uint16_t;
+using uint16 = std::uint16_t;
 using int16 = std::int16_t;
 
 using uint8 = std::uint8_t;
@@ -65,26 +68,6 @@ using Dict = std::unordered_map<K, V, H, std::equal_to<K>, Allocator<std::pair<K
 
 template<typename V>
 using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, Allocator<V>>;
-
-
-#define PREDNODE_TYPE Pair<String, Tuple<int, bool>>
-#define NAME_TO_IDX Pair<String, std::size_t>
-
-#define TYPES_METADATA(X)\
-    X(String, String)\
-    X(int, Int)\
-    X(char, Char)\
-    X(PREDNODE_TYPE, Pred)\
-    X(NAME_TO_IDX, NameIdx)
-
-#define DEFINE_METADATA(type, tname)\
-    template <>\
-    inline const char* type_name<type>() {\
-        static const char* name = _insert_typename<type>(#tname);\
-        return name;\
-    }
-
-TYPES_METADATA(DEFINE_METADATA)
 
 } // namespace lython
 
