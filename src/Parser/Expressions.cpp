@@ -32,8 +32,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 // fun
                 if (function != nullptr &&
                     function->kind() == AST::Expression::KindFunction) {
-                    AST::Function *fun =
-                        static_cast<AST::Function *>(function.get());
+                    auto *fun = static_cast<AST::Function *>(function.get());
                     nargs = int(fun->args().size());
                 } else {
                     debug("function %s was not declared",
@@ -166,4 +165,4 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
     return ST::Expr(expr);
 }
 
-}
+} // namespace lython

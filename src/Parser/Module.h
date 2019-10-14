@@ -80,6 +80,13 @@ struct expr_equal {
 // using BaseScope = std::unordered_set<ST::Expr, expr_hash, expr_equal>;
 
 // ---
+/*
+ * Basic Module, used by the parser to keep track of every definition
+ * and make sure everything is reachable from a given scope.
+ * It only saves the Name and the Expression / Type corresponding
+ *
+ * Evaluation use a different kind of scope.
+ */
 class Module {
   public:
     static ST::Expr type_type() {
