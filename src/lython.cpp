@@ -127,6 +127,11 @@ int main() {
 
         module.print(std::cout);
 
+        for(Index i = 0; i < module.size(); ++i){
+            std::cout << int(i) << " " << std::endl;
+            module.get_item(i)->print(std::cout) << std::endl;
+        }
+
         // print back what the user just inputed
         //*/
 

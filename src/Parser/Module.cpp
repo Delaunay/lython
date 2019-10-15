@@ -2,10 +2,11 @@
 #include <cassert>
 
 namespace lython{
+    std::string const none_name = "<none>";
 
     std::string_view get_name(const ST::Expr& v){
-        AST::Parameter* p = dynamic_cast<AST::Parameter*>(v.get());
-        AST::Function* f = dynamic_cast<AST::Function*>(v.get());
+        auto p = dynamic_cast<AST::Parameter*>(v.get());
+        auto f = dynamic_cast<AST::Function*>(v.get());
 
         switch (v->kind()){
         case AST::Expression::KindParameter:
@@ -13,8 +14,10 @@ namespace lython{
 
         case AST::Expression::KindFunction:
             return f->name();
-
             assert("This expression is not hashable");
+
+        default:
+            return none_name;
         }
     }
 
@@ -27,4 +30,4 @@ namespace lython{
     bool expr_equal::operator() (const ST::Expr& a, const ST::Expr& b) const noexcept{
         return get_name(a) == get_name(b);
     }
-}
+} // namespace lython

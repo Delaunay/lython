@@ -60,7 +60,7 @@ namespace lython {
 //      tok_indent
 //      <compound-statement>
 
-AST::ParameterList Parser::parse_parameter_list(std::size_t depth) {
+AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
     TRACE_START();
     EXPECT('(', "Expected start of parameter list");
     EAT('(');
@@ -75,7 +75,7 @@ AST::ParameterList Parser::parse_parameter_list(std::size_t depth) {
         // type declaration
         if (token().type() == ':') {
             next_token();
-            type = parse_type(depth + 1);
+            type = parse_type(m, depth + 1);
         }
 
         if (token().type() == ',') {
@@ -91,7 +91,7 @@ AST::ParameterList Parser::parse_parameter_list(std::size_t depth) {
     return list;
 }
 
-ST::Expr Parser::parse_type(size_t depth) {
+ST::Expr Parser::parse_type(Module& m, size_t depth) {
     TRACE_START();
 
     auto name = new AST::Ref();
@@ -99,6 +99,7 @@ ST::Expr Parser::parse_type(size_t depth) {
 
     WITH_EXPECT(tok_identifier, "expect type identifier") {
         name->name() = token().identifier();
+        m.find(name->name());
     };
     EAT(tok_identifier);
 
@@ -121,7 +122,7 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
 
     // Creating a new module
     Module module = m.enter();
-    auto parameters = parse_parameter_list(depth + 1);
+    auto parameters = parse_parameter_list(m, depth + 1);
     auto fun = new AST::Function(function_name);
     ST::Expr fun_ptr = ST::Expr(fun);
 
@@ -139,7 +140,7 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
 
     WITH_EXPECT(tok_arrow, "Expected -> before return type") {
         EAT(tok_arrow);
-        fun->return_type() = parse_type(depth + 1);
+        fun->return_type() = parse_type(m, depth + 1);
     };
 
     EXPECT(':', "Expected function to end with a `:`");

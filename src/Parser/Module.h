@@ -100,8 +100,8 @@ class Module {
         return type;
     }
 
-    Module(Module const* parent = nullptr, int depth = 0):
-        depth(depth), _parent(parent)
+    Module(Module const* parent = nullptr, int depth = 0, int offset = 0):
+        depth(depth), offset(offset), _parent(parent)
     {
         if (!parent){
             insert("Type", type_type());
@@ -130,8 +130,12 @@ class Module {
         }
     }
 
+    Index size() const {
+        return Index(offset) + _scope.size();
+    }
+
     Module enter() const {
-        auto m = Module(this, this->depth + 1);
+        auto m = Module(this, this->depth + 1, size());
         m._operators = this->_operators;
         m._precedence_table = this->_precedence_table;
         return m;
@@ -167,12 +171,38 @@ class Module {
 
     Index insert(String const& name, ST::Expr const& expr){
         // info("Inserting ST::Expression");
-
         auto idx = _scope.size();
         _name_idx[name] = idx;
         _idx_name.push_back(name);
         _scope.push_back(expr);
         return idx;
+    }
+
+    ST::Expr operator[](int idx) const {
+        return get_item(idx);
+    }
+    ST::Expr get_item(int idx) const {
+        if (idx >= offset){
+            return _scope[size_t(idx - offset)];
+        }
+        if (_parent){
+            return _parent->get_item(idx);
+        }
+        return nullptr;
+    }
+
+    Index find_index(String const &view) const {
+        // Check in the current scope
+        auto iter = _name_idx.find(view);
+
+        if (iter != _name_idx.end()){
+            Index idx = (*iter).second;
+            return idx + offset;
+        } else if (_parent){
+            return _parent->find_index(view);
+        }
+
+        return Index(-1);
     }
 
     ST::Expr find(String const &view) const {
@@ -240,6 +270,7 @@ class Module {
             out << String(40, '-') << "\n";
         }
 
+        out << "----\n";
         for(Index i = 0; i < _scope.size(); ++i){
             auto name = _idx_name[i];
             auto expr = _scope[i];
@@ -316,6 +347,7 @@ class Module {
   private:
     //
     int const depth;
+    int const offset = 0;
     Module const* _parent = nullptr;
 
     // stored in an array so we can do lookup by index

@@ -81,29 +81,9 @@ class Parser {
         : module(module), _lex(buffer) {}
 
     // Shortcut
-    Token next_token() { return _lex.next_token(); }
-    Token token() { return _lex.token(); }
-    Token peek_token() { return _lex.peek_token(); }
-
-    ST::Expr get_unparsed_block() {}
-
-    // currently type is a string
-    // nevertheless we want to support advanced typing
-    // which means type will be an expression too
-    ST::Expr parse_type() {}
-
-    ST::Expr parse_unary_operator(Module& m) {
-        static const std::unordered_set<char> operators{'&', '*', '+',
-                                                        '-', '~', '!'};
-
-        Token tok = token();
-        int8 count = int8(operators.count(char(tok.type())));
-        if (count == 1) {
-            auto unary_op = new AST::UnaryOperator();
-            unary_op->operation() = tok.type();
-            return ST::Expr(unary_op);
-        }
-    }
+    Token next_token()  { return _lex.next_token(); }
+    Token token()       { return _lex.token();      }
+    Token peek_token()  { return _lex.peek_token(); }
 
     String get_identifier() {
         if (token().type() == tok_identifier) {
@@ -114,33 +94,6 @@ class Parser {
         return String("<identifier>");
     }
 
-    ST::Expr parse_storage_class_specifier() {
-        static const std::unordered_set<String> storage{
-            "auto", "register", "static", "extern", "typedef"};
-
-        Token tok = token();
-        int8 count = int8(storage.count(tok.identifier()));
-        if (count == 1) {
-            //
-        }
-    }
-
-    ST::Expr parse_type_specifier() {
-        static const std::unordered_set<String> type_specifier{
-            "void",  "char",   "short",  "int",     "long",
-            "float", "double", "signed", "unsigned"}; // + struct | union | enum
-                                                      // | typedef
-    }
-
-    /* <declaration-specifier> ::= <storage-class-specifier>
-                          | <type-specifier>
-                          | <type-qualifier><declaration-specifier> ::=
-       <storage-class-specifier>
-                          | <type-specifier>
-                          | <type-qualifier>
-     */
-    ST::Expr parse_declaration_specifier() {}
-
     /*  <function-definition> ::= {<declaration-specifier>}* <declarator>
      * {<declaration>}* <compound-statement>
      */
@@ -150,9 +103,9 @@ class Parser {
 
     Token ignore_newlines();
 
-    ST::Expr parse_type(std::size_t depth);
+    ST::Expr parse_type(Module& m, std::size_t depth);
 
-    AST::ParameterList parse_parameter_list(std::size_t depth);
+    AST::ParameterList parse_parameter_list(Module& m, std::size_t depth);
 
     ST::Expr parse_value(std::size_t depth) {
         TRACE_START();
@@ -299,26 +252,6 @@ class Parser {
     // Parse a full line of function and stuff
     ST::Expr parse_expression(Module& m, std::size_t depth);
 
-    ST::Expr parse_operator(Module& m, std::size_t depth) {
-        TRACE_START();
-        ST::Expr lhs = parse_value(depth + 1);
-
-        auto op = new AST::Ref();
-        if (token().type() == tok_identifier) {
-            op->name() = get_identifier();
-            EAT(tok_identifier);
-        } else {
-            op->name() = token().type();
-            next_token();
-        }
-
-        ST::Expr rhs = parse_value(depth + 1);
-        AST::BinaryOperator *bin =
-            new AST::BinaryOperator(rhs, lhs, ST::Expr(op));
-
-        return ST::Expr(bin);
-    }
-
     // parse function_name(args...)
     ST::Expr parse_top_expression(Module& m, std::size_t depth) {
         TRACE_START();
@@ -353,6 +286,8 @@ class Parser {
             //            default:
             //                return parse_operator(depth + 1);
         }
+
+        return nullptr;
     }
 
     /*  <struct-or-union> ::= struct | union
@@ -444,13 +379,9 @@ class Parser {
         default:
             assert("Unknown Token");
         }
-    }
 
-    /*
-     * <external-declaration> ::= <function-definition>
-     *                          | <declaration>
-     */
-    ST::Expr parse_external_declaration() {}
+        return nullptr;
+    }
 
     //
 //    BaseScope parse_all() {
