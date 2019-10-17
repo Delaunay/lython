@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Utilities/allocator.h"
+#include "utilities/allocator.h"
 
 // ---------------
 namespace lython {

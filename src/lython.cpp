@@ -1,14 +1,14 @@
 ﻿#include <iostream>
 #include <sstream>
 
-#include "Utilities/metadata.h"
+#include "utilities/metadata.h"
 
-#include "AbstractSyntaxTree/Expressions.h"
-#include "Lexer/Buffer.h"
-#include "Lexer/Lexer.h"
-#include "Parser/Parser.h"
+#include "ast/expressions.h"
+#include "lexer/buffer.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
 
-#include "Logging/logging.h"
+#include "logging/logging.h"
 
 // #include "Lexer/Prelexer.h"
 
@@ -51,6 +51,10 @@ int main() {
             "def my_max(a: Double, b: Double) -> Double:\n"
             "    return max(a, b)\n"
             "\n"
+
+            "struct Object:\n"
+            "    \"\"\"This is a docstring\"\"\"\n"
+            "    a: Float\n"
             ;
 
         "def function2(test: double, test) -> double:\n"
@@ -78,24 +82,16 @@ int main() {
 
         try {
             Parser par(reader, &module);
+            ST::Expr expr = nullptr;
+            do {
+                expr = par.parse_one(module);
 
-            auto expr1 = par.parse_one(module);
-            std::cout << "--\n\n";
+                if (expr){
+                    std::cout << "--\n\n";
+                    expr->print(std::cout) << "\n";
+                }
 
-            info("ptr = %llu", expr1.get());
-            expr1->print(std::cout) << "\n";
-
-            auto expr2 = par.parse_one(module);
-            std::cout << "--\n\n";
-            expr2->print(std::cout) << "\n";
-
-            auto expr3 = par.parse_one(module);
-            std::cout << "--\n\n";
-            expr3->print(std::cout) << "\n";
-
-            auto expr4 = par.parse_one(module);
-            std::cout << "--\n\n";
-            expr4->print(std::cout) << "\n";
+            } while(expr != nullptr);
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;

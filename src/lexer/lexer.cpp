@@ -1,4 +1,4 @@
-#include "Lexer.h"
+#include "lexer.h"
 #include "../fmt.h"
 
 namespace lython{

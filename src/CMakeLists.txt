@@ -8,60 +8,56 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 # Sources
 # aux_source_directory("${PROJECT_SOURCE_DIR}/AbstractSyntaxTree" SRC_LIST)
 #AUX_SOURCE_DIRECTORY("${PROJECT_SOURCE_DIR}/Lexer"              SRC_LIST)
-AUX_SOURCE_DIRECTORY(Parser SRC_LIST)
+AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 # aux_source_directory("${PROJECT_SOURCE_DIR}/Generator"          SRC_LIST)
 
 # directories
-ADD_SUBDIRECTORY(AbstractSyntaxTree)
-ADD_SUBDIRECTORY(Lexer)
-ADD_SUBDIRECTORY(Parser)
-ADD_SUBDIRECTORY(Generator)
-ADD_SUBDIRECTORY(Logging)
-ADD_SUBDIRECTORY(Sema)
+ADD_SUBDIRECTORY(ast)
+ADD_SUBDIRECTORY(lexer)
+ADD_SUBDIRECTORY(parser)
+ADD_SUBDIRECTORY(generator)
+ADD_SUBDIRECTORY(logging)
+ADD_SUBDIRECTORY(sema)
 
 # Source
 SET(ADD_HEADERS
-    AbstractSyntaxTree/Expressions.h
-    AbstractSyntaxTree/Names.h
-    # AbstractSyntaxTree/Types.h
-    Lexer/Lexer.h
-    # Lexer/PreLexer.h
-    Lexer/Buffer.h
-    Lexer/Tokens.h
-    Parser/Parser.h
-    Parser/Module.h
-    Utilities/optional.h
+    ast/expressions.h
+    ast/names.h
+    ast/value_holders.h
+    lexer/lexer.h
+    lexer/buffer.h
+    lexer/token.h
+    parser/parser.h
+    parser/module.h
+    utilities/optional.h
     fmt.h
-    AbstractSyntaxTree/ValueHolders.h
-    Sema/SemanticAnalyse.h
-    Utilities/trie.h
-    Utilities/stack.h
-    Utilities/allocator.h
-    Utilities/metadata.h
+    sema/sema.h
+    utilities/trie.h
+    utilities/stack.h
+    utilities/allocator.h
+    utilities/metadata.h
     Types.h
 
 )
 
 SET(ADD_SOURCE
-    AbstractSyntaxTree/Expressions.cpp
-    AbstractSyntaxTree/Names.cpp
-    # AbstractSyntaxTree/Types.cpp
-    Lexer/Lexer.cpp
-    # Lexer/PreLexer.cpp
-    Lexer/Buffer.cpp
-    Lexer/Tokens.cpp
-    Parser/Parser.cpp
-    Parser/Declarations.cpp
-    Sema/SemanticAnalyse.cpp
-    Utilities/allocator.cpp
-    Utilities/metadata.cpp
+    ast/expressions.cpp
+    ast/names.cpp
+    lexer/lexer.cpp
+    lexer/buffer.cpp
+    lexer/token.cpp
+    parser/parser.cpp
+    parser/declarations.cpp
+    sema/sema.cpp
+    utilities/allocator.cpp
+    utilities/metadata.cpp
 )
 
 # Compile
 #==================
 # Compile as a library to avoid double compilation
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-ADD_LIBRARY(liblogging Logging/logging.cpp Logging/logging.h)
+ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
 
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} liblython liblogging)

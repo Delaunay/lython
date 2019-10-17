@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-#include <unordered_set>
 #include <sstream>
+#include <unordered_set>
 
-#include "../Logging/logging.h"
+#include "../logging/logging.h"
 #include "../Types.h"
-#include "../Utilities/trie.h"
-#include "AbstractSyntaxTree/Expressions.h"
+#include "../utilities/trie.h"
+#include "ast/expressions.h"
 #include "fmt.h"
 
 
@@ -269,8 +269,6 @@ class Module {
             _parent->print(out, depth + 1);
             out << String(40, '-') << "\n";
         }
-
-        out << "----\n";
         for(Index i = 0; i < _scope.size(); ++i){
             auto name = _idx_name[i];
             auto expr = _scope[i];

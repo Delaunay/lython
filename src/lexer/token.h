@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "../Logging/logging.h"
+#include "../logging/logging.h"
 #include "../Types.h"
 
 /*

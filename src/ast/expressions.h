@@ -1,14 +1,4 @@
-﻿#include <utility>
-
-#include <utility>
-
-#include <utility>
-
-#include <utility>
-
-#include <utility>
-
-#ifndef LYTHON_AST
+﻿#ifndef LYTHON_AST
 #define LYTHON_AST
 /*
  *  What is a Program ?
@@ -21,12 +11,14 @@
  *      -> compile known ->
  */
 
+
 #include <memory>
 #include <numeric>
+#include <utility>
 
-#include "../Lexer/Tokens.h"
-#include "../Utilities/stack.h"
-#include "Names.h"
+#include "../lexer/token.h"
+#include "../utilities/stack.h"
+#include "names.h"
 
 // declare common function
 // I don't have to add them to the class declaration one by one
@@ -103,6 +95,7 @@ template <typename T, typename... Args> Expr make_expr(Args &&... args) {
 
 } // namespace SyntaxTree
 namespace ST = SyntaxTree;
+using Attributes = Dict<String, ST::Expr>;
 
 namespace AbstractSyntaxTree {
 // We declare the leafs of our program
@@ -145,13 +138,7 @@ class Builtin : public Expression {
 
     LYTHON_KIND(KindBuiltin)
 
-    std::ostream &print(std::ostream &out, int32 indent = 0) override {
-        out << name;
-        // out << "Builtin(" << name << ", ";
-        // type->print(out, indent);
-        // out << ")";
-        return out;
-    }
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
     String name;
     ST::Expr type;
@@ -170,12 +157,12 @@ class Arrow : public Expression {
         out << "(";
 
         for (int i = 0; i < n; ++i) {
-            params[i].print(out, indent);
+            params[size_t(i)].print(out, indent);
             out << ", ";
         }
 
         if (n >= 0) {
-            params[n].print(out, indent);
+            params[size_t(n)].print(out, indent);
         }
 
         out << ") -> ";
@@ -192,9 +179,7 @@ class Type : public Expression {
 
     LYTHON_KIND(KindType)
 
-    std::ostream &print(std::ostream &out, int32 indent = 0) override {
-        return out << name;
-    }
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
     String name;
 };
@@ -210,8 +195,9 @@ enum class MathKind {
 
 struct MathNode {
     MathKind kind;
-    String name;
     int arg_count = 1;
+    ST::Expr ref = nullptr;
+    String name = "";
 };
 
 /**
@@ -226,10 +212,7 @@ class ReversePolishExpression : public Expression {
 
     Stack<MathNode> stack;
 
-    std::ostream &print(std::ostream &out, int32 indent = 0) override {
-        auto iter = std::begin(stack);
-        return out << to_infix(iter);
-    }
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
     String to_infix(Stack<MathNode>::Iterator &iter, int prev = 0);
 };
@@ -237,21 +220,19 @@ class ReversePolishExpression : public Expression {
 class Value : public Expression {
   public:
     template <typename T>
-    Value(T val, Type type) : _value(new ValueHolder<T>(val)), _type(type) {}
+    Value(T val, ST::Expr type) : _value(new ValueHolder<T>(val)), _type(std::move(type)) {}
 
     LYTHON_KIND(KindValue)
 
     ~Value() override { delete _value; }
 
-    std::ostream &print(std::ostream &out, int32 indent = 0) override {
-        return _value->print(out, indent);
-    }
+    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
     struct BaseHolder {
         virtual std::ostream &print(std::ostream &out, int32 indent = 0) = 0;
 
-        virtual ~BaseHolder() {}
+        virtual ~BaseHolder() = default;
     };
 
     template <typename T> struct ValueHolder : public BaseHolder {
@@ -265,7 +246,7 @@ class Value : public Expression {
     };
 
     BaseHolder *_value = nullptr;
-    Type _type;
+    ST::Expr _type;
 };
 
 // We declare Basic nodes of our program
@@ -458,7 +439,9 @@ class Statement : public Expression {
 
 class Ref : public Expression {
   public:
-    Ref() = default;
+    Ref(String name, int loc):
+        _name(std::move(name)), _index(loc)
+    {}
 
     LYTHON_KIND(KindReference)
 
@@ -468,12 +451,11 @@ class Ref : public Expression {
 
   private:
     String _name;
+    int    _index;
 };
 
 class Struct : public Expression {
   public:
-    using Attributes = Dict<String, ST::Expr>;
-
     Struct() = default;
 
     LYTHON_KIND(KindStruct)
@@ -487,9 +469,9 @@ class Struct : public Expression {
     String &docstring() { return _docstring; }
 
   private:
-    String _name;
-    Attributes _attributes;
-    String _docstring;
+    String      _name;
+    Attributes  _attributes;
+    String      _docstring;
 };
 
 } // namespace AbstractSyntaxTree

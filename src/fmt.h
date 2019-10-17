@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Types.h"
-#include <string>
 #include <cmath>
+#include <string>
+
+#include "Types.h"
 
 namespace lython
 {

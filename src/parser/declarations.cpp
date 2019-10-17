@@ -1,4 +1,4 @@
-﻿#include "Parser.h"
+﻿#include "parser.h"
 
 namespace lython {
 
@@ -94,17 +94,22 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
 ST::Expr Parser::parse_type(Module& m, size_t depth) {
     TRACE_START();
 
-    auto name = new AST::Ref();
-    name->name() = "<typename>";
+    String name = "<typename>";
+    int loc = -1;
 
     WITH_EXPECT(tok_identifier, "expect type identifier") {
-        name->name() = token().identifier();
-        m.find(name->name());
+        name = token().identifier();
+        loc = m.find_index(name);
     };
+
+    if (loc < 0){
+        warn("Undefined type \"%s\"", name.c_str());
+    }
+    auto type = new AST::Ref(name, loc);
     EAT(tok_identifier);
 
     TRACE_END();
-    return ST::Expr(name);
+    return ST::Expr(type);
 }
 
 ST::Expr Parser::parse_function(Module& m, std::size_t depth) {

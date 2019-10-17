@@ -1,6 +1,4 @@
-﻿#include <utility>
-
-#ifndef LYTHON_SRC_AST_HEADER
+﻿#ifndef LYTHON_SRC_AST_HEADER
 #define LYTHON_SRC_AST_HEADER
 
 #include <cassert>

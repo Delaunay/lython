@@ -1,4 +1,4 @@
-#include "Parser/Parser.h"
+#include "parser/parser.h"
 
 namespace lython {
 
@@ -28,6 +28,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 // check if the function exists
                 auto function = m.find(tok.identifier());
                 int nargs = 1;
+                int loc = m.find_index(tok.identifier());
 
                 // fun
                 if (function != nullptr &&
@@ -38,20 +39,27 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                     debug("function %s was not declared",
                           tok.identifier().c_str());
                 }
-                operator_stack.push(
-                    {AST::MathKind::Function, tok.identifier(), nargs});
+                operator_stack.push({
+                    AST::MathKind::Function,
+                    nargs,
+                    ST::Expr(new AST::Ref(tok.identifier(), loc))
+                });
 
                 debug("push %s to operator", tok.identifier().c_str());
                 next_token();
                 continue;
 
             } else { // if it is not a function, it is a variable
-                auto expr = m.find(tok.identifier());
-                if (expr == nullptr){
+                int loc = m.find_index(tok.identifier());
+                if (loc < 0){
                     warn("Variable (%s) not defined", tok.identifier().c_str());
                 }
+                output_stack.push({
+                   AST::MathKind::VarRef,
+                   0,
+                   ST::Expr(new AST::Ref(tok.identifier(), loc))
+               });
 
-                output_stack.push({AST::MathKind::VarRef, tok.identifier()});
                 EAT(tok.type());
                 debug("Added VarRef %s in output stack", tok.identifier().c_str());
                 continue;
@@ -60,7 +68,12 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
         }
         case tok_float:
         case tok_int:
-            output_stack.push({AST::MathKind::Value, tok.identifier()});
+            output_stack.push({
+                AST::MathKind::Value,
+                0,
+                nullptr,
+                tok.identifier()
+            });
             EAT(tok.type());
             debug("Added %s in output stack", tok.identifier().c_str());
             continue;
@@ -115,11 +128,11 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 }
             }
             debug("push %s to operator", op_name.c_str());
-            operator_stack.push({AST::MathKind::Operator, op_name});
+            operator_stack.push({AST::MathKind::Operator, 0, nullptr, op_name});
         }
 
         if (tok.type() == '(') {
-            operator_stack.push({AST::MathKind::None, "("});
+            operator_stack.push({AST::MathKind::None, 0, nullptr, "("});
             debug("push %s to operator", "(");
             next_token();
         } else if (tok.type() == ')') {

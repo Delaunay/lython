@@ -1,4 +1,4 @@
-#include "Parser/Module.h"
+#include "parser/module.h"
 #include "allocator.h"
 #include "metadata.h"
 
@@ -20,9 +20,8 @@ void metadata_init_names(){
     type_id<ST::Expr>();
     _insert_typename<ST::Expr>("Expr");
 
-    using Attribute = Dict<String, ST::Expr>::value_type;
-    type_id<Attribute>();
-    _insert_typename<Attribute>("Attribute");
+    type_id<Attributes::value_type>();
+    _insert_typename<Attributes::value_type>("Attribute");
 
     // Token
     using RKeyword =  Dict<String, TokenType>::value_type;

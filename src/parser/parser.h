@@ -1,14 +1,14 @@
 ﻿#ifndef PARSER_H
 #define PARSER_H
 
-#include "../Lexer/Lexer.h"
-#include "../Logging/logging.h"
+#include "../lexer/lexer.h"
+#include "../logging/logging.h"
 #include "../Types.h"
-#include "../Utilities/optional.h"
-#include "../Utilities/stack.h"
-#include "../Utilities/trie.h"
+#include "../utilities/optional.h"
+#include "../utilities/stack.h"
+#include "../utilities/trie.h"
 
-#include "Module.h"
+#include "module.h"
 
 #include <iostream>
 #include <numeric>
@@ -107,7 +107,7 @@ class Parser {
 
     AST::ParameterList parse_parameter_list(Module& m, std::size_t depth);
 
-    ST::Expr parse_value(std::size_t depth) {
+    ST::Expr parse_value(Module& m, std::size_t depth) {
         TRACE_START();
 
         AST::Value *val = nullptr;
@@ -115,15 +115,18 @@ class Parser {
 
         switch (type) {
         case tok_string:
-            val = new AST::Value(token().identifier(), make_type("string"));
+            // make_type("string")
+            val = new AST::Value(token().identifier(), nullptr);
             EAT(tok_string);
             break;
         case tok_float:
-            val = new AST::Value(token().as_float(), make_type("float"));
+            // make_type("float")
+            val = new AST::Value(token().as_float(), nullptr);
             EAT(tok_float);
             break;
         case tok_int:
-            val = new AST::Value(token().as_integer(), make_type("int"));
+            // make_type("int")
+            val = new AST::Value(token().as_integer(), nullptr);
             EAT(tok_int);
             break;
         }
@@ -134,16 +137,23 @@ class Parser {
             ttype == ')')
             return ST::Expr(val);
 
-        auto op = new AST::Ref();
+
+        String name;
         if (token().type() == tok_identifier) {
-            op->name() = get_identifier();
+            name = get_identifier();
             EAT(tok_identifier);
         } else {
-            op->name() = token().type();
+            name = token().type();
             next_token();
         }
 
-        ST::Expr rhs = parse_value(depth + 1);
+        int loc = m.find_index(name);
+        if (loc < 0){
+            warn("Undefined type \"%s\"", name.c_str());
+        }
+        auto op = new AST::Ref(name, loc);
+
+        ST::Expr rhs = parse_value(m, depth + 1);
         AST::BinaryOperator *bin =
             new AST::BinaryOperator(rhs, ST::Expr(val), ST::Expr(op));
         TRACE_END();
@@ -303,16 +313,17 @@ class Parser {
 
         Token tok = token();
         EXPECT(tok_identifier, "Expect an identifier");
-        String name = tok.identifier();
+        String struct_name = tok.identifier();
         EAT(tok_identifier);
 
         auto *data = new AST::Struct();
-        data->name() = name;
+        data->name() = struct_name;
 
         EXPECT(':', ": was expected");
         EAT(':');
         EXPECT(tok_newline, "newline was expected");
         EAT(tok_newline);
+
         EXPECT(tok_indent, "indentation was expected");
         EAT(tok_indent);
 
@@ -330,23 +341,18 @@ class Parser {
 
         tok = token();
         while (tok.type() != tok_desindent && tok.type() != tok_eof) {
+            String attribute_name = "<attribute>";
 
             WITH_EXPECT(tok_identifier, "Expected identifier 1") {
-                name = tok.identifier();
+                attribute_name = tok.identifier();
                 EAT(tok_identifier);
             }
 
             EXPECT(':', "Expect :");
             EAT(':');
-            tok = token();
 
-            WITH_EXPECT(tok_identifier, "Expect type identifier") {
-                AST::Ref *ref = new AST::Ref();
-                ref->name() = tok.identifier();
-                data->attributes()[name] = ST::Expr(ref);
-                EAT(tok_identifier);
-                tok = token();
-            }
+            data->attributes()[attribute_name] = parse_type(m, depth);
+            tok = token();
 
             while (tok.type() == tok_newline) {
                 tok = next_token();
@@ -354,7 +360,7 @@ class Parser {
         }
 
         auto struct_ptr = ST::Expr(data);
-        module->insert(name, struct_ptr);
+        module->insert(struct_name, struct_ptr);
         return struct_ptr;
     }
 

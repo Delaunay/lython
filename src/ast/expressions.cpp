@@ -1,7 +1,6 @@
-﻿#include "Expressions.h"
-#include "../Logging/logging.h"
-
-#include "../Parser/Module.h"
+﻿#include "expressions.h"
+#include "../logging/logging.h"
+#include "../parser/module.h"
 
 #define TRACE_START() trace_start(0, "");
 #define TRACE_END() trace_end(0, "");
@@ -177,18 +176,57 @@ String ReversePolishExpression::to_infix(Stack<MathNode>::Iterator &iter,
             std::accumulate(std::rbegin(args), std::rend(args), String(),
                             [](String acc, String &b) { return acc + b; });
 
-        return op.name + '(' + str_args + ')';
+
+        String fun = op.name;
+        if (op.ref){
+            std::basic_stringstream<char, std::char_traits<char>, Allocator<char>> ss;
+            op.ref->print(ss);
+            fun = ss.str();
+        }
+        return fun + '(' + str_args + ')';
     }
 
-    case MathKind::VarRef:
+    case MathKind::VarRef: {
+        String var = op.name;
+        if (op.ref){
+            std::basic_stringstream<char, std::char_traits<char>, Allocator<char>> ss;
+            op.ref->print(ss);
+            var = ss.str();
+        }
+        return var;
+    }
     case MathKind::Value: {
         return op.name;
     }
 
     case MathKind::None:
-        return "";
+        return "<None>";
     }
+
+    return "<Error>";
 }
+
+std::ostream &Builtin::print(std::ostream &out, int32) {
+    out << name;
+    // out << "Builtin(" << name << ", ";
+    // type->print(out, indent);
+    // out << ")";
+    return out;
+}
+
+std::ostream &Type::print(std::ostream &out, int32) {
+    return out << name;
+}
+
+std::ostream &ReversePolishExpression::print(std::ostream &out, int32) {
+    auto iter = std::begin(stack);
+    return out << to_infix(iter);
+}
+
+std::ostream &Value::print(std::ostream &out, int32 indent) {
+    return _value->print(out, indent);
+}
+
 
 } // namespace AbstractSyntaxTree
 } // namespace lython

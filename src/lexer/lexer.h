@@ -2,8 +2,8 @@
 
 #include <ostream>
 
-#include "Buffer.h"
-#include "Tokens.h"
+#include "buffer.h"
+#include "token.h"
 
 #include "../Types.h"
 

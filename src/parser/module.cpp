@@ -1,4 +1,4 @@
-#include "Module.h"
+#include "module.h"
 #include <cassert>
 
 namespace lython{
