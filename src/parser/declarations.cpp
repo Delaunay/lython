@@ -126,7 +126,8 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     EAT(tok_identifier);
 
     // Creating a new module
-    Module module = m.enter();
+    AccessTracker tracker;
+    Module module = m.enter(&tracker);
     auto parameters = parse_parameter_list(m, depth + 1);
     auto fun = new AST::Function(function_name);
     ST::Expr fun_ptr = ST::Expr(fun);
@@ -165,9 +166,8 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     fun->body() = parse_compound_statement(module, depth + 1);
     TRACE_END();
 
-    module.print(std::cout);
-
     m.insert(function_name, fun_ptr);
+    fun->frame = tracker.access;
     return fun_ptr;
 }
 

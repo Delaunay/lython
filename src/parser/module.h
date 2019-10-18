@@ -37,7 +37,7 @@ struct Index{
     template<typename T> bool operator > (T i) { return val > int(i);}
     template<typename T> bool operator== (T i) { return val == int(i);}
     template<typename T> bool operator!= (T i) { return val != int(i);}
-    template<typename T> Index operator+ (T i) {
+    template<typename T> Index operator+ (T i) const {
         return Index(val + int(i));
     }
     template<typename T>
@@ -79,6 +79,19 @@ struct expr_equal {
 
 // using BaseScope = std::unordered_set<ST::Expr, expr_hash, expr_equal>;
 
+
+struct AccessTracker{
+    Array<Tuple<String, int>> access;
+
+    void add_access(String const& v, int i){
+        for(auto j: access){
+            if (std::get<1>(j) == i)
+                return;
+        }
+        access.emplace_back(v, i);
+    }
+};
+
 // ---
 /*
  * Basic Module, used by the parser to keep track of every definition
@@ -86,6 +99,8 @@ struct expr_equal {
  * It only saves the Name and the Expression / Type corresponding
  *
  * Evaluation use a different kind of scope.
+ *
+ * AccessTracker is used to keep track of all the used Expression for functions
  */
 class Module {
   public:
@@ -100,8 +115,8 @@ class Module {
         return type;
     }
 
-    Module(Module const* parent = nullptr, int depth = 0, int offset = 0):
-        depth(depth), offset(offset), _parent(parent)
+    Module(Module const* parent = nullptr, int depth = 0, int offset = 0, AccessTracker* tracker = nullptr):
+        depth(depth), offset(offset), _parent(parent), _tracker(tracker)
     {
         if (!parent){
             insert("Type", type_type());
@@ -134,8 +149,8 @@ class Module {
         return Index(offset) + _scope.size();
     }
 
-    Module enter() const {
-        auto m = Module(this, this->depth + 1, size());
+    Module enter(AccessTracker* tracker = nullptr) const {
+        auto m = Module(this, this->depth + 1, size(), tracker);
         m._operators = this->_operators;
         m._precedence_table = this->_precedence_table;
         return m;
@@ -175,6 +190,10 @@ class Module {
         _name_idx[name] = idx;
         _idx_name.push_back(name);
         _scope.push_back(expr);
+
+        if (_tracker){
+            _tracker->add_access(name, int(idx) + offset);
+        }
         return idx;
     }
 
@@ -194,15 +213,18 @@ class Module {
     Index find_index(String const &view) const {
         // Check in the current scope
         auto iter = _name_idx.find(view);
+        Index idx = -1;
 
         if (iter != _name_idx.end()){
-            Index idx = (*iter).second;
-            return idx + offset;
+            idx = (*iter).second + offset;
         } else if (_parent){
-            return _parent->find_index(view);
+            idx = _parent->find_index(view);
         }
 
-        return Index(-1);
+        if (_tracker){
+            _tracker->add_access(view, idx);
+        }
+        return idx;
     }
 
     ST::Expr find(String const &view) const {
@@ -349,6 +371,7 @@ class Module {
     Module const* _parent = nullptr;
 
     // stored in an array so we can do lookup by index
+    AccessTracker* _tracker = nullptr;
     Array<ST::Expr> _scope;
     Array<String>   _idx_name;
     Dict<String, Index> _name_idx;

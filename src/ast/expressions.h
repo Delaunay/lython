@@ -32,6 +32,8 @@
 
 //#define LYTHON_COMMFUNCCHILD LYTHON_COMMFUNC(ST::Expr, {})
 
+//     const Expression::KindExpr const kind_tag = _kind;
+
 #define LYTHON_KIND(_kind)                                                     \
     Expression::KindExpr kind() override { return _kind; }
 
@@ -363,12 +365,22 @@ class Function : public Expression {
     String &docstring() { return _docstring; }
 
     bool externed = false;
+
+    // First Entry is the function itself (for recursion)
+    // Then arguments
+    // Then global variable access (include calls to outside functions)
+    // Finaly return value
+    // The frame is created by the AccessTracker inside Module during parsing
+    // The frame is used by the evaluator/interpreter to initialize an eval environment
+    // for the function once initialized the function should be able to run without side effects
+    Array<Tuple<String, int>> frame;
+
   private:
-    ST::Expr _body = nullptr;
+    ST::Expr      _body = nullptr;
     ParameterList _args;
-    ST::Expr _return_type;
-    String _name;
-    String _docstring;
+    ST::Expr      _return_type;
+    String        _name;
+    String        _docstring;
 };
 
 //  This allow me to read an entire file but only process
