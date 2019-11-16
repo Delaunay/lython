@@ -224,7 +224,12 @@ std::ostream &ReversePolishExpression::print(std::ostream &out, int32) {
 }
 
 std::ostream &Value::print(std::ostream &out, int32 indent) {
-    return _value->print(out, indent);
+    switch(tag){
+    case CTInt: return out << v_int;
+    case CTDouble: return out << v_double;
+    }
+
+    return out;
 }
 
 

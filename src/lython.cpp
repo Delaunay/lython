@@ -121,7 +121,7 @@ int main() {
             expr.second->print(std::cout) << "\n\n";
         }
 
-
+        // -------------------------------------------------
         module.print(std::cout);
 
 //        for(Index i = 0; i < module.size(); ++i){
@@ -131,7 +131,12 @@ int main() {
         std::cout << std::string(80, '-') << '\n';
 
         Interpreter vm(&module);
+        AST::Call* call = new AST::Call();
+        call->function() = module.find("my_function3");
 
+        Value v = vm.eval(ST::Expr(call));
+
+        v.print(std::cout);
         std::cout << std::endl;
     }
     show_alloc_stats();

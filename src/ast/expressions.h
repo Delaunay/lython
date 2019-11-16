@@ -221,33 +221,33 @@ class ReversePolishExpression : public Expression {
 
 class Value : public Expression {
   public:
+    enum CT{
+        CTInt,
+        CTDouble
+    } tag;
+
     template <typename T>
-    Value(T val, ST::Expr type) : _value(new ValueHolder<T>(val)), _type(std::move(type)) {}
+    Value(T val, ST::Expr type) : _type(std::move(type)) {}
+
+    template <>
+    Value(int val, ST::Expr type) : tag(CTInt), v_int(val), _type(std::move(type)) {}
+
+    template <>
+    Value(double val, ST::Expr type) : tag(CTDouble), v_double(val), _type(std::move(type)) {}
 
     LYTHON_KIND(KindValue)
 
-    ~Value() override { delete _value; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-  private:
-    struct BaseHolder {
-        virtual std::ostream &print(std::ostream &out, int32 indent = 0) = 0;
+    template<typename V>
+    V as(){
 
-        virtual ~BaseHolder() = default;
-    };
+    }
 
-    template <typename T> struct ValueHolder : public BaseHolder {
-        ValueHolder(T val) : value(val) {}
+    double v_double;
+    int v_int;
 
-        std::ostream &print(std::ostream &out, int32 = 0) override {
-            return out << value;
-        }
-
-        T value;
-    };
-
-    BaseHolder *_value = nullptr;
     ST::Expr _type;
 };
 

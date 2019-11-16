@@ -7,6 +7,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <sstream>
+
 #include "utilities/allocator.h"
 
 // ---------------
@@ -33,6 +35,8 @@ template<typename V>
 using Array = std::vector<V, Allocator<V>>;
 
 using String = std::basic_string<char, std::char_traits<char>, Allocator<char>>;
+
+using StringStream = std::basic_stringstream<char, std::char_traits<char>, Allocator<char>>;
 
 } // namespace lython
 
