@@ -18,6 +18,7 @@ ADD_SUBDIRECTORY(parser)
 ADD_SUBDIRECTORY(generator)
 ADD_SUBDIRECTORY(logging)
 ADD_SUBDIRECTORY(sema)
+ADD_SUBDIRECTORY(interpreter)
 
 # Source
 SET(ADD_HEADERS
@@ -36,6 +37,7 @@ SET(ADD_HEADERS
     utilities/stack.h
     utilities/allocator.h
     utilities/metadata.h
+    interpreter/interpreter.h
     Types.h
 
 )
@@ -51,6 +53,7 @@ SET(ADD_SOURCE
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp
+    interpreter/interpreter.cpp
 )
 
 # Compile

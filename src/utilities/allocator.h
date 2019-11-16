@@ -50,7 +50,7 @@ const char* _insert_typename(const char* str){
 
 template<typename T>
 const char* type_name(){
-    // using C = typename T::nothing;
+    using C = typename T::nothing;
     static const char* name = _insert_typename<T>(std::string("<undefined(id="+ std::to_string(type_id<T>()) +")>").c_str());
     return name;
 };

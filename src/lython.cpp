@@ -8,6 +8,7 @@
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 
+#include "interpreter/interpreter.h"
 #include "logging/logging.h"
 
 // #include "Lexer/Prelexer.h"
@@ -123,13 +124,13 @@ int main() {
 
         module.print(std::cout);
 
-        for(Index i = 0; i < module.size(); ++i){
-            std::cout << int(i) << " " << std::endl;
-            module.get_item(i)->print(std::cout) << std::endl;
-        }
+//        for(Index i = 0; i < module.size(); ++i){
+//            std::cout << int(i) << " " << std::endl;
+//            module.get_item(i)->print(std::cout) << std::endl;
+//        }
+        std::cout << std::string(80, '-') << '\n';
 
-        // print back what the user just inputed
-        //*/
+        Interpreter vm(&module);
 
         std::cout << std::endl;
     }

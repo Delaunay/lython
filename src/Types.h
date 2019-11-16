@@ -1,6 +1,7 @@
 #ifndef LYTHON_TYPES_HEADER
 #define LYTHON_TYPES_HEADER
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>

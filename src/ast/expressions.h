@@ -366,7 +366,7 @@ class Function : public Expression {
 
     bool externed = false;
 
-    // First Entry is the function itself (for recursion)
+    // First Entry is the function itself (for recursion)   (also StackFrame unwinding)
     // Then arguments
     // Then global variable access (include calls to outside functions)
     // Finaly return value
@@ -458,6 +458,7 @@ class Ref : public Expression {
     LYTHON_KIND(KindReference)
 
     String &name() { return _name; }
+    size_t index() const { return size_t(_index); }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 

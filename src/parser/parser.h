@@ -3,10 +3,11 @@
 
 #include "../lexer/lexer.h"
 #include "../logging/logging.h"
-#include "../Types.h"
+
 #include "../utilities/optional.h"
 #include "../utilities/stack.h"
 #include "../utilities/trie.h"
+#include "../utilities/metadata.h"
 
 #include "module.h"
 
