@@ -223,12 +223,12 @@ std::ostream &ReversePolishExpression::print(std::ostream &out, int32) {
     return out << to_infix(iter);
 }
 
-std::ostream &Value::print(std::ostream &out, int32 indent) {
-    switch(tag){
-    case CTInt: return out << v_int;
-    case CTDouble: return out << v_double;
+std::ostream &ValueExpr::print(std::ostream &out, int32 indent) {
+    value.print(out);
+    if (_type){
+        out << ": ";
+        _type->print(out);
     }
-
     return out;
 }
 

@@ -38,6 +38,8 @@ SET(ADD_HEADERS
     utilities/allocator.h
     utilities/metadata.h
     interpreter/interpreter.h
+    interpreter/value.h
+    interpreter/value.cpp
     Types.h
 
 )

@@ -14,62 +14,6 @@ public:
 };
 
 
-class Value{
-public:
-    enum type_tag{
-        TInt,
-        TFloat,
-        TDouble,
-        TClosure
-    } tag;
-
-    struct Closure{
-        AST::Function* fun = nullptr;
-        Array<Value> env;
-    };
-
-    Value(int i){
-        data.v_int = i;
-        tag = TInt;
-    }
-
-    Value(float i){
-        data.v_float = i;
-        tag = TFloat;
-    }
-
-    Value(double i){
-        data.v_double = i;
-        tag = TDouble;
-    }
-
-    Value(AST::Function* fun, Array<Value>   env){
-        v_closure = {fun, env};
-        tag = TClosure;
-    }
-
-    ~Value(){}
-
-    union Union{
-        int v_int;
-        double v_double;
-        float v_float;
-
-    } data;
-
-    std::ostream& print(std::ostream& out){
-        switch (tag) {
-        case TClosure: return out << "closure";
-        case TDouble: return out << "double " << data.v_double;
-        case TInt: return out << "int " << data.v_int;
-        }
-        return out;
-    }
-
-    Closure v_closure;
-    String name;
-};
-
 class Interpreter{
 public:
     Interpreter(Module* m):
@@ -111,7 +55,7 @@ public:
         }
 
         else if (expr->kind() == AST::Expression::KindValue){
-            AST::Value* val = static_cast<AST::Value*>(expr.get());
+            AST::ValueExpr* val = static_cast<AST::ValueExpr*>(expr.get());
             return value(val);
         }
 
@@ -174,15 +118,9 @@ public:
         return values;
     }
 
-    Value value(AST::Value* val){
+    Value value(AST::ValueExpr* val){
         info("value");
-        if (val->tag == AST::Value::CTInt)
-            return Value(val->v_int);
-
-        if (val->tag == AST::Value::CTDouble)
-            return Value(val->v_double);
-
-        return Value(0);
+        return val->value;
     }
 
     Value seq_block(AST::SeqBlock* val){
@@ -211,7 +149,7 @@ public:
         for(auto arg: arguments)
             arg.print(std::cout) << std::endl;
 
-        assert(closure.tag == Value::TClosure);
+        assert(closure.tag == obj_closure);
         AST::Function* fun = closure.v_closure.fun;
 
         auto old = env;

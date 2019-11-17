@@ -111,23 +111,23 @@ class Parser {
     ST::Expr parse_value(Module& m, std::size_t depth) {
         TRACE_START();
 
-        AST::Value *val = nullptr;
+        AST::ValueExpr *val = nullptr;
         int8 type = token().type();
 
         switch (type) {
         case tok_string:
             // make_type("string")
-            val = new AST::Value(token().identifier(), nullptr);
+            val = new AST::ValueExpr(token().identifier(), nullptr);
             EAT(tok_string);
             break;
         case tok_float:
             // make_type("float")
-            val = new AST::Value(token().as_float(), nullptr);
+            val = new AST::ValueExpr(token().as_float(), nullptr);
             EAT(tok_float);
             break;
         case tok_int:
             // make_type("int")
-            val = new AST::Value(token().as_integer(), nullptr);
+            val = new AST::ValueExpr(token().as_integer(), nullptr);
             EAT(tok_int);
             break;
         }

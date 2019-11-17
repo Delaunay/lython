@@ -18,6 +18,7 @@
 
 #include "../lexer/token.h"
 #include "../utilities/stack.h"
+#include "../interpreter/value.h"
 #include "names.h"
 
 // declare common function
@@ -219,35 +220,21 @@ class ReversePolishExpression : public Expression {
     String to_infix(Stack<MathNode>::Iterator &iter, int prev = 0);
 };
 
-class Value : public Expression {
+class ValueExpr : public Expression {
   public:
-    enum CT{
-        CTInt,
-        CTDouble
-    } tag;
-
-    template <typename T>
-    Value(T val, ST::Expr type) : _type(std::move(type)) {}
-
-    template <>
-    Value(int val, ST::Expr type) : tag(CTInt), v_int(val), _type(std::move(type)) {}
-
-    template <>
-    Value(double val, ST::Expr type) : tag(CTDouble), v_double(val), _type(std::move(type)) {}
-
     LYTHON_KIND(KindValue)
 
+    template <typename T>
+    ValueExpr(T val, ST::Expr type) :value(val), _type(std::move(type)) {}
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    template<typename V>
+    template<typename V, VTag tag>
     V as(){
-
+        return value.as<V, tag>();
     }
 
-    double v_double;
-    int v_int;
-
+    Value value;
     ST::Expr _type;
 };
 
