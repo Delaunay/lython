@@ -19,7 +19,7 @@ inline
 Value builtin_sin(Array<Value>& args){
     assert(args.size() == 1 && "expected 1 arguments");
 
-    auto v = args[0].as<float, pod_float64>();
+    auto v = args[0].get<float64>();
 
     // std::cout << "sin(" << v << ")";
     return std::sin(v);
@@ -29,8 +29,8 @@ inline
 Value builtin_max(Array<Value>& args){
     assert(args.size() == 2 && "expected 2 arguments");
 
-    auto a = args[0].as<float64, pod_float64>();
-    auto b = args[1].as<float64, pod_float64>();
+    auto a = args[0].get<float64>();
+    auto b = args[1].get<float64>();
 
     // std::cout << "max(" << a << ", " << b << ")";
     return std::max(a, b);
@@ -40,8 +40,8 @@ inline
 Value builtin_div(Array<Value>& args){
     assert(args.size() == 2 && "expected 2 arguments");
 
-    auto a = args[0].as<float64, pod_float64>();
-    auto b = args[1].as<float64, pod_float64>();
+    auto a = args[0].get<float64>();
+    auto b = args[1].get<float64>();
 
     //std::cout << "div(" << a << ", " << b << ")";
     return a / b;
@@ -51,8 +51,8 @@ inline
 Value builtin_mult(Array<Value>& args){
     assert(args.size() == 2 && "expected 2 arguments");
 
-    auto a = args[0].as<float64, pod_float64>();
-    auto b = args[1].as<float64, pod_float64>();
+    auto a = args[0].get<float64>();
+    auto b = args[1].get<float64>();
 
     //std::cout << "mult(" << a << ", " << b << ")";
     return a * b;
@@ -72,16 +72,6 @@ public:
         module(m)
     {}
 
-    /*
-    void eval(AST::Call* call){
-        // Value fun = eval(call->function());
-        AST::Expression* fun_expr = call->function().get();
-        if (fun_expr->kind() != AST::Expression::KindFunction){
-            return;
-        }
-
-        auto fun = static_cast<AST::Function*>(fun_expr);
-    }*/
 
     Value eval(ST::Expr expr, size_t depth=0){
         trace_start(depth, "");
@@ -161,20 +151,20 @@ public:
 
             auto fun = builtins[op.name];
             Array<Value> args = {lhs, rhs};
-            return eval_closure(Value(fun, Array<Value>()), args, depth + 1);
+            return eval_closure(Value(fun, args), depth + 1);
         }
         case AST::MathKind::Function:{
             trace_start(depth, "function (arg_count: %d)", op.arg_count);
-            auto closure = eval(op.ref, depth + 1);
+            Value closure = eval(op.ref, depth + 1);
+            assert(closure.tag == obj_closure);
 
-            Array<Value> args;
+            Value::Closure& clo = closure.get();
             for(int i = 0; i < op.arg_count; ++i){
-                args.push_back(eval_rpe(iter, depth + 1));
-                // (*args.rbegin()).print(std::cout) << std::endl;
+                clo.env.push_back(eval_rpe(iter, depth + 1));
             }
 
-            std::reverse(std::begin(args), std::end(args));
-            return eval_closure(closure, args, depth + 1);
+            std::reverse(std::begin(clo.env), std::end(clo.env));
+            return eval_closure(closure, depth + 1);
         }
         case AST::MathKind::VarRef:{
             trace_start(depth, "varref");
@@ -185,12 +175,14 @@ public:
             return Value("none");
         }
         }
+
+        throw std::runtime_error("unreachable");
     }
 
-    Value eval_closure(Value fun, Array<Value>& args, size_t depth){
+    Value eval_closure(Value fun, size_t depth){
         if (fun.tag == obj_closure){
             if (!fun.v_closure.fun){
-                auto v = fun.v_closure.builtin(args);
+                auto v = fun.v_closure.builtin(fun.v_closure.env);
                 // std::cout << "result: "; v.print(std::cout) << std::endl;
                 return v;
             }
@@ -224,17 +216,12 @@ public:
     Value seq_block(AST::SeqBlock* val, size_t depth){
         trace_start(depth, "");
 
-        int n = int(val->blocks().size()) - 1;
-        for(int i = 0; i < n; ++i)
+        size_t n = size_t(std::max(int(val->blocks().size()) - 1, 0));
+
+        for(size_t i = 0; i < n; ++i)
             eval(val->blocks()[i], depth + 1);
 
-        return eval(val->blocks()[val->blocks().size() - 1], depth + 1);
-    }
-
-    Value reverse_polish_expr(AST::ReversePolishExpression* expr, size_t depth){
-        trace_start(depth, "");
-
-        return Value("NotImplemented");
+        return eval(val->blocks()[size_t(n)], depth + 1);
     }
 
     Value ref(AST::Ref const* ref, Array<Value> env, size_t depth){
@@ -245,13 +232,10 @@ public:
     Value call(AST::Call* call, size_t depth){
         trace_start(depth, "");
         Value closure = eval(call->function(), depth + 1);
-        Array<Value> arguments = eval(call->arguments(), depth);
-
-        closure.print(std::cout) << std::endl;
-        for(auto arg: arguments)
-            arg.print(std::cout) << std::endl;
-
         assert(closure.tag == obj_closure);
+        Value::Closure& clo = closure.get();
+
+        clo.env = eval(call->arguments(), depth);
         AST::Function* fun = closure.v_closure.fun;
 
         auto old = env;

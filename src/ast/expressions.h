@@ -234,9 +234,18 @@ class ValueExpr : public Expression {
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
-    template<typename V, VTag tag>
-    V as(){
-        return value.as<V, tag>();
+    template<typename V>
+    V get_value(){
+        return value.get<V>();
+    }
+
+    VTag get_tag(){
+        return value.tag;
+    }
+
+    template<typename V, typename T>
+    T cast(){
+        return T(get_value<V>());
     }
 
     Value value;

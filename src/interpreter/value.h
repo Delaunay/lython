@@ -27,7 +27,8 @@ enum VTag {
       POD_TYPES(X)
     #undef X
     obj_closure,
-    obj_string
+    obj_string,
+    obj_none
 };
 
 template <typename T>
@@ -43,7 +44,8 @@ namespace AbstractSyntaxTree {
     class Function;
 }
 
-
+template<typename T, VTag tag>
+struct _DataFetcher;
 
 struct Value{
 public: // Object Value
@@ -67,11 +69,6 @@ public:
     Closure v_closure;
     String v_str;
 
-    //! T: type to retrieve the value as
-    //! VTag: type held inside the Value obj
-    template<typename T, VTag tag>
-    T as(){ return _DataFetcher<T, tag>::fetch(this);}
-
     std::ostream& print(std::ostream& out){
         switch (tag) {
             #define X(type) case pod_##type:{\
@@ -82,45 +79,57 @@ public:
 
             case obj_closure: { return out << "closure";}
             case obj_string: { return out << "String(" << v_str << ")";}
+            case obj_none: return out << "None";
         }
         return out;
     }
 
 private: // cant have partial specialization of functions
-    template<typename T, VTag tag>
-    struct _DataFetcher{
-          static T fetch(Value* v){
-              std::cout << "default: ";
-              v->print(std::cout);
-              return T();
-          }
-    };
 
-    #define X(type)\
-        template<typename T>\
-        struct _DataFetcher<T, pod_##type>{\
-            static T fetch(Value* v){ return T(v->pod_data.v_##type); }\
-        };
-      POD_TYPES(X)
-    #undef X
+public:
+    //! T: type to retrieve the value as
+    //! VTag: type held inside the Value obj
+    template<typename T, typename V>
+    T cast(){ return T(get<V>());}
+
+    template<typename T>
+    T get(T* = nullptr) {
+        throw std::runtime_error("invalid get expression, type mismatch!");
+    }
+
+    Closure& get(Closure* = nullptr){
+        if (this->tag != obj_closure)
+            throw std::runtime_error("");
+        return this->v_closure;
+    }
 
 public: // constructor
     #define X(type) Value(type o_##type): tag(pod_##type){ pod_data.v_##type = o_##type; }
       POD_TYPES(X)
     #undef X
 
-      Value(AbstractSyntaxTree::Function* fun, Array<Value>  env): tag(obj_closure){
-          v_closure = {fun, env, nullptr};
-      }
+    Value(AbstractSyntaxTree::Function* fun, Array<Value>  env): tag(obj_closure){
+        v_closure = {fun, env, nullptr};
+    }
 
-      Value(BuiltinImpl fun, Array<Value>  env): tag(obj_closure){
-          v_closure = {nullptr, env, fun};
-      }
+    Value(BuiltinImpl fun, Array<Value>  env): tag(obj_closure){
+        v_closure = {nullptr, env, fun};
+    }
 
     Value(String str): tag(obj_string){
         v_str    = std::move(str);
     }
 };
+
+#define X(type)\
+    template<>\
+    inline type Value::get(type*){\
+        if (this->tag != pod_##type)\
+            throw std::runtime_error("");\
+        return this->pod_data.v_##type;\
+    }
+    POD_TYPES(X)
+#undef X
 
 }
 
