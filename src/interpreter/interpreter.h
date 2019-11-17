@@ -19,7 +19,7 @@ inline
 Value builtin_sin(Array<Value>& args){
     assert(args.size() == 1 && "expected 1 arguments");
 
-    auto v = args[0].as<float, pod_float64>();
+    auto v = args[0].as<float64, pod_float64>();
 
     // std::cout << "sin(" << v << ")";
     return std::sin(v);
@@ -246,10 +246,6 @@ public:
         trace_start(depth, "");
         Value closure = eval(call->function(), depth + 1);
         Array<Value> arguments = eval(call->arguments(), depth);
-
-        closure.print(std::cout) << std::endl;
-        for(auto arg: arguments)
-            arg.print(std::cout) << std::endl;
 
         assert(closure.tag == obj_closure);
         AST::Function* fun = closure.v_closure.fun;
