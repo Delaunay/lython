@@ -49,7 +49,6 @@ using Operator = std::shared_ptr<OperatorImpl>;
 class NameManager {
   public:
     Name make_name(const String &name) {
-
         ASSERT(_types.count(name) == 0, "Name not available. Used by a Type");
 
         if (_names.count(name))

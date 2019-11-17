@@ -132,7 +132,7 @@ int main() {
 
         Interpreter vm(&module);
         AST::Call* call = new AST::Call();
-        call->function() = module.find("my_function3");
+        call->function() = module.find("my_function1");
 
         Value v = vm.eval(ST::Expr(call));
 

@@ -86,6 +86,8 @@ class Expression {
 } // namespace AbstractSyntaxTree
 namespace AST = AbstractSyntaxTree;
 
+const char* to_string(AST::Expression::KindExpr kind);
+
 // Public Object
 namespace SyntaxTree {
 // I am using shared_ptr because it is the simpliest to handle
@@ -137,7 +139,9 @@ struct pl_hash {
 
 class Builtin : public Expression {
   public:
-    Builtin(String name, ST::Expr type) : name(std::move(name)), type(std::move(type)) {}
+    Builtin(String name, ST::Expr type, size_t n) :
+        name(std::move(name)), type(std::move(type)), argument_size(n)
+    {}
 
     LYTHON_KIND(KindBuiltin)
 
@@ -145,6 +149,7 @@ class Builtin : public Expression {
 
     String name;
     ST::Expr type;
+    size_t argument_size;
 };
 
 class Arrow : public Expression {

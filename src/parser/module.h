@@ -111,7 +111,7 @@ class Module {
 
     static ST::Expr float_type() {
         static ST::Expr type =
-            std::make_shared<AST::Builtin>("Float", type_type());
+            std::make_shared<AST::Builtin>("Float", type_type(), 1);
         return type;
     }
 
@@ -135,13 +135,15 @@ class Module {
             sin_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
 
             auto double_double = ST::Expr(min_type);
-            auto min_fun = new AST::Builtin("min", double_double);
-            auto max_fun = new AST::Builtin("max", double_double);
-            auto sin_fun = new AST::Builtin("sin", ST::Expr(sin_type));
+            auto min_fun = new AST::Builtin("min", double_double, 2);
+            auto max_fun = new AST::Builtin("max", double_double, 2);
+            auto sin_fun = new AST::Builtin("sin", ST::Expr(sin_type), 1);
+            auto pi = new AST::ValueExpr(3.14, float_type());
 
             insert("min", ST::Expr(min_fun));
             insert("sin", ST::Expr(sin_fun));
             insert("max", ST::Expr(max_fun));
+            insert("pi", ST::Expr(pi));
         }
     }
 
@@ -228,10 +230,13 @@ class Module {
     }
 
     ST::Expr find(String const &view) const {
+        debug("looking for %s", view.c_str());
+
         // Check in the current scope
         auto iter = _name_idx.find(view);
 
         if (iter != _name_idx.end()){
+            debug("found %s", view.c_str());
             Index idx = (*iter).second;
             return _scope[idx];
         } else if (_parent){

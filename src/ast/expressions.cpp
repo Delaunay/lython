@@ -28,6 +28,28 @@ std::ostream &Parameter::print(std::ostream &out, int32) {
     return out << this->name();
 }
 
+
+const char* to_string(Expression::KindExpr kind){
+    switch(kind){
+    case Expression::KindArrow         : return "KindArrow";
+    case Expression::KindBuiltin       : return "KindBuiltin";
+    case Expression::KindParameter     : return "KindParameter";
+    case Expression::KindBinaryOperator: return "KindBinaryOperator";
+    case Expression::KindUnaryOperator : return "KindUnaryOperator";
+    case Expression::KindSeqBlock      : return "KindSeqBlock";
+    case Expression::KindFunction      : return "KindFunction";
+    case Expression::KindUnparsedBlock : return "KindUnparsedBlock";
+    case Expression::KindStatement     : return "KindStatement";
+    case Expression::KindValue         : return "KindValue";
+    case Expression::KindCall          : return "KindCall";
+    case Expression::KindReference     : return "KindReference";
+    case Expression::KindStruct        : return "KindStruct";
+    case Expression::KindType          : return "KindType";
+    case Expression::KindReversePolish : return "KindReversePolish";
+    case Expression::KindExternFunction: return "KindExternFunction";
+    }
+}
+
 std::ostream &UnaryOperator::print(std::ostream &out, int32 indent) {
     // debug("UnaryPrint");
     this->_expr->print(out, indent);

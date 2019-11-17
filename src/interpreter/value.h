@@ -1,6 +1,8 @@
 #ifndef LYTHON_VALUE_HEADER
 #define LYTHON_VALUE_HEADER
 
+#include <iostream>
+
 #include "../Types.h"
 #include "../logging/logging.h"
 #include "../utilities/allocator.h"
@@ -41,11 +43,16 @@ namespace AbstractSyntaxTree {
     class Function;
 }
 
+
+
 struct Value{
 public: // Object Value
+    using BuiltinImpl = std::function<Value(Array<Value>&)>;
+
     struct Closure{
         AbstractSyntaxTree::Function* fun = nullptr;
         Array<Value> env;
+        BuiltinImpl builtin;
     };
 
 public:
@@ -63,7 +70,7 @@ public:
     //! T: type to retrieve the value as
     //! VTag: type held inside the Value obj
     template<typename T, VTag tag>
-    T as(){ return _DataFetcher<T, tag>::fetch();}
+    T as(){ return _DataFetcher<T, tag>::fetch(this);}
 
     std::ostream& print(std::ostream& out){
         switch (tag) {
@@ -74,6 +81,7 @@ public:
             #undef X
 
             case obj_closure: { return out << "closure";}
+            case obj_string: { return out << "String(" << v_str << ")";}
         }
         return out;
     }
@@ -81,13 +89,17 @@ public:
 private: // cant have partial specialization of functions
     template<typename T, VTag tag>
     struct _DataFetcher{
-          static T fetch(Value&){ return T(); }
+          static T fetch(Value* v){
+              std::cout << "default: ";
+              v->print(std::cout);
+              return T();
+          }
     };
 
     #define X(type)\
         template<typename T>\
         struct _DataFetcher<T, pod_##type>{\
-            static T fetch(Value& v){ return T(v.pod_data.v_##type); }\
+            static T fetch(Value* v){ return T(v->pod_data.v_##type); }\
         };
       POD_TYPES(X)
     #undef X
@@ -97,9 +109,13 @@ public: // constructor
       POD_TYPES(X)
     #undef X
 
-    Value(AbstractSyntaxTree::Function* fun, Array<Value>  env): tag(obj_closure){
-        v_closure = {fun, env};
-    }
+      Value(AbstractSyntaxTree::Function* fun, Array<Value>  env): tag(obj_closure){
+          v_closure = {fun, env, nullptr};
+      }
+
+      Value(BuiltinImpl fun, Array<Value>  env): tag(obj_closure){
+          v_closure = {nullptr, env, fun};
+      }
 
     Value(String str): tag(obj_string){
         v_str    = std::move(str);

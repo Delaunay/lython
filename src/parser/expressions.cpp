@@ -31,14 +31,23 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 int loc = m.find_index(tok.identifier());
 
                 // fun
-                if (function != nullptr &&
-                    function->kind() == AST::Expression::KindFunction) {
-                    auto *fun = static_cast<AST::Function *>(function.get());
-                    nargs = int(fun->args().size());
-                } else {
+                if (function != nullptr){
+                    if (function->kind() == AST::Expression::KindFunction){
+                        auto *fun = static_cast<AST::Function *>(function.get());
+                        nargs = int(fun->args().size());
+                    }
+                    else if (function->kind() == AST::Expression::KindBuiltin){
+                        auto *fun = static_cast<AST::Builtin *>(function.get());
+                        nargs = int(fun->argument_size);
+                    }
+                }
+                else {
                     debug("function %s was not declared",
                           tok.identifier().c_str());
                 }
+
+                //m.print(std::cout);
+
                 operator_stack.push({
                     AST::MathKind::Function,
                     nargs,
