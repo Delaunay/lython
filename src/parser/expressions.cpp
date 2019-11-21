@@ -59,7 +59,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 continue;
 
             } else { // if it is not a function, it is a variable
-                int loc = m.find_index(tok.identifier());
+                int loc = m.find_index(tok.identifier(), true);
                 if (loc < 0){
                     warn("Variable (%s) not defined", tok.identifier().c_str());
                 }

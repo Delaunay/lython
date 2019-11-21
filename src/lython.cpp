@@ -45,6 +45,10 @@ int main() {
             "    return 2\n"
             "\n"
 
+            "def my_function2(a) -> e:\n"
+            "    return a\n"
+            "\n"
+
             "def my_function1() -> e:\n"
             "    return sin(max (2, 3) / 3 * pi)\n"
             "\n" // 2 3 max 3 ÷ π × sin
@@ -132,7 +136,9 @@ int main() {
 
         Interpreter vm(&module);
         AST::Call* call = new AST::Call();
-        call->function() = module.find("my_function1");
+
+        call->function() = module.find("my_function2");
+        call->arguments().emplace_back(new AST::ValueExpr(2.9, nullptr));
 
         Value v = vm.eval(ST::Expr(call));
 

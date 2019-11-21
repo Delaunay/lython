@@ -17,9 +17,9 @@ public:
 
 inline
 Value builtin_sin(Array<Value>& args){
-    assert(args.size() == 1 && "expected 1 arguments");
+    assert(args.size() == 2 && "expected 1 arguments");
 
-    auto v = args[0].get<float64>();
+    auto v = args[1].get<float64>();
 
     // std::cout << "sin(" << v << ")";
     return std::sin(v);
@@ -27,10 +27,10 @@ Value builtin_sin(Array<Value>& args){
 
 inline
 Value builtin_max(Array<Value>& args){
-    assert(args.size() == 2 && "expected 2 arguments");
+    assert(args.size() == 3 && "expected 2 arguments");
 
-    auto a = args[0].get<float64>();
-    auto b = args[1].get<float64>();
+    auto a = args[1].get<float64>();
+    auto b = args[2].get<float64>();
 
     // std::cout << "max(" << a << ", " << b << ")";
     return std::max(a, b);
@@ -38,10 +38,10 @@ Value builtin_max(Array<Value>& args){
 
 inline
 Value builtin_div(Array<Value>& args){
-    assert(args.size() == 2 && "expected 2 arguments");
+    assert(args.size() == 3 && "expected 2 arguments");
 
-    auto a = args[0].get<float64>();
-    auto b = args[1].get<float64>();
+    auto a = args[1].get<float64>();
+    auto b = args[2].get<float64>();
 
     //std::cout << "div(" << a << ", " << b << ")";
     return a / b;
@@ -49,10 +49,10 @@ Value builtin_div(Array<Value>& args){
 
 inline
 Value builtin_mult(Array<Value>& args){
-    assert(args.size() == 2 && "expected 2 arguments");
+    assert(args.size() == 3 && "expected 2 arguments");
 
-    auto a = args[0].get<float64>();
-    auto b = args[1].get<float64>();
+    auto a = args[1].get<float64>();
+    auto b = args[2].get<float64>();
 
     //std::cout << "mult(" << a << ", " << b << ")";
     return a * b;
@@ -128,7 +128,14 @@ public:
     }
 
     Value eval_ref(AST::Ref* ref, size_t depth){
-        trace_start(depth, "%s: %d", ref->name().c_str(), ref->index());
+        trace_start(depth, "%s: %d | %d | %d",
+                    ref->name().c_str(),
+                    ref->index(),
+                    module->size(),
+                    env.size());
+
+        return env[ref->index()];
+
         auto expr = module->get_item(ref->index());
         return eval(expr, depth + 1);
     }
@@ -149,8 +156,12 @@ public:
             auto rhs = eval_rpe(iter, depth + 1);
             auto lhs = eval_rpe(iter, depth + 1);
 
+            // Create a new closure
+            // a few steps could be remove here to improve perf if needed
             auto fun = builtins[op.name];
-            Array<Value> args = {lhs, rhs};
+            // value 0 should be self fun for recursions
+            Array<Value> args = {Value(0), lhs, rhs};
+            //
             return eval_closure(Value(fun, args), depth + 1);
         }
         case AST::MathKind::Function:{
@@ -159,11 +170,15 @@ public:
             assert(closure.tag == obj_closure);
 
             Value::Closure& clo = closure.get();
+            int n = int(clo.env.size());
+
             for(int i = 0; i < op.arg_count; ++i){
                 clo.env.push_back(eval_rpe(iter, depth + 1));
             }
+            clo.env.push_back(Value(0)); // should be self fun for recursion
 
-            std::reverse(std::begin(clo.env), std::end(clo.env));
+            // only reverse the added arguments
+            std::reverse(std::begin(clo.env) + n, std::end(clo.env));
             return eval_closure(closure, depth + 1);
         }
         case AST::MathKind::VarRef:{
@@ -221,7 +236,8 @@ public:
         for(size_t i = 0; i < n; ++i)
             eval(val->blocks()[i], depth + 1);
 
-        return eval(val->blocks()[size_t(n)], depth + 1);
+        // returns last line of sequential block
+        return eval(val->blocks()[n], depth + 1);
     }
 
     Value ref(AST::Ref const* ref, Array<Value> env, size_t depth){
@@ -236,6 +252,8 @@ public:
         Value::Closure& clo = closure.get();
 
         clo.env = eval(call->arguments(), depth);
+        clo.env.insert(std::begin(clo.env), Value(0));
+
         AST::Function* fun = closure.v_closure.fun;
 
         auto old = env;

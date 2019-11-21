@@ -186,7 +186,7 @@ class Module {
         return -1;
     }
 
-    Index insert(String const& name, ST::Expr const& expr){
+    Index insert(String const& name, ST::Expr const& expr, bool block_idx=false){
         // info("Inserting ST::Expression");
         auto idx = _scope.size();
         _name_idx[name] = idx;
@@ -196,7 +196,11 @@ class Module {
         if (_tracker){
             _tracker->add_access(name, int(idx) + offset);
         }
-        return idx;
+
+        if (!block_idx)
+            return idx;
+
+        return int(idx) - offset;
     }
 
     ST::Expr operator[](int idx) const {
@@ -212,7 +216,7 @@ class Module {
         return nullptr;
     }
 
-    Index find_index(String const &view) const {
+    Index find_index(String const &view, bool block_loc=false) const {
         // Check in the current scope
         auto iter = _name_idx.find(view);
         Index idx = -1;
@@ -226,7 +230,10 @@ class Module {
         if (_tracker){
             _tracker->add_access(view, idx);
         }
-        return idx;
+        if (!block_loc)
+            return idx;
+
+        return int(idx) - offset;
     }
 
     ST::Expr find(String const &view) const {
