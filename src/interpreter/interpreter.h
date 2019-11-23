@@ -75,8 +75,8 @@ public:
 
     Value eval(ST::Expr expr, size_t depth=0){
         trace_start(depth, "");
-
-        if (expr->kind() == AST::Expression::KindFunction){
+        switch(expr->kind()){
+        case AST::Expression::KindFunction:{
             AST::Function* fun = static_cast<AST::Function*>(expr.get());
 
             // Create the closure here with its environment setup
@@ -85,40 +85,40 @@ public:
 
             return Value(fun, env);
         }
-        else if (expr->kind() == AST::Expression::KindCall){
+        case AST::Expression::KindCall:{
             AST::Call* cl = static_cast<AST::Call*>(expr.get());
             return call(cl, depth + 1);
         }
-        else if (expr->kind() == AST::Expression::KindSeqBlock){
+        case AST::Expression::KindSeqBlock:{
             AST::SeqBlock* block = static_cast<AST::SeqBlock*>(expr.get());
             return seq_block(block, depth + 1);
         }
-        else if (expr->kind() == AST::Expression::KindValue){
+        case AST::Expression::KindValue:{
             AST::ValueExpr* val = static_cast<AST::ValueExpr*>(expr.get());
             return value(val, depth + 1);
         }
-        else if (expr->kind() == AST::Expression::KindStatement){
+        case AST::Expression::KindStatement:{
             AST::Statement* stmt = static_cast<AST::Statement*>(expr.get());
             return statement(stmt, depth + 1);
         }
-        else if (expr->kind() == AST::Expression::KindReversePolish){
+        case AST::Expression::KindReversePolish:{
             AST::ReversePolishExpression* rpe = static_cast<AST::ReversePolishExpression*>(expr.get());
             auto iter = std::begin(rpe->stack);
             return eval_rpe(iter, depth + 1);
         }
-        else if (expr->kind() == AST::Expression::KindReference){
+        case AST::Expression::KindReference: {
             AST::Ref* ref = static_cast<AST::Ref*>(expr.get());
             return eval_ref(ref, depth + 1);
         }
-        else if (expr->kind() == AST::Expression::KindBuiltin){
+        case AST::Expression::KindBuiltin: {
             AST::Builtin* blt = static_cast<AST::Builtin*>(expr.get());
             return eval_builtin(blt, depth + 1);
         }
-        else {
+        default: {
             info("Ignoring %d", expr->kind());
+            return Value("MainEval Not Implemented");
         }
-
-        return Value("MainEval Not Implemented");
+        }
     }
 
     Value eval_builtin(AST::Builtin* blt, size_t depth){
