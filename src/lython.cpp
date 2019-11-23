@@ -61,7 +61,7 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = simple_function();
+        String code = simple_function_noargs();
 //            "def my_function1() -> e:\n"
 //            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
 //            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
@@ -173,7 +173,7 @@ int main() {
         Interpreter vm(&module);
         AST::Call* call = new AST::Call();
 
-        call->function() = module.find("my_function2");
+        call->function() = module.find("simple_function_noargs");
         call->arguments().emplace_back(new AST::ValueExpr(2.9, nullptr));
 
         Value v = vm.eval(ST::Expr(call));

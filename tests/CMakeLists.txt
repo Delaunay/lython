@@ -9,6 +9,7 @@ SET(TEST_HEADERS
     samples.h
     lexer_test.h
     parser_test.h
+    interpreter_test.h
 )
 
 INCLUDE(CTest)

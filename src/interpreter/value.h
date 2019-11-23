@@ -119,6 +119,24 @@ public: // constructor
     Value(String str): tag(obj_string){
         v_str    = std::move(str);
     }
+
+    bool operator==(Value const& v) const{
+        if (v.tag != tag){
+            return false;
+        }
+
+        switch(tag){
+        #define X(type)\
+            case pod_##type:{\
+                 return pod_data.v_##type == v.pod_data.v_##type;\
+            }
+            POD_TYPES(X)
+        #undef X
+
+        default:
+            return false;
+        }
+    }
 };
 
 #define X(type)\

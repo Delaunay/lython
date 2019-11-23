@@ -191,6 +191,7 @@ public:
         }
         }
 
+        return Value("None");
         throw std::runtime_error("unreachable");
     }
 
@@ -261,8 +262,9 @@ public:
         Value returned_value = eval(fun->body(), depth);
         env = old;
 
-        returned_value.print(std::cout) << std::endl;
-        throw InterpreterException("Not Implemented");
+        // returned_value.print(std::cout) << std::endl;
+        // throw InterpreterException("Not Implemented");
+        return returned_value;
     }
 
 private:
