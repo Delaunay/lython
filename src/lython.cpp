@@ -11,11 +11,36 @@
 #include "interpreter/interpreter.h"
 #include "logging/logging.h"
 
+#include "../tests/samples.h"
 // #include "Lexer/Prelexer.h"
 
 #include "revision_data.h"
 
 using namespace lython;
+
+bool compare(String const& a, String const& b){
+    auto size = std::min(a.size(), b.size());
+
+    for(size_t i = 0; i < size; ++i){
+        if (a[i] != b[i]){
+            std::cout << i << " `" << a[i] << "` != `" << b[i] << "` | ";
+            return false;
+        }
+    }
+
+    return a.size() == b.size();
+}
+
+String strip(String const& v){
+    int i = int(v.size()) - 1;
+
+    while (i > 0 && v[size_t(i)] == '\n'){
+        i -= 1;
+    }
+
+    return String(v.begin(), v.begin() + i + 1);
+}
+
 
 int main() {
     {
@@ -36,31 +61,31 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code =
-            "def my_function1() -> e:\n"
-            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
-            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
+        String code = simple_function();
+//            "def my_function1() -> e:\n"
+//            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
+//            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
 
-            "def my_function3() -> e:\n"
-            "    return 2\n"
-            "\n"
+//            "def my_function3() -> e:\n"
+//            "    return 2\n"
+//            "\n"
 
-            "def my_function2(a) -> e:\n"
-            "    return a\n"
-            "\n"
+//            "def my_function2(a) -> e:\n"
+//            "    return a\n"
+//            "\n"
 
-            "def my_function1() -> e:\n"
-            "    return sin(max (2, 3) / 3 * pi)\n"
-            "\n" // 2 3 max 3 ÷ π × sin
+//            "def my_function1() -> e:\n"
+//            "    return sin(max (2, 3) / 3 * pi)\n"
+//            "\n" // 2 3 max 3 ÷ π × sin
 
-            "def my_max(a: Double, b: Double) -> Double:\n"
-            "    return max(a, b)\n"
-            "\n"
+//            "def my_max(a: Double, b: Double) -> Double:\n"
+//            "    return max(a, b)\n"
+//            "\n"
 
-            "struct Object:\n"
-            "    \"\"\"This is a docstring\"\"\"\n"
-            "    a: Float\n"
-            ;
+//            "struct Object:\n"
+//            "    \"\"\"This is a docstring\"\"\"\n"
+//            "    a: Float\n"
+//            ;
 
         "def function2(test: double, test) -> double:\n"
         "    \"\"\"This is a docstring\"\"\"\n"
@@ -75,15 +100,18 @@ int main() {
 
         StringBuffer reader(code);
 
+        String lexer_string;
         {
             Lexer lex(reader);
-            lex.print(std::cout);
-            // lex.debug_print(std::cout);
-            std::cout << std::endl;
+
+            StringStream ss;
+            lex.print(ss);
+            lexer_string = ss.str();
         }
 
         reader.reset();
         Module module;
+        String parser_string;
 
         try {
             Parser par(reader, &module);
@@ -92,8 +120,10 @@ int main() {
                 expr = par.parse_one(module);
 
                 if (expr){
-                    std::cout << "--\n\n";
-                    expr->print(std::cout) << "\n";
+                    StringStream ss;
+                    expr->print(ss);
+
+                    parser_string = ss.str();
                 }
 
             } while(expr != nullptr);
@@ -102,6 +132,12 @@ int main() {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;
         }
+
+        std::cout << std::string(80, '-') << '\n';
+
+        std::cout << strip(lexer_string) << std::endl;
+        std::cout << strip(parser_string) << std::endl;
+        std::cout << strip(code) << std::endl;
 
         std::cout << std::string(80, '-') << '\n';
 

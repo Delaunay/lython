@@ -1,8 +1,6 @@
 #ifndef LYTHON_TESTS_SAMPLES_HEADER
 #define LYTHON_TESTS_SAMPLES_HEADER
 
-#include <catch2/catch.hpp>
-
 #include "Types.h"
 
 using namespace lython;
@@ -37,7 +35,7 @@ DEFINE_SAMPLE_CODE(
 DEFINE_SAMPLE_CODE(
     simple_function_rpe,
     "def simple_function_rpe() -> e:\n"
-    "    return sin(3) + x * 2 / (1 - 5) ^ 2 ^ 3\n"
+    "    return sin(3) + (x * 2) / (1 - 5) ^ (2 ^ 3)\n"
     "\n"
     )
 DEFINE_SAMPLE_CODE(
@@ -84,7 +82,7 @@ DEFINE_SAMPLE_CODE(
     )
 DEFINE_SAMPLE_CODE(
     misc_code,
-    "def my_function():\n"       // correct indent management
+    "def my_function() -> e:\n"       // correct indent management
     "    return 1.1\n"           // tok_float
 
     "a = \"2 + 2\"\n"            // tok_identifier '=' tok_string

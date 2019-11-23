@@ -110,7 +110,7 @@ std::ostream &Function::print(std::ostream &out, int32 indent) {
     }
 
     _body->print(out, indent + 1);
-    return out;
+    return out << "\n";
 }
 
 std::ostream &Statement::print(std::ostream &out, int32 indent) {

@@ -167,21 +167,20 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
         output_stack.push(operator_stack.pop());
     }
 
-    auto riter = output_stack.rbegin();
-    while (riter != output_stack.rend()) {
-        std::cout << (*riter).name << " ";
-        ++riter;
-    }
-    std::cout << "\n";
+//    auto riter = output_stack.rbegin();
+//    while (riter != output_stack.rend()) {
+//        std::cout << (*riter).name << " ";
+//        ++riter;
+//    }
+//    std::cout << "\n";
 
-    auto iter = output_stack.begin();
-    while (iter != output_stack.end()) {
-        auto op = *iter;
-
-        std::cout << (*iter).name << " ";
-        ++iter;
-    }
-    std::cout << "\n";
+//    auto iter = output_stack.begin();
+//    while (iter != output_stack.end()) {
+//        auto op = *iter;
+//        std::cout << (*iter).name << " ";
+//        ++iter;
+//    }
+//    std::cout << "\n";
 
     auto expr = new AST::ReversePolishExpression(output_stack);
     return ST::Expr(expr);

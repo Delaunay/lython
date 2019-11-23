@@ -8,20 +8,40 @@
 using namespace lython;
 
 
-String parse_it(String code){
+inline String parse_it(String code){
     StringBuffer reader(code);
     Module module;
 
     Parser par(reader, &module);
 
     StringStream ss;
-    par.parse_one()->print(ss);
+
+    ST::Expr expr = nullptr;
+    do {
+        expr = par.parse_one(module);
+
+        if (expr){
+            expr->print(ss) << '\n';
+        }
+
+    } while(expr != nullptr);
     return ss.str();
 }
 
+String strip(String const& v){
+    int i = int(v.size()) - 1;
+
+    while (i > 0 && v[size_t(i)] == '\n'){
+        i -= 1;
+    }
+
+    return String(v.begin(), v.begin() + i + 1);
+}
+
+
 #define TEST_PARSING(code)\
     SECTION(#code){\
-        REQUIRE(parse_it(code()) == code());\
+        REQUIRE(strip(parse_it(code())) == strip(code()));\
     }
 
 TEST_CASE("Parser"){

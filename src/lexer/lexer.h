@@ -130,7 +130,7 @@ public:
                 return make_token(tok_arrow);
             }
 
-            return make_token('-');;
+            return make_token('-');
         }
 
         // Numbers
