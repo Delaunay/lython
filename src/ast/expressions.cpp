@@ -171,7 +171,6 @@ String ReversePolishExpression::to_infix(Stack<MathNode>::Iterator &iter,
         auto lhs = to_infix(iter, pred);
 
         auto expr = lhs + ' ' + op.name + ' ' + rhs;
-
         // if parent has lower priority we have to put parens
         // if the priority is the same we still put parens for explicitness
         // but we do not have to

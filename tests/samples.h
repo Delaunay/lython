@@ -37,7 +37,7 @@ DEFINE_SAMPLE_CODE(
 DEFINE_SAMPLE_CODE(
     simple_function_rpe,
     "def simple_function_rpe() -> e:\n"
-    "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
+    "    return sin(3) + x * 2 / (1 - 5) ^ 2 ^ 3\n"
     "\n"
     )
 DEFINE_SAMPLE_CODE(

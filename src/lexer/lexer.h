@@ -152,6 +152,15 @@ public:
                 }
             }
 
+            /*/ Incorrect Numbers
+            while (c != ' ' && c != '\n' && c != EOF){
+                num.push_back(c);
+                c = nextc();
+                ntype = tok_incorrect;
+            }*/
+
+            // std::cout << '"' << num << '"' << ntype << ',' << tok_incorrect << std::endl;
+            // throw 0;
             return make_token(ntype, num);
         }
 

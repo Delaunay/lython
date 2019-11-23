@@ -48,6 +48,8 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
     static int32 indent_level = 0;
     static bool emptyline = true;   // To generate indent when needed
     static bool open_parens = false;
+    static Set<char> special_char = {'+', '=', '*', '^', '-', '/'};
+    static bool prev_is_op = false;
 
     if (indent > 0)
         indent_level = indent;
@@ -57,6 +59,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
         indent_level = 0;
         emptyline = true;
         open_parens = false;
+        prev_is_op = false;
         return out;
     }
 
@@ -81,11 +84,11 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
     if (emptyline && indent_level > 0)
         out << std::string(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
-
     String& str = keyword_as_string()[type()];
 
     if (str.size() > 0){
         emptyline = false;
+
         if (type() == tok_arrow)
             out << " ";
 
@@ -94,13 +97,20 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
 
     // Single Char
     if (type() > 0){
+        if (prev_is_op){
+            out << ' ';
+            prev_is_op = false;
+        }
+
         if (type() == '(' || type() == '[')
             open_parens = true;
         else
             open_parens = false;
 
-        if (type() == '=')
+        if (special_char.count(type()) > 0){
             out << ' ';
+            prev_is_op = true;
+        }
 
         emptyline = false;
         out << type();
@@ -112,8 +122,10 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
 
     // no space if the line is empty and no space if it is just after
     // a open parens
-    if (!emptyline && !open_parens)
+    if (!emptyline && !open_parens){
         out << ' ';
+        prev_is_op = false;
+    }
 
     if (type() == tok_string)
         out << '"' << identifier() << '"' ;
@@ -126,6 +138,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent){
 
     open_parens = false;
     emptyline = false;
+    prev_is_op = false;
 
     return out;
 }
