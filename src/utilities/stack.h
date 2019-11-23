@@ -38,15 +38,15 @@ public:
         return _size + 1;
     }
 
-    Iterator        begin   (){ return std::rbegin(stack);  }
-    Iterator        end     (){ return std::rend(stack);    }
-    ReverseIterator rbegin  (){ return std::begin(stack);   }
-    ReverseIterator rend    (){ return std::end(stack);     }
+    Iterator        begin   (){ return stack.rbegin();  }
+    Iterator        end     (){ return stack.rend();    }
+    ReverseIterator rbegin  (){ return stack.begin();   }
+    ReverseIterator rend    (){ return stack.end();     }
 
-    ConstIterator        begin   () const { return std::rbegin(stack);  }
-    ConstIterator        end     () const { return std::rend(stack);    }
-    ConstReverseIterator rbegin  () const { return std::begin(stack);   }
-    ConstReverseIterator rend    () const { return std::end(stack);     }
+    ConstIterator        begin   () const { return stack.rbegin();  }
+    ConstIterator        end     () const { return stack.rend();    }
+    ConstReverseIterator rbegin  () const { return stack.begin();   }
+    ConstReverseIterator rend    () const { return stack.end();     }
 
 private:
     Array<V> stack;

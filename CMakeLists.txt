@@ -27,7 +27,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Project's Options
 # ====================================
 
-OPTION(BUILD_TESTING        "Enable tests"       OFF)
+OPTION(BUILD_TESTING        "Enable tests"       ON)
 OPTION(BUILD_BENCHMARK      "Build Benchmarks"   ON)
 OPTION(BUILD_DOCUMENTATION  "Build docs"         OFF)
 OPTION(BUILD_DOXYGEN        "Build Doxygen docs" ON)
