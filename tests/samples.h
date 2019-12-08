@@ -10,7 +10,9 @@ using namespace lython;
         return code;\
     }
 
-#define DEFINE_SAMPLE_CODE2(name, code) DEFINE_SAMPLE_CODE(name, #code)
+#define DEFINE_SAMPLE_CODE2(name, code)\
+    DEFINE_SAMPLE_CODE(name, #code)
+
 // Functions
 // ---------
 DEFINE_SAMPLE_CODE(
