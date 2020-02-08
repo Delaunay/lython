@@ -60,6 +60,9 @@ struct Index{
     }
 };
 
+template <typename T>
+bool operator < (T i, Index a){ return a > i; }
+
 
 namespace lython {
 //  Module
@@ -214,6 +217,16 @@ class Module {
             return _parent->get_item(idx);
         }
         return nullptr;
+    }
+
+    String get_name(int idx) const {
+        if (idx >= offset){
+            return _idx_name[idx];
+        }
+        if (_parent){
+            return _parent->get_name(idx);
+        }
+        return "nullptr";
     }
 
     Index find_index(String const &view, bool block_loc=false) const {

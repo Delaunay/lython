@@ -11,7 +11,7 @@
 #include "interpreter/interpreter.h"
 #include "logging/logging.h"
 
-#include "../tests/samples.h"
+// #include "../tests/samples.h"
 // #include "Lexer/Prelexer.h"
 
 #include "revision_data.h"
@@ -61,31 +61,9 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = simple_function_noargs();
-//            "def my_function1() -> e:\n"
-//            "    return 3 + x * 2 / (1 - 5) ^ 2 ^ 3\n"
-//            "\n" // 3 4 2 × 1 5 − 2 3 ^ ^ ÷ +
-
-//            "def my_function3() -> e:\n"
-//            "    return 2\n"
-//            "\n"
-
-//            "def my_function2(a) -> e:\n"
-//            "    return a\n"
-//            "\n"
-
-//            "def my_function1() -> e:\n"
-//            "    return sin(max (2, 3) / 3 * pi)\n"
-//            "\n" // 2 3 max 3 ÷ π × sin
-
-//            "def my_max(a: Double, b: Double) -> Double:\n"
-//            "    return max(a, b)\n"
-//            "\n"
-
-//            "struct Object:\n"
-//            "    \"\"\"This is a docstring\"\"\"\n"
-//            "    a: Float\n"
-//            ;
+        String code =
+        "def fun1(a: Float, b: Float) -> Float:\n"
+        "   return max(a, b)\n\n";
 
         "def function2(test: double, test) -> double:\n"
         "    \"\"\"This is a docstring\"\"\"\n"
@@ -173,8 +151,9 @@ int main() {
         Interpreter vm(&module);
         AST::Call* call = new AST::Call();
 
-        call->function() = module.find("simple_function_noargs");
-        call->arguments().emplace_back(new AST::ValueExpr(2.9, nullptr));
+        call->function() = module.find("fun1");
+        call->arguments().emplace_back(new AST::ValueExpr(1.0, nullptr));
+        call->arguments().emplace_back(new AST::ValueExpr(2.0, nullptr));
 
         Value v = vm.eval(ST::Expr(call));
 

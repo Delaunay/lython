@@ -45,3 +45,19 @@ void log_trace(LogLevel level, bool end, size_t depth, const char* file, int lin
 
 #define trace_end(depth, ...)\
     LOG_TRACE_HELPER(lython::Trace, true, depth, __VA_ARGS__)
+
+inline void assert_true(bool cond, char const* message,  char const* assert_expr, char const* file, int line, char const* function){
+    if (!cond){
+        error("Assertion errror: %s\n"
+              "  - expr: %s\n"
+              "  - function: %s\n"
+              "  - file: %s:%d\n", message, assert_expr, function, file, line);
+    }
+}
+
+#ifdef assert
+#undef assert
+#endif
+
+#define assert(expr, message)\
+    assert_true(static_cast <bool> (expr), message, __FILE__, __LINE__, __FUNCTION__)

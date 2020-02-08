@@ -252,6 +252,7 @@ class ValueExpr : public Expression {
     ST::Expr _type;
 };
 
+
 // We declare Basic nodes of our program
 // -------------------------------------
 
@@ -452,20 +453,23 @@ class Statement : public Expression {
 
 class Ref : public Expression {
   public:
-    Ref(String name, int loc):
-        _name(std::move(name)), _index(loc)
+      Ref(String name, int loc, int length, ST::Expr type):
+          _name(std::move(name)), _type(type), _index(loc), _length(length)
     {}
 
     LYTHON_KIND(KindReference)
 
     String &name() { return _name; }
-    size_t index() const { return size_t(_index); }
+    int index() const { return _index; }
+    int length() const { return _length; }
 
     std::ostream &print(std::ostream &out, int32 indent = 0) override;
 
   private:
     String _name;
+    ST::Expr _type;
     int    _index;
+    int    _length;
 };
 
 class Struct : public Expression {

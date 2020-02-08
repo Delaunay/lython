@@ -27,18 +27,21 @@ Value builtin_sin(Array<Value>& args){
 
 inline
 Value builtin_max(Array<Value>& args){
-    assert(args.size() == 3 && "expected 2 arguments");
+    assert(args.size() >= 3 && "expected 2 arguments");
 
-    auto a = args[1].get<float64>();
-    auto b = args[2].get<float64>();
+    auto n = args.size();
 
-    // std::cout << "max(" << a << ", " << b << ")";
-    return std::max(a, b);
+    auto a = args[n - 2];
+    auto b = args[n - 1];
+
+    std::cout << "max(" << a.str() << ", " << b.str() << ")\n";
+
+    return std::max(a.get<float64>(), b.get<float64>());
 }
 
 inline
 Value builtin_div(Array<Value>& args){
-    assert(args.size() == 3 && "expected 2 arguments");
+    assert(args.size() >= 3 && "expected 2 arguments");
 
     auto a = args[1].get<float64>();
     auto b = args[2].get<float64>();
@@ -49,7 +52,7 @@ Value builtin_div(Array<Value>& args){
 
 inline
 Value builtin_mult(Array<Value>& args){
-    assert(args.size() == 3 && "expected 2 arguments");
+    assert(args.size() >= 3 && "expected 2 arguments");
 
     auto a = args[1].get<float64>();
     auto b = args[2].get<float64>();
@@ -58,6 +61,41 @@ Value builtin_mult(Array<Value>& args){
     return a * b;
 }
 
+struct Workspace{
+public:
+    Workspace(Array<Value>& env):
+        env(env), start(env.size())
+    {}
+
+    Value& operator[] (int val){
+        auto n = start[depth()] + val;
+
+
+        return env[start[depth()] + val];
+    }
+
+    int size(){
+        return start[depth()] - int(env.size());
+    }
+
+    void push(){
+        start.push_back(int(env.size()));
+    }
+
+    void pop(){
+        start.pop_back();
+    }
+
+    int depth(){
+        return int(start.size()) - 1;
+    }
+
+private:
+    Array<Value> env;
+    Array<int> start;
+};
+
+// Single Thread Interpreter or One Interpreter per thread
 class Interpreter{
 private:
     Dict<String, Value::BuiltinImpl> builtins = {
@@ -70,18 +108,32 @@ private:
 public:
     Interpreter(Module* m):
         module(m)
-    {}
+    {
+        // Eval the module en create the environment for the interpreter
+        for(std::size_t i = 0; i < m->size(); ++i){
+            debug("%s", m->get_name(i).c_str());
+            ST::Expr exp = (*m)[i];
+            auto v = this->eval(exp);
+            env.push_back(v);
+        }
+        debug("Module evaluated (env: %d)", env.size());
 
+        debug("Dumping env");
+        for(auto& val: env){
+            std::cout << val.str() << '\n';
+        }
+        debug("---");
+    }
 
-    Value eval(ST::Expr expr, size_t depth=0){
-        trace_start(depth, "");
+    Value eval(ST::Expr const &  expr, size_t depth=0){
+        trace_start(depth, "eval");
         switch(expr->kind()){
         case AST::Expression::KindFunction:{
             AST::Function* fun = static_cast<AST::Function*>(expr.get());
 
             // Create the closure here with its environment setup
-            Array<Value> env;
-            env.reserve(100);
+            // Array<Value> env;
+            // env.reserve(100);
 
             return Value(fun, env);
         }
@@ -128,13 +180,18 @@ public:
     }
 
     Value eval_ref(AST::Ref* ref, size_t depth){
-        trace_start(depth, "%s: %d | %d | %d",
+        trace_start(depth, "%s: %d, %d | %d | %d",
                     ref->name().c_str(),
                     ref->index(),
+                    ref->length(),
                     module->size(),
                     env.size());
 
-        return env[ref->index()];
+        assert(env.size() > ref->index() && "Environment should hold the ref");
+        auto n = ref->index();
+
+        debug("found %s", env[n].str().c_str());
+        return env[n];
 
         auto expr = module->get_item(ref->index());
         return eval(expr, depth + 1);
@@ -165,20 +222,23 @@ public:
             return eval_closure(Value(fun, args), depth + 1);
         }
         case AST::MathKind::Function:{
-            trace_start(depth, "function (arg_count: %d)", op.arg_count);
+            trace_start(depth, "function (name: %s) (arg_count: %d) (env: %d)", op.name.c_str(), op.arg_count, env.size());
             Value closure = eval(op.ref, depth + 1);
             assert(closure.tag == obj_closure);
 
-            Value::Closure& clo = closure.get();
-            int n = int(clo.env.size());
+            debug("Retrieve closure");
+            Value::Closure& clo = closure.get_closure();
+            int n = int(env.size());
 
             for(int i = 0; i < op.arg_count; ++i){
-                clo.env.push_back(eval_rpe(iter, depth + 1));
+                debug("eval argument: %d", i);
+                env.push_back(eval_rpe(iter, depth + 1));
             }
-            clo.env.push_back(Value(0)); // should be self fun for recursion
+
+            env.push_back(Value(0)); // should be self fun for recursion
 
             // only reverse the added arguments
-            std::reverse(std::begin(clo.env) + n, std::end(clo.env));
+            std::reverse(std::begin(env) + n, std::end(env));
             return eval_closure(closure, depth + 1);
         }
         case AST::MathKind::VarRef:{
@@ -196,10 +256,10 @@ public:
     }
 
     Value eval_closure(Value fun, size_t depth){
+        trace_start(depth, "closure");
         if (fun.tag == obj_closure){
             if (!fun.v_closure.fun){
-                auto v = fun.v_closure.builtin(fun.v_closure.env);
-                // std::cout << "result: "; v.print(std::cout) << std::endl;
+                auto v = fun.v_closure.builtin(env);
                 return v;
             }
         }
@@ -212,25 +272,25 @@ public:
         return eval(stmt->expr(), depth + 1);
     }
 
-    Array<Value> eval(Array<ST::Expr> exprs, size_t depth){
-        trace_start(depth, "");
+    Array<Value> eval(Array<ST::Expr> const & exprs, size_t depth){
+        trace_start(depth, "eval_args");
 
         Array<Value> values;
         values.reserve(exprs.size());
 
-        for (auto expr: exprs)
+        for (auto& expr: exprs)
             values.push_back(eval(expr, depth + 1));
 
         return values;
     }
 
     Value value(AST::ValueExpr* val, size_t depth){
-        trace_start(depth, "");
+        trace_start(depth, "value");
         return val->value;
     }
 
     Value seq_block(AST::SeqBlock* val, size_t depth){
-        trace_start(depth, "");
+        trace_start(depth, "seq_block");
 
         size_t n = size_t(std::max(int(val->blocks().size()) - 1, 0));
 
@@ -242,26 +302,33 @@ public:
     }
 
     Value ref(AST::Ref const* ref, Array<Value> env, size_t depth){
-        trace_start(depth, "");
+        trace_start(depth, "ref");
         return env[ref->index()];
     }
 
     Value call(AST::Call* call, size_t depth){
-        trace_start(depth, "");
+        trace_start(depth, "call");
         Value closure = eval(call->function(), depth + 1);
         assert(closure.tag == obj_closure);
-        Value::Closure& clo = closure.get();
+        Value::Closure& clo = closure.get_closure();
 
-        clo.env = eval(call->arguments(), depth);
-        clo.env.insert(std::begin(clo.env), Value(0));
+        auto on = env.size();
+        auto n = call->arguments().size();
+
+        for (auto& expr: call->arguments())
+            env.push_back(eval(expr, depth + 1));
+
+        // clo.env = eval(call->arguments(), depth);
+        // clo.env.insert(std::begin(clo.env), Value(0));
 
         AST::Function* fun = closure.v_closure.fun;
 
-        auto old = env;
-        env = closure.v_closure.env;
+        //auto old = env;
+        //env = closure.v_closure.env;
         Value returned_value = eval(fun->body(), depth);
-        env = old;
+        // env = old;
 
+        env.erase(env.begin() + on, env.end());
         // returned_value.print(std::cout) << std::endl;
         // throw InterpreterException("Not Implemented");
         return returned_value;

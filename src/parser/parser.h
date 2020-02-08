@@ -79,7 +79,9 @@ class ParserException : public std::exception {
 class Parser {
   public:
     Parser(AbstractBuffer &buffer, Module *module)
-        : module(module), _lex(buffer) {}
+        : module(module), _lex(buffer) {
+        metadata_init_names();
+    }
 
     // Shortcut
     Token next_token()  { return _lex.next_token(); }
@@ -149,10 +151,15 @@ class Parser {
         }
 
         int loc = m.find_index(name);
+        int size = m.size();
+
         if (loc < 0){
             warn("Undefined type \"%s\"", name.c_str());
         }
-        auto op = new AST::Ref(name, loc);
+        // We are not creating a reference here
+        // we are using a reference that was created before
+        //auto op = new AST::Ref(name, loc, size);
+        auto op = m.find(name);
 
         ST::Expr rhs = parse_value(m, depth + 1);
         AST::BinaryOperator *bin =

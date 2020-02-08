@@ -1,8 +1,6 @@
 ﻿#ifndef LYTHON_SRC_AST_HEADER
 #define LYTHON_SRC_AST_HEADER
 
-#include <cassert>
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,6 +8,7 @@
 #include <unordered_map>
 
 #include "../Types.h"
+#include "../logging/logging.h"
 
 
 namespace lython {

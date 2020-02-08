@@ -1,5 +1,4 @@
 #include "module.h"
-#include <cassert>
 
 namespace lython{
     std::string const none_name = "<none>";

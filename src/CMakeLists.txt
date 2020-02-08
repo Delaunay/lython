@@ -41,7 +41,6 @@ SET(ADD_HEADERS
     interpreter/value.h
     interpreter/value.cpp
     Types.h
-
 )
 
 SET(ADD_SOURCE

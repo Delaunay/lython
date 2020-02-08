@@ -21,6 +21,7 @@ DEFINE_SAMPLE_CODE(
     "    return 1\n"
     "\n"
     )
+
 DEFINE_SAMPLE_CODE(
     simple_function_noargs,
     "def simple_function_noargs() -> e:\n"
@@ -85,10 +86,21 @@ DEFINE_SAMPLE_CODE(
 DEFINE_SAMPLE_CODE(
     misc_code,
     "def my_function() -> e:\n"       // correct indent management
-    "    return 1.1\n"           // tok_float
+    "    return 1.1\n"                // tok_float
+    )
 
+DEFINE_SAMPLE_CODE(
+    simple_assignment,
     "a = \"2 + 2\"\n"            // tok_identifier '=' tok_string
+    )
+
+DEFINE_SAMPLE_CODE(
+    edge_case_incorrect_tok,
     "b = 1yy\n"                  // tok_identifier '=' tok_incorrect
+    )
+
+DEFINE_SAMPLE_CODE(
+    edge_case_incorrect_num,
     "c = 1.1.1\n";               // tok_identifier '=' tok_incorrect
     )
 

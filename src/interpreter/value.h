@@ -24,10 +24,11 @@ namespace lython {
 
 enum VTag {
     #define X(type) pod_##type,
-      POD_TYPES(X)
+        POD_TYPES(X)
     #undef X
     obj_closure,
     obj_string,
+    obj_object,
     obj_none
 };
 
@@ -42,19 +43,20 @@ VTag retrieve_tag(){
 
 namespace AbstractSyntaxTree {
     class Function;
-}
+    }
 
-template<typename T, VTag tag>
-struct _DataFetcher;
-
-struct Value{
+struct Value {
 public: // Object Value
     using BuiltinImpl = std::function<Value(Array<Value>&)>;
 
-    struct Closure{
+    struct Closure {
         AbstractSyntaxTree::Function* fun = nullptr;
-        Array<Value> env;
-        BuiltinImpl builtin;
+        Array<Value>                  env;
+        BuiltinImpl                   builtin;
+    };
+
+    struct Object {
+        // Dict<String, Value> attributes;
     };
 
 public:
@@ -66,8 +68,16 @@ public:
         #undef X
     } pod_data;
 
+    Object  v_object;
     Closure v_closure;
     String v_str;
+
+public:
+    String str(){
+        StringStream ss;
+        print(ss);
+        return ss.str();
+    }
 
     std::ostream& print(std::ostream& out){
         switch (tag) {
@@ -78,13 +88,14 @@ public:
             #undef X
 
             case obj_closure: { return out << "closure";}
+            case obj_object: {
+                return out << "object";
+            }
             case obj_string: { return out << "String(" << v_str << ")";}
             case obj_none: return out << "None";
-        }
+            }
         return out;
     }
-
-private: // cant have partial specialization of functions
 
 public:
     //! T: type to retrieve the value as
@@ -93,15 +104,11 @@ public:
     T cast(){ return T(get<V>());}
 
     template<typename T>
-    T get(T* = nullptr) {
+    T get() {
         throw std::runtime_error("invalid get expression, type mismatch!");
     }
 
-    Closure& get(Closure* = nullptr){
-        if (this->tag != obj_closure)
-            throw std::runtime_error("");
-        return this->v_closure;
-    }
+    Closure& get_closure();
 
 public: // constructor
     #define X(type) Value(type o_##type): tag(pod_##type){ pod_data.v_##type = o_##type; }
@@ -109,11 +116,11 @@ public: // constructor
     #undef X
 
     Value(AbstractSyntaxTree::Function* fun, Array<Value>  env): tag(obj_closure){
-        v_closure = {fun, env, nullptr};
+        v_closure = {fun, std::move(env), nullptr};
     }
 
     Value(BuiltinImpl fun, Array<Value>  env): tag(obj_closure){
-        v_closure = {nullptr, env, fun};
+        v_closure = {nullptr, std::move(env), std::move(fun)};
     }
 
     Value(String str): tag(obj_string){
@@ -137,17 +144,37 @@ public: // constructor
             return false;
         }
     }
-};
+    };
 
 #define X(type)\
     template<>\
-    inline type Value::get(type*){\
+    inline type Value::get(){\
         if (this->tag != pod_##type)\
             throw std::runtime_error("");\
         return this->pod_data.v_##type;\
     }
     POD_TYPES(X)
 #undef X
+
+template<>
+inline Value::Closure& Value::get()
+{
+    if (this->tag != obj_closure)
+        throw std::runtime_error("");
+    return this->v_closure;
+}
+
+template<>
+inline Value::Object& Value::get()
+{
+    if (this->tag != obj_object)
+        throw std::runtime_error("");
+    return this->v_object;
+}
+
+inline Value::Closure& Value::get_closure(){
+    return get<Closure&>();
+}
 
 }
 

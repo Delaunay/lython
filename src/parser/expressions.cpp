@@ -26,9 +26,12 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
 
             if (tok2.type() == '(') {
                 // check if the function exists
+                // function can be an actual function or a reference to one
                 auto function = m.find(tok.identifier());
+
                 int nargs = 1;
                 int loc = m.find_index(tok.identifier());
+                int size = m.size();
 
                 // fun
                 if (function != nullptr){
@@ -51,7 +54,8 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 operator_stack.push({
                     AST::MathKind::Function,
                     nargs,
-                    ST::Expr(new AST::Ref(tok.identifier(), loc))
+                    function
+                    // ST::Expr(new AST::Ref(tok.identifier(), loc, size))
                 });
 
                 debug("push %s to operator", tok.identifier().c_str());
@@ -60,13 +64,16 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
 
             } else { // if it is not a function, it is a variable
                 int loc = m.find_index(tok.identifier(), true);
+                auto expr = m.find(tok.identifier());
+                int size = m.size();
+
                 if (loc < 0){
                     warn("Variable (%s) not defined", tok.identifier().c_str());
                 }
                 output_stack.push({
                    AST::MathKind::VarRef,
                    0,
-                   ST::Expr(new AST::Ref(tok.identifier(), loc))
+                   expr
                });
 
                 EAT(tok.type());

@@ -26,8 +26,16 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
     ADD_EXECUTABLE(${NAME}_test ${NAME}_test.cpp ${TEST_HEADERS})
     TARGET_LINK_LIBRARIES(${NAME}_test Catch2::Catch2 liblython liblogging)
     SET_PROPERTY(TARGET ${NAME}_test PROPERTY CXX_STANDARD 17)
+    ADD_TEST(
+        NAME ${NAME}
+        WORKING_DIRECTORY .
+        COMMAND ./bin/${NAME}_test)
 ENDMACRO(TEST_MACRO)
 
 # add test here
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
 TEST_MACRO(main)
+
+setup_target_for_coverage_gcovr_html(
+    NAME coverage
+    EXECUTABLE ctest -j 4)

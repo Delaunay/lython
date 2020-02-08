@@ -105,7 +105,8 @@ ST::Expr Parser::parse_type(Module& m, size_t depth) {
     if (loc < 0){
         warn("Undefined type \"%s\"", name.c_str());
     }
-    auto type = new AST::Ref(name, loc);
+    // TODO: is this correct
+    auto type = new AST::Ref(name, loc, m.size(), nullptr);
     EAT(tok_identifier);
 
     TRACE_END();
@@ -139,9 +140,11 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     fun->args() = parameters;
 
     // Insert the parameters into the Scope
+    // Parameters are created by the call
     for(AST::Parameter& param: parameters){
-        // debug("Insert Parameter");
-        module.insert(param.name(), param.type());
+        int size = module.size();
+        auto ref = ST::Expr(new AST::Ref(param.name(), size, size, param.type()));
+        module.insert(param.name(), ref);
     }
 
     WITH_EXPECT(tok_arrow, "Expected -> before return type") {

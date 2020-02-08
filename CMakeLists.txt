@@ -2,18 +2,19 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # project name + language used
-PROJECT(lython CXX)
+PROJECT(lython C CXX)
 
 # debug/release
-SET(CMAKE_RELEASE_POSTFIX "")       # Release is the default
+SET(CMAKE_RELEASE_POSTFIX "")
 SET(CMAKE_DEBUG_POSTFIX "-debug")
 
 # Compiler-flag
 IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     MESSAGE(STATUS "Building Debug Version")
+    ADD_DEFINITIONS(-O0)
 ELSE()
     MESSAGE(STATUS "Building Release Version")
-    # ADD_DEFINITIONS(-O2)                        # CMake Release is O3 by default
+    ADD_DEFINITIONS(-O2)
 ENDIF()
 
 # specify where compiled files must go
@@ -36,26 +37,31 @@ OPTION(BUILD_SPHINX         "Build Sphinx docs"  ON)
 # Binary/pre-compiled Dependencies
 # ====================================
 
-# Quick fix
-# SET(BOOST_ROOT C:/local/boost_1_59_0)
 
 # FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(Git REQUIRED)
 
-# Subdirectories
+
+# CMake Exentions
 # ====================================
 
 # Find revision ID and hash of the sourcetree
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
-INCLUDE(cmake/genrev.cmake)
+INCLUDE(genrev)
+INCLUDE(CodeCoverage)
+append_coverage_compiler_flags()
+
+
+# Subdirectories
+# ====================================
 
 # Dependencies to be compiled
 ADD_SUBDIRECTORY(dependencies)
 
-# How to compile main lib
+# How to compile main libs
 ADD_SUBDIRECTORY(src)
 
-# Compile tests ?
+# Tests and Coverage
 IF(BUILD_TESTING)
     ENABLE_TESTING()
     MESSAGE(STATUS "Building tests")
@@ -72,5 +78,34 @@ ENDIF(BUILD_TESTING)
 #    MESSAGE(STATUS "Documentation building is enabled")
 #    ADD_SUBDIRECTORY(docs)
 #ENDIF (BUILD_DOCUMENTATION)
+
+
+# Helper commands
+# ====================================
+# so you do not have to leave the command line
+# or remember the exact arguments
+
+ADD_CUSTOM_TARGET(enable-examples
+    cmake -DBUILD_EXAMPLES=ON ${CMAKE_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(disable-examples
+    cmake -DBUILD_EXAMPLES=OFF ${CMAKE_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(enable-release
+    cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(enable-debug
+    cmake -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR})
+
+# Resource Files
+# ====================================
+# Some IDEs need the files to be inside a cmake target to be displayed
+
+ADD_CUSTOM_TARGET(zothers ALL SOURCES
+    README.md
+    .travis.yml
+    .gitignore
+)
+
 
 
