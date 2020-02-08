@@ -25,37 +25,15 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                   char(token().type()), token().identifier().c_str());
 
             if (tok2.type() == '(') {
-                // check if the function exists
-                // function can be an actual function or a reference to one
-                auto function = m.find(tok.identifier());
+                ST::Expr function;
+                int nargs;
 
-                int nargs = 1;
-                int loc = m.find_index(tok.identifier());
-                int size = m.size();
-
-                // fun
-                if (function != nullptr){
-                    if (function->kind() == AST::Expression::KindFunction){
-                        auto *fun = static_cast<AST::Function *>(function.get());
-                        nargs = int(fun->args().size());
-                    }
-                    else if (function->kind() == AST::Expression::KindBuiltin){
-                        auto *fun = static_cast<AST::Builtin *>(function.get());
-                        nargs = int(fun->argument_size);
-                    }
-                }
-                else {
-                    debug("function %s was not declared",
-                          tok.identifier().c_str());
-                }
-
-                //m.print(std::cout);
+                std::tie(function, nargs) = m.find_function(tok.identifier());
 
                 operator_stack.push({
                     AST::MathKind::Function,
                     nargs,
                     function
-                    // ST::Expr(new AST::Ref(tok.identifier(), loc, size))
                 });
 
                 debug("push %s to operator", tok.identifier().c_str());

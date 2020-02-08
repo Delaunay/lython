@@ -8,21 +8,13 @@
 
 using namespace lython;
 
-template<typename... Args>
-void insert_arg(AST::Call* call, Args... v){
-    insert_arg(call, v...);
+template<typename T>
+void insert_arg(AST::Call* call, T a){
+    call->arguments().emplace_back(new AST::ValueExpr(a, nullptr));
 }
 
-template<typename T, typename... Args>
-void insert_arg(AST::Call* call, T a, Args... v){
-    call->arguments().push_back(ST::Expr(new AST::ValueExpr(a, nullptr)));
-    insert_arg(call, v...);
-}
-
-void insert_arg(AST::Call*){}
-
 template<typename... Args>
-Value interpret_it(String code, String fun_name, Args... v){
+Value interpret_call(String code, String fun_name, Args... v){
     StringBuffer reader(code);
 
     // Parse code
@@ -38,31 +30,32 @@ Value interpret_it(String code, String fun_name, Args... v){
     Interpreter vm(&module);
 
     // Make Fun Call
-    AST::Call* call = new AST::Call();
     auto fun = module.find(fun_name);
 
-    if (fun == nullptr)
-        return Value("Unknown function");
+    assert(fun != nullptr);
 
+    auto* call = new AST::Call();
     call->function() = fun;
-    insert_arg(call, v...);
+
+    (insert_arg(call, std::forward<Args>(v)), ...);
 
     // return value
+    debug("Eval Call");
     return vm.eval(ST::Expr(call));
 }
 
 #define TEST_INTERPRETER(code, value)\
     SECTION(#code){\
-        REQUIRE(interpret_it(code(), #code) == value);\
+        REQUIRE(interpret_call(code(), #code) == value);\
     }
 
 #define TEST_INTERPRETER_ARGS(code, value, ...)\
     SECTION(#code){\
-        REQUIRE(interpret_it(code(), #code, __VA_ARGS__) == value);\
+        REQUIRE(interpret_call(code(), #code, __VA_ARGS__) == value);\
     }
 
 
 TEST_CASE("Interpreter"){
     TEST_INTERPRETER(simple_function_noargs, Value(1.0))
-    // TEST_INTERPRETER_ARGS(simple_function_return_args, Value(1.0), 1.0)
+    TEST_INTERPRETER_ARGS(max_alias, Value(2.0), 2.0, 1.0)
 }

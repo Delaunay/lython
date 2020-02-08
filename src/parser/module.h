@@ -250,6 +250,63 @@ class Module {
     }
 
     ST::Expr find(String const &view) const {
+        ST::Expr expr;
+        Index idx = 0;
+
+        std::tie(expr, idx) = _find(view);
+
+        // TODO: might be interesting to create a MissingExpr in the AST
+        // itself for rendering in TIDE
+        // when expr == nullptr
+        if (expr != nullptr && expr->kind() == AST::Expression::KindReference)
+            return expr;
+
+        return ST::Expr(new AST::Ref(
+            String(view),
+            idx,
+            size(),
+            nullptr));
+    }
+
+    int get_nargs(ST::Expr& function) const {
+        if (function == nullptr)
+            return -1;
+
+        if (function->kind() == AST::Expression::KindFunction){
+            auto *fun = static_cast<AST::Function *>(function.get());
+            return int(fun->args().size());
+        }
+
+        if (function->kind() == AST::Expression::KindBuiltin){
+            auto *fun = static_cast<AST::Builtin *>(function.get());
+            return int(fun->argument_size);
+        }
+
+        return -1;
+    }
+
+
+    ST::Expr make_ref(String const &view, int idx, ST::Expr type=nullptr) const {
+        return ST::Expr(new AST::Ref(
+            String(view),
+            idx,
+            size(),
+            type));
+    }
+
+    Tuple<ST::Expr, int> find_function(String const &view) const {
+        ST::Expr expr;
+        Index idx = 0;
+        int nargs = -1;
+
+        std::tie(expr, idx) = _find(view);
+
+        nargs = get_nargs(expr);
+
+        return std::make_tuple(make_ref(view, idx), nargs);
+    }
+
+    Tuple<ST::Expr, Index> _find(String const &view) const {
         debug("looking for %s", view.c_str());
 
         // Check in the current scope
@@ -258,12 +315,14 @@ class Module {
         if (iter != _name_idx.end()){
             debug("found %s", view.c_str());
             Index idx = (*iter).second;
-            return _scope[idx];
+
+            return std::make_tuple(_scope[idx], idx);
+
         } else if (_parent){
-            return _parent->find(view);
+            return _parent->_find(view);
         }
 
-        return nullptr;
+        return std::make_tuple(nullptr, -1);
     }
 
     template<typename T>

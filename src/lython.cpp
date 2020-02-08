@@ -11,7 +11,7 @@
 #include "interpreter/interpreter.h"
 #include "logging/logging.h"
 
-// #include "../tests/samples.h"
+#include "../tests/samples.h"
 // #include "Lexer/Prelexer.h"
 
 #include "revision_data.h"
@@ -61,9 +61,13 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code =
+        String code = max_alias();
+
         "def fun1(a: Float, b: Float) -> Float:\n"
-        "   return max(a, b)\n\n";
+        "   return max(a, b)\n\n"
+
+        "fun1(1.0, 2.0);"
+        ;
 
         "def function2(test: double, test) -> double:\n"
         "    \"\"\"This is a docstring\"\"\"\n"
@@ -151,7 +155,7 @@ int main() {
         Interpreter vm(&module);
         AST::Call* call = new AST::Call();
 
-        call->function() = module.find("fun1");
+        call->function() = module.find("max_alias");
         call->arguments().emplace_back(new AST::ValueExpr(1.0, nullptr));
         call->arguments().emplace_back(new AST::ValueExpr(2.0, nullptr));
 

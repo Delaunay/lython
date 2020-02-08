@@ -137,7 +137,7 @@ std::ostream &Call::print(std::ostream &out, int32 indent) {
 }
 
 std::ostream &Ref::print(std::ostream &out, int32) {
-    out << name() << "[" << index() << ", " << length() << "]";
+    out << name(); // << "[" << index() << ", " << length() << "]";
     return out;
 }
 

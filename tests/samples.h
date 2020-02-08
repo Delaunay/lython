@@ -28,6 +28,7 @@ DEFINE_SAMPLE_CODE(
     "    return 1\n"
     "\n"
     )
+
 DEFINE_SAMPLE_CODE(
     simple_function_docstring,
     "def simple_function_docstring(a: b, c: d) -> e:\n"
@@ -66,6 +67,15 @@ DEFINE_SAMPLE_CODE(
     "\n"
     "def function_call() -> Double:\n"
     "    return add(1, 2)\n"
+    )
+
+
+DEFINE_SAMPLE_CODE(
+    max_alias,
+    "def max_alias(a: Float, b: Float) -> Float:\n"
+    "   return max(a, b)\n"
+    "\n"
+   // "max_alias(1.0, 2.0)"
     )
 
 // Struct

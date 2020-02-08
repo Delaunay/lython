@@ -150,7 +150,7 @@ public: // constructor
     template<>\
     inline type Value::get(){\
         if (this->tag != pod_##type)\
-            throw std::runtime_error("");\
+            throw std::runtime_error("wrong type!");\
         return this->pod_data.v_##type;\
     }
     POD_TYPES(X)
@@ -160,7 +160,7 @@ template<>
 inline Value::Closure& Value::get()
 {
     if (this->tag != obj_closure)
-        throw std::runtime_error("");
+        throw std::runtime_error("wrong type!");
     return this->v_closure;
 }
 
@@ -168,7 +168,7 @@ template<>
 inline Value::Object& Value::get()
 {
     if (this->tag != obj_object)
-        throw std::runtime_error("");
+        throw std::runtime_error("wrong type!");
     return this->v_object;
 }
 
