@@ -2,6 +2,7 @@
 #define LYTHON_VALUE_HEADER
 
 #include <iostream>
+#include <fmt/core.h>
 
 #include "../Types.h"
 #include "../logging/logging.h"
@@ -40,6 +41,23 @@ VTag retrieve_tag(){
 #define X(type) template<> inline VTag retrieve_tag<type>() { return pod_##type; }
   POD_TYPES(X)
 #undef X
+
+class TypeError: public std::exception{
+public:
+    TypeError(VTag expected, VTag real):
+        expected(expected), real(real)
+    {}
+
+    const char* what() const noexcept override {
+        auto message = fmt::format("TypeError: expected {} got {}", expected, real);
+        show_log_backtrace();
+        show_backtrace();
+        return message.c_str();
+    }
+
+    VTag expected;
+    VTag real;
+};
 
 namespace AbstractSyntaxTree {
     class Function;
@@ -150,7 +168,7 @@ public: // constructor
     template<>\
     inline type Value::get(){\
         if (this->tag != pod_##type)\
-            throw std::runtime_error("wrong type!");\
+            throw TypeError(obj_object, this->tag);\
         return this->pod_data.v_##type;\
     }
     POD_TYPES(X)
@@ -160,7 +178,7 @@ template<>
 inline Value::Closure& Value::get()
 {
     if (this->tag != obj_closure)
-        throw std::runtime_error("wrong type!");
+        throw TypeError(obj_object, this->tag);
     return this->v_closure;
 }
 
@@ -168,7 +186,7 @@ template<>
 inline Value::Object& Value::get()
 {
     if (this->tag != obj_object)
-        throw std::runtime_error("wrong type!");
+        throw TypeError(obj_object, this->tag);
     return this->v_object;
 }
 

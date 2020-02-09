@@ -154,7 +154,7 @@ int main() {
         AST::Call* call = new AST::Call();
 
         call->function() = module.find("max_alias");
-        call->arguments().emplace_back(new AST::ValueExpr(1.0, nullptr));
+        call->arguments().emplace_back(new AST::ValueExpr(1, nullptr));
         call->arguments().emplace_back(new AST::ValueExpr(2.0, nullptr));
 
         Value v = vm.eval(ST::Expr(call));

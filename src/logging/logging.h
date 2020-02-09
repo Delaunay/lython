@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <string>
 #include <fmt/core.h>
 
@@ -31,6 +32,14 @@ void set_log_level(LogLevel level, bool enabled);
 
 bool is_log_enabled(LogLevel level);
 
+// Show backtrace using spdlog
+void show_log_backtrace();
+
+// Show backtrace using execinfo
+void show_backtrace();
+
+// retrieve backtrace using execinfo
+std::vector<std::string> get_backtrace(size_t size);
 
 template<typename ... Args>
 void log(LogLevel level, std::string loc, const char* fmt, const Args& ... args){
