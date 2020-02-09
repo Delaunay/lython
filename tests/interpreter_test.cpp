@@ -14,7 +14,7 @@ void insert_arg(AST::Call* call, T a){
 }
 
 template<typename... Args>
-Value interpret_call(String code, String fun_name, Args... v){
+Value interpret_call(String const& code, String fun_name, Args... v){
     StringBuffer reader(code);
 
     // Parse code
@@ -40,8 +40,26 @@ Value interpret_call(String code, String fun_name, Args... v){
     (insert_arg(call, std::forward<Args>(v)), ...);
 
     // return value
-    debug("Eval Call");
     return vm.eval(ST::Expr(call));
+}
+
+Value interpret_code(String const& code){
+    StringBuffer reader(code);
+
+    // Parse code
+    Module module;
+    Parser par(reader, &module);
+
+    ST::Expr expr = nullptr;
+    do {
+        expr = par.parse_one(module);
+    } while(expr != nullptr);
+    // ---
+
+    Interpreter vm(&module);
+
+    // return value
+    return vm.eval(expr);
 }
 
 #define TEST_INTERPRETER(code, value)\

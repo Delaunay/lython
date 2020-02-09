@@ -1,6 +1,8 @@
-#include "samples.h"
+#include <catch2/catch.hpp>
 
 #include <sstream>
+
+#include "samples.h"
 
 #include "lexer/buffer.h"
 #include "parser/parser.h"

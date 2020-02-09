@@ -7,9 +7,9 @@ INCLUDE_DIRECTORIES(../src)
 
 SET(TEST_HEADERS
     samples.h
-    lexer_test.h
-    parser_test.h
-    interpreter_test.h
+    lexer_test.cpp
+    parser_test.cpp
+    interpreter_test.cpp
 )
 
 INCLUDE(CTest)
@@ -24,8 +24,9 @@ SET(${CXX_STANDARD_REQUIRED} ON)
 # to run all tests run 'make test'
 MACRO(TEST_MACRO NAME) # LIBRARIES
     ADD_EXECUTABLE(${NAME}_test ${NAME}_test.cpp ${TEST_HEADERS})
-    TARGET_LINK_LIBRARIES(${NAME}_test Catch2::Catch2 liblython liblogging)
-    SET_PROPERTY(TARGET ${NAME}_test PROPERTY CXX_STANDARD 17)
+    TARGET_LINK_LIBRARIES(${NAME}_test fmt::fmt Catch2::Catch2 liblython liblogging)
+
+    SET_PROPERTY(TARGET ${NAME}_test PROPERTY CXX_STANDARD 20)
     ADD_TEST(
         NAME ${NAME}
         WORKING_DIRECTORY .

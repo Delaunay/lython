@@ -184,7 +184,7 @@ public:
                     ref->name().c_str(),
                     ref->index(),
                     ref->length(),
-                    module->size(),
+                    int(module->size()),
                     env.size());
 
         assert(env.size() > ref->index() && "Environment should hold the ref");
