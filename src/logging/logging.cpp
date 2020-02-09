@@ -1,10 +1,51 @@
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include "logging.h"
 
 #include <cstring>
 #include <cstdio>
 #include <cstdarg>
 #include <unordered_map>
+#include <memory>
+
 namespace lython{
+
+using Logger = std::shared_ptr<spdlog::logger>;
+
+
+Logger new_logger(char const* name){
+    auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+
+    auto console = std::make_shared<spdlog::logger>(name, stdout_sink);
+
+    console->set_level(spdlog::level::level_enum::trace);
+    console->flush_on(spdlog::level::level_enum::trace);
+
+    spdlog::register_logger(console);
+    spdlog::set_pattern("[%L] [%d-%m-%Y %H:%M:%S.%e] [%t] %v");
+
+    return console;
+}
+
+Logger root(){
+    static Logger log = new_logger("root");
+    return log;
+}
+
+static constexpr spdlog::level::level_enum log_level_spd[] = {
+    spdlog::level::level_enum::trace,
+    spdlog::level::level_enum::info,
+    spdlog::level::level_enum::warn,
+    spdlog::level::level_enum::debug,
+    spdlog::level::level_enum::err,
+    spdlog::level::level_enum::critical
+};
+
+
+void spdlog_log(LogLevel level, std::string const& msg){
+    root()->log(log_level_spd[level], msg);
+}
 
 const char* log_level_str[] = {
     "[T] TRACE",
@@ -49,7 +90,7 @@ bool is_log_enabled(LogLevel level){
     return log_levels()[level];
 }
 
-const char* trace_start = "{} {} {}+-> {}\n";
-const char* trace_end = "{} {} {}+-< {}\n";
+const char* trace_start = "{} {}+-> {}";
+const char* trace_end = "{} {}+-< {}";
 
 }

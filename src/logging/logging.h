@@ -3,6 +3,10 @@
 #include <string>
 #include <fmt/core.h>
 
+// This file should not include spdlog
+// spdlog file is compile time cancer so it is only included inside the .cpp
+
+
 namespace lython{
 
 enum LogLevel{
@@ -14,6 +18,7 @@ enum LogLevel{
     Fatal
 };
 
+void spdlog_log(LogLevel level, const std::string& msg);
 
 extern const char* log_level_str[];
 extern const char* trace_start;
@@ -33,7 +38,8 @@ void log(LogLevel level, std::string loc, const char* fmt, const Args& ... args)
         return ;
     }
 
-    fmt::print("{} {} - {}\n", log_level_str[level], loc, fmt::format(fmt, args...));
+    auto msg = fmt::format("{} - {}", /*log_level_str[level],*/ loc, fmt::format(fmt, args...));
+    spdlog_log(level, msg);
 }
 
 template<typename ... Args>
@@ -52,7 +58,8 @@ void log_trace(LogLevel level, size_t depth, bool end, std::string loc,  const c
         str[i] = i % 2 ? '|' : ':';
     }
 
-    fmt::print(msg_fmt, log_level_str[level], loc, str, fmt::format(fmt, args...));
+    auto msg = fmt::format(msg_fmt, /*log_level_str[level],*/ loc, str, fmt::format(fmt, args...));
+    spdlog_log(level, msg);
 }
 
 } // namespace lython
@@ -90,7 +97,7 @@ inline void assert_true(bool cond, char const* message,  char const* assert_expr
         error("Assertion errror: {}\n"
               "  - expr: {}\n"
               "  - function: {}\n"
-              "  - file: {}:{}\n", message, assert_expr, function, file, line);
+              "  - file: {}:{}", message, assert_expr, function, file, line);
     }
 }
 

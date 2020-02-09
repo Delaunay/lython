@@ -64,7 +64,7 @@ ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
 TARGET_LINK_LIBRARIES(liblython fmt::fmt)
 
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
-TARGET_LINK_LIBRARIES(liblogging fmt::fmt)
+TARGET_LINK_LIBRARIES(liblogging fmt::fmt spdlog::spdlog)
 
 
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
