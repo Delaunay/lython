@@ -23,7 +23,7 @@ std::string format_code_loc(const char*, const char* function, int line){
 
 std::string format_code_loc_trace(const char*, const char* function, int line){
     return fmt::format(
-        "{:25>}:{:4d}", function, line);
+        "{:>25}:{:4}", function, line);
 }
 
 

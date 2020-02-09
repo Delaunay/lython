@@ -41,10 +41,10 @@
 
 // assert(token().type() == tok && msg)
 #define TRACE_START()                                                          \
-    trace_start(depth, "(%s: %i)", tok_to_string(token().type()).c_str(),      \
+    trace_start(depth, "({}: {})", tok_to_string(token().type()).c_str(),      \
                 token().type())
 #define TRACE_END()                                                            \
-    trace_end(depth, "(%s: %i)", tok_to_string(token().type()).c_str(),        \
+    trace_end(depth, "({}: {})", tok_to_string(token().type()).c_str(),        \
               token().type())
 
 #define CHECK_TYPE(type) type
@@ -70,7 +70,7 @@ class ParserException : public std::exception {
 
 #define WITH_EXPECT(tok, msg)                                                  \
     if (token().type() != tok) {                                               \
-        debug("Got (tok: %s, %d)", tok_to_string(token().type()).c_str(),      \
+        debug("Got (tok: {}, {})", tok_to_string(token().type()).c_str(),      \
               token().type());                                                 \
         throw ParserException(msg);                                            \
     } else
@@ -154,7 +154,7 @@ class Parser {
         int size = m.size();
 
         if (loc < 0){
-            warn("Undefined type \"%s\"", name.c_str());
+            warn("Undefined type \"{}\"", name.c_str());
         }
         // We are not creating a reference here
         // we are using a reference that was created before
@@ -219,7 +219,7 @@ class Parser {
                     op_name = token().identifier();
                     debug("Operator is string");
                 } else {
-                    warn("Operator %s was not found, did you mean: ...",
+                    warn("Operator {} was not found, did you mean: ...",
                          token().identifier().c_str());
                 }
             }
@@ -240,7 +240,7 @@ class Parser {
                     op_name.push_back(token().type());
                     next_token();
                 } else {
-                    warn("Could not match %c %d", char(token().type()),
+                    warn("Could not match {} {}", char(token().type()),
                          token().type());
                 }
 
@@ -259,7 +259,7 @@ class Parser {
             }
 
             if (!iter->leaf()) {
-                warn("Operator %s was not found, did you mean: ...",
+                warn("Operator {} was not found, did you mean: ...",
                      op_name.c_str());
             }
         }

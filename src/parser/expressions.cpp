@@ -21,7 +21,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
         // function call
         case tok_identifier: {
             Token tok2 = peek_token();
-            debug("peek_token = %d %c %s", token().type(),
+            debug("peek_token = {} {} {}", token().type(),
                   char(token().type()), token().identifier().c_str());
 
             if (tok2.type() == '(') {
@@ -36,7 +36,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                     function
                 });
 
-                debug("push %s to operator", tok.identifier().c_str());
+                debug("push {} to operator", tok.identifier().c_str());
                 next_token();
                 continue;
 
@@ -46,7 +46,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 int size = m.size();
 
                 if (loc < 0){
-                    warn("Variable (%s) not defined", tok.identifier().c_str());
+                    warn("Variable ({}) not defined", tok.identifier().c_str());
                 }
                 output_stack.push({
                    AST::MathKind::VarRef,
@@ -55,7 +55,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                });
 
                 EAT(tok.type());
-                debug("Added VarRef %s in output stack", tok.identifier().c_str());
+                debug("Added VarRef {} in output stack", tok.identifier().c_str());
                 continue;
             }
 
@@ -69,7 +69,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 tok.identifier()
             });
             EAT(tok.type());
-            debug("Added %s in output stack", tok.identifier().c_str());
+            debug("Added {} in output stack", tok.identifier().c_str());
             continue;
         }
 
@@ -107,10 +107,10 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                     // is_left_asso);
 
                     operator_stack.pop();
-                    debug("pop %s to operator", node.name.c_str());
+                    debug("pop {} to operator", node.name.c_str());
 
                     output_stack.push(node);
-                    debug("push %s to output", node.name.c_str());
+                    debug("push {} to output", node.name.c_str());
 
                     if (operator_stack.size() == 0) {
                         break;
@@ -121,13 +121,13 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                         module->precedence_table()[node.name];
                 }
             }
-            debug("push %s to operator", op_name.c_str());
+            debug("push {} to operator", op_name.c_str());
             operator_stack.push({AST::MathKind::Operator, 0, nullptr, op_name});
         }
 
         if (tok.type() == '(') {
             operator_stack.push({AST::MathKind::None, 0, nullptr, "("});
-            debug("push %s to operator", "(");
+            debug("push {} to operator", "(");
             next_token();
         } else if (tok.type() == ')') {
             node = operator_stack.peek();

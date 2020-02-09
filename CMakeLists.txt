@@ -97,6 +97,9 @@ ADD_CUSTOM_TARGET(enable-release
 ADD_CUSTOM_TARGET(enable-debug
     cmake -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR})
 
+ADD_CUSTOM_TARGET(enable-test
+    cmake -DBUILD_TESTING=ON ${CMAKE_SOURCE_DIR})
+
 # Resource Files
 # ====================================
 # Some IDEs need the files to be inside a cmake target to be displayed

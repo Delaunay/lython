@@ -307,13 +307,13 @@ class Module {
     }
 
     Tuple<ST::Expr, Index> _find(String const &view) const {
-        debug("looking for %s", view.c_str());
+        debug("looking for {}", view.c_str());
 
         // Check in the current scope
         auto iter = _name_idx.find(view);
 
         if (iter != _name_idx.end()){
-            debug("found %s", view.c_str());
+            debug("found {}", view.c_str());
             Index idx = (*iter).second;
 
             return std::make_tuple(_scope[idx], idx);

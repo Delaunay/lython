@@ -111,12 +111,12 @@ public:
     {
         // Eval the module en create the environment for the interpreter
         for(std::size_t i = 0; i < m->size(); ++i){
-            debug("%s", m->get_name(i).c_str());
+            debug("{}", m->get_name(i).c_str());
             ST::Expr exp = (*m)[i];
             auto v = this->eval(exp);
             env.push_back(v);
         }
-        debug("Module evaluated (env: %d)", env.size());
+        debug("Module evaluated (env: {})", env.size());
 
         debug("Dumping env");
         for(auto& val: env){
@@ -167,20 +167,20 @@ public:
             return eval_builtin(blt, depth + 1);
         }
         default: {
-            info("Ignoring %d", expr->kind());
+            info("Ignoring {}", expr->kind());
             return Value("MainEval Not Implemented");
         }
         }
     }
 
     Value eval_builtin(AST::Builtin* blt, size_t depth){
-        trace_start(depth, "%s", blt->name.c_str());
+        trace_start(depth, "{}", blt->name.c_str());
         auto fun = builtins[blt->name];
         return Value(fun, Array<Value>());
     }
 
     Value eval_ref(AST::Ref* ref, size_t depth){
-        trace_start(depth, "%s: %d, %d | %d | %d",
+        trace_start(depth, "{}: {}, {} | {} | {}",
                     ref->name().c_str(),
                     ref->index(),
                     ref->length(),
@@ -190,7 +190,7 @@ public:
         assert(env.size() > ref->index() && "Environment should hold the ref");
         auto n = ref->index();
 
-        debug("found %s", env[n].str().c_str());
+        debug("found {}", env[n].str());
         return env[n];
 
         auto expr = module->get_item(ref->index());
@@ -203,13 +203,13 @@ public:
 
         switch (op.kind){
         case AST::MathKind::Value:{
-            trace_start(depth, "value %s", op.name.c_str());
+            trace_start(depth, "value {}", op.name.c_str());
             StringStream ss(op.name);
             double d; ss >> d;
             return Value(d);
         }
         case AST::MathKind::Operator:{
-            trace_start(depth, "operator %s", op.name.c_str());
+            trace_start(depth, "operator {}", op.name.c_str());
             auto rhs = eval_rpe(iter, depth + 1);
             auto lhs = eval_rpe(iter, depth + 1);
 
@@ -222,7 +222,7 @@ public:
             return eval_closure(Value(fun, args), depth + 1);
         }
         case AST::MathKind::Function:{
-            trace_start(depth, "function (name: %s) (arg_count: %d) (env: %d)", op.name.c_str(), op.arg_count, env.size());
+            trace_start(depth, "function (name: {}) (arg_count: {}) (env: {})", op.name, op.arg_count, env.size());
             Value closure = eval(op.ref, depth + 1);
             assert(closure.tag == obj_closure);
 
@@ -231,7 +231,7 @@ public:
             int n = int(env.size());
 
             for(int i = 0; i < op.arg_count; ++i){
-                debug("eval argument: %d", i);
+                debug("eval argument: {}", i);
                 env.push_back(eval_rpe(iter, depth + 1));
             }
 

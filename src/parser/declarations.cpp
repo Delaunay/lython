@@ -103,7 +103,7 @@ ST::Expr Parser::parse_type(Module& m, size_t depth) {
     };
 
     if (loc < 0){
-        warn("Undefined type \"%s\"", name.c_str());
+        warn("Undefined type \"{}\"", name.c_str());
     }
     // TODO: is this correct
     auto type = new AST::Ref(name, loc, m.size(), nullptr);

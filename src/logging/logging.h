@@ -33,10 +33,7 @@ void log(LogLevel level, std::string loc, const char* fmt, const Args& ... args)
         return ;
     }
 
-    auto message = fmt::format(
-        "{} {} - {}", log_level_str[level], loc, fmt::format(fmt, args...));
-
-    printf("%s", message.c_str());
+    fmt::print("{} {} - {}\n", log_level_str[level], loc, fmt::format(fmt, args...));
 }
 
 template<typename ... Args>
@@ -55,8 +52,7 @@ void log_trace(LogLevel level, size_t depth, bool end, std::string loc,  const c
         str[i] = i % 2 ? '|' : ':';
     }
 
-    auto message = fmt::format(msg_fmt, log_level_str[level], loc, str, fmt::format(fmt, args...));
-    printf("%s", message.c_str());
+    fmt::print(msg_fmt, log_level_str[level], loc, str, fmt::format(fmt, args...));
 }
 
 } // namespace lython
@@ -70,7 +66,7 @@ void log_trace(LogLevel level, size_t depth, bool end, std::string loc,  const c
 #define LOG_HELPER(level, ...)\
     lython::log(level, CODE_LOC __VA_OPT__(,) __VA_ARGS__)
 
-#define LOG_TRACE_HELPER(level, end, depth, fmt, ...)\
+#define LOG_TRACE_HELPER(level, depth, end, fmt, ...)\
     lython::log_trace(level, depth, end, CODE_LOC_TRACE, fmt __VA_OPT__(,) __VA_ARGS__)
 
 // info("test %s", "const char*")
@@ -91,10 +87,10 @@ void log_trace(LogLevel level, size_t depth, bool end, std::string loc,  const c
 
 inline void assert_true(bool cond, char const* message,  char const* assert_expr, char const* file, int line, char const* function){
     if (!cond){
-        error("Assertion errror: %s\n"
-              "  - expr: %s\n"
-              "  - function: %s\n"
-              "  - file: %s:%d\n", message, assert_expr, function, file, line);
+        error("Assertion errror: {}\n"
+              "  - expr: {}\n"
+              "  - function: {}\n"
+              "  - file: {}:{}\n", message, assert_expr, function, file, line);
     }
 }
 
