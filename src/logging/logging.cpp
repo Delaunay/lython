@@ -94,13 +94,15 @@ Logger root(){
     return log;
 }
 
+
 static constexpr spdlog::level::level_enum log_level_spd[] = {
     spdlog::level::level_enum::trace,
+    spdlog::level::level_enum::debug,
     spdlog::level::level_enum::info,
     spdlog::level::level_enum::warn,
-    spdlog::level::level_enum::debug,
     spdlog::level::level_enum::err,
-    spdlog::level::level_enum::critical
+    spdlog::level::level_enum::critical,
+    spdlog::level::level_enum::off
 };
 
 void show_log_backtrace(){
@@ -114,11 +116,12 @@ void spdlog_log(LogLevel level, std::string const& msg){
 
 const char* log_level_str[] = {
     "[T] TRACE",
+    "[D] DEBUG",
     "[I]  INFO",
     "/!\\  WARN",
-    "[D] DEBUG",
     "[E] ERROR",
-    "[!] FATAL"
+    "[!] FATAL",
+    ""
 };
 
 std::string format_code_loc(const char* file, const char* function, int line){

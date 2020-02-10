@@ -9,14 +9,14 @@
 
 
 namespace lython{
-
 enum LogLevel{
     Trace,
+    Debug,
     Info,
     Warn,
-    Debug,  // force flush
     Error,
-    Fatal
+    Fatal,
+    Off
 };
 
 void spdlog_log(LogLevel level, const std::string& msg);

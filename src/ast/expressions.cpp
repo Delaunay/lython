@@ -48,6 +48,7 @@ const char* to_string(Expression::KindExpr kind){
     case Expression::KindReversePolish : return "KindReversePolish";
     case Expression::KindExternFunction: return "KindExternFunction";
     }
+    return "<undefined>";
 }
 
 std::ostream &UnaryOperator::print(std::ostream &out, int32 indent) {

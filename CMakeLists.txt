@@ -37,7 +37,8 @@ OPTION(BUILD_SPHINX         "Build Sphinx docs"  ON)
 
 # Binary/pre-compiled Dependencies
 # ====================================
-
+SET(CMAKE_CXX_STANDARD 20)
+SET(CXX_STANDARD_REQUIRED ON)
 
 # FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(Git REQUIRED)
@@ -51,7 +52,7 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
 INCLUDE(CodeCoverage)
 append_coverage_compiler_flags()
-
+set(COVERAGE_EXCLUDES "${PROJECT_SOURCE_DIR}/dependencies/*")
 
 # Subdirectories
 # ====================================
