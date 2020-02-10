@@ -91,8 +91,10 @@ std::vector<std::string> get_backtrace(size_t size=32){
 
 void show_backtrace() {
     std::vector<std::string> symbols = get_backtrace(16);
+    int i = 0;
     for (auto& sym: symbols){
-        spdlog_log(LogLevel::Fatal, sym);
+        i += 1;
+        spdlog_log(LogLevel::Error, fmt::format(" TB {:2} -> {}", i, sym));
     }
 }
 
@@ -214,6 +216,7 @@ bool is_log_enabled(LogLevel level){
 }
 
 const char* Exception::what() const noexcept {
+    spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
     show_backtrace();
     return message.c_str();
 }
