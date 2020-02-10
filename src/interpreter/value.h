@@ -42,22 +42,17 @@ VTag retrieve_tag(){
   POD_TYPES(X)
 #undef X
 
-class TypeError: public std::exception{
+
+// NEW_EXCEPTION(TypeError)
+
+class TypeError: public Exception{
 public:
-    TypeError(VTag expected, VTag real):
-        expected(expected), real(real)
+    template<typename ... Args>
+    TypeError(const char* fmt, const Args& ... args):
+        Exception(fmt, "TypeError", args...)
     {}
-
-    const char* what() const noexcept override {
-        auto message = fmt::format("TypeError: expected {} got {}", expected, real);
-        show_log_backtrace();
-        show_backtrace();
-        return message.c_str();
-    }
-
-    VTag expected;
-    VTag real;
 };
+
 
 namespace AbstractSyntaxTree {
     class Function;
@@ -168,7 +163,7 @@ public: // constructor
     template<>\
     inline type Value::get(){\
         if (this->tag != pod_##type)\
-            throw TypeError(obj_object, this->tag);\
+            throw TypeError("{}: expected {} got {}", obj_object, this->tag);\
         return this->pod_data.v_##type;\
     }
     POD_TYPES(X)
@@ -178,7 +173,7 @@ template<>
 inline Value::Closure& Value::get()
 {
     if (this->tag != obj_closure)
-        throw TypeError(obj_object, this->tag);
+        throw TypeError("{}: expected {} got {}", obj_object, this->tag);
     return this->v_closure;
 }
 
@@ -186,7 +181,7 @@ template<>
 inline Value::Object& Value::get()
 {
     if (this->tag != obj_object)
-        throw TypeError(obj_object, this->tag);
+        throw TypeError("{}: expected {} got {}", obj_object, this->tag);
     return this->v_object;
 }
 

@@ -14,21 +14,17 @@
 namespace lython {
 // /!\ string a allocated twice
 
-class Exception {
-  public:
-    Exception(String msg) : msg(std::move(msg)) {}
-    const char *what() const noexcept { return msg.c_str(); }
 
-  private:
-    String msg;
-};
+NEW_EXCEPTION(NameTaken);
 
 #define ASSERT(pred, msg)                                                      \
     {                                                                          \
         if (!(pred)) {                                                         \
-            throw Exception(msg);                                              \
+            throw NameTaken(msg);                                              \
         }                                                                      \
     }
+
+
 
 // hold information about operators
 struct OperatorImpl {

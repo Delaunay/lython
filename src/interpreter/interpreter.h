@@ -8,12 +8,8 @@
 
 namespace lython{
 
-class InterpreterException: public Exception{
-public:
-    InterpreterException(String str):
-        Exception(std::move(str))
-    {}
-};
+
+NEW_EXCEPTION(InterpreterError);
 
 inline
 Value builtin_sin(Array<Value>& args){

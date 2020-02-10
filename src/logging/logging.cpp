@@ -13,24 +13,79 @@
 #ifdef __linux__
 #include <execinfo.h>
 #include <signal.h>
+#include <cxxabi.h>
+#include <regex>
 #endif
 
 namespace lython {
 #ifdef __linux__
-std::vector<std::string> get_backtrace(size_t size){
-    std::vector<void *> ptrs(size);
 
-    int real_size = backtrace(ptrs.data(), int(ptrs.size()));
+// _ZN6lython11builtin_maxERSt6vectorINS_5ValueENS_9AllocatorIS1_EEE+0x368
+static std::regex mangled_name("\\([A-Za-z0-9_]*");
 
-    char ** symbols = backtrace_symbols(ptrs.data(), int(size));
 
-    std::vector<std::string> names((size_t(real_size)));
+std::string demangle(std::string const& original_str){
+    std::string matched_str;
+    std::string result_str;
 
-    for (int i = 0; i < real_size; ++i){
-        const char* line = symbols[i];
-        names[i] = std::string(line);
+    auto begin = std::sregex_iterator(original_str.begin(), original_str.end(), mangled_name);
+    auto end = std::sregex_iterator();
+
+    size_t size = original_str.size() - 1;
+    char* buffer = nullptr;
+
+    int status = 0;
+    for(auto i = begin; i != end;){
+        matched_str = (*i).str();
+        // ignore first (
+        buffer = abi::__cxa_demangle(matched_str.c_str() + 1, nullptr, nullptr, &status);
+        break;
     }
 
+    if (matched_str.size() > 0 && status == 0){
+        result_str = std::string(buffer);
+    } else {
+        result_str = original_str;
+    }
+
+    free(buffer);
+    return result_str;
+}
+
+std::vector<std::string> get_backtrace(size_t size=32){
+    // avoid allocating memory dynamically
+    std::vector<void*> ptrs(size);
+//    static std::vector<std::string> ignore = {
+//        "libstdc++.so",
+//        "lython::get_backtrace[abi:cxx11](unsigned long)",
+//        "lython::show_backtrace()"
+//    };
+
+    int real_size = backtrace(ptrs.data(), int(size));
+    char** symbols = backtrace_symbols(ptrs.data(), int(real_size));
+
+    std::vector<std::string> names;
+    names.reserve(size_t(real_size));
+
+    for (int i = 0; i < real_size; ++i){
+        std::string original_str = demangle(symbols[i]);
+
+        bool skip = false;
+        if (original_str.find("libstdc++.so") != std::string::npos){
+            skip = true;
+        }
+//        for (auto& str: ignore){
+//            if (original_str.find(str) != std::string::npos){
+//                skip = true;
+//            }
+//        }
+        // skip libstdc++ calls
+        if (!skip){
+            names.push_back(original_str);
+        }
+    }
+
+    free(symbols);
     return names;
 }
 
@@ -50,11 +105,11 @@ void signal_handler(int sig){
 
 int register_signal_handler(){
     signal(SIGSEGV, signal_handler);   // install our handler
-    signal(SIGINT, signal_handler);
-    signal(SIGQUIT, signal_handler);
-    signal(SIGABRT, signal_handler);
-    signal(SIGKILL, signal_handler);
-    signal(SIGTERM, signal_handler);
+//    signal(SIGINT, signal_handler);
+//    signal(SIGQUIT, signal_handler);
+//    signal(SIGABRT, signal_handler);
+//    signal(SIGKILL, signal_handler);
+//    signal(SIGTERM, signal_handler);
     return 0;
 }
 #else
@@ -158,7 +213,9 @@ bool is_log_enabled(LogLevel level){
     return log_levels()[level];
 }
 
-const char* trace_start = "{} {}+-> {}";
-const char* trace_end = "{} {}+-< {}";
+const char* Exception::what() const noexcept {
+    show_backtrace();
+    return message.c_str();
+}
 
 }

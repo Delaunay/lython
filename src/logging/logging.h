@@ -7,8 +7,21 @@
 // This file should not include spdlog
 // spdlog file is compile time cancer so it is only included inside the .cpp
 
-
 namespace lython{
+
+struct CodeLocation{
+    CodeLocation(std::string const& file, std::string const& fun, int line, std::string const& fun_long):
+        filename(file), function_name(fun), line(line), function_long(fun_long)
+    {}
+
+    std::string filename;
+    std::string function_name;
+    int line;
+    std::string function_long;
+};
+
+#define LOC lython::CodeLocation(__FILE__, __FUNCTION__, __LINE__, __PRETTY_FUNCTION__)
+
 enum LogLevel{
     Trace,
     Debug,
@@ -25,9 +38,6 @@ extern const char* log_level_str[];
 extern const char* trace_start;
 extern const char* trace_end;
 
-std::string format_code_loc(const char* file, const char* function, int line);
-std::string format_code_loc_trace(const char* file, const char* function, int line);
-
 void set_log_level(LogLevel level, bool enabled);
 
 bool is_log_enabled(LogLevel level);
@@ -42,24 +52,29 @@ void show_backtrace();
 std::vector<std::string> get_backtrace(size_t size);
 
 template<typename ... Args>
-void log(LogLevel level, std::string loc, const char* fmt, const Args& ... args){
+void log(LogLevel level, CodeLocation const& loc, const char* fmt, const Args& ... args){
     if (! is_log_enabled(level)){
         return ;
     }
 
-    auto msg = fmt::format("{} - {}", /*log_level_str[level],*/ loc, fmt::format(fmt, args...));
+    auto msg = fmt::format("{}:{} {} - {}",
+                           loc.filename,
+                           loc.line,
+                           loc.function_name,
+                           fmt::format(fmt, args...));
+
     spdlog_log(level, msg);
 }
 
 template<typename ... Args>
-void log_trace(LogLevel level, size_t depth, bool end, std::string loc,  const char* fmt, const Args& ... args){
+void log_trace(LogLevel level, size_t depth, bool end, CodeLocation const& loc,  const char* fmt, const Args& ... args){
     if (! is_log_enabled(level)){
         return ;
     }
 
-    const char* msg_fmt = trace_start;
+    const char* msg_fmt = "{}:{} {}+-> {}";
     if (end){
-        msg_fmt = trace_end;
+        msg_fmt = "{}:{} {}+-< {}";
     }
 
     std::string str(depth, ' ');
@@ -67,39 +82,53 @@ void log_trace(LogLevel level, size_t depth, bool end, std::string loc,  const c
         str[i] = i % 2 ? '|' : ':';
     }
 
-    auto msg = fmt::format(msg_fmt, /*log_level_str[level],*/ loc, str, fmt::format(fmt, args...));
+    auto msg = fmt::format(msg_fmt,
+                           loc.function_name,
+                           loc.line,
+                           str,
+                           fmt::format(fmt, args...));
+
     spdlog_log(level, msg);
 }
 
+// Exception that shows the backtrace when .what() is called
+class Exception: public std::exception{
+public:
+    template<typename ... Args>
+    Exception(const char* fmt,  std::string const& name, const Args& ... args):
+        message(fmt::format(fmt, name, args...))
+    {}
+
+    const char* what() const noexcept final;
+
+private:
+    std::string message;
+};
+
+// Make a simple exception
+#define NEW_EXCEPTION(name)\
+    class name: public Exception{\
+    public:\
+        template<typename ... Args>\
+        name(const char* fmt, const Args& ... args):\
+            Exception(fmt, std::string(#name), args...)\
+        {}\
+    };
+
 } // namespace lython
 
-#define CODE_LOC\
-    lython::format_code_loc(__FILE__, __FUNCTION__, __LINE__)
+#define SYM_LOG_HELPER(level, ...) lython::log(level, LOC, __VA_ARGS__)
+#define info(...)  SYM_LOG_HELPER(lython::LogLevel::Info, __VA_ARGS__)
+#define warn(...)  SYM_LOG_HELPER(lython::LogLevel::Warn, __VA_ARGS__)
+#define debug(...) SYM_LOG_HELPER(lython::LogLevel::Debug, __VA_ARGS__)
+#define error(...) SYM_LOG_HELPER(lython::LogLevel::Error, __VA_ARGS__)
+#define fatal(...) SYM_LOG_HELPER(lython::LogLevel::Fatal, __VA_ARGS__)
 
-#define CODE_LOC_TRACE\
-    lython::format_code_loc_trace(__FILE__, __FUNCTION__, __LINE__)
+#define SYM_LOG_TRACE_HELPER(level, depth, end, ...) lython::log_trace(level, depth, end, LOC, __VA_ARGS__)
 
-#define LOG_HELPER(level, ...)\
-    lython::log(level, CODE_LOC __VA_OPT__(,) __VA_ARGS__)
-
-#define LOG_TRACE_HELPER(level, depth, end, fmt, ...)\
-    lython::log_trace(level, depth, end, CODE_LOC_TRACE, fmt __VA_OPT__(,) __VA_ARGS__)
-
-// info("test %s", "const char*")
-#define info(...) LOG_HELPER(lython::Info , __VA_ARGS__)
-#define warn(...) LOG_HELPER(lython::Warn , __VA_ARGS__)
-#define debug(...) LOG_HELPER(lython::Debug, __VA_ARGS__)
-#define error(...) LOG_HELPER(lython::Error, __VA_ARGS__)
-#define fatal(...) LOG_HELPER(lython::Fatal, __VA_ARGS__)
-
-#define trace(depth, ...)\
-    LOG_TRACE_HELPER(lython::Trace, depth, false, __VA_ARGS__)
-
-#define trace_start(depth, ...)\
-    LOG_TRACE_HELPER(lython::Trace, depth, false, __VA_ARGS__)
-
-#define trace_end(depth, ...)\
-    LOG_TRACE_HELPER(lython::Trace, depth, true, __VA_ARGS__)
+#define trace(depth, ...)       SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
+#define trace_start(depth, ...) SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
+#define trace_end(depth, ...)   SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, true, __VA_ARGS__)
 
 inline void assert_true(bool cond, char const* message,  char const* assert_expr, char const* file, int line, char const* function){
     if (!cond){
