@@ -17,8 +17,8 @@ void metadata_init_names(){
     type_id<PairStringTupleIntBool>();
     _insert_typename<PairStringTupleIntBool>("Pair[String, Tuple[Int, Bool]]");
 
-    type_id<ST::Expr>();
-    _insert_typename<ST::Expr>("Expr");
+//    type_id<Expression>();
+//    _insert_typename<Expression>("Expr");
 
     type_id<Attributes::value_type>();
     _insert_typename<Attributes::value_type>("Attribute");

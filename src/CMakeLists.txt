@@ -17,7 +17,9 @@ AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 # Source
 SET(ADD_HEADERS
     ast/expressions.h
+    ast/nodes.h
     ast/names.h
+    ast/fold.h
     ast/value_holders.h
     lexer/lexer.h
     lexer/buffer.h
@@ -41,6 +43,8 @@ SET(ADD_HEADERS
 SET(ADD_SOURCE
     ast/expressions.cpp
     ast/names.cpp
+    ast/nodes.cpp
+    ast/fold.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp

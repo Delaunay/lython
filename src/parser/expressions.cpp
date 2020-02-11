@@ -2,7 +2,7 @@
 
 namespace lython {
 
-ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
+Expression Parser::parse_expression(Module& m, std::size_t depth) {
     TRACE_START();
     Stack<AST::MathNode> output_stack;
     Stack<AST::MathNode> operator_stack;
@@ -25,7 +25,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                   char(token().type()), token().identifier().c_str());
 
             if (tok2.type() == '(') {
-                ST::Expr function;
+                Expression function;
                 int nargs;
 
                 std::tie(function, nargs) = m.find_function(tok.identifier());
@@ -65,7 +65,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
             output_stack.push({
                 AST::MathKind::Value,
                 0,
-                nullptr,
+                Expression(),
                 tok.identifier()
             });
             EAT(tok.type());
@@ -122,11 +122,11 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
                 }
             }
             debug("push {} to operator", op_name.c_str());
-            operator_stack.push({AST::MathKind::Operator, 0, nullptr, op_name});
+            operator_stack.push({AST::MathKind::Operator, 0, Expression(), op_name});
         }
 
         if (tok.type() == '(') {
-            operator_stack.push({AST::MathKind::None, 0, nullptr, "("});
+            operator_stack.push({AST::MathKind::None, 0, Expression(), "("});
             debug("push {} to operator", "(");
             next_token();
         } else if (tok.type() == ')') {
@@ -167,8 +167,7 @@ ST::Expr Parser::parse_expression(Module& m, std::size_t depth) {
 //    }
 //    std::cout << "\n";
 
-    auto expr = new AST::ReversePolishExpression(output_stack);
-    return ST::Expr(expr);
+    return Expression::make<AST::ReversePolishExpression>(output_stack);
 }
 
 } // namespace lython

@@ -7,6 +7,8 @@
 #include "../Types.h"
 #include "../utilities/trie.h"
 #include "ast/expressions.h"
+#include "ast/nodes.h"
+
 #include "fmt.h"
 
 
@@ -70,17 +72,17 @@ namespace lython {
 
 // Holds Currently defined entities
 
-// I want AST::Expr to be hashable
+// I want AExpression to be hashable
 struct expr_hash {
-    std::size_t operator()(const ST::Expr &v) const noexcept;
+    std::size_t operator()(const Expression &v) const noexcept;
     std::hash<std::string> _h;
 };
 
 struct expr_equal {
-    bool operator()(const ST::Expr &a, const ST::Expr &b) const noexcept;
+    bool operator()(const Expression &a, const Expression &b) const noexcept;
 };
 
-// using BaseScope = std::unordered_set<ST::Expr, expr_hash, expr_equal>;
+// using BaseScope = std::unordered_set<Expression, expr_hash, expr_equal>;
 
 
 struct AccessTracker{
@@ -107,14 +109,14 @@ struct AccessTracker{
  */
 class Module {
   public:
-    static ST::Expr type_type() {
-        static ST::Expr type = std::make_shared<AST::Type>("Type");
+    static Expression type_type() {
+        static auto type = Expression::make<AST::Type>("Type");
         return type;
     }
 
-    static ST::Expr float_type() {
-        static ST::Expr type =
-            std::make_shared<AST::Builtin>("Float", type_type(), 1);
+    static Expression float_type() {
+        static auto type =
+            Expression::make<AST::Builtin>("Float", type_type(), 1);
         return type;
     }
 
@@ -128,25 +130,26 @@ class Module {
                 _operators.insert(c);
             }
 
-            auto min_type = new AST::Arrow();
-            min_type->params.push_back(
+            auto f_f_f = Expression::make<AST::Arrow>();
+            auto binary_type = f_f_f.ref<AST::Arrow>();
+            binary_type->params.push_back(
                 AST::Parameter(make_name("a"), float_type()));
-            min_type->params.push_back(
+            binary_type->params.push_back(
                 AST::Parameter(make_name("b"), float_type()));
 
-            auto sin_type = new AST::Arrow();
-            sin_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
+            auto f_f = Expression::make<AST::Arrow>();
+            auto unary_type = f_f_f.ref<AST::Arrow>();
+            unary_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
 
-            auto double_double = ST::Expr(min_type);
-            auto min_fun = new AST::Builtin("min", double_double, 2);
-            auto max_fun = new AST::Builtin("max", double_double, 2);
-            auto sin_fun = new AST::Builtin("sin", ST::Expr(sin_type), 1);
-            auto pi = new AST::ValueExpr(3.14, float_type());
+            auto min_fun = Expression::make<AST::Builtin>("min", f_f_f, 2);
+            auto max_fun = Expression::make<AST::Builtin>("max", f_f_f, 2);
+            auto sin_fun = Expression::make<AST::Builtin>("sin", f_f, 1);
+            auto pi = Expression::make<AST::ValueExpr>(3.14, float_type());
 
-            insert("min", ST::Expr(min_fun));
-            insert("sin", ST::Expr(sin_fun));
-            insert("max", ST::Expr(max_fun));
-            insert("pi", ST::Expr(pi));
+            insert("min", Expression(min_fun));
+            insert("sin", Expression(sin_fun));
+            insert("max", Expression(max_fun));
+            insert("pi", Expression(pi));
         }
     }
 
@@ -178,19 +181,17 @@ class Module {
 
     int arg_count(std::string_view view) const {
         thread_local String _tmp(view.begin(), view.end());
-        ST::Expr fun_expr = this->find(_tmp);
+        Expression fun = this->find(_tmp);
 
-        if (fun_expr != nullptr &&
-            fun_expr->kind() == AST::Expression::KindFunction) {
-            auto fun = static_cast<AST::Function *>(fun_expr.get());
-            return int(fun->args().size());
+        if (fun && fun.kind() == AST::NodeKind::KFunction) {
+            return int(fun.ref<AST::Function>()->args().size());
         }
 
         return -1;
     }
 
-    Index insert(String const& name, ST::Expr const& expr, bool block_idx=false){
-        // info("Inserting ST::Expression");
+    Index insert(String const& name, Expression const& expr, bool block_idx=false){
+        // info("Inserting Expressionession");
         auto idx = _scope.size();
         _name_idx[name] = idx;
         _idx_name.push_back(name);
@@ -206,17 +207,17 @@ class Module {
         return int(idx) - offset;
     }
 
-    ST::Expr operator[](int idx) const {
+    Expression operator[](int idx) const {
         return get_item(idx);
     }
-    ST::Expr get_item(int idx) const {
+    Expression get_item(int idx) const {
         if (idx >= offset){
             return _scope[size_t(idx - offset)];
         }
         if (_parent){
             return _parent->get_item(idx);
         }
-        return nullptr;
+        return Expression();
     }
 
     String get_name(int idx) const {
@@ -249,8 +250,8 @@ class Module {
         return int(idx) - offset;
     }
 
-    ST::Expr find(String const &view) const {
-        ST::Expr expr;
+    Expression find(String const &view) const {
+        Expression expr;
         Index idx = 0;
 
         std::tie(expr, idx) = _find(view);
@@ -258,44 +259,42 @@ class Module {
         // TODO: might be interesting to create a MissingExpr in the AST
         // itself for rendering in TIDE
         // when expr == nullptr
-        if (expr != nullptr && expr->kind() == AST::Expression::KindReference)
+        if (expr && expr.kind() == AST::NodeKind::KReference)
             return expr;
 
-        return ST::Expr(new AST::Ref(
+        return Expression::make<AST::Ref>(
             String(view),
             idx,
             size(),
-            nullptr));
+            Expression());
     }
 
-    int get_nargs(ST::Expr& function) const {
-        if (function == nullptr)
+    int get_nargs(Expression& fun) const {
+        if (!fun)
             return -1;
 
-        if (function->kind() == AST::Expression::KindFunction){
-            auto *fun = static_cast<AST::Function *>(function.get());
-            return int(fun->args().size());
+        if (fun.kind() == AST::NodeKind::KFunction){
+            return int(fun.ref<AST::Function>()->args().size());
         }
 
-        if (function->kind() == AST::Expression::KindBuiltin){
-            auto *fun = static_cast<AST::Builtin *>(function.get());
-            return int(fun->argument_size);
+        if (fun.kind() == AST::NodeKind::KBuiltin){
+            return int(fun.ref<AST::Builtin>()->argument_size);
         }
 
         return -1;
     }
 
 
-    ST::Expr make_ref(String const &view, int idx, ST::Expr type=nullptr) const {
-        return ST::Expr(new AST::Ref(
+    Expression make_ref(String const &view, int idx, Expression type=Expression()) const {
+        return Expression::make<AST::Ref>(
             String(view),
             idx,
             size(),
-            type));
+            type);
     }
 
-    Tuple<ST::Expr, int> find_function(String const &view) const {
-        ST::Expr expr;
+    Tuple<Expression, int> find_function(String const &view) const {
+        Expression expr;
         Index idx = 0;
         int nargs = -1;
 
@@ -306,7 +305,7 @@ class Module {
         return std::make_tuple(make_ref(view, idx), nargs);
     }
 
-    Tuple<ST::Expr, Index> _find(String const &view) const {
+    Tuple<Expression, Index> _find(String const &view) const {
         debug("looking for {}", view.c_str());
 
         // Check in the current scope
@@ -322,7 +321,7 @@ class Module {
             return _parent->_find(view);
         }
 
-        return std::make_tuple(nullptr, -1);
+        return std::make_tuple(Expression(), -1);
     }
 
     template<typename T>
@@ -383,7 +382,7 @@ class Module {
             out << align_right(name, 30) << "   ";
 
             std::stringstream ss;
-            expr->print(ss) << "\n";
+            expr.print(ss) << "\n";
 
             auto str = ss.str();
 
@@ -414,14 +413,14 @@ class Module {
             return std::size_t(this->index) == this->iter._scope.size();
         }
 
-        std::pair<String, ST::Expr> operator*(){
+        std::pair<String, Expression> operator*(){
             return {
                 iter._idx_name[std::size_t(index)],
                 iter._scope[std::size_t(index)]
             };
         }
 
-        std::pair<String, ST::Expr> operator*() const{
+        std::pair<String, Expression> operator*() const{
             return {
                 iter._idx_name[std::size_t(index)],
                 iter._scope[std::size_t(index)]
@@ -456,7 +455,7 @@ class Module {
 
     // stored in an array so we can do lookup by index
     AccessTracker* _tracker = nullptr;
-    Array<ST::Expr> _scope;
+    Array<Expression> _scope;
     Array<String>   _idx_name;
     Dict<String, Index> _name_idx;
 

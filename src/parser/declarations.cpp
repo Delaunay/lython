@@ -69,7 +69,7 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
     while (token().type() != ')' && token()) {
 
         String vname = CHECK_NAME(get_identifier());
-        ST::Expr type = nullptr;
+        Expression type;
         next_token();
 
         // type declaration
@@ -91,7 +91,7 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
     return list;
 }
 
-ST::Expr Parser::parse_type(Module& m, size_t depth) {
+Expression Parser::parse_type(Module& m, size_t depth) {
     TRACE_START();
 
     String name = "<typename>";
@@ -106,14 +106,14 @@ ST::Expr Parser::parse_type(Module& m, size_t depth) {
         warn("Undefined type \"{}\"", name.c_str());
     }
     // TODO: is this correct
-    auto type = new AST::Ref(name, loc, m.size(), nullptr);
+    auto type = Expression::make<AST::Ref>(name, loc, m.size(), Expression());
     EAT(tok_identifier);
 
     TRACE_END();
-    return ST::Expr(type);
+    return Expression(type);
 }
 
-ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
+Expression Parser::parse_function(Module& m, std::size_t depth) {
     TRACE_START();
 
     EXPECT(tok_def, "Expected function to start by `def`");
@@ -130,12 +130,12 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     AccessTracker tracker;
     Module module = m.enter(&tracker);
     auto parameters = parse_parameter_list(m, depth + 1);
-    auto fun = new AST::Function(function_name);
-    ST::Expr fun_ptr = ST::Expr(fun);
+    auto expr = Expression::make<AST::Function>(function_name);
+    auto fun = expr.ref<AST::Function>();
 
     // Insert function for recursive calls
     // debug("Insert Function");
-    module.insert(function_name, fun_ptr);
+    module.insert(function_name, expr);
 
     fun->args() = parameters;
 
@@ -143,7 +143,7 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     // Parameters are created by the call
     for(AST::Parameter& param: parameters){
         int size = module.size();
-        auto ref = ST::Expr(new AST::Ref(param.name(), size, size, param.type()));
+        auto ref = Expression::make<AST::Ref>(param.name(), size, size, param.type());
         module.insert(param.name(), ref);
     }
 
@@ -169,9 +169,9 @@ ST::Expr Parser::parse_function(Module& m, std::size_t depth) {
     fun->body() = parse_compound_statement(module, depth + 1);
     TRACE_END();
 
-    m.insert(function_name, fun_ptr);
+    m.insert(function_name, expr);
     fun->frame = tracker.access;
-    return fun_ptr;
+    return expr;
 }
 
 Token Parser::ignore_newlines() {
@@ -182,13 +182,14 @@ Token Parser::ignore_newlines() {
     return tok;
 }
 
-ST::Expr Parser::parse_compound_statement(Module& m, std::size_t depth) {
+Expression Parser::parse_compound_statement(Module& m, std::size_t depth) {
     TRACE_START();
     // if a docstring is present the indent token was already eaten
     // EXPECT(tok_indent, "Expected start of compound statement");
     // EAT(tok_indent);
 
-    auto *block = new AST::SeqBlock();
+    auto expr = Expression::make<AST::SeqBlock>();
+    auto *block = expr.ref<AST::SeqBlock>();
     Token tok = token();
 
     while (tok.type() != tok_desindent && tok.type() != tok_eof) {
@@ -200,13 +201,13 @@ ST::Expr Parser::parse_compound_statement(Module& m, std::size_t depth) {
     }
 
     if (token().type() == tok_eof) {
-        return ST::Expr(block);
+        return expr;
     }
 
     EXPECT(tok_desindent, "Expected end of compound statement");
     EAT(tok_desindent);
     TRACE_END();
-    return ST::Expr(block);
+    return expr;
 }
 
 /* <statement> ::= <labeled-statement>  <labeled-statement>     ::= <identifier>
@@ -226,7 +227,7 @@ ST::Expr Parser::parse_compound_statement(Module& m, std::size_t depth) {
    {<declaration>}* {<statement>}* }
  */
 /*
-ST::Expr Parser::parse_statement(int8 statement, std::size_t depth){
+Expression Parser::parse_statement(int8 statement, std::size_t depth){
     // labeled statement
     if (token().type() == tok_identifier){
         String label = token().identifier();

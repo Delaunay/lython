@@ -18,15 +18,15 @@ inline String parse_it(String code){
 
     StringStream ss;
 
-    ST::Expr expr = nullptr;
+    Expression expr;
     do {
         expr = par.parse_one(module);
 
         if (expr){
-            expr->print(ss) << '\n';
+            expr.print(ss) << '\n';
         }
 
-    } while(expr != nullptr);
+    } while(expr);
     return ss.str();
 }
 

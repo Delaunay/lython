@@ -9,6 +9,7 @@
 #include "../utilities/trie.h"
 #include "../utilities/metadata.h"
 
+#include "../ast/nodes.h"
 #include "module.h"
 
 #include <iostream>
@@ -100,36 +101,36 @@ class Parser {
     /*  <function-definition> ::= {<declaration-specifier>}* <declarator>
      * {<declaration>}* <compound-statement>
      */
-    ST::Expr parse_function(Module& m, std::size_t depth);
+    Expression parse_function(Module& m, std::size_t depth);
 
-    ST::Expr parse_compound_statement(Module& m, std::size_t depth);
+    Expression parse_compound_statement(Module& m, std::size_t depth);
 
     Token ignore_newlines();
 
-    ST::Expr parse_type(Module& m, std::size_t depth);
+    Expression parse_type(Module& m, std::size_t depth);
 
     AST::ParameterList parse_parameter_list(Module& m, std::size_t depth);
 
-    ST::Expr parse_value(Module& m, std::size_t depth) {
+    Expression parse_value(Module& m, std::size_t depth) {
         TRACE_START();
 
-        AST::ValueExpr *val = nullptr;
+        Expression val;
         int8 type = token().type();
 
         switch (type) {
         case tok_string:
             // make_type("string")
-            val = new AST::ValueExpr(token().identifier(), nullptr);
+            val =  Expression::make<AST::ValueExpr>(token().identifier(), Expression());
             EAT(tok_string);
             break;
         case tok_float:
             // make_type("float")
-            val = new AST::ValueExpr(token().as_float(), nullptr);
+            val =  Expression::make<AST::ValueExpr>(token().as_float(), Expression());
             EAT(tok_float);
             break;
         case tok_int:
             // make_type("int")
-            val = new AST::ValueExpr(token().as_integer(), nullptr);
+            val = Expression::make<AST::ValueExpr>(token().as_integer(), Expression());
             EAT(tok_int);
             break;
         }
@@ -138,7 +139,7 @@ class Parser {
         auto ttype = token().type();
         if (ttype == tok_newline || ttype == tok_eof || ttype == ',' ||
             ttype == ')')
-            return ST::Expr(val);
+            return Expression(val);
 
 
         String name;
@@ -161,28 +162,30 @@ class Parser {
         //auto op = new AST::Ref(name, loc, size);
         auto op = m.find(name);
 
-        ST::Expr rhs = parse_value(m, depth + 1);
-        AST::BinaryOperator *bin =
-            new AST::BinaryOperator(rhs, ST::Expr(val), ST::Expr(op));
+        Expression rhs = parse_value(m, depth + 1);
+        Expression bin = Expression::make<AST::BinaryOperator>(rhs, val, op);
         TRACE_END();
-        return ST::Expr(bin);
+        return Expression(bin);
     }
 
-    ST::Expr parse_statement(Module& m, int8 statement, std::size_t depth) {
+    Expression parse_statement(Module& m, int8 statement, std::size_t depth) {
         TRACE_START();
         EXPECT(statement, ": was expected");
         EAT(statement);
 
-        auto *stmt = new AST::Statement();
+        auto expr = Expression::make<AST::Statement>();
+        auto stmt = expr.ref<AST::Statement>();
         stmt->statement() = statement;
 
         stmt->expr() = parse_expression(m, depth + 1);
-        return ST::Expr(stmt);
+        return expr;
     }
 
-    ST::Expr parse_function_call(Module& m, ST::Expr function, std::size_t depth) {
+    Expression parse_function_call(Module& m, Expression function, std::size_t depth) {
         TRACE_START();
-        auto fun = new AST::Call();
+        auto expr = Expression::make<AST::Call>();
+        auto fun = expr.ref<AST::Call>();
+
         fun->function() = function;
 
         EXPECT('(', "`(` was expected");
@@ -200,7 +203,7 @@ class Parser {
 
         EXPECT(')', "`)` was expected");
         EAT(')');
-        return ST::Expr(fun);
+        return expr;
     }
 
     String parse_operator() {
@@ -268,10 +271,10 @@ class Parser {
 
     // Shunting-yard_algorithm
     // Parse a full line of function and stuff
-    ST::Expr parse_expression(Module& m, std::size_t depth);
+    Expression parse_expression(Module& m, std::size_t depth);
 
     // parse function_name(args...)
-    ST::Expr parse_top_expression(Module& m, std::size_t depth) {
+    Expression parse_top_expression(Module& m, std::size_t depth) {
         TRACE_START();
 
         switch (token().type()) {
@@ -288,7 +291,7 @@ class Parser {
         //                AST::Ref* fun_name = new AST::Ref();
         //                fun_name->name() = token().identifier();
         //                EAT(tok_identifier);
-        //                return parse_function_call(ST::Expr(fun_name), depth +
+        //                return parse_function_call(Expression(fun_name), depth +
         //                1);
         //            }
 
@@ -305,7 +308,7 @@ class Parser {
             //                return parse_operator(depth + 1);
         }
 
-        return nullptr;
+        return Expression();
     }
 
     /*  <struct-or-union> ::= struct | union
@@ -315,7 +318,7 @@ class Parser {
        {<struct-declaration>}+ }
                                       | <struct-or-union> <identifier>
      */
-    ST::Expr parse_struct(Module& m, std::size_t depth) {
+    Expression parse_struct(Module& m, std::size_t depth) {
         TRACE_START();
         EAT(tok_struct);
 
@@ -324,7 +327,8 @@ class Parser {
         String struct_name = tok.identifier();
         EAT(tok_identifier);
 
-        auto *data = new AST::Struct();
+        auto struct_ = Expression::make<AST::Struct>();
+        auto *data = struct_.ref<AST::Struct>();
         data->name() = struct_name;
 
         EXPECT(':', ": was expected");
@@ -367,13 +371,12 @@ class Parser {
             }
         }
 
-        auto struct_ptr = ST::Expr(data);
-        module->insert(struct_name, struct_ptr);
-        return struct_ptr;
+        module->insert(struct_name, struct_);
+        return struct_;
     }
 
     // return One Top level Expression (Functions)
-    ST::Expr parse_one(Module& m, std::size_t depth = 0) {
+    Expression parse_one(Module& m, std::size_t depth = 0) {
         Token tok = token();
         if (tok.type() == tok_incorrect) {
             tok = next_token();
@@ -394,7 +397,7 @@ class Parser {
             assert("Unknown Token");
         }
 
-        return nullptr;
+        return Expression();
     }
 
     //

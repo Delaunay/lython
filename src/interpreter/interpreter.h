@@ -108,7 +108,7 @@ public:
         // Eval the module en create the environment for the interpreter
         for(std::size_t i = 0; i < m->size(); ++i){
             debug("{}", m->get_name(i).c_str());
-            ST::Expr exp = (*m)[i];
+            Expression exp = (*m)[i];
             auto v = this->eval(exp);
             env.push_back(v);
         }
@@ -121,63 +121,51 @@ public:
         debug("---");
     }
 
-    Value eval(ST::Expr const &  expr, size_t depth=0){
+    Value eval(Expression const &  expr, size_t depth=0){
         trace_start(depth, "eval");
-        switch(expr->kind()){
-        case AST::Expression::KindFunction:{
-            AST::Function* fun = static_cast<AST::Function*>(expr.get());
-
-            // Create the closure here with its environment setup
-            // Array<Value> env;
-            // env.reserve(100);
-
-            return Value(fun, env);
+        switch(expr.kind()){
+        case AST::NodeKind::KFunction:{
+            return Value(expr.ref<const AST::Function>(), env);
         }
-        case AST::Expression::KindCall:{
-            AST::Call* cl = static_cast<AST::Call*>(expr.get());
-            return call(cl, depth + 1);
+        case AST::NodeKind::KCall:{
+            return call(expr.ref<const AST::Call>(), depth + 1);
         }
-        case AST::Expression::KindSeqBlock:{
-            AST::SeqBlock* block = static_cast<AST::SeqBlock*>(expr.get());
-            return seq_block(block, depth + 1);
+        case AST::NodeKind::KSeqBlock:{
+            return seq_block(expr.ref<const AST::SeqBlock>(), depth + 1);
         }
-        case AST::Expression::KindValue:{
-            AST::ValueExpr* val = static_cast<AST::ValueExpr*>(expr.get());
-            return value(val, depth + 1);
+        case AST::NodeKind::KValue:{
+            return value(expr.ref<const AST::ValueExpr>(), depth + 1);
         }
-        case AST::Expression::KindStatement:{
-            AST::Statement* stmt = static_cast<AST::Statement*>(expr.get());
-            return statement(stmt, depth + 1);
+        case AST::NodeKind::KStatement:{
+            return statement(expr.ref<const AST::Statement>(), depth + 1);
         }
-        case AST::Expression::KindReversePolish:{
-            AST::ReversePolishExpression* rpe = static_cast<AST::ReversePolishExpression*>(expr.get());
+        case AST::NodeKind::KReversePolish:{
+            AST::ReversePolishExpression const* rpe = expr.ref<const AST::ReversePolishExpression>();
             auto iter = std::begin(rpe->stack);
             return eval_rpe(iter, depth + 1);
         }
-        case AST::Expression::KindReference: {
-            AST::Ref* ref = static_cast<AST::Ref*>(expr.get());
-            return eval_ref(ref, depth + 1);
+        case AST::NodeKind::KReference: {
+            return eval_ref(expr.ref<AST::Ref const>(), depth + 1);
         }
-        case AST::Expression::KindBuiltin: {
-            AST::Builtin* blt = static_cast<AST::Builtin*>(expr.get());
-            return eval_builtin(blt, depth + 1);
+        case AST::NodeKind::KBuiltin: {
+            return eval_builtin(expr.ref<const AST::Builtin>(), depth + 1);
         }
         default: {
-            info("Ignoring {}", expr->kind());
+            info("Ignoring {}", expr.kind());
             return Value("MainEval Not Implemented");
         }
         }
     }
 
-    Value eval_builtin(AST::Builtin* blt, size_t depth){
+    Value eval_builtin(AST::Builtin const* blt, size_t depth){
         trace_start(depth, "{}", blt->name.c_str());
         auto fun = builtins[blt->name];
         return Value(fun, Array<Value>());
     }
 
-    Value eval_ref(AST::Ref* ref, size_t depth){
+    Value eval_ref(AST::Ref const* ref, size_t depth){
         trace_start(depth, "{}: {}, {} | {} | {}",
-                    ref->name().c_str(),
+                    ref->name(),
                     ref->index(),
                     ref->length(),
                     int(module->size()),
@@ -193,7 +181,7 @@ public:
         return eval(expr, depth + 1);
     }
 
-    Value eval_rpe(Stack<AST::MathNode>::Iterator &iter, size_t depth){
+    Value eval_rpe(Stack<AST::MathNode const>::Iterator &iter, size_t depth){
         AST::MathNode op = *iter;
         iter++;
 
@@ -251,7 +239,7 @@ public:
         throw std::runtime_error("unreachable");
     }
 
-    Value eval_closure(Value fun, size_t depth){
+    Value eval_closure(Value const fun, size_t depth){
         trace_start(depth, "closure");
         if (fun.tag == obj_closure){
             if (!fun.v_closure.fun){
@@ -263,12 +251,12 @@ public:
         return Value("closure");
     }
 
-    Value statement(AST::Statement* stmt, size_t depth){
+    Value statement(AST::Statement const* stmt, size_t depth){
         trace_start(depth, "%d", stmt->statement());
         return eval(stmt->expr(), depth + 1);
     }
 
-    Array<Value> eval(Array<ST::Expr> const & exprs, size_t depth){
+    Array<Value> eval(Array<Expression> const & exprs, size_t depth){
         trace_start(depth, "eval_args");
 
         Array<Value> values;
@@ -280,12 +268,12 @@ public:
         return values;
     }
 
-    Value value(AST::ValueExpr* val, size_t depth){
+    Value value(AST::ValueExpr const* val, size_t depth){
         trace_start(depth, "value");
         return val->value;
     }
 
-    Value seq_block(AST::SeqBlock* val, size_t depth){
+    Value seq_block(AST::SeqBlock const* val, size_t depth){
         trace_start(depth, "seq_block");
 
         size_t n = size_t(std::max(int(val->blocks().size()) - 1, 0));
@@ -302,7 +290,7 @@ public:
         return env[ref->index()];
     }
 
-    Value call(AST::Call* call, size_t depth){
+    Value call(AST::Call const* call, size_t depth){
         trace_start(depth, "call");
         Value closure = eval(call->function(), depth + 1);
         assert(closure.tag == obj_closure);

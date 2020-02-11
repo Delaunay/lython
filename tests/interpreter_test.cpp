@@ -10,7 +10,7 @@ using namespace lython;
 
 template<typename T>
 void insert_arg(AST::Call* call, T a){
-    call->arguments().emplace_back(new AST::ValueExpr(a, nullptr));
+    call->arguments().emplace_back(Expression::make<AST::ValueExpr>(a, Expression()));
 }
 
 template<typename... Args>
@@ -21,10 +21,10 @@ Value interpret_call(String const& code, String fun_name, Args... v){
     Module module;
     Parser par(reader, &module);
 
-    ST::Expr expr = nullptr;
+    Expression expr;
     do {
         expr = par.parse_one(module);
-    } while(expr != nullptr);
+    } while(expr);
     // ---
 
     Interpreter vm(&module);
@@ -32,15 +32,16 @@ Value interpret_call(String const& code, String fun_name, Args... v){
     // Make Fun Call
     auto fun = module.find(fun_name);
 
-    assert(fun != nullptr);
+    assert(fun);
 
-    auto* call = new AST::Call();
+    expr = Expression::make<AST::Call>();
+    auto* call = expr.ref<AST::Call>();
     call->function() = fun;
 
     (insert_arg(call, std::forward<Args>(v)), ...);
 
     // return value
-    return vm.eval(ST::Expr(call));
+    return vm.eval(expr);
 }
 
 Value interpret_code(String const& code){
@@ -50,10 +51,10 @@ Value interpret_code(String const& code){
     Module module;
     Parser par(reader, &module);
 
-    ST::Expr expr = nullptr;
+    Expression expr;
     do {
         expr = par.parse_one(module);
-    } while(expr != nullptr);
+    } while(expr);
     // ---
 
     Interpreter vm(&module);

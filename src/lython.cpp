@@ -95,18 +95,18 @@ int main() {
 
         try {
             Parser par(reader, &module);
-            ST::Expr expr = nullptr;
+            Expression expr;
             do {
                 expr = par.parse_one(module);
 
                 if (expr){
                     StringStream ss;
-                    expr->print(ss);
+                    expr.print(ss);
 
                     parser_string = ss.str();
                 }
 
-            } while(expr != nullptr);
+            } while(expr);
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
@@ -138,7 +138,7 @@ int main() {
                 continue;
 
             std::cout << expr.first << ":" << std::endl;
-            expr.second->print(std::cout) << "\n\n";
+            expr.second.print(std::cout) << "\n\n";
         }
 
         // -------------------------------------------------
@@ -151,13 +151,15 @@ int main() {
         std::cout << std::string(80, '-') << '\n';
 
         Interpreter vm(&module);
-        AST::Call* call = new AST::Call();
+
+        auto expr = Expression::make<AST::Call>();
+        AST::Call* call = expr.ref<AST::Call>();
 
         call->function() = module.find("max_alias");
-        call->arguments().emplace_back(new AST::ValueExpr(1, nullptr));
-        call->arguments().emplace_back(new AST::ValueExpr(2.0, nullptr));
+        call->arguments().emplace_back(Expression::make<AST::ValueExpr>(1, Expression()));
+        call->arguments().emplace_back(Expression::make<AST::ValueExpr>(2.0, Expression()));
 
-        Value v = vm.eval(ST::Expr(call));
+        Value v = vm.eval(expr);
 
         v.print(std::cout);
         std::cout << std::endl;
