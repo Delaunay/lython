@@ -71,10 +71,3 @@ TARGET_LINK_LIBRARIES(liblython fmt::fmt)
 # Main interpreter loop
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} fmt::fmt liblython liblogging)
-
-setup_target_for_coverage_gcovr_html(
-    NAME coverage
-    EXECUTABLE ctest -j 4
-    BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src"
-    DEPENDS test)
-

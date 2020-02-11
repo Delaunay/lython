@@ -50,10 +50,11 @@ FIND_PACKAGE(Git REQUIRED)
 # Find revision ID and hash of the sourcetree
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
-INCLUDE(CodeCoverage)
-append_coverage_compiler_flags()
-set(COVERAGE_EXCLUDES "${PROJECT_SOURCE_DIR}/dependencies/*")
-
+IF(UNIX)
+    INCLUDE(CodeCoverage)
+    append_coverage_compiler_flags()
+    SET(COVERAGE_EXCLUDES "${PROJECT_SOURCE_DIR}/dependencies/*")
+ENDIF (UNIX)
 # Subdirectories
 # ====================================
 

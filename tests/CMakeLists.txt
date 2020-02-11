@@ -17,6 +17,16 @@ SET(TEST_HEADERS
 # INCLUDE(catch)
 INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
 
+
+IF(UNIX)
+	setup_target_for_coverage_gcovr_html(
+		NAME coverage
+		EXECUTABLE ctest -j 4
+		BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src"
+		DEPENDS test)
+ENDIF(UNIX)
+
+
 # Add your test to CMAKE
 # to run all tests run 'make test'
 MACRO(TEST_MACRO NAME) # LIBRARIES
@@ -24,8 +34,11 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
     TARGET_LINK_LIBRARIES(${NAME}_test fmt::fmt Catch2::Catch2 liblython liblogging)
 
     ADD_DEPENDENCIES(${NAME}_test liblython liblogging)
-    ADD_DEPENDENCIES(coverage ${NAME}_test)
-
+	
+	IF(UNIX)
+		ADD_DEPENDENCIES(coverage ${NAME}_test)
+	ENDIF(UNIX)
+	
     ADD_TEST(
         NAME ${NAME}
         WORKING_DIRECTORY .

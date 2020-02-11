@@ -118,7 +118,9 @@ int register_signal_handler(){
     return 0;
 }
 #else
-void register_signal_handler(){}
+int register_signal_handler(){
+    return 0;
+}
 
 void show_backtrace(){}
 
