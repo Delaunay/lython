@@ -175,9 +175,9 @@ class Parser {
 
         auto expr = Expression::make<AST::Statement>();
         auto stmt = expr.ref<AST::Statement>();
-        stmt->statement() = statement;
+        stmt->statement = statement;
 
-        stmt->expr() = parse_expression(m, depth + 1);
+        stmt->expr = parse_expression(m, depth + 1);
         return expr;
     }
 
@@ -186,7 +186,7 @@ class Parser {
         auto expr = Expression::make<AST::Call>();
         auto fun = expr.ref<AST::Call>();
 
-        fun->function() = function;
+        fun->function = function;
 
         EXPECT('(', "`(` was expected");
         EAT('(');
@@ -194,7 +194,7 @@ class Parser {
         while (token().type() != ')') {
             // token().debug_print(std::cout);
 
-            fun->arguments().push_back(parse_expression(m, depth + 1));
+            fun->arguments.push_back(parse_expression(m, depth + 1));
 
             if (token().type() == ',') {
                 next_token();
@@ -329,7 +329,7 @@ class Parser {
 
         auto struct_ = Expression::make<AST::Struct>();
         auto *data = struct_.ref<AST::Struct>();
-        data->name() = struct_name;
+        data->name = struct_name;
 
         EXPECT(':', ": was expected");
         EAT(':');
@@ -343,7 +343,7 @@ class Parser {
 
         // docstring
         if (tok.type() == tok_docstring) {
-            data->docstring() = tok.identifier();
+            data->docstring = tok.identifier();
             tok = next_token();
         }
 
@@ -363,7 +363,7 @@ class Parser {
             EXPECT(':', "Expect :");
             EAT(':');
 
-            data->attributes()[attribute_name] = parse_type(m, depth);
+            data->attributes[attribute_name] = parse_type(m, depth);
             tok = token();
 
             while (tok.type() == tok_newline) {

@@ -165,23 +165,23 @@ public:
 
     Value eval_ref(AST::Ref const* ref, size_t depth){
         trace_start(depth, "{}: {}, {} | {} | {}",
-                    ref->name(),
-                    ref->index(),
-                    ref->length(),
+                    ref->name,
+                    ref->index,
+                    ref->length,
                     int(module->size()),
                     env.size());
 
-        assert(env.size() > ref->index() && "Environment should hold the ref");
-        auto n = ref->index();
+        assert(env.size() > ref->index && "Environment should hold the ref");
+        auto n = ref->index;
 
         debug("found {}", env[n].str());
         return env[n];
 
-        auto expr = module->get_item(ref->index());
+        auto expr = module->get_item(ref->index);
         return eval(expr, depth + 1);
     }
 
-    Value eval_rpe(Stack<AST::MathNode const>::Iterator &iter, size_t depth){
+    Value eval_rpe(Stack<AST::MathNode>::ConstIterator &iter, size_t depth){
         AST::MathNode op = *iter;
         iter++;
 
@@ -252,8 +252,8 @@ public:
     }
 
     Value statement(AST::Statement const* stmt, size_t depth){
-        trace_start(depth, "%d", stmt->statement());
-        return eval(stmt->expr(), depth + 1);
+        trace_start(depth, "%d", stmt->statement);
+        return eval(stmt->expr, depth + 1);
     }
 
     Array<Value> eval(Array<Expression> const & exprs, size_t depth){
@@ -276,40 +276,40 @@ public:
     Value seq_block(AST::SeqBlock const* val, size_t depth){
         trace_start(depth, "seq_block");
 
-        size_t n = size_t(std::max(int(val->blocks().size()) - 1, 0));
+        size_t n = size_t(std::max(int(val->blocks.size()) - 1, 0));
 
         for(size_t i = 0; i < n; ++i)
-            eval(val->blocks()[i], depth + 1);
+            eval(val->blocks[i], depth + 1);
 
         // returns last line of sequential block
-        return eval(val->blocks()[n], depth + 1);
+        return eval(val->blocks[n], depth + 1);
     }
 
     Value ref(AST::Ref const* ref, Array<Value> env, size_t depth){
         trace_start(depth, "ref");
-        return env[ref->index()];
+        return env[ref->index];
     }
 
     Value call(AST::Call const* call, size_t depth){
         trace_start(depth, "call");
-        Value closure = eval(call->function(), depth + 1);
+        Value closure = eval(call->function, depth + 1);
         assert(closure.tag == obj_closure);
         Value::Closure& clo = closure.get_closure();
 
         auto on = env.size();
-        auto n = call->arguments().size();
+        auto n = call->arguments.size();
 
-        for (auto& expr: call->arguments())
+        for (auto& expr: call->arguments)
             env.push_back(eval(expr, depth + 1));
 
         // clo.env = eval(call->arguments(), depth);
         // clo.env.insert(std::begin(clo.env), Value(0));
 
-        AST::Function* fun = closure.v_closure.fun;
+        const AST::Function* fun = closure.v_closure.fun;
 
         //auto old = env;
         //env = closure.v_closure.env;
-        Value returned_value = eval(fun->body(), depth);
+        Value returned_value = eval(fun->body, depth);
         // env = old;
 
         env.erase(env.begin() + on, env.end());

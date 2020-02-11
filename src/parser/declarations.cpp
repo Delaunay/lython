@@ -137,19 +137,19 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     // debug("Insert Function");
     module.insert(function_name, expr);
 
-    fun->args() = parameters;
+    fun->args = parameters;
 
     // Insert the parameters into the Scope
     // Parameters are created by the call
     for(AST::Parameter& param: parameters){
         int size = module.size();
-        auto ref = Expression::make<AST::Ref>(param.name(), size, size, param.type());
-        module.insert(param.name(), ref);
+        auto ref = Expression::make<AST::Ref>(param.name, size, size, param.type);
+        module.insert(param.name, ref);
     }
 
     WITH_EXPECT(tok_arrow, "Expected -> before return type") {
         EAT(tok_arrow);
-        fun->return_type() = parse_type(m, depth + 1);
+        fun->return_type = parse_type(m, depth + 1);
     };
 
     EXPECT(':', "Expected function to end with a `:`");
@@ -160,13 +160,13 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     EAT(tok_indent);
 
     if (token().type() == tok_docstring) {
-        fun->docstring() = token().identifier();
+        fun->docstring = token().identifier();
         EAT(tok_docstring);
         EXPECT(tok_newline, "new line was expected");
         EAT(tok_newline);
     }
 
-    fun->body() = parse_compound_statement(module, depth + 1);
+    fun->body = parse_compound_statement(module, depth + 1);
     TRACE_END();
 
     m.insert(function_name, expr);
@@ -195,7 +195,7 @@ Expression Parser::parse_compound_statement(Module& m, std::size_t depth) {
     while (tok.type() != tok_desindent && tok.type() != tok_eof) {
         auto expr = parse_top_expression(m, depth + 1);
 
-        block->blocks().push_back(expr);
+        block->blocks.push_back(expr);
 
         tok = ignore_newlines();
     }

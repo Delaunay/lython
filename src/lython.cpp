@@ -155,9 +155,9 @@ int main() {
         auto expr = Expression::make<AST::Call>();
         AST::Call* call = expr.ref<AST::Call>();
 
-        call->function() = module.find("max_alias");
-        call->arguments().emplace_back(Expression::make<AST::ValueExpr>(1, Expression()));
-        call->arguments().emplace_back(Expression::make<AST::ValueExpr>(2.0, Expression()));
+        call->function = module.find("max_alias");
+        call->arguments.emplace_back(Expression::make<AST::ValueExpr>(1, Expression()));
+        call->arguments.emplace_back(Expression::make<AST::ValueExpr>(2.0, Expression()));
 
         Value v = vm.eval(expr);
 

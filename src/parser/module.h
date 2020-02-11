@@ -184,7 +184,7 @@ class Module {
         Expression fun = this->find(_tmp);
 
         if (fun && fun.kind() == AST::NodeKind::KFunction) {
-            return int(fun.ref<AST::Function>()->args().size());
+            return int(fun.ref<AST::Function>()->args.size());
         }
 
         return -1;
@@ -274,7 +274,7 @@ class Module {
             return -1;
 
         if (fun.kind() == AST::NodeKind::KFunction){
-            return int(fun.ref<AST::Function>()->args().size());
+            return int(fun.ref<AST::Function>()->args.size());
         }
 
         if (fun.kind() == AST::NodeKind::KBuiltin){

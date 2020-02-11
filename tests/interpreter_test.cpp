@@ -10,7 +10,7 @@ using namespace lython;
 
 template<typename T>
 void insert_arg(AST::Call* call, T a){
-    call->arguments().emplace_back(Expression::make<AST::ValueExpr>(a, Expression()));
+    call->arguments.emplace_back(Expression::make<AST::ValueExpr>(a, Expression()));
 }
 
 template<typename... Args>
@@ -36,7 +36,7 @@ Value interpret_call(String const& code, String fun_name, Args... v){
 
     expr = Expression::make<AST::Call>();
     auto* call = expr.ref<AST::Call>();
-    call->function() = fun;
+    call->function = fun;
 
     (insert_arg(call, std::forward<Args>(v)), ...);
 

@@ -8,49 +8,41 @@
 namespace lython {
 namespace AST {
 std::size_t pl_hash::operator()(Parameter &v) const noexcept {
-    auto n = v.name();
+    auto n = v.name;
     String tmp(std::begin(n), std::end(n));
     return _h(tmp);
 }
 
-UnparsedBlock::~UnparsedBlock() {}
-Function::~Function() {}
-SeqBlock::~SeqBlock() {}
-UnaryOperator::~UnaryOperator() {}
-BinaryOperator::~BinaryOperator() {}
-Parameter::~Parameter() {}
-Call::~Call() {}
 
-// FunctionPrototype::~FunctionPrototype(){}
 
 std::ostream &Parameter::print(std::ostream &out, int32) {
-    return out << this->name();
+    return out << this->name;
 }
 
 
 std::ostream &UnaryOperator::print(std::ostream &out, int32 indent) {
     // debug("UnaryPrint");
-    _expr.print(out, indent);
+    expr.print(out, indent);
     return out;
 }
 
 std::ostream &BinaryOperator::print(std::ostream &out, int32 indent) {
-    _lhs.print(out, indent);
+    lhs.print(out, indent);
     out << ' ';
-    _op.print(out, indent);
+    op.print(out, indent);
     out << ' ';
-    _rhs.print(out, indent);
+    rhs.print(out, indent);
     return out;
 }
 
 std::ostream &UnparsedBlock::print(std::ostream &out, int32 indent) {
-    for (auto &tok : _toks)
+    for (auto &tok : tokens)
         tok.print(out, indent);
     return out;
 }
 
 std::ostream &SeqBlock::print(std::ostream &out, int32 indent) {
-    for (auto &g : blocks()) {
+    for (auto &g : blocks) {
         out << std::string(std::size_t(indent) * 4, ' ');
         g.print(out, indent);
     }
@@ -60,74 +52,74 @@ std::ostream &SeqBlock::print(std::ostream &out, int32 indent) {
 std::ostream &Function::print(std::ostream &out, int32 indent) {
     // debug("Function Print");
 
-    out << "def " << _name << "(";
+    out << "def " << name << "(";
 
-    for (uint32 i = 0, n = uint32(_args.size()); i < n; ++i) {
-        out << _args[i].name();
+    for (uint32 i = 0, n = uint32(args.size()); i < n; ++i) {
+        out << args[i].name;
 
-        if (_args[i].type()) {
+        if (args[i].type) {
             out << ": ";
-            _args[i].type().print(out, indent);
+            args[i].type.print(out, indent);
         }
 
         if (i < n - 1)
             out << ", ";
     }
 
-    if (_return_type) {
+    if (return_type) {
         out << ") -> ";
-        return_type().print(out, indent);
+        return_type.print(out, indent);
         out << ":\n";
     } else
         out << "):\n";
 
     std::string indentation = std::string(size_t(indent + 1) * 4, ' ');
 
-    if (docstring().size() > 0) {
-        out << indentation << "\"\"\"" << docstring() << "\"\"\"\n";
+    if (docstring.size() > 0) {
+        out << indentation << "\"\"\"" << docstring << "\"\"\"\n";
     }
 
-    _body.print(out, indent + 1);
+    body.print(out, indent + 1);
     return out << "\n";
 }
 
 std::ostream &Statement::print(std::ostream &out, int32 indent) {
-    out << keyword_as_string()[statement()] << " ";
-    expr().print(out, indent);
+    out << keyword_as_string()[statement] << " ";
+    expr.print(out, indent);
     return out;
 }
 
 std::ostream &Call::print(std::ostream &out, int32 indent) {
-    function().print(out, indent);
+    function.print(out, indent);
     out << "(";
 
-    int32 n = int32(arguments().size()) - 1;
+    int32 n = int32(arguments.size()) - 1;
     for (int i = 0; i < n; ++i) {
-        arguments()[std::size_t(i)].print(out, indent);
+        arguments[std::size_t(i)].print(out, indent);
         out << ", ";
     }
 
     if (n >= 0) {
-        arguments()[std::size_t(n)].print(out, indent);
+        arguments[std::size_t(n)].print(out, indent);
     }
 
     return out << ")";
 }
 
 std::ostream &Ref::print(std::ostream &out, int32) {
-    out << name(); // << "[" << index() << ", " << length() << "]";
+    out << name; // << "[" << index() << ", " << length() << "]";
     return out;
 }
 
 std::ostream &Struct::print(std::ostream &out, int32 indent) {
-    out << "struct " << name() << ":\n";
+    out << "struct " << name << ":\n";
     std::string indentation = std::string(std::size_t((indent + 1) * 4), ' ');
 
-    if (docstring().size() > 0) {
-        out << indentation << "\"\"\"" << docstring() << "\"\"\"\n";
+    if (docstring.size() > 0) {
+        out << indentation << "\"\"\"" << docstring << "\"\"\"\n";
     }
 
-    for (auto &item : attributes()) {
+    for (auto &item : attributes) {
         out << indentation << item.first << ": ";
         item.second.print(out, indent);
         out << "\n";
@@ -224,9 +216,9 @@ std::ostream &ReversePolishExpression::print(std::ostream &out, int32) {
 
 std::ostream &ValueExpr::print(std::ostream &out, int32 indent) {
     value.print(out);
-    if (_type){
+    if (type){
         out << ": ";
-        _type.print(out);
+        type.print(out);
     }
     return out;
 }

@@ -9,6 +9,7 @@ class Node;
 
 // Explicit RTTI
 enum class NodeKind {
+    KUndefined,
     KArrow,
     KBuiltin,
     KParameter,

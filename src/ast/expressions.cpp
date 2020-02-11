@@ -8,7 +8,7 @@ std::ostream& Expression::print(std::ostream& out, int indent) const {
 }
 
 AST::NodeKind Expression::kind() const{
-    return _ptr->kind();
+    return _ptr->kind;
 }
 
 namespace AST{

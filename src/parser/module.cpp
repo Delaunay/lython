@@ -6,10 +6,10 @@ namespace lython{
     std::string_view get_name(const Expression& v){
         switch (v.kind()){
         case AST::NodeKind::KParameter:
-            return v.ref<AST::Parameter>()->name();
+            return v.ref<AST::Parameter>()->name;
 
         case AST::NodeKind::KFunction:
-            return v.ref<AST::Function>()->name();
+            return v.ref<AST::Function>()->name;
             assert("This expression is not hashable");
 
         default:
