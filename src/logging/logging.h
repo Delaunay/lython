@@ -4,14 +4,21 @@
 #include <string>
 #include <fmt/core.h>
 
+#include "revision_data.h"
+
 // This file should not include spdlog
 // spdlog file is compile time cancer so it is only included inside the .cpp
 
 namespace lython{
 
+// Path to repository on current system
+constexpr char __source_dir[] = _SOURCE_DIRECTORY;
+// Length of the path so we can cut unimportant folders
+constexpr int __size_src_dir = sizeof(_SOURCE_DIRECTORY) / sizeof(char);
+
 struct CodeLocation{
     CodeLocation(std::string const& file, std::string const& fun, int line, std::string const& fun_long):
-        filename(file), function_name(fun), line(line), function_long(fun_long)
+        filename(file.substr(__size_src_dir)), function_name(fun), line(line), function_long(fun_long)
     {}
 
     std::string filename;

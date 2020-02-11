@@ -35,6 +35,7 @@ SET(ADD_HEADERS
     interpreter/value.h
     interpreter/value.cpp
     Types.h
+    "${BUILDDIR}/revision_data.h"
 )
 
 SET(ADD_SOURCE
