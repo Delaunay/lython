@@ -54,7 +54,7 @@ public:
 };
 
 
-namespace AbstractSyntaxTree {
+namespace AST {
     class Function;
     }
 
@@ -63,9 +63,9 @@ public: // Object Value
     using BuiltinImpl = std::function<Value(Array<Value>&)>;
 
     struct Closure {
-        AbstractSyntaxTree::Function* fun = nullptr;
-        Array<Value>                  env;
-        BuiltinImpl                   builtin;
+        AST::Function* fun = nullptr;
+        Array<Value>   env;
+        BuiltinImpl    builtin;
     };
 
     struct Object {
@@ -128,7 +128,7 @@ public: // constructor
       POD_TYPES(X)
     #undef X
 
-    Value(AbstractSyntaxTree::Function* fun, Array<Value>  env): tag(obj_closure){
+    Value(AST::Function* fun, Array<Value>  env): tag(obj_closure){
         v_closure = {fun, std::move(env), nullptr};
     }
 

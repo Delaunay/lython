@@ -6,7 +6,7 @@
 #define TRACE_END() trace_end(0, "");
 
 namespace lython {
-namespace AbstractSyntaxTree {
+namespace AST {
 std::size_t pl_hash::operator()(Parameter &v) const noexcept {
     auto n = v.name();
     String tmp(std::begin(n), std::end(n));

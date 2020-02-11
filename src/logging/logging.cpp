@@ -23,6 +23,7 @@ namespace lython {
 
 // _ZN6lython11builtin_maxERSt6vectorINS_5ValueENS_9AllocatorIS1_EEE+0x368
 static std::regex mangled_name("\\([A-Za-z0-9_]*");
+static std::regex remove_namespaces("(lython::|std::)");
 
 
 std::string demangle(std::string const& original_str){
@@ -82,7 +83,8 @@ std::vector<std::string> get_backtrace(size_t size=32){
 //        }
         // skip libstdc++ calls
         if (!skip){
-            names.push_back(original_str);
+            auto simplified = std::regex_replace(original_str, remove_namespaces, "");
+            names.push_back(simplified);
         }
     }
 

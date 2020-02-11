@@ -46,7 +46,7 @@ namespace lython {
 class Module;
 
 // Private Object
-namespace AbstractSyntaxTree {
+namespace AST {
 class Expression {
   public:
     // Explicit RTTI
@@ -84,7 +84,7 @@ class Expression {
     // Module *_module; //! Module this expression belong to
 };
 } // namespace AbstractSyntaxTree
-namespace AST = AbstractSyntaxTree;
+namespace AbstractSyntaxTree = AST;
 
 const char* to_string(AST::Expression::KindExpr kind);
 
@@ -102,7 +102,7 @@ template <typename T, typename... Args> Expr make_expr(Args &&... args) {
 namespace ST = SyntaxTree;
 using Attributes = Dict<String, ST::Expr>;
 
-namespace AbstractSyntaxTree {
+namespace AST {
 // We declare the leafs of our program
 // -----------------------------------
 
