@@ -9,7 +9,7 @@ Value builtin_div(Array<Value>& args);
 Value builtin_mult(Array<Value>& args);
 
 
-struct InterpreterImpl: public Visitor<InterpreterImpl, Value>{
+struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     //! Execution environment
     Array<Value> env;
 
@@ -54,23 +54,23 @@ struct InterpreterImpl: public Visitor<InterpreterImpl, Value>{
         return values;
     }
 
-    Value undefined(AST::Node const*, std::size_t){
+    Value undefined(Node_t, std::size_t){
         return Value("undefined");
     }
 
-    Value parameter(AST::Parameter const* param, std::size_t) {
+    Value parameter(Parameter_t, std::size_t) {
         return Value("parameter");
     }
 
-    Value unary(AST::UnaryOperator const* un, size_t d) {
+    Value unary(UnaryOperator_t, size_t d) {
         return Value("unary");
     }
 
-    Value binary(AST::BinaryOperator const* bin, std::size_t d) {
+    Value binary(BinaryOperator_t, std::size_t d) {
         return Value("binary");
     }
 
-    Value sequential(AST::SeqBlock const* seq, std::size_t depth) {
+    Value sequential(SeqBlock_t seq, std::size_t depth) {
         trace_start(depth, "seq_block");
 
         size_t n = size_t(std::max(int(seq->blocks.size()) - 1, 0));
@@ -82,21 +82,21 @@ struct InterpreterImpl: public Visitor<InterpreterImpl, Value>{
         return eval(seq->blocks[n], depth + 1);
     }
 
-    Value unparsed(AST::UnparsedBlock const* blocks, std::size_t) {
+    Value unparsed(UnparsedBlock_t, std::size_t) {
         return Value("unparsed");
     }
 
-    Value reverse_polish(AST::ReversePolish const* rev, std::size_t d) {
+    Value reverse_polish(ReversePolish_t rev, std::size_t d) {
         auto iter = std::begin(rev->stack);
         return eval_rpe(iter, d);
     }
 
-    Value statement(AST::Statement const* stmt, std::size_t depth) {
+    Value statement(Statement_t stmt, std::size_t depth) {
         trace_start(depth, "%d", stmt->statement);
         return eval(stmt->expr, depth);
     }
 
-    Value reference(AST::Reference const* ref, std::size_t depth) {
+    Value reference(Reference_t ref, std::size_t depth) {
         trace_start(depth, "{}: {}, {} | {}",
                     ref->name,
                     ref->index,
@@ -110,26 +110,26 @@ struct InterpreterImpl: public Visitor<InterpreterImpl, Value>{
         return env[n];
     }
 
-    Value builtin(AST::Builtin const* blt, std::size_t depth) {
+    Value builtin(Builtin_t blt, std::size_t depth) {
         trace_start(depth, "{}", blt->name.c_str());
         auto fun = builtins[blt->name];
         return Value(fun, Array<Value>());
     }
 
-    Value type(AST::Type const* type, std::size_t) {
+    Value type(Type_t type, std::size_t) {
         return Value(type->name);
     }
 
-    Value value(AST::Value const* val, std::size_t depth) {
+    Value value(Value_t val, std::size_t depth) {
         trace_start(depth, "value");
         return val->value;
     }
 
-    Value struct_type(AST::Struct const* cstruct, std::size_t d) {
+    Value struct_type(Struct_t cstruct, std::size_t d) {
         return Value(cstruct->name);
     }
 
-    Value call(AST::Call const* call, std::size_t depth) {
+    Value call(Call_t call, std::size_t depth) {
         trace_start(depth, "call");
         Value closure = eval(call->function, depth + 1);
         assert(closure.tag == obj_closure);
@@ -154,11 +154,11 @@ struct InterpreterImpl: public Visitor<InterpreterImpl, Value>{
         return returned_value;
     }
 
-    Value arrow(AST::Arrow const* aw, std::size_t d) {
+    Value arrow(Arrow_t aw, std::size_t d) {
         return Value("arrow");
     }
 
-    Value function(AST::Function const* fun, std::size_t d) {
+    Value function(Function_t fun, std::size_t d) {
         return Value(fun, env);
     }
 

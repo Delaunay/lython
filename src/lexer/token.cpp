@@ -43,7 +43,7 @@ std::ostream& Token::debug_print(std::ostream& out){
 }
 
 // could be used for code formatting
-std::ostream& Token::print(std::ostream& out, int32 indent){
+std::ostream& Token::print(std::ostream& out, int32 indent) const {
     // Keep track of some variable for correct printing
     static int32 indent_level = 0;
     static bool emptyline = true;   // To generate indent when needed

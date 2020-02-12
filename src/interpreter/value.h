@@ -92,7 +92,7 @@ public:
         return ss.str();
     }
 
-    std::ostream& print(std::ostream& out){
+    std::ostream& print(std::ostream& out) const {
         switch (tag) {
             #define X(type) case pod_##type:{\
                 return out << #type << '(' << pod_data.v_##type << ')';\

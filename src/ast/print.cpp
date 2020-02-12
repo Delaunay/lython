@@ -4,9 +4,9 @@
 
 namespace lython {
 
-String to_infix(Stack<AST::MathNode>::Iterator &iter, int prev=0);
+String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev=0);
 
-struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
+struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     std::ostream& out;
     int indent;
 
@@ -14,20 +14,22 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         out(out), indent(indent)
     {}
 
-    std::ostream& undefined(AST::Node*, std::size_t){
+    std::ostream& undefined(Node_t, std::size_t){
         return out << "<undefined>";
     }
 
-    std::ostream &parameter(AST::Parameter* param, std::size_t) {
+    std::ostream &parameter(Parameter_t param, std::size_t) {
         return out << param->name;
     }
 
-    std::ostream &unary(AST::UnaryOperator* un, size_t d) {
-        visit(un, d);
+    std::ostream &unary(UnaryOperator_t un, size_t d) {
+        out << un->op;
+        out << ' ';
+        visit(un->expr, d);
         return out;
     }
 
-    std::ostream &binary(AST::BinaryOperator* bin, std::size_t d) {
+    std::ostream &binary(BinaryOperator_t bin, std::size_t d) {
         visit(bin->lhs, d);
         out << ' ';
         visit(bin->op, d);
@@ -36,7 +38,7 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
-    std::ostream &sequential(AST::SeqBlock* blocks, std::size_t d) {
+    std::ostream &sequential(SeqBlock_t blocks, std::size_t d) {
         for (auto &g : blocks->blocks) {
             out << std::string(std::size_t(indent) * 4, ' ');
             visit(g, d);
@@ -44,36 +46,36 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
-    std::ostream &unparsed(AST::UnparsedBlock* blocks, std::size_t) {
+    std::ostream &unparsed(UnparsedBlock_t blocks, std::size_t) {
         for (auto &tok : blocks->tokens)
             tok.print(out, indent);
         return out;
     }
 
-    std::ostream &reverse_polish(AST::ReversePolish* rev, std::size_t) {
+    std::ostream &reverse_polish(ReversePolish_t rev, std::size_t) {
         auto iter = std::begin(rev->stack);
         return out << to_infix(iter);
     }
 
-    std::ostream &statement(AST::Statement* stmt, std::size_t d) {
+    std::ostream &statement(Statement_t stmt, std::size_t d) {
         out << keyword_as_string()[stmt->statement] << " ";
         visit(stmt->expr, d);
         return out;
     }
 
-    std::ostream &reference(AST::Reference* ref, std::size_t) {
+    std::ostream &reference(Reference_t ref, std::size_t) {
         return out << ref->name;
     }
 
-    std::ostream &builtin(AST::Builtin* blt, int32) {
+    std::ostream &builtin(Builtin_t blt, int32) {
         return out << blt->name;
     }
 
-    std::ostream &type(AST::Type* type, std::size_t) {
+    std::ostream &type(Type_t type, std::size_t) {
         return out << type->name;
     }
 
-    std::ostream &value(AST::Value* val, std::size_t d) {
+    std::ostream &value(Value_t val, std::size_t d) {
         val->value.print(out);
         if (val->type){
             out << ": ";
@@ -82,7 +84,7 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
-    std::ostream &struct_type(AST::Struct* cstruct, std::size_t d) {
+    std::ostream &struct_type(Struct_t cstruct, std::size_t d) {
         out << "struct " << cstruct->name << ":\n";
         std::string indentation = std::string(std::size_t((indent + 1) * 4), ' ');
 
@@ -98,7 +100,7 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
-    std::ostream &call(AST::Call* call, std::size_t d) {
+    std::ostream &call(Call_t call, std::size_t d) {
         call->function.print(out, indent);
         out << "(";
 
@@ -115,7 +117,7 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         return out << ")";
     }
 
-    std::ostream &arrow(AST::Arrow* aw, std::size_t d) {
+    std::ostream &arrow(Arrow_t aw, std::size_t d) {
         int n = int(aw->params.size()) - 1;
 
         out << "(";
@@ -136,7 +138,7 @@ struct ASTPrinter: public Visitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
-    std::ostream &function(AST::Function* fun, std::size_t d) {
+    std::ostream &function(Function_t fun, std::size_t d) {
         // debug("Function Print");
 
         out << "def " << fun->name << "(";
@@ -178,7 +180,7 @@ std::ostream& print(std::ostream& out, const Expression expr, int indent){
 }
 
 
-String to_infix(Stack<AST::MathNode>::Iterator &iter, int prev) {
+String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev) {
     int pred;
     AST::MathNode op = *iter;
     iter++;

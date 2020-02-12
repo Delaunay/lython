@@ -75,16 +75,17 @@ public:
         _type(t), _line(l), _col(c)
     {}
 
-     int8 type()   {   return _type;   }
-    int32 line()   {   return _line;   }
-    int32 col()    {   return _col;    }
+     int8 type() const  {   return _type;   }
+    int32 line() const  {   return _line;   }
+    int32 col()  const  {   return _col;    }
 
-    int32 end_line()   {	return col();}
-    int32 begin_line() {    return col() - int32(identifier().size()); }
+    int32 end_line()   const {	return col();}
+    int32 begin_line() const {  return col() - int32(identifier().size()); }
 
-    String&      identifier() { return _identifier; }
-    float64      as_float()   { return std::stod(_identifier.c_str()); }
-    int32        as_integer() { return std::stoi(_identifier.c_str()); }
+    String&      identifier()       { return _identifier; }
+    String const&identifier() const { return _identifier; }
+    float64      as_float()   const { return std::stod(_identifier.c_str()); }
+    int32        as_integer() const { return std::stoi(_identifier.c_str()); }
 
     operator bool(){
         return _type != tok_eof;
@@ -103,7 +104,7 @@ public:
     std::ostream& debug_print(std::ostream& out);
 
     // could be used for code formatting
-    std::ostream& print(std::ostream& out, int32 indent = 0);
+    std::ostream& print(std::ostream& out, int32 indent = 0) const;
 };
 
 inline

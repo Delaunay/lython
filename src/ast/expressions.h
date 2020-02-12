@@ -49,13 +49,14 @@ public:
         return Expression(ptr);
     }
 
-    //! Returns a non owning pointer to the underlying Node
+    //! Returns the underlying data struct held by the node
     template<typename T>
     T* ref(){
         // assert(kind() == kind_type<T>())
         return static_cast<T*>(_ptr.get());
     }
 
+    //! Returns the underlying data struct held by the node
     template<typename T>
     T const* ref() const {
         // assert(kind() == kind_type<T>())
@@ -69,7 +70,7 @@ public:
     std::ostream& print(std::ostream& out, int indent = 0) const;
 
     //! Returns true if the Expression holds a valid AST node
-    operator bool(){    return bool(_ptr); }
+    operator bool() const {    return bool(_ptr); }
 
 private:
     Expression(std::shared_ptr<AST::Node> ptr):
