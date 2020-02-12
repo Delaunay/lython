@@ -100,7 +100,7 @@ Expression Parser::parse_type(Module& m, size_t depth) {
     WITH_EXPECT(tok_identifier, "expect type identifier") {
         name = token().identifier();
         loc = m.find_index(name);
-    };
+    }
 
     if (loc < 0){
         warn("Undefined type \"{}\"", name.c_str());
@@ -144,13 +144,13 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     for(AST::Parameter& param: parameters){
         int size = module.size();
         auto ref = Expression::make<AST::Ref>(param.name, size, size, param.type);
-        module.insert(param.name, ref);
+        module.insert(param.name.str(), ref);
     }
 
     WITH_EXPECT(tok_arrow, "Expected -> before return type") {
         EAT(tok_arrow);
         fun->return_type = parse_type(m, depth + 1);
-    };
+    }
 
     EXPECT(':', "Expected function to end with a `:`");
     EAT(':');

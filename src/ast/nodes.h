@@ -23,28 +23,10 @@
 #include "../interpreter/value.h"
 #include "names.h"
 
-// declare common function
-// I don't have to add them to the class declaration one by one
-// not best design but since I am experiencing this might change
-// quite a lot
-//#define LYTHON_COMMFUNC(type, body)                                            \
-//    virtual type partial_eval() body                                           \
-//    virtual type derivate()                                                    \
-//        body                                                                   \
-//    virtual std::ostream& print(std::ostream &, int indent = 0) body
-
-//#define LYTHON_COMMFUNCCHILD LYTHON_COMMFUNC(Expression, {})
-
-//     const Expression::NodeKind const kind_tag = _kind;
-
-#define LYTHON_COMMFUNCCHILD
-#define LYTHON_COMMFUNC(...)
-
 namespace lython {
 
 class Module;
 
-// Private Object
 namespace AST {
 struct Node {
 public:
@@ -68,29 +50,39 @@ namespace AST {
 // that is unknown at compile time but will be known at runtime
 struct Parameter : public Node {
 public:
-    String     name;
+    StringRef  name;
     Expression type;
 
-    Parameter(const String &name, Expression type)
+    Parameter(StringRef name, Expression type)
         : Node(NodeKind::KParameter), name(name), type(type)
     {}
-};
-using ParameterList = Array<Parameter>;
 
-// I want placeholder to be hashable
+    Parameter(const String &name, Expression type)
+        : Parameter(get_string(name), type)
+    {}
+};
+
 struct pl_hash {
     std::size_t operator()(Parameter &v) const noexcept;
-    std::hash<String> _h;
+    std::hash<std::size_t> _h;
 };
+
+
+using ParameterList = Array<Parameter>;
+using ParameterDict = Dict<StringRef, Parameter, string_ref_hash>;
 
 struct Builtin : public Node {
 public:
-    String     name;
+    StringRef  name;
     Expression type;
     size_t     argument_size;
 
-    Builtin(String name, Expression type, size_t n) :
-        Node(NodeKind::KBuiltin), name(std::move(name)), type(std::move(type)), argument_size(n)
+    Builtin(StringRef name, Expression type, size_t n) :
+        Node(NodeKind::KBuiltin), name(name), type(std::move(type)), argument_size(n)
+    {}
+
+    Builtin(const String &name, Expression type, size_t n)
+        : Builtin(get_string(name), type, n)
     {}
 };
 
@@ -184,7 +176,7 @@ public:
 struct UnaryOperator : public Node {
 public:
     Expression expr;
-    String op;
+    StringRef op;
 
     UnaryOperator():
         Node(NodeKind::KUnaryOperator)
@@ -228,19 +220,23 @@ public:
     Expression    body;
     ParameterList args;
     Expression    return_type;
-    String        name;
+    StringRef     name;
     String        docstring;
 
+    Function(StringRef name)
+        : Node(NodeKind::KFunction), name(name)
+    {}
+
     Function(String const &name)
-        : Node(NodeKind::KFunction), name(make_name(name))
+        : Function(get_string(name))
     {}
 };
 
 struct ExternFunction: public Node{
-    String name;
+    StringRef name;
 
     ExternFunction(String const &name)
-        : Node(NodeKind::KExternFunction), name(make_name(name))
+        : Node(NodeKind::KExternFunction), name(get_string(name))
     {}
 };
 
@@ -257,6 +253,48 @@ public:
     {}
 };
 
+struct Statement : public Node {
+public:
+    int8        statement;
+    Expression  expr;
+
+    Statement(): Node(NodeKind::KStatement)
+    {}
+};
+
+struct Reference : public Node {
+public:
+    StringRef   name;
+    Expression  type;
+    int         index;
+    int         length;
+
+    Reference(StringRef name, int loc, int length, Expression type):
+        Node(NodeKind::KReference), name(name), type(type), index(loc), length(length)
+    {}
+
+    Reference(String const& name, int loc, int length, Expression type):
+        Reference(get_string(name), loc, length, type)
+    {}
+};
+using Ref = Reference;
+
+struct Struct : public Node {
+public:
+    StringRef   name;
+    Attributes  attributes;
+    String      docstring;
+
+    Struct(StringRef name):
+        Node(NodeKind::KStruct), name(name)
+    {}
+
+    Struct(String const& name):
+        Struct(get_string(name))
+    {}
+};
+
+/*
 struct QualifiedType : public Node {
 public:
     enum TypeSpecifier {
@@ -282,39 +320,8 @@ public:
     StorageSpecifier spec_storage;
     TypeQualifier type_qualifier;
 };
+*/
 
-struct Statement : public Node {
-public:
-    int8        statement;
-    Expression  expr;
-
-    Statement(): Node(NodeKind::KStatement)
-    {}
-};
-
-struct Reference : public Node {
-public:
-    String      name;
-    Expression  type;
-    int         index;
-    int         length;
-
-    Reference(String name, int loc, int length, Expression type):
-        Node(NodeKind::KReference), name(std::move(name)), type(type), index(loc), length(length)
-    {}
-};
-using Ref = Reference;
-
-struct Struct : public Node {
-public:
-    String      name;
-    Attributes  attributes;
-    String      docstring;
-
-    Struct():
-        Node(NodeKind::KStruct)
-    {}
-};
 } // namespace AbstractSyntaxTree
 } // namespace lython
 

@@ -25,97 +25,82 @@ NEW_EXCEPTION(NameTaken);
     }
 
 
+class StringRef;
 
-// hold information about operators
-struct OperatorImpl {
-    OperatorImpl(const String& op_, int pred) : op(op_), pred(pred) {}
+StringRef get_string(String const& str);
 
-    const String op;
-    const int pred;
+std::ostream& operator<< (std::ostream& out, StringRef ref);
+
+// Very Cheap string reference
+class StringRef{
+public:
+    StringRef(std::size_t ref = 0):
+        ref(ref)
+    {}
+
+    StringRef(String const& name):
+        ref(get_string(name).ref)
+    {}
+
+    String str() const;
+
+    operator StringView() const;
+
+    std::size_t ref;
 };
 
-/*
- *  Prevent the creation of two equivalent entities (strings)
- */
-using Name = std::string_view;
-using TypeName = std::string_view;
-using Operator = std::shared_ptr<OperatorImpl>;
-
-class NameManager {
-  public:
-    Name make_name(const String &name) {
-        ASSERT(_types.count(name) == 0, "Name not available. Used by a Type");
-
-        if (_names.count(name))
-            return _names[name];
-
-        _names[name] = name;
-        return _names[name];
+// hash the reference instead of the string itself
+// This could cause issues if we have multiple string databases
+struct string_ref_hash {
+    std::size_t operator()(StringRef &v) const noexcept{
+        return _h(v.ref);
     }
-
-    TypeName make_type(const String &type) {
-
-        ASSERT(_names.count(type) == 0,
-               "Type name not available. Used by a Name");
-
-        if (_types.count(type))
-            return _types[type];
-
-        _types[type] = TypeName(type);
-        return _types[type];
-    }
-
-    Operator make_operator(const String &op, int pred) {
-
-        if (_operators.count(op))
-            return _operators[op];
-
-        _operators[op] = std::make_shared<OperatorImpl>(op, pred);
-        return _operators[op];
-    }
-
-  private:
-    std::unordered_map<String, Name> _names;
-    std::unordered_map<String, TypeName> _types;
-    std::unordered_map<String, Operator> _operators;
+    std::hash<std::size_t> _h;
 };
 
-inline NameManager &name_manager() {
-    static NameManager m;
-    return m;
-}
 
-// use to create or retrieve a name
-inline String make_name(const String &name) {
-    return name; // name_manager().make_name(name);
-}
+// Should be careful to only use this for name like strings
+// Since we keep the strings forever
+// At the moment this is global but we should maybe tie this to a Module
+// so the strings can expire
+class StringDatabase{
+public:
+    static StringDatabase& instance(){
+        static StringDatabase db;
+        return db;
+    }
 
-inline String make_type(const String &name) {
-    return name; // name_manager().make_type(name);
-}
+    StringView operator[] (std::size_t i){
+        return strings[i];
+    }
 
-inline Operator make_operator(const String &name, int pred) {
-    return name_manager().make_operator(name, pred);
-}
+    StringRef string(String const& name){
+        std::size_t val = defined[name];
+        if (val == 0){
+            std::size_t n = strings.size();
+            strings.push_back(name);
+            count.push_back(1);
 
-/*
-Type make_type(const String& type){
-    if (name_manager().count(type) != 0)
-        assert("Type Already Exists");
+            StringView str = strings[n];
+            defined[str] = n;
+            return StringRef(n);
+        }
 
-    return name_manager().make_name(type);
-}
+        count[val] += 1;
+        return StringRef(val);
+    }
 
-Type use_type(const String& type){
-    if (name_manager().count(type) == 0)
-        assert("Type Does not Exists");
+    StringDatabase(){
+        strings.reserve(128);
+        strings.push_back("");
+    }
 
-    return name_manager().make_name(type);
-}
+private:
+    Dict<StringView, std::size_t> defined;
+    Array<String>                 strings;
+    Array<int>                    count;
+};
 
-Type make_type_weak(const String& name){
-    return name_manager().make_name(name);
-}*/
 }
 
 #endif

@@ -132,14 +132,12 @@ class Module {
 
             auto f_f_f = Expression::make<AST::Arrow>();
             auto binary_type = f_f_f.ref<AST::Arrow>();
-            binary_type->params.push_back(
-                AST::Parameter(make_name("a"), float_type()));
-            binary_type->params.push_back(
-                AST::Parameter(make_name("b"), float_type()));
+            binary_type->params.push_back(AST::Parameter("a", float_type()));
+            binary_type->params.push_back(AST::Parameter("b", float_type()));
 
             auto f_f = Expression::make<AST::Arrow>();
             auto unary_type = f_f_f.ref<AST::Arrow>();
-            unary_type->params.push_back(AST::Parameter(make_name("a"), float_type()));
+            unary_type->params.push_back(AST::Parameter("a", float_type()));
 
             auto min_fun = Expression::make<AST::Builtin>("min", f_f_f, 2);
             auto max_fun = Expression::make<AST::Builtin>("max", f_f_f, 2);

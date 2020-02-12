@@ -38,8 +38,8 @@ using String = std::basic_string<char, std::char_traits<char>, Allocator<char>>;
 
 using StringStream = std::basic_stringstream<char, std::char_traits<char>, Allocator<char>>;
 
+using StringView = std::string_view;
 } // namespace lython
-
 
 
 // ------------

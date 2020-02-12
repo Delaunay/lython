@@ -27,6 +27,7 @@ SET(ADD_HEADERS
     parser/parser.h
     parser/module.h
     utilities/optional.h
+    utilities/pool.h
     fmt.h
     sema/sema.h
     utilities/trie.h
@@ -53,14 +54,16 @@ SET(ADD_SOURCE
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp
+    utilities/pool.cpp
     interpreter/interpreter.cpp
 )
 
 # Compile
 #==================
 # Compile as a library to avoid double compilation
+ADD_SUBDIRECTORY(cuda)
 
-# Support library for utilities
+# Support library for utilities s
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
 TARGET_LINK_LIBRARIES(liblogging fmt::fmt spdlog::spdlog)
 

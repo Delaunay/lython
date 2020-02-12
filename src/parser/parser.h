@@ -327,9 +327,8 @@ class Parser {
         String struct_name = tok.identifier();
         EAT(tok_identifier);
 
-        auto struct_ = Expression::make<AST::Struct>();
+        auto struct_ = Expression::make<AST::Struct>(struct_name);
         auto *data = struct_.ref<AST::Struct>();
-        data->name = struct_name;
 
         EXPECT(':', ": was expected");
         EAT(':');

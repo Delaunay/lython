@@ -111,8 +111,8 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value builtin(Builtin_t blt, std::size_t depth) {
-        trace_start(depth, "{}", blt->name.c_str());
-        auto fun = builtins[blt->name];
+        trace_start(depth, "{}", blt->name);
+        auto fun = builtins[blt->name.str()];
         return Value(fun, Array<Value>());
     }
 
@@ -126,7 +126,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value struct_type(Struct_t cstruct, std::size_t d) {
-        return Value(cstruct->name);
+        return Value(cstruct->name.str());
     }
 
     Value call(Call_t call, std::size_t depth) {

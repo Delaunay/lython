@@ -7,10 +7,9 @@
 
 namespace lython {
 namespace AST {
+
 std::size_t pl_hash::operator()(Parameter &v) const noexcept {
-    auto n = v.name;
-    String tmp(std::begin(n), std::end(n));
-    return _h(tmp);
+    return _h(v.name.ref);
 }
 
 } // namespace AbstractSyntaxTree
