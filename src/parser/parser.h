@@ -120,17 +120,17 @@ class Parser {
         switch (type) {
         case tok_string:
             // make_type("string")
-            val =  Expression::make<AST::ValueExpr>(token().identifier(), Expression());
+            val =  Expression::make<AST::Value>(token().identifier(), Expression());
             EAT(tok_string);
             break;
         case tok_float:
             // make_type("float")
-            val =  Expression::make<AST::ValueExpr>(token().as_float(), Expression());
+            val =  Expression::make<AST::Value>(token().as_float(), Expression());
             EAT(tok_float);
             break;
         case tok_int:
             // make_type("int")
-            val = Expression::make<AST::ValueExpr>(token().as_integer(), Expression());
+            val = Expression::make<AST::Value>(token().as_integer(), Expression());
             EAT(tok_int);
             break;
         }

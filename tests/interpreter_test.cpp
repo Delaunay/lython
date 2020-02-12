@@ -10,7 +10,7 @@ using namespace lython;
 
 template<typename T>
 void insert_arg(AST::Call* call, T a){
-    call->arguments.emplace_back(Expression::make<AST::ValueExpr>(a, Expression()));
+    call->arguments.emplace_back(Expression::make<AST::Value>(a, Expression()));
 }
 
 template<typename... Args>
@@ -27,7 +27,7 @@ Value interpret_call(String const& code, String fun_name, Args... v){
     } while(expr);
     // ---
 
-    Interpreter vm(&module);
+    Interpreter vm(module);
 
     // Make Fun Call
     auto fun = module.find(fun_name);
@@ -57,7 +57,7 @@ Value interpret_code(String const& code){
     } while(expr);
     // ---
 
-    Interpreter vm(&module);
+    Interpreter vm(module);
 
     // return value
     return vm.eval(expr);

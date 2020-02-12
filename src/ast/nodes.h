@@ -37,10 +37,6 @@
 
 //     const Expression::NodeKind const kind_tag = _kind;
 
-#define LYTHON_KIND(_kind)                                                     \
-   NodeKind kind = NodeKind::_kind;
-// NodeKind kind() override { return NodeKind::_kind; }
-
 #define LYTHON_COMMFUNCCHILD
 #define LYTHON_COMMFUNC(...)
 
@@ -52,13 +48,11 @@ class Module;
 namespace AST {
 struct Node {
 public:
-    NodeKind kind = NodeKind::KUndefined;
+    NodeKind kind;
 
-    LYTHON_COMMFUNC(std::shared_ptr<Expression>, {})
-
-    virtual std::ostream &print(std::ostream &, int32 indent = 0) = 0;
-
-    // virtual NodeKind kind() { return NodeKind(-1); }
+    Node(NodeKind k = NodeKind::KUndefined):
+        kind(k)
+    {}
 };
 
 } // namespace AbstractSyntaxTree
@@ -74,16 +68,12 @@ namespace AST {
 // that is unknown at compile time but will be known at runtime
 struct Parameter : public Node {
 public:
-    LYTHON_KIND(KParameter)
-
     String     name;
     Expression type;
 
     Parameter(const String &name, Expression type)
-        : name(name), type(type)
+        : Node(NodeKind::KParameter), name(name), type(type)
     {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 };
 using ParameterList = Array<Parameter>;
 
@@ -95,59 +85,31 @@ struct pl_hash {
 
 struct Builtin : public Node {
 public:
-    LYTHON_KIND(KBuiltin)
-
     String     name;
     Expression type;
     size_t     argument_size;
 
     Builtin(String name, Expression type, size_t n) :
-        name(std::move(name)), type(std::move(type)), argument_size(n)
+        Node(NodeKind::KBuiltin), name(std::move(name)), type(std::move(type)), argument_size(n)
     {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 };
 
 struct Arrow : public Node {
 public:
-    LYTHON_KIND(KArrow)
+    Arrow(): Node(NodeKind::KArrow)
+    {}
 
     ParameterList params;
     Expression return_type;
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override {
-        int n = int(params.size()) - 1;
-
-        out << "(";
-
-        for (int i = 0; i < n; ++i) {
-            params[size_t(i)].print(out, indent);
-            out << ", ";
-        }
-
-        if (n >= 0) {
-            params[size_t(n)].print(out, indent);
-        }
-
-        out << ") -> ";
-        out << return_type;
-
-        return_type.print(out, indent);
-        return out;
-    }
 };
 
 using Variables = Dict<Parameter, Expression, pl_hash>;
 
 struct Type : public Node {
 public:
-    LYTHON_KIND(KType)
-
     String name;
 
-    Type(String name) : name(std::move(name)) {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    Type(String name) : Node(NodeKind::KType), name(std::move(name)) {}
 };
 
 // Math Nodes for ReverPolish parsing
@@ -170,30 +132,22 @@ struct MathNode {
  * instead of creating a billions expression node we create a single node
  *  that holds all the expressions.
  */
-struct ReversePolishExpression : public Node {
+struct ReversePolish: public Node {
 public:
-    ReversePolishExpression(Stack<MathNode> str) : stack(std::move(str)) {}
-
-    LYTHON_KIND(KReversePolish)
-
     Stack<MathNode> stack;
 
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
-
-    String to_infix(Stack<MathNode>::Iterator &iter, int prev = 0);
+    ReversePolish(Stack<MathNode> str)
+        : Node(NodeKind::KReversePolish), stack(std::move(str)) {}
 };
 
-struct ValueExpr : public Node {
+struct Value : public Node {
 public:
-    LYTHON_KIND(KValue)
-
-    Value       value;
-    Expression  type;
+    lython::Value value;
+    Expression    type;
 
     template <typename T>
-    ValueExpr(T val, Expression type) :value(val), type(type) {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    Value(T val, Expression type)
+        : Node(NodeKind::KValue), value(val), type(type) {}
 
     template<typename V>
     V get_value(){
@@ -219,41 +173,34 @@ public:
 // we want our language to be readable
 struct BinaryOperator : public Node {
 public:
-    LYTHON_KIND(KBinaryOperator)
-
     Expression rhs;
     Expression lhs;
     Expression op;
 
     BinaryOperator(Expression rhs, Expression lhs, Expression op)
-        : rhs(std::move(rhs)), lhs(std::move(lhs)), op(std::move(op)) {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+        : Node(NodeKind::KBinaryOperator), rhs(std::move(rhs)), lhs(std::move(lhs)), op(std::move(op)) {}
 };
 
 struct UnaryOperator : public Node {
 public:
-    LYTHON_KIND(KUnaryOperator)
-
     Expression expr;
     String op;
 
-    UnaryOperator() = default;
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    UnaryOperator():
+        Node(NodeKind::KUnaryOperator)
+    {}
 };
 
 struct Call : public Node {
 public:
     using Arguments = Array<Expression>;
-    LYTHON_KIND(KCall)
 
     Expression function;
     Arguments  arguments;
 
-    Call() = default;
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    Call():
+        Node(NodeKind::KCall)
+    {}
 };
 
 // Block Instruction
@@ -265,14 +212,11 @@ public:
 // Add get_return_type()
 struct SeqBlock : public Node {
 public:
-    using Blocks = Array<Expression>;
-    Blocks blocks;
+    Array<Expression> blocks;
 
-    LYTHON_KIND(KSeqBlock)
-
-    SeqBlock() = default;
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override; 
+    SeqBlock():
+        Node(NodeKind::KSeqBlock)
+    {}
 };
 
 // Functions
@@ -281,46 +225,36 @@ public:
 // Functions are Top level expression
 struct Function : public Node {
 public:
-    LYTHON_KIND(KFunction)
-
     Expression    body;
     ParameterList args;
     Expression    return_type;
     String        name;
     String        docstring;
 
-    Function(String const &name, bool is_extern = false)
-        : externed(is_extern), name(make_name(name)) {}
+    Function(String const &name)
+        : Node(NodeKind::KFunction), name(make_name(name))
+    {}
+};
 
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+struct ExternFunction: public Node{
+    String name;
 
-    bool externed = false;
-
-    // First Entry is the function itself (for recursion)   (also StackFrame unwinding)
-    // Then arguments
-    // Then global variable access (include calls to outside functions)
-    // Finaly return value
-    // The frame is created by the AccessTracker inside Module during parsing
-    // The frame is used by the evaluator/interpreter to initialize an eval environment
-    // for the function once initialized the function should be able to run without side effects
-    Array<Tuple<String, int>> frame;
+    ExternFunction(String const &name)
+        : Node(NodeKind::KExternFunction), name(make_name(name))
+    {}
 };
 
 //  This allow me to read an entire file but only process
 //  used ens
 struct UnparsedBlock : public Node {
 public:
-    using Tokens = Array<Token>;
-
-    LYTHON_KIND(KUnparsedBlock)
-
-    Tokens tokens;
+    Array<Token> tokens;
 
     UnparsedBlock() = default;
 
-    UnparsedBlock(Tokens &toks) : tokens(toks) {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    UnparsedBlock(Array<Token> &toks)
+        : Node(NodeKind::KUnparsedBlock), tokens(toks)
+    {}
 };
 
 struct QualifiedType : public Node {
@@ -351,43 +285,35 @@ public:
 
 struct Statement : public Node {
 public:
-    LYTHON_KIND(KStatement)
-
     int8        statement;
     Expression  expr;
 
-    Statement() = default;
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    Statement(): Node(NodeKind::KStatement)
+    {}
 };
 
-struct Ref : public Node {
+struct Reference : public Node {
 public:
-    LYTHON_KIND(KReference)
-
     String      name;
     Expression  type;
     int         index;
     int         length;
 
-    Ref(String name, int loc, int length, Expression type):
-        name(std::move(name)), type(type), index(loc), length(length)
+    Reference(String name, int loc, int length, Expression type):
+        Node(NodeKind::KReference), name(std::move(name)), type(type), index(loc), length(length)
     {}
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
 };
+using Ref = Reference;
 
 struct Struct : public Node {
 public:
-    LYTHON_KIND(KStruct)
-
     String      name;
     Attributes  attributes;
     String      docstring;
 
-    Struct() = default;
-
-    std::ostream &print(std::ostream &out, int32 indent = 0) override;
+    Struct():
+        Node(NodeKind::KStruct)
+    {}
 };
 } // namespace AbstractSyntaxTree
 } // namespace lython

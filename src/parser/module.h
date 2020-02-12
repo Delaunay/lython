@@ -144,7 +144,7 @@ class Module {
             auto min_fun = Expression::make<AST::Builtin>("min", f_f_f, 2);
             auto max_fun = Expression::make<AST::Builtin>("max", f_f_f, 2);
             auto sin_fun = Expression::make<AST::Builtin>("sin", f_f, 1);
-            auto pi = Expression::make<AST::ValueExpr>(3.14, float_type());
+            auto pi = Expression::make<AST::Value>(3.14, float_type());
 
             insert("min", Expression(min_fun));
             insert("sin", Expression(sin_fun));

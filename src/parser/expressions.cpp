@@ -167,7 +167,7 @@ Expression Parser::parse_expression(Module& m, std::size_t depth) {
 //    }
 //    std::cout << "\n";
 
-    return Expression::make<AST::ReversePolishExpression>(output_stack);
+    return Expression::make<AST::ReversePolish>(output_stack);
 }
 
 } // namespace lython

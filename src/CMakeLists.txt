@@ -20,7 +20,8 @@ SET(ADD_HEADERS
     ast/nodes.h
     ast/names.h
     ast/fold.h
-    ast/value_holders.h
+    ast/visitor.h
+    ast/print.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
@@ -43,6 +44,7 @@ SET(ADD_HEADERS
 SET(ADD_SOURCE
     ast/expressions.cpp
     ast/names.cpp
+    ast/print.cpp
     ast/nodes.cpp
     ast/fold.cpp
     lexer/lexer.cpp

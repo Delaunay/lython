@@ -123,7 +123,7 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
 
     WITH_EXPECT(tok_identifier, "Expected an identifier") {
         function_name = token().identifier();
-    };
+    }
     EAT(tok_identifier);
 
     // Creating a new module
@@ -170,7 +170,7 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     TRACE_END();
 
     m.insert(function_name, expr);
-    fun->frame = tracker.access;
+    // fun->frame = tracker.access;
     return expr;
 }
 

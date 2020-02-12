@@ -7,25 +7,30 @@ namespace lython {
 namespace AST{
 class Node;
 
+#define NODE_KIND_ENUM(KIND)\
+    KIND(Arrow, arrow)\
+    KIND(Builtin, builtin)\
+    KIND(Parameter, parameter)\
+    KIND(BinaryOperator, binary)\
+    KIND(UnaryOperator, unary)\
+    KIND(SeqBlock, sequential)\
+    KIND(Function, function)\
+    KIND(UnparsedBlock, unparsed)\
+    KIND(Statement, statement)\
+    KIND(Value, value)\
+    KIND(Call, call)\
+    KIND(Reference, reference)\
+    KIND(Struct, struct_type)\
+    KIND(Type, type)\
+    KIND(ReversePolish, reverse_polish)\
+    KIND(ExternFunction, extern_function)
+
 // Explicit RTTI
 enum class NodeKind {
     KUndefined,
-    KArrow,
-    KBuiltin,
-    KParameter,
-    KBinaryOperator,
-    KUnaryOperator,
-    KSeqBlock,
-    KFunction,
-    KUnparsedBlock,
-    KStatement,
-    KValue,
-    KCall,
-    KReference,
-    KStruct,
-    KType,
-    KReversePolish,
-    KExternFunction
+#define KIND(name, _) K##name,
+    NODE_KIND_ENUM(KIND)
+#undef KIND
 };
 
 //! Print the name of a Node Kind
