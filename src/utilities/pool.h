@@ -1,6 +1,5 @@
 #include <future>
 #include <thread>
-#include <array>
 #include <vector>
 #include <optional>
 #include <functional>

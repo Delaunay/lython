@@ -2,6 +2,8 @@
 
 namespace lython {
 
+void worker_loop(ThreadPool *pool, std::size_t n);
+
 ThreadPool::ThreadPool(std::size_t thread_count){
     tasks.reserve(128);
     running.reserve(thread_count);
