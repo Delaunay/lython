@@ -34,6 +34,7 @@ SET(ADD_HEADERS
     utilities/stack.h
     utilities/allocator.h
     utilities/metadata.h
+    utilities/chrono.h
     interpreter/interpreter.h
     interpreter/value.h
     interpreter/value.cpp
@@ -61,7 +62,8 @@ SET(ADD_SOURCE
 # Compile
 #==================
 # Compile as a library to avoid double compilation
-ADD_SUBDIRECTORY(cuda)
+# ADD_SUBDIRECTORY(cuda)
+ADD_SUBDIRECTORY(math)
 
 # Support library for utilities s
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)

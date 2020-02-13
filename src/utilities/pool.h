@@ -4,6 +4,9 @@
 #include <optional>
 #include <functional>
 
+
+#include "chrono.h"
+
 namespace lython {
 
 class ThreadPool;
@@ -29,16 +32,22 @@ public:
     std::future<Return_t<Fun, Args...>> queue_task(Fun&& fun, Args&&... args){
         std::lock_guard lock(mux);
 
+        // Make an exception for that
+        if (size() == 0){
+            throw ;
+        }
+
         auto task = std::bind(fun, args...);
         // promise need to outlive this scope and die when the task is over
         auto prom = std::make_shared<std::promise<Return_t<Fun, Args...>>>();
+        auto future = prom->get_future();
 
-        tasks.emplace_back([prom, task](){
+        tasks.emplace_back([prom{std::move(prom)}, task](){
             auto result = task();
             prom->set_value(result);
         });
 
-        return prom->get_future();
+        return future;
     }
 
     //! Remove a task from the queue
@@ -53,10 +62,25 @@ public:
     //! Returns the number of threads
     std::size_t size() const;
 
+    //! Print a usage report of the thread pool
+    std::ostream& print(std::ostream& out) const;
+
+    ~ThreadPool(){
+        shutdown(true);
+    }
+
 private:
-    std::mutex mux;
+    struct Stat_t{
+        TimeIt::TimePoint start; // time when the worker was instantiated
+        float work_time = 0; // time delta the worker was busy with a task
+        int   task      = 0; // number of task the worker has completed
+        int   error     = 0; // number of errors
+        bool  running   = true;
+    };
+
+    std::mutex               mux;
     std::vector<std::thread> threads;
-    std::vector<int>         running; // CAN'T be bool, we need atomic write and bool wont cut it
+    std::vector<Stat_t>      stats;
     std::vector<Task_t>      tasks;
 };
 }

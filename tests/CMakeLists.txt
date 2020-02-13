@@ -11,6 +11,7 @@ SET(TEST_HEADERS
     lexer_test.cpp
     parser_test.cpp
     interpreter_test.cpp
+    pool_test.cpp
 )
 
 # find_package(Catch2)
