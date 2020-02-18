@@ -39,7 +39,7 @@ public:
 
 } // namespace AbstractSyntaxTree
 namespace AbstractSyntaxTree = AST;
-using Attributes = Dict<String, Expression>;
+using Attributes = Array<Tuple<StringRef, Expression>>;
 
 
 namespace AST {
@@ -70,6 +70,7 @@ struct pl_hash {
 
 using ParameterList = Array<Parameter>;
 using ParameterDict = Dict<StringRef, Parameter, string_ref_hash>;
+
 
 struct Builtin : public Node {
 public:
@@ -146,7 +147,7 @@ public:
         return value.get<V>();
     }
 
-    VTag get_tag(){
+    ValueKind get_tag(){
         return value.tag;
     }
 
@@ -186,9 +187,14 @@ public:
 struct Call : public Node {
 public:
     using Arguments = Array<Expression>;
+    using KwArguments = Dict<String, Expression>;
 
     Expression function;
-    Arguments  arguments;
+    // Positional arguments
+    Arguments   arguments;
+    // Keyword arguments
+    KwArguments kwargs;
+
 
     Call():
         Node(NodeKind::KCall)
@@ -281,9 +287,12 @@ using Ref = Reference;
 
 struct Struct : public Node {
 public:
-    StringRef   name;
-    Attributes  attributes;
-    String      docstring;
+    using IndexMapping = Dict<StringRef, int, string_ref_hash>;
+
+    StringRef    name;
+    Attributes   attributes;  // Ordered list of attributes
+    IndexMapping offset;      // String to int
+    String       docstring;
 
     Struct(StringRef name):
         Node(NodeKind::KStruct), name(name)
@@ -292,6 +301,15 @@ public:
     Struct(String const& name):
         Struct(get_string(name))
     {}
+
+    void insert(String const& attr, Expression expr){
+        return insert(get_string(attr), expr);
+    }
+
+    void insert(StringRef const& attr, Expression expr){
+        offset[attr] = attributes.size();
+        attributes.emplace_back(attr, expr);
+    }
 };
 
 /*

@@ -1,5 +1,5 @@
 #include "interpreter.h"
-#include "../ast/visitor.h"
+#include "ast/visitor.h"
 
 namespace lython {
 
@@ -125,15 +125,49 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return val->value;
     }
 
-    Value struct_type(Struct_t cstruct, std::size_t d) {
-        return Value(cstruct->name.str());
+    Value struct_type(Struct_t cstruct, std::size_t) {
+        return Value(cstruct);
     }
 
     Value call(Call_t call, std::size_t depth) {
         trace_start(depth, "call");
         Value closure = eval(call->function, depth + 1);
-        assert(closure.tag == obj_closure);
+        switch (closure.tag) {
+        // standard function
+        case ValueKind::obj_closure: return fun_call(closure, call, depth);
 
+        // Calling a struct type
+        case ValueKind::obj_object: return struct_call(closure, call, depth);
+        }
+
+        return Value("Unsupported");
+    }
+
+    Value struct_call(Value closure, Call_t call, std::size_t depth){
+        Value v = new_object();
+        value::Struct& data = *v.get<value::Struct*>();
+
+        const AST::Struct* cstruct = closure.get<value::Class*>()->fun;
+
+        assert(call->arguments.size() == cstruct->attributes.size()
+               && "arguments should match attributes");
+
+        // for all positional arguments
+        auto n = call->arguments.size();
+        for(auto i = 0u; i < n; ++i){
+            StringRef name = std::get<0>((*cstruct).attributes[i]);
+            data.attributes[name] = eval(call->arguments[i], depth);
+        }
+
+        for(auto& item: call->kwargs){
+            data.attributes[item.first] = eval(item.second, depth);
+        }
+
+        // v.v_object.attributes;
+        return v;
+    }
+
+    Value fun_call(Value closure, Call_t call, std::size_t depth){
         auto on = env.size();
         for (auto& expr: call->arguments)
             env.push_back(eval(expr, depth + 1));
@@ -141,7 +175,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         // clo.env = eval(call->arguments(), depth);
         // clo.env.insert(std::begin(clo.env), Value(0));
 
-        const AST::Function* fun = closure.v_closure.fun;
+        const AST::Function* fun = closure.get<value::Closure*>()->fun;
 
         //auto old = env;
         //env = closure.v_closure.env;
@@ -164,11 +198,13 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     // Helpers
     // -------
-    Value closure(Value const fun, std::size_t depth){
+    Value closure(Value fun, std::size_t depth){
         trace_start(depth, "closure");
-        if (fun.tag == obj_closure){
-            if (!fun.v_closure.fun){
-                auto v = fun.v_closure.builtin(env);
+        if (fun.tag == ValueKind::obj_closure){
+            value::Closure* clo = fun.get<value::Closure*>();
+
+            if (!clo->fun){
+                auto v = clo->builtin(env);
                 return v;
             }
         }
@@ -203,7 +239,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         case AST::MathKind::Function:{
             trace_start(depth, "function (name: {}) (arg_count: {}) (env: {})", op.name, op.arg_count, env.size());
             Value clo = eval(op.ref, depth + 1);
-            assert(clo.tag == obj_closure);
+            assert(clo.tag == ValueKind::obj_closure);
 
             debug("Retrieve closure");
             // Value::Closure& clo = closure.get_closure();

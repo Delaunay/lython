@@ -93,8 +93,8 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         }
 
         for (auto &item : cstruct->attributes) {
-            out << indentation << item.first << ": ";
-            visit(item.second, d);
+            out << indentation << std::get<0>(item) << ": ";
+            visit(std::get<1>(item), d);
             out << "\n";
         }
         return out;

@@ -60,6 +60,29 @@ namespace lython {
 //      tok_indent
 //      <compound-statement>
 
+
+Expression Parser::parse_type(Module& m, size_t depth) {
+    TRACE_START();
+
+    String name = "<typename>";
+    int loc = -1;
+
+    WITH_EXPECT(tok_identifier, "expect type identifier") {
+        name = token().identifier();
+        loc = m.find_index(name);
+    }
+
+    if (loc < 0){
+        warn("Undefined type \"{}\"", name.c_str());
+    }
+    // TODO: is this correct
+    auto type = Expression::make<AST::Ref>(name, loc, m.size(), Expression());
+    EAT(tok_identifier);
+
+    TRACE_END();
+    return Expression(type);
+}
+
 AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
     TRACE_START();
     EXPECT('(', "Expected start of parameter list");
@@ -91,28 +114,6 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
     return list;
 }
 
-Expression Parser::parse_type(Module& m, size_t depth) {
-    TRACE_START();
-
-    String name = "<typename>";
-    int loc = -1;
-
-    WITH_EXPECT(tok_identifier, "expect type identifier") {
-        name = token().identifier();
-        loc = m.find_index(name);
-    }
-
-    if (loc < 0){
-        warn("Undefined type \"{}\"", name.c_str());
-    }
-    // TODO: is this correct
-    auto type = Expression::make<AST::Ref>(name, loc, m.size(), Expression());
-    EAT(tok_identifier);
-
-    TRACE_END();
-    return Expression(type);
-}
-
 Expression Parser::parse_function(Module& m, std::size_t depth) {
     TRACE_START();
 
@@ -129,19 +130,18 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     // Creating a new module
     AccessTracker tracker;
     Module module = m.enter(&tracker);
-    auto parameters = parse_parameter_list(m, depth + 1);
+
     auto expr = Expression::make<AST::Function>(function_name);
     auto fun = expr.ref<AST::Function>();
 
     // Insert function for recursive calls
-    // debug("Insert Function");
     module.insert(function_name, expr);
 
-    fun->args = parameters;
+    fun->args = parse_parameter_list(m, depth + 1);
 
     // Insert the parameters into the Scope
     // Parameters are created by the call
-    for(AST::Parameter& param: parameters){
+    for(AST::Parameter& param: fun->args){
         int size = module.size();
         auto ref = Expression::make<AST::Ref>(param.name, size, size, param.type);
         module.insert(param.name.str(), ref);

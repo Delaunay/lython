@@ -39,6 +39,8 @@ String strip(String const& v){
     return String(v.begin(), v.begin() + i + 1);
 }
 
+Expression make_point(Module& mod);
+
 
 int main() {
     {
@@ -59,12 +61,19 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = max_alias();
+        String code =
+        "struct Point:\n"
+        "    x: Float\n"
+        "    y: Float\n"
+        "\n"
 
-        "def fun1(a: Float, b: Float) -> Float:\n"
-        "   return max(a, b)\n\n"
+        "a = 1\n"
 
-        "fun1(1.0, 2.0);"
+        "def get_x(p: Point) -> Float:\n"
+        "    return p.x\n\n"
+
+        "def set_x(p: Point, x: Float):\n"
+        "    p.x = x\n\n"
         ;
 
         "def function2(test: double, test) -> double:\n"
@@ -152,13 +161,15 @@ int main() {
 
         Interpreter vm(module);
 
-        auto expr = Expression::make<AST::Call>();
-        AST::Call* call = expr.ref<AST::Call>();
+//        "pp = Point(1.0, 2.0)\n"
 
-        call->function = module.find("max_alias");
-        call->arguments.emplace_back(Expression::make<AST::Value>(1, Expression()));
-        call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
+//        "get_x(pp)\n"
 
+//        "set_x(pp, 3)\n"
+
+//        "get_x(pp)\n";
+
+        auto expr = make_point(module);
         Value v = vm.eval(expr);
 
         v.print(std::cout);
@@ -167,4 +178,23 @@ int main() {
     show_alloc_stats();
 
     return 0;
+}
+
+Expression make_point(Module& mod){
+    auto expr = Expression::make<AST::Call>();
+    AST::Call* call = expr.ref<AST::Call>();
+    call->function = mod.find("Point");
+    call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
+    call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
+    return expr;
+}
+
+
+Expression make_max(Module& mod){
+    auto expr = Expression::make<AST::Call>();
+    AST::Call* call = expr.ref<AST::Call>();
+    call->function = mod.find("max_alias");
+    call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
+    call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
+    return expr;
 }

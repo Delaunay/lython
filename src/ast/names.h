@@ -42,17 +42,21 @@ public:
         ref(get_string(name).ref)
     {}
 
+    bool operator== (StringRef const& b) const {
+        return ref == b.ref;
+    }
+
     String str() const;
 
     operator StringView() const;
 
-    std::size_t ref;
+    std::size_t ref = 0;
 };
 
 // hash the reference instead of the string itself
 // This could cause issues if we have multiple string databases
 struct string_ref_hash {
-    std::size_t operator()(StringRef &v) const noexcept{
+    std::size_t operator()(StringRef const &v) const noexcept{
         return _h(v.ref);
     }
     std::hash<std::size_t> _h;

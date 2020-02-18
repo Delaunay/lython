@@ -362,7 +362,7 @@ class Parser {
             EXPECT(':', "Expect :");
             EAT(':');
 
-            data->attributes[attribute_name] = parse_type(m, depth);
+            data->insert(attribute_name, parse_type(m, depth));
             tok = token();
 
             while (tok.type() == tok_newline) {
