@@ -222,7 +222,7 @@ String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev) {
 
         String fun = op.name;
         if (op.ref){
-            std::basic_stringstream<char, std::char_traits<char>, Allocator<char>> ss;
+            StringStream ss;
             op.ref.print(ss);
             fun = ss.str();
         }
@@ -232,7 +232,7 @@ String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev) {
     case AST::MathKind::VarRef: {
         String var = op.name;
         if (op.ref){
-            std::basic_stringstream<char, std::char_traits<char>, Allocator<char>> ss;
+            StringStream ss;
             op.ref.print(ss);
             var = ss.str();
         }

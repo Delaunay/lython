@@ -6,8 +6,8 @@
 #include <vector>
 #include <algorithm>
 
-#include "../logging/logging.h"
-#include "../Types.h"
+#include "logging/logging.h"
+#include "dtypes.h"
 
 /*
  *  incorrect is used when the input is known to be wrong

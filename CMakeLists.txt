@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # project name + language used
-PROJECT(lython C CXX)
+PROJECT(lython C CXX CUDA)
 
 # debug/release
 SET(CMAKE_RELEASE_POSTFIX "")
@@ -17,7 +17,8 @@ IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     ENDIF(UNIX)
 ELSE()
     MESSAGE(STATUS "Building Release Version")
-    ADD_DEFINITIONS(-O2)
+    #  causes: nvcc fatal   : redefinition of argument 'optimize'
+    # ADD_DEFINITIONS(-O2)
 ENDIF()
 
 # specify where compiled files must go
@@ -113,6 +114,7 @@ ADD_CUSTOM_TARGET(zothers ALL SOURCES
     README.md
     .travis.yml
     .gitignore
+    .gitmodules
 )
 
 

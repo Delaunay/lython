@@ -404,7 +404,7 @@ function(setup_target_for_coverage_gcovr_html)
 
         # Running gcovr
         COMMAND ${GCOVR_PATH} --html --html-details
-            -s -r ${BASEDIR} ${GCOVR_EXCLUDE_ARGS}
+            -v -s -r ${BASEDIR} ${GCOVR_EXCLUDE_ARGS}
             --object-directory=${PROJECT_BINARY_DIR}
             -o ${Coverage_NAME}/index.html
 

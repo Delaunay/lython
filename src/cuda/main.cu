@@ -6,8 +6,11 @@
 // #include <cuda/cuda.h>
 
 
-__global__ void add(float*a, float*b, float*c){
-    c[blockIdx.x] = a[blockIdx.x] + b[blockIdx.x];
+__global__ void add(float*a, float*b, float*c, int n){
+    int index = threadIdx.x+ blockIdx.x* blockDim.x;
+
+    if (index < n)
+        c[index] = a[index] + b[index];
 }
 
 
@@ -37,7 +40,9 @@ int main(){
     cudaMemcpy(da, a, sizeof(float) * size, cudaMemcpyHostToDevice);
     cudaMemcpy(db, b, sizeof(float) * size, cudaMemcpyHostToDevice);
 
-    add<<<size,1>>>(da, db, dc);
+    int THREADS_PER_BLOCK = 8;
+    #define TPB THREADS_PER_BLOCK
+    add<<<(size + TPB+1)/TPB,TPB>>>(da, db, dc, size);
 
     cudaMemcpy(c, dc, sizeof(float) *size, cudaMemcpyDeviceToHost);
 

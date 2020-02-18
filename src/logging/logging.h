@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <fmt/core.h>
+#include <spdlog/fmt/bundled/core.h>
 
 #include "revision_data.h"
 
@@ -151,4 +151,4 @@ inline void assert_true(bool cond, char const* message,  char const* assert_expr
 #endif
 
 #define assert(expr, message)\
-    assert_true(static_cast <bool> (expr), message, __FILE__, __LINE__, __FUNCTION__)
+    assert_true(static_cast <bool> (expr), message, #expr, __FILE__, __LINE__, __FUNCTION__)

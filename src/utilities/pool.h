@@ -5,13 +5,14 @@
 #include <functional>
 
 
-#include "chrono.h"
+#include "utilities/stopwatch.h"
 
 namespace lython {
 
 class ThreadPool;
 void worker_loop(ThreadPool *pool, std::size_t n);
 
+// Linux std::async does not like when you spawn too many threads at once
 class ThreadPool{
 public:
     using Task_t = std::function<void()>;
@@ -37,17 +38,18 @@ public:
             throw ;
         }
 
+        // bind all the arguments to make the task easier to pass around
         auto task = std::bind(fun, args...);
+
         // promise need to outlive this scope and die when the task is over
         auto prom = std::make_shared<std::promise<Return_t<Fun, Args...>>>();
-        auto future = prom->get_future();
 
-        tasks.emplace_back([prom{std::move(prom)}, task](){
+        tasks.emplace_back([prom, task](){
             auto result = task();
             prom->set_value(result);
         });
 
-        return future;
+        return prom->get_future();
     }
 
     //! Remove a task from the queue
@@ -71,11 +73,12 @@ public:
 
 private:
     struct Stat_t{
-        TimeIt::TimePoint start; // time when the worker was instantiated
+        StopWatch<>::TimePoint start; // time when the worker was instantiated
         float work_time = 0; // time delta the worker was busy with a task
         int   task      = 0; // number of task the worker has completed
         int   error     = 0; // number of errors
-        bool  running   = true;
+        bool  running   = true; // used to shutdown the worker
+        bool  sleeping  = true; // is the worker processing a task
     };
 
     std::mutex               mux;

@@ -3,9 +3,9 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "../logging/logging.h"
-#include "../Types.h"
-#include "../utilities/trie.h"
+#include "logging/logging.h"
+#include "dtypes.h"
+#include "utilities/trie.h"
 #include "ast/expressions.h"
 #include "ast/nodes.h"
 

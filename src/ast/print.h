@@ -1,7 +1,7 @@
 #ifndef LYTHON_AST_PRINT_HEADER
 #define LYTHON_AST_PRINT_HEADER
 
-#include "visitor.h"
+#include "ast/visitor.h"
 
 #include <ostream>
 

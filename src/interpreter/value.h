@@ -2,11 +2,11 @@
 #define LYTHON_VALUE_HEADER
 
 #include <iostream>
-#include <fmt/core.h>
+#include <spdlog/fmt/bundled/core.h>
 
-#include "../Types.h"
-#include "../logging/logging.h"
-#include "../utilities/allocator.h"
+#include "dtypes.h"
+#include "logging/logging.h"
+#include "utilities/allocator.h"
 
 namespace lython {
 

@@ -16,12 +16,12 @@
 #include <numeric>
 #include <utility>
 
-#include "expressions.h"
+#include "ast/expressions.h"
+#include "ast/names.h"
+#include "lexer/token.h"
+#include "utilities/stack.h"
+#include "interpreter/value.h"
 
-#include "../lexer/token.h"
-#include "../utilities/stack.h"
-#include "../interpreter/value.h"
-#include "names.h"
 
 namespace lython {
 

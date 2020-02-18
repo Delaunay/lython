@@ -7,8 +7,8 @@
 #include <string_view>
 #include <unordered_map>
 
-#include "../Types.h"
-#include "../logging/logging.h"
+#include "dtypes.h"
+#include "logging/logging.h"
 
 
 namespace lython {

@@ -2,7 +2,8 @@
 
 #include <cstdio>
 #include <string>
-#include "../Types.h"
+
+#include "dtypes.h"
 
 /*
  *  Buffers are special reader that keep track of current line/col and indent level

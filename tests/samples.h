@@ -1,7 +1,7 @@
 #ifndef LYTHON_TESTS_SAMPLES_HEADER
 #define LYTHON_TESTS_SAMPLES_HEADER
 
-#include "Types.h"
+#include "dtypes.h"
 
 using namespace lython;
 

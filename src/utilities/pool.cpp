@@ -1,5 +1,5 @@
 #include "pool.h"
-#include <fmt/core.h>
+#include <spdlog/fmt/bundled/core.h>
 
 namespace lython {
 
@@ -54,35 +54,45 @@ std::size_t ThreadPool::size() const {
 }
 
 std::ostream& ThreadPool::print(std::ostream& out) const{
-    auto end = TimeIt::Clock::now();
+    auto end = StopWatch<>::Clock::now();
+    int total_tasks = 0;
 
-    out << fmt::format("| {:4} | {:5} | {:4} |\n", "#id", "busy%", "task");
-    out <<             "|------+-------+------|\n";
+    out << fmt::format("| {:4} | {:6} | {:4} | {} |\n", "#id", "busy%", "task", "sleep");
+    out <<             "|------+--------+------+-------|\n";
 
     for(std::size_t i = 0; i < size(); ++i){
         Stat_t const& stat = stats[i];
-        auto total = TimeIt::diff(stat.start, end);
+        auto total = float(StopWatch<>::diff(stat.start, end));
+        auto busy = stat.work_time * 100 / total;
 
-        out << fmt::format("| {:4} | {:5} | {:4} |\n", i, stat.work_time / total, stat.task);
+        total_tasks += stat.task;
+
+        out << fmt::format(
+            "| {:4} | {:6.2f} | {:4} | {:5} |\n",
+                i, busy, stat.task, stat.sleeping);
     }
 
+    out << fmt::format("    Total Tasks: {}\n", total_tasks);
+    out << fmt::format("Remaining Tasks: {}\n", tasks.size());
     return out;
 }
 
 void worker_loop(ThreadPool *pool, std::size_t n){
-    pool->stats[n].start = TimeIt::Clock::now();
+    pool->stats[n].start = StopWatch<>::Clock::now();
 
     while (pool->stats[n].running){
         auto maybe_task = pool->pop();
 
         if (maybe_task.has_value()){
-            TimeIt chrono;
+            pool->stats[n].sleeping = false;
+            StopWatch<> chrono;
 
             std::function<void()> task = maybe_task.value();
             task();
 
-            pool->stats[n].work_time += chrono.stop();
+            pool->stats[n].work_time += float(chrono.stop());
             pool->stats[n].task += 1;
+            pool->stats[n].sleeping = true;
         } else {
             std::this_thread::yield();
         }

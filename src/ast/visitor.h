@@ -1,8 +1,8 @@
 #ifndef LYTHON_AST_VISITOR_HEADER
 #define LYTHON_AST_VISITOR_HEADER
 
-#include "expressions.h"
-#include "nodes.h"
+#include "ast/expressions.h"
+#include "ast/nodes.h"
 
 namespace lython {
 

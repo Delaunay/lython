@@ -1,8 +1,8 @@
 #ifndef LYTHON_INTERPRETER_HEADER
 #define LYTHON_INTERPRETER_HEADER
 
-#include "../parser/module.h"
-#include "../logging/logging.h"
+#include "parser/module.h"
+#include "logging/logging.h"
 
 #include <cmath>
 

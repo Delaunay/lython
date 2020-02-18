@@ -1,16 +1,16 @@
 ﻿#ifndef PARSER_H
 #define PARSER_H
 
-#include "../lexer/lexer.h"
-#include "../logging/logging.h"
+#include "lexer/lexer.h"
+#include "logging/logging.h"
 
-#include "../utilities/optional.h"
-#include "../utilities/stack.h"
-#include "../utilities/trie.h"
-#include "../utilities/metadata.h"
+#include "utilities/optional.h"
+#include "utilities/stack.h"
+#include "utilities/trie.h"
+#include "utilities/metadata.h"
 
-#include "../ast/nodes.h"
-#include "module.h"
+#include "ast/nodes.h"
+#include "parser/module.h"
 
 #include <iostream>
 #include <numeric>

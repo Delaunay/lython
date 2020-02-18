@@ -32,11 +32,14 @@ using float64 = double ;
 using uchar = unsigned char;
 
 template<typename V>
-using Array = std::vector<V, Allocator<V>>;
+using AllocatorCPU = Allocator<V, device::CPU>;
 
-using String = std::basic_string<char, std::char_traits<char>, Allocator<char>>;
+template<typename V>
+using Array = std::vector<V, AllocatorCPU<V>>;
 
-using StringStream = std::basic_stringstream<char, std::char_traits<char>, Allocator<char>>;
+using String = std::basic_string<char, std::char_traits<char>, AllocatorCPU<char>>;
+
+using StringStream = std::basic_stringstream<char, std::char_traits<char>, AllocatorCPU<char>>;
 
 using StringView = std::string_view;
 } // namespace lython
@@ -69,10 +72,10 @@ template<typename A, typename B>
 using Pair = std::pair<A, B>;
 
 template<typename K, typename V, typename H = std::hash<K>>
-using Dict = std::unordered_map<K, V, H, std::equal_to<K>, Allocator<std::pair<K const, V>>>;
+using Dict = std::unordered_map<K, V, H, std::equal_to<K>, AllocatorCPU<std::pair<K const, V>>>;
 
 template<typename V>
-using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, Allocator<V>>;
+using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, AllocatorCPU<V>>;
 
 } // namespace lython
 

@@ -2,10 +2,10 @@
 
 #include <ostream>
 
-#include "buffer.h"
-#include "token.h"
+#include "lexer/buffer.h"
+#include "lexer/token.h"
 
-#include "../Types.h"
+#include "dtypes.h"
 
 #include <iostream>
 
