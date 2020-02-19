@@ -14,8 +14,8 @@ template<typename T>
 using SharedPtrInternal = std::_Sp_counted_ptr_inplace<
     T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
 
-template<typename T>
-using HashNodeInternal = std::__detail::_Hash_node<T, false>;
+template<typename T, bool cache>
+using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
 
 
 void metadata_init_names(){
@@ -34,17 +34,64 @@ void metadata_init_names(){
     register_type<SharedPtrInternal<lython::AST::Builtin>>("AST::Builtin");
     register_type<SharedPtrInternal<lython::AST::Type>>("AST::Type");
 
+    // value::Struct
     register_type<HashNodeInternal<
-        std::pair<const StringRef, Value>>>("Pair[StringRef, Value]");
+        std::pair<const StringRef, Value>, false>>(
+        "Pair[StringRef, Value]");
+
+    // AST::Struct
+    register_type<HashNodeInternal<
+        std::pair<const StringRef, int>, false>>(
+        "Pair[StringRef, int]");
+
+    // AST::KwArguments
+    register_type<HashNodeInternal<
+        std::pair<const StringRef, Expression>, false>>(
+        "Pair[StringRef, Expression]");
+
+    // AST::Variables
+    register_type<HashNodeInternal<
+        std::pair<const AST::Parameter, Expression>, false>>(
+        "Pair[Parameter, Expression]");
+
+    // ParameterDict
+    register_type<HashNodeInternal<
+        std::pair<const String, AST::Parameter>, false>>(
+        "Pair[String, Parameter]");
+
+    // interpreter
+    register_type<HashNodeInternal<
+        std::pair<const String, std::function<Value(Array<Value>&)>>, true>>(
+        "Pair[String, Value(Value[])]");
 
     register_type<HashNodeInternal<
-        std::pair<const String, Index>>>("Pair[String, Index]");
+        std::pair<const String, TokenType>, true>>(
+        "Pair[String, TokenType]");
 
+    // StringDatabase
     register_type<HashNodeInternal<
-        std::pair<const String, std::function<Value(Array<Value>)>>>>("Pair[String, Value(Value[])]");
+        std::pair<const StringView, std::size_t>, true>>(
+        "Pair[StringView, size_t]");
 
+    // module
     register_type<HashNodeInternal<
-        std::pair<const String, TokenType>>>("Pair[String, TokenType]");
+        std::pair<const String, Index>, true>>(
+        "Pair[String, Index]");
+
+    // module precedence_table
+    register_type<HashNodeInternal<
+        std::pair<const String, std::tuple<int, bool>>, true>>(
+        "Pair[String, Tuple[int, bool]]");
+
+    // Keyword to string
+    register_type<HashNodeInternal<
+        std::pair<const int, String>, false>>(
+        "Pair[int, String]");
+
+    // Set Keyword
+    register_type<HashNodeInternal<
+        char, false>>(
+        "Set char");
 
 
     // std::unordered_map
