@@ -137,17 +137,16 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         case ValueKind::obj_closure: return fun_call(closure, call, depth);
 
         // Calling a struct type
-        case ValueKind::obj_object: return struct_call(closure, call, depth);
+        case ValueKind::obj_class: return struct_call(closure, call, depth);
         }
 
         return Value("Unsupported");
     }
 
     Value struct_call(Value closure, Call_t call, std::size_t depth){
-        Value v = new_object();
+        AST::Struct const* cstruct = closure.get<value::Class*>()->fun;
+        Value v = new_object(cstruct);
         value::Struct& data = *v.get<value::Struct*>();
-
-        const AST::Struct* cstruct = closure.get<value::Class*>()->fun;
 
         assert(call->arguments.size() == cstruct->attributes.size()
                && "arguments should match attributes");

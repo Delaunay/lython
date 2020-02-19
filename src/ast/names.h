@@ -99,6 +99,17 @@ public:
         strings.push_back("");
     }
 
+    std::ostream& report(std::ostream& out){
+        std::size_t saved = 0;
+        for(auto i = 0u; i < count.size(); ++i){
+            auto s = strings[i].length() * count[i];
+            out << fmt::format("| {:30} | {:4} | {:4} |\n", strings[i], count[i], s);
+            saved += s;
+        }
+        out << fmt::format("Saved: {} bytes\n", saved);
+        return out;
+    }
+
 private:
     Dict<StringView, std::size_t> defined;
     Array<String>                 strings;

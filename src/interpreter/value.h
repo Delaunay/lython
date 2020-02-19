@@ -78,7 +78,7 @@ namespace value {
 }
 
 struct Value {
-    friend Value new_object();
+    friend Value new_object(AST::Struct const *type);
 
     using BuiltinImpl = std::function<Value(Array<Value>&)>;
 
@@ -101,26 +101,7 @@ public:
         return ss.str();
     }
 
-    std::ostream& print(std::ostream& out) const {
-        switch (tag) {
-            #define X(type) case ValueKind::pod_##type:{\
-                return out << #type << '(' << _data.v_##type << ')';\
-            }
-                POD_TYPES(X)
-            #undef X
-            case ValueKind::pod_str:
-                return out << "String(" << StringDatabase::instance()[_data.v_uint64] << ")";
-            case ValueKind::obj_closure:
-                return out << "closure";
-            case ValueKind::obj_class:
-                return out << "class";
-            case ValueKind::obj_object:
-                return out << "object";
-            case ValueKind::obj_none:
-                return out << "None";
-            }
-        return out;
-    }
+    std::ostream& print(std::ostream& out) const;
 
 public:
     //! T: type to retrieve the value as
@@ -131,6 +112,11 @@ public:
     template<typename T>
     T get() {
         throw TypeError("{}: expected {} got {}", to_string(retrieve_tag<T>()), to_string(tag));
+    }
+
+    template<typename T>
+    T get() const {
+        throw TypeError("{}(const): expected {} got {}", to_string(retrieve_tag<T>()), to_string(tag));
     }
 
     value::Closure* get_closure();
@@ -165,23 +151,7 @@ public:
         tag(ValueKind::obj_none)
     {}
 
-    bool operator==(Value const& v) const{
-        if (v.tag != tag){
-            return false;
-        }
-
-        switch(tag){
-            #define X(type)\
-            case ValueKind::pod_##type:{\
-                 return _data.v_##type == v._data.v_##type;\
-            }
-            POD_TYPES(X)
-            #undef X
-
-        default:
-            return false;
-        }
-    }
+    bool operator==(Value const& v) const;
 
 private:
     Value(ValueKind tag):
@@ -189,13 +159,20 @@ private:
     {}
 };
 
-Value new_object();
+Value new_object(const AST::Struct *type);
 
 namespace value {
 // Object
 struct Struct: public ValueHolder{
     using AttrDict = Dict<StringRef, Value, string_ref_hash>;
+
+    Struct(AST::Struct const* type): type(type)
+    {}
+
+    AST::Struct const* type;
     AttrDict attributes;
+
+    std::ostream& print(std::ostream& out) const;
 };
 
 // Result of a closure
@@ -209,6 +186,8 @@ struct Closure: public ValueHolder {
     AST::Function const * fun = nullptr;
     Array<Value>          env;
     BuiltinImpl           builtin;
+
+    std::ostream& print(std::ostream& out) const;
 };
 
 // Struct Type
@@ -218,6 +197,8 @@ struct Class: public ValueHolder{
     {}
 
     AST::Struct const* fun;
+
+    std::ostream& print(std::ostream& out) const;
 };
 }
 
@@ -256,6 +237,34 @@ inline value::Struct* Value::get()
         throw TypeError("{}: expected {} got {}", to_string(ValueKind::obj_object), to_string(tag));
 
     return static_cast<value::Struct*>(_obj.get());
+}
+
+
+template<>
+inline value::Struct const* Value::get() const
+{
+    if (this->tag != ValueKind::obj_object)
+        throw TypeError("{}: expected {} got {}", to_string(ValueKind::obj_object), to_string(tag));
+
+    return static_cast<value::Struct const*>(_obj.get());
+}
+
+template<>
+inline value::Closure const* Value::get() const
+{
+    if (this->tag != ValueKind::obj_closure)
+        throw TypeError("{}: expected {} got {}", to_string(ValueKind::obj_object), to_string(tag));
+
+    return static_cast<value::Closure const*>(_obj.get());
+}
+
+template<>
+inline value::Class const* Value::get() const
+{
+    if (this->tag != ValueKind::obj_class)
+        throw TypeError("{}: expected {} got {}", to_string(ValueKind::obj_class), to_string(tag));
+
+    return static_cast<value::Class const*>(_obj.get());
 }
 
 

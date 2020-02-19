@@ -172,11 +172,12 @@ int main() {
         auto expr = make_point(module);
         Value v = vm.eval(expr);
 
-        v.print(std::cout);
+        v.print(std::cout) << std::endl;
+        std::cout << code.size() << std::endl;
         std::cout << std::endl;
     }
     show_alloc_stats();
-
+    // StringDatabase::instance().report(std::cout);
     return 0;
 }
 
