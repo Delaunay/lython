@@ -8,8 +8,7 @@ namespace lython {
 
 #define TYPES_METADATA(X)\
     X(String, String)\
-    X(char, Char)\
-    X(AST::MathNode, MathNode)
+    X(char, Char)
 
 
 //X(int8, Int8)\

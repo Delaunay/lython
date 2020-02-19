@@ -43,6 +43,8 @@ Expression make_point(Module& mod);
 
 
 int main() {
+    metadata_init_names();
+
     {
         info("Enter");
 

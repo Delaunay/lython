@@ -27,18 +27,18 @@ String to_string(ValueKind kind){
 
 Value::Value(AST::Function const* fun, Array<Value>  env):
     tag(ValueKind::obj_closure),
-    _obj(std::make_shared<value::Closure>(fun, std::move(env), nullptr))
+    _obj(lython::make_shared<value::Closure>(fun, std::move(env), nullptr))
 {
 }
 
 Value::Value(BuiltinImpl fun, Array<Value>  env):
     tag(ValueKind::obj_closure),
-    _obj(std::make_shared<value::Closure>(nullptr, std::move(env), std::move(fun)))
+    _obj(lython::make_shared<value::Closure>(nullptr, std::move(env), std::move(fun)))
 {}
 
 Value::Value(AST::Struct const* cstruct):
     tag(ValueKind::obj_class),
-    _obj(std::make_shared<value::Class>(cstruct))
+    _obj(lython::make_shared<value::Class>(cstruct))
 {}
 
 

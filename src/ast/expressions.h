@@ -1,6 +1,7 @@
 ﻿#ifndef LYTHON_EXPR_HEADER
 #define LYTHON_EXPR_HEADER
-#include <memory>
+
+#include "utilities/allocator.h"
 
 namespace lython {
 
@@ -45,7 +46,7 @@ public:
 
     template<typename T, typename ... Args>
     static Expression make(Args&& ... args){
-        std::shared_ptr<AST::Node> ptr = std::make_shared<T>(std::forward<Args>(args)...);
+        std::shared_ptr<AST::Node> ptr = lython::make_shared<T>(std::forward<Args>(args)...);
         return Expression(ptr);
     }
 

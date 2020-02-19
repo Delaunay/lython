@@ -55,6 +55,8 @@ void show_log_backtrace();
 // Show backtrace using execinfo
 void show_backtrace();
 
+std::string demangle(std::string const& original_str);
+
 // retrieve backtrace using execinfo
 std::vector<std::string> get_backtrace(size_t size);
 

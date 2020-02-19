@@ -6,6 +6,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "logging/logging.h"
+
 namespace lython {
 
 inline
@@ -45,25 +47,29 @@ int type_id(){
 
 template<typename T>
 const char* _insert_typename(const char* str){
-    typenames()[type_id<T>()] = str;
+    if (typenames()[type_id<T>()].size() <= 0){
+        typenames()[type_id<T>()] = str;
+    }
     return str;
 }
 
 template<typename T>
 const char* type_name(){
-    using C = typename T::nothing;
+    // std::string("<undefined(id="+ std::to_string(type_id<T>()) +")>").c_str()
     static const char* name = _insert_typename<T>(
-        std::string("<undefined(id="+ std::to_string(type_id<T>()) +")>").c_str());
+        demangle(typeid(T).name()).c_str());
     return name;
 };
 
 template<typename T>
 int& allocated_count(){
+    _insert_typename<T>(demangle(typeid(T).name()).c_str());
     return stats()[type_id<T>()].first;
 }
 
 template<typename T>
 int& deallocated_count(){
+    _insert_typename<T>(demangle(typeid(T).name()).c_str());
     return stats()[type_id<T>()].second;
 }
 
@@ -148,6 +154,15 @@ public:
 private:
     Device allocator;
 };
+
+template<typename _Tp, typename... _Args>
+inline std::shared_ptr<_Tp> make_shared(_Args&&... __args)
+{
+    typedef typename std::remove_cv<_Tp>::type _Tp_nc;
+    return std::allocate_shared<_Tp>(
+        Allocator<_Tp_nc, device::CPU>(), std::forward<_Args>(__args)...);
+}
+
 
 } // namespace lython
 

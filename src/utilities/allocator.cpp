@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cstdlib>
+#include <spdlog/fmt/bundled/core.h>
 
 #include "dtypes.h"
-#include "fmt.h"
 
 #include "utilities/allocator.h"
 #include "utilities/metadata.h"
@@ -54,12 +54,10 @@ void show_alloc_stats(){
 
     auto line = String(4 + 40 + 10 + 10 + 10, '-');
 
-    std::cout << line << '\n'
-        << align_right("id", 4)
-        << align_right("name", 40)
-        << align_right("alloc", 10)
-        << align_right("dealloc", 10)
-        << align_right("remain", 10) << std::endl;
+    std::cout << line << '\n';
+    std::cout << fmt::format(
+        "{:>4} {:>40} {:>10} {:>10} {:>10}\n",
+        "id", "name", "alloc", "dealloc", "remain");
 
     std::cout << line << '\n';
 
@@ -74,12 +72,9 @@ void show_alloc_stats(){
         auto alloc = stat[i].first;
         auto dealloc = stat[i].second;
 
-        std::cout
-            << to_string(i, 4)
-            << align_right(String(name.c_str()), 40)
-            << to_string(alloc, 10)
-            << to_string(dealloc, 10)
-            << to_string(alloc - dealloc, 10) << std::endl;
+        std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10}\n",
+            i, String(name.c_str()), alloc, dealloc, alloc - dealloc);
+
     }
     std::cout << line << '\n';
 }
