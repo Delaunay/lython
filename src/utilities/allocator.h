@@ -129,13 +129,13 @@ public:
     }
 
     void deallocate(pointer p, std::size_t n){
-        deallocated_count<T>() += n * sizeof(T);
+        deallocated_count<T>() += 1; // n * sizeof(T);
         allocator.free(static_cast<void*>(p), n * sizeof(T));
         return;
     }
 
     T* allocate(std::size_t n, const void *hint = nullptr){
-        allocated_count<T>() += n * sizeof(T);
+        allocated_count<T>() += 1; // n * sizeof(T);
         return static_cast<T*>(allocator.malloc(n * sizeof(T)));
     }
 

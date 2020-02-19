@@ -52,7 +52,7 @@ void show_alloc_stats(){
     std::vector<std::pair<int, int>> const& stat = stats();
     std::unordered_map<int, std::string> const& names = typenames();
 
-    auto line = String(4 + 40 + 10 + 10 + 10, '-');
+    auto line = String(4 + 40 + 10 + 10 + 10 + 4, '-');
 
     std::cout << line << '\n';
     std::cout << fmt::format(
