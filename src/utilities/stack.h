@@ -14,8 +14,8 @@ public:
     using ConstIterator = typename Array<V>::const_reverse_iterator;
 
     Stack(){
-        type_id<V>();
-        type_name<V>();
+        meta::type_id<V>();
+        meta::type_name<V>();
     }
 
     void push(V const& value){

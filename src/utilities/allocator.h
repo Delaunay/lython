@@ -10,6 +10,23 @@
 
 namespace lython {
 
+namespace meta{
+
+struct Stat{
+    int allocated   = 0;
+    int deallocated = 0;
+    int bytes       = 0;
+    int size_alloc  = 0;
+    int size_free   = 0;
+};
+
+inline
+std::vector<Stat> & stats(){
+    static std::vector<Stat> stat;
+    return stat;
+}
+
+
 inline
 int& _get_id(){
     static int i = 0;
@@ -17,9 +34,11 @@ int& _get_id(){
 }
 
 inline
-std::vector<std::pair<int, int>> & stats(){
-    static std::vector<std::pair<int, int>> stat;
-    return stat;
+int _new_id(){
+    auto r = _get_id();
+    _get_id() += 1;
+    stats().emplace_back();
+    return r;
 }
 
 
@@ -29,48 +48,43 @@ std::unordered_map<int, std::string> & typenames(){
     return stat;
 }
 
-
-inline
-int _new_id(){
-    auto r = _get_id();
-    _get_id() += 1;
-    stats().emplace_back(0, 0);
-    return r;
-}
-
-
+// Generate a unique ID for a given type
 template<typename T>
 int type_id(){
     static int _id = _new_id();
     return _id;
 }
 
+// Insert a type name override
 template<typename T>
-const char* _insert_typename(const char* str){
+const char* register_type(const char* str){
     if (typenames()[type_id<T>()].size() <= 0){
         typenames()[type_id<T>()] = str;
     }
     return str;
 }
 
+// Return the type name of a function
+// You can specialize it to override
 template<typename T>
 const char* type_name(){
-    // std::string("<undefined(id="+ std::to_string(type_id<T>()) +")>").c_str()
-    static const char* name = _insert_typename<T>(
-        demangle(typeid(T).name()).c_str());
-    return name;
+    std::string const& name = typenames()[type_id<T>()];
+
+    if (name.size() <= 0){
+        const char* name = typeid(T).name();
+        register_type<T>(name);
+        return name;
+    }
+
+    return name.c_str();
 };
 
-template<typename T>
-int& allocated_count(){
-    _insert_typename<T>(demangle(typeid(T).name()).c_str());
-    return stats()[type_id<T>()].first;
-}
 
 template<typename T>
-int& deallocated_count(){
-    _insert_typename<T>(demangle(typeid(T).name()).c_str());
-    return stats()[type_id<T>()].second;
+Stat& get_stat(){
+    return stats()[type_id<T>()];
+}
+
 }
 
 void show_alloc_stats();
@@ -129,13 +143,16 @@ public:
     }
 
     void deallocate(pointer p, std::size_t n){
-        deallocated_count<T>() += 1; // n * sizeof(T);
+        meta::get_stat<T>().deallocated += 1;
+        meta::get_stat<T>().size_free += n;
         allocator.free(static_cast<void*>(p), n * sizeof(T));
         return;
     }
 
-    T* allocate(std::size_t n, const void *hint = nullptr){
-        allocated_count<T>() += 1; // n * sizeof(T);
+    T* allocate(std::size_t n, const void * = nullptr){
+        meta::get_stat<T>().allocated += 1;
+        meta::get_stat<T>().size_alloc += n;
+        meta::get_stat<T>().bytes = sizeof(T);
         return static_cast<T*>(allocator.malloc(n * sizeof(T)));
     }
 

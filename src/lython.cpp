@@ -40,6 +40,7 @@ String strip(String const& v){
 }
 
 Expression make_point(Module& mod);
+Expression make_point_check(Module& mod);
 
 
 int main() {
@@ -69,13 +70,17 @@ int main() {
         "    y: Float\n"
         "\n"
 
-        "a = 1\n"
-
         "def get_x(p: Point) -> Float:\n"
         "    return p.x\n\n"
 
-        "def set_x(p: Point, x: Float):\n"
-        "    p.x = x\n\n"
+        "def set_x(p: Point, x: Float) -> Point:\n"
+        "    p.x = x\n"
+        "    return p\n\n"
+
+        "def check_get_set() -> Float:\n"
+        "    p = Point(1.0, 2.0)\n"
+        "    a = get_x(p)\n"
+        "    return a\n\n"
         ;
 
         "def function2(test: double, test) -> double:\n"
@@ -113,8 +118,10 @@ int main() {
                 if (expr){
                     StringStream ss;
                     expr.print(ss);
-
                     parser_string = ss.str();
+
+                    std::cout << ">>> Reading\n";
+                    std::cout << strip(parser_string) << "\n<<<" << std::endl;
                 }
 
             } while(expr);
@@ -124,14 +131,15 @@ int main() {
             std::cout << "\t" << e.what() << std::endl;
         }
 
-        std::cout << std::string(80, '-') << '\n';
+//        std::cout << std::string(80, '-') << '\n';
 
-        std::cout << strip(lexer_string) << std::endl;
-        std::cout << strip(parser_string) << std::endl;
-        std::cout << strip(code) << std::endl;
+//        std::cout << strip(lexer_string) << std::endl;
+//        std::cout << strip(parser_string) << std::endl;
+//        std::cout << strip(code) << std::endl;
 
-        std::cout << std::string(80, '-') << '\n';
+//        std::cout << std::string(80, '-') << '\n';
 
+        std::cout << "Module Dump\n";
         for (auto expr : module) {
             if (expr.first == "sin")
                 continue;
@@ -171,7 +179,7 @@ int main() {
 
 //        "get_x(pp)\n";
 
-        auto expr = make_point(module);
+        auto expr = make_point_check(module);
         Value v = vm.eval(expr);
 
         v.print(std::cout) << std::endl;
@@ -189,6 +197,14 @@ Expression make_point(Module& mod){
     call->function = mod.find("Point");
     call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
     call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
+    return expr;
+}
+
+
+Expression make_point_check(Module& mod){
+    auto expr = Expression::make<AST::Call>();
+    AST::Call* call = expr.ref<AST::Call>();
+    call->function = mod.find("check_get_set");
     return expr;
 }
 

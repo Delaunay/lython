@@ -49,15 +49,15 @@ bool CPU::free(void* ptr, std::size_t){
 void show_alloc_stats(){
     metadata_init_names();
 
-    std::vector<std::pair<int, int>> const& stat = stats();
-    std::unordered_map<int, std::string> const& names = typenames();
+    auto const& stat = meta::stats();
+    std::unordered_map<int, std::string> const& names = meta::typenames();
 
-    auto line = String(4 + 40 + 10 + 10 + 10 + 4, '-');
+    auto line = String(4 + 40 + 10 + 10 + 10 + 10 + 10 + 10 + 7, '-');
 
     std::cout << line << '\n';
     std::cout << fmt::format(
-        "{:>4} {:>40} {:>10} {:>10} {:>10}\n",
-        "id", "name", "alloc", "dealloc", "remain");
+        "{:>4} {:>40} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+        "id", "name", "alloc", "dealloc", "remain", "size", "size_free", "bytes");
 
     std::cout << line << '\n';
 
@@ -69,11 +69,14 @@ void show_alloc_stats(){
 
         }
 
-        auto alloc = stat[i].first;
-        auto dealloc = stat[i].second;
+        auto alloc = stat[i].allocated;
+        auto dealloc = stat[i].deallocated;
+        auto size = stat[i].size_alloc;
+        auto size_free = stat[i].size_free;
+        auto bytes = stat[i].bytes;
 
-        std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10}\n",
-            i, String(name.c_str()), alloc, dealloc, alloc - dealloc);
+        std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+            i, String(name.c_str()), alloc, dealloc, alloc - dealloc, size, size_free, bytes);
 
     }
     std::cout << line << '\n';

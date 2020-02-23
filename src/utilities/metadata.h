@@ -22,15 +22,16 @@ namespace lython {
 //X(float32, Float32)\
 //X(float64, Float64)\
 //
-
+namespace meta{
 #define DEFINE_METADATA(type, tname)\
     template <>\
     inline const char* type_name<type>() {\
-        static const char* name = _insert_typename<type>(#tname);\
+        static const char* name = meta::register_type<type>(#tname);\
         return name;\
     }
 
 TYPES_METADATA(DEFINE_METADATA)
+}
 
 void metadata_init_names();
 

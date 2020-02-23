@@ -32,7 +32,7 @@ Value interpret_call(String const& code, String fun_name, Args... v){
     // Make Fun Call
     auto fun = module.find(fun_name);
 
-    assert(fun);
+    assert(fun, "function must exist");
 
     expr = Expression::make<AST::Call>();
     auto* call = expr.ref<AST::Call>();

@@ -243,8 +243,11 @@ class Parser {
                     op_name.push_back(token().type());
                     next_token();
                 } else {
-                    warn("Could not match {} {}", char(token().type()),
-                         token().type());
+                    warn("Could not match {} {}", char(token().type()), token().type());
+                    operator_parsing = false;
+                    op_name.push_back(token().type());
+                    next_token();
+                    break;
                 }
 
                 // token that stop operator parsing
@@ -261,7 +264,7 @@ class Parser {
                 }
             }
 
-            if (!iter->leaf()) {
+            if (iter != nullptr && !iter->leaf()) {
                 warn("Operator {} was not found, did you mean: ...",
                      op_name.c_str());
             }
@@ -370,6 +373,7 @@ class Parser {
             }
         }
 
+        EAT(tok_desindent);
         module->insert(struct_name, struct_);
         return struct_;
     }
@@ -381,9 +385,11 @@ class Parser {
             tok = next_token();
         }
 
-        while (tok.type() == tok_newline) {
+        while (tok.type() == tok_newline ) {
             tok = next_token();
         }
+
+        info("{}", tok_to_string(tok.type()));
 
         switch (tok.type()) {
         case tok_def:
@@ -393,7 +399,7 @@ class Parser {
             return parse_struct(m, depth);
 
         default:
-            assert("Unknown Token");
+            assert(true, "Unknown Token");
         }
 
         return Expression();

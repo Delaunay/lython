@@ -10,7 +10,7 @@ namespace lython{
 
         case AST::NodeKind::KFunction:
             return v.ref<AST::Function>()->name;
-            assert("This expression is not hashable");
+            assert(false, "This expression is not hashable");
 
         default:
             return none_name;

@@ -2,9 +2,10 @@
 #define LYTHON_TRIE_H
 
 #include <array>
-#include <cassert>
 #include <cstdio>
 #include <memory>
+
+#include "logging/logging.h"
 
 template <size_t size> class Trie {
   public:
@@ -49,7 +50,7 @@ template <size_t size> class Trie {
             ptr = ptr->children[c].get();
         }
 
-        assert(ptr != nullptr && "ptr cant be null");
+        assert(ptr != nullptr, "ptr cant be null");
 
         if (ptr->leaf()) {
             return false;
@@ -78,7 +79,8 @@ template <size_t size> class Trie {
         if (c >= size) {
             return nullptr;
         }
-        return this->children[c].get();
+
+        return children.at(c).get();
     }
 
     bool has(std::string_view const &name) const {

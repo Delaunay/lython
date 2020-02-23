@@ -103,10 +103,10 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                     ref->length,
                     env.size());
 
-        assert(env.size() > ref->index && "Environment should hold the ref");
+        assert(env.size() > ref->index, "Environment should hold the ref");
         auto n = ref->index;
 
-        debug("found {}", env[n].str());
+        // debug("found {}", env[n].str());
         return env[n];
     }
 
@@ -148,8 +148,8 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         Value v = new_object(cstruct);
         value::Struct& data = *v.get<value::Struct*>();
 
-        assert(call->arguments.size() == cstruct->attributes.size()
-               && "arguments should match attributes");
+        assert(call->arguments.size() == cstruct->attributes.size(),
+               "arguments should match attributes");
 
         // for all positional arguments
         auto n = call->arguments.size();
@@ -238,7 +238,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         case AST::MathKind::Function:{
             trace_start(depth, "function (name: {}) (arg_count: {}) (env: {})", op.name, op.arg_count, env.size());
             Value clo = eval(op.ref, depth + 1);
-            assert(clo.tag == ValueKind::obj_closure);
+            assert(clo.tag == ValueKind::obj_closure, "Expected closure");
 
             debug("Retrieve closure");
             // Value::Closure& clo = closure.get_closure();
@@ -283,7 +283,7 @@ Value Interpreter::eval(Expression const expr){
 }
 
 Value builtin_sin(Array<Value>& args){
-    assert(args.size() == 2 && "expected 1 arguments");
+    assert(args.size() == 2, "expected 1 arguments");
 
     auto v = args[1].get<float64>();
 
@@ -293,21 +293,19 @@ Value builtin_sin(Array<Value>& args){
 
 
 Value builtin_max(Array<Value>& args){
-    assert(args.size() >= 3 && "expected 2 arguments");
+    assert(args.size() >= 3, "expected 2 arguments");
 
     auto n = args.size();
 
     auto a = args[n - 2];
     auto b = args[n - 1];
 
-    std::cout << "max(" << a.str() << ", " << b.str() << ")\n";
-
     return std::max(a.get<float64>(), b.get<float64>());
 }
 
 
 Value builtin_div(Array<Value>& args){
-    assert(args.size() >= 3 && "expected 2 arguments");
+    assert(args.size() >= 3, "expected 2 arguments");
 
     auto a = args[1].get<float64>();
     auto b = args[2].get<float64>();
@@ -318,7 +316,7 @@ Value builtin_div(Array<Value>& args){
 
 
 Value builtin_mult(Array<Value>& args){
-    assert(args.size() >= 3 && "expected 2 arguments");
+    assert(args.size() >= 3, "expected 2 arguments");
 
     auto a = args[1].get<float64>();
     auto b = args[2].get<float64>();

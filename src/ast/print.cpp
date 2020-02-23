@@ -54,7 +54,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
     std::ostream &reverse_polish(ReversePolish_t rev, std::size_t) {
         auto iter = std::begin(rev->stack);
-        return out << to_infix(iter);
+        return out << to_infix(iter) << "\n";
     }
 
     std::ostream &statement(Statement_t stmt, std::size_t d) {
@@ -171,7 +171,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         indent += 1;
         visit(fun->body, d);
         indent -= 1;
-        return out << "\n";
+        return out;
     }
 };
 
@@ -192,11 +192,16 @@ String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev) {
         auto rhs = to_infix(iter, pred);
         auto lhs = to_infix(iter, pred);
 
-        auto expr = lhs + ' ' + op.name + ' ' + rhs;
+
+        String expr;
+        if (op.name != ".")
+            expr = lhs + ' ' + op.name + ' ' + rhs;
+        else
+            expr = lhs + op.name + rhs;
         // if parent has lower priority we have to put parens
         // if the priority is the same we still put parens for explicitness
         // but we do not have to
-        if (prev >= pred)
+        if (prev >= pred && op.name != ".")
             return '(' + expr + ')';
 
         return expr;

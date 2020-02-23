@@ -2,65 +2,6 @@
 
 namespace lython {
 
-/*
-<function-definition> ::= {<declaration-specifier>}* <declarator>
-{<declaration>}* <compound-statement>
-
-<declaration> ::=  {<declaration-specifier>}+ {<init-declarator>}* ;
-
-<direct-declarator> ::= <identifier>
-                      | ( <declarator> )
-                      | <direct-declarator> [ {<constant-expression>}? ]
-                      | <direct-declarator> ( <parameter-type-list> )
-                      | <direct-declarator> ( {<identifier>}*
-
-* Body
-<compound-statement> ::= { {<declaration>}* {<statement>}* }
-
-<parameter-list> ::= <parameter-declaration>
-                   | <parameter-list> , <parameter-declaration>
-
-<parameter-declaration> ::= {<declaration-specifier>}+ <declarator>
-                          | {<declaration-specifier>}+ <abstract-declarator>
-                          | {<declaration-specifier>}+
-
-
-<declarator> ::= {<pointer>}? <direct-declarator>
-
-<declaration-specifier> ::= <storage-class-specifier>
-                          | <type-specifier>
-                          | <type-qualifier>
-
-<storage-class-specifier> ::= auto
-                            | register
-                            | static
-                            | extern
-                            | typedef
-
-<pointer> ::= * {<type-qualifier>}* {<pointer>}?
-<type-qualifier> ::= const
-                   | volatile
-
-<type-specifier> ::= void
-                   | char
-                   | short
-                   | int
-                   | long
-                   | float
-                   | double
-                   | signed
-                   | unsigned
-                   | <struct-or-union-specifier>
-                   | <enum-specifier>
-                   | <typedef-name>
-
-*/
-
-// def <declarator>(<parameter-list>) -> <declaration-specifier>:\n
-//      tok_indent
-//      <compound-statement>
-
-
 Expression Parser::parse_type(Module& m, size_t depth) {
     TRACE_START();
 
@@ -210,41 +151,4 @@ Expression Parser::parse_compound_statement(Module& m, std::size_t depth) {
     return expr;
 }
 
-/* <statement> ::= <labeled-statement>  <labeled-statement>     ::= <identifier>
-   : <statement> | case <constant-expression> : <statement>  | default :
-   <statement>
-              | <selection-statement>   <selection-statement>   ::= if (
-   <expression> ) <statement>    | if ( <expression> ) <statement> else
-   <statement> | switch ( <expression> ) <statement>
-              | <iteration-statement>   <iteration-statement>   ::= while (
-   <expression> ) <statement> | do <statement> while ( <expression> ) ;  | for (
-   {<expression>}? ; {<expression>}? ; {<expression>}? ) <statement>
-              | <jump-statement>        <jump-statement>        ::= goto
-   <identifier> ;   | continue ; | break ;   | return {<expression>}? ;
-              | <expression-statement>  <expression-statement>  ::=
-   {<expression>}? ;
-              | <compound-statement>    <compound-statement>    ::= {
-   {<declaration>}* {<statement>}* }
- */
-/*
-Expression Parser::parse_statement(int8 statement, std::size_t depth){
-    // labeled statement
-    if (token().type() == tok_identifier){
-        String label = token().identifier();
-
-        // <selection-statement>
-        if (label == "if") {}
-        if (label == "switch") {}
-
-        // <iteration-statement>
-        if (label == "while") {}
-        if (label == "do") {}
-        if (label == "for") {}
-
-        // <jump-statement>
-        if (label == "goto") {}
-        if (label == "continue") {}
-        if (label == "return") {}
-    }
-}*/
 }

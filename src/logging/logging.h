@@ -145,6 +145,8 @@ inline void assert_true(bool cond, char const* message,  char const* assert_expr
               "  - expr: {}\n"
               "  - function: {}\n"
               "  - file: {}:{}", message, assert_expr, function, file, line);
+        lython::show_backtrace();
+        std::abort();
     }
 }
 

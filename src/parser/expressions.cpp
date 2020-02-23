@@ -2,11 +2,30 @@
 
 namespace lython {
 
+
+void debug_dump(std::ostream& out, Stack<AST::MathNode> const& output_stack){
+    auto riter = output_stack.rbegin();
+
+    while (riter != output_stack.rend()) {
+        out << (*riter).name << " ";
+        ++riter;
+    }
+    out << "\n";
+
+    auto iter = output_stack.begin();
+    while (iter != output_stack.end()) {
+        auto op = *iter;
+        out << (*iter).name << " ";
+        ++iter;
+    }
+    out << "\n";
+}
+
+// https://en.wikipedia.org/wiki/Shunting-yard_algorithm
 Expression Parser::parse_expression(Module& m, std::size_t depth) {
     TRACE_START();
     Stack<AST::MathNode> output_stack;
     Stack<AST::MathNode> operator_stack;
-    AST::MathNode node;
 
     while (token().type() != tok_newline) {
         Token tok = token();
@@ -18,12 +37,13 @@ Expression Parser::parse_expression(Module& m, std::size_t depth) {
         // output
         switch (tok.type()) {
 
-        // function call
+        // function call & variable
         case tok_identifier: {
             Token tok2 = peek_token();
             debug("peek_token = {} {} {}", token().type(),
                   char(token().type()), token().identifier().c_str());
 
+            // Function
             if (tok2.type() == '(') {
                 Expression function;
                 int nargs;
@@ -40,28 +60,29 @@ Expression Parser::parse_expression(Module& m, std::size_t depth) {
                 next_token();
                 continue;
 
-            } else { // if it is not a function, it is a variable
-                int loc = m.find_index(tok.identifier(), true);
-                auto expr = m.find(tok.identifier());
-                int size = m.size();
-
-                if (loc < 0){
-                    warn("Variable ({}) not defined", tok.identifier().c_str());
-                }
-                output_stack.push({
-                   AST::MathKind::VarRef,
-                   0,
-                   expr
-               });
-
-                EAT(tok.type());
-                debug("Added VarRef {} in output stack", tok.identifier().c_str());
-                continue;
             }
 
-        }
+            // Variable
+            int loc = m.find_index(tok.identifier(), true);
+            auto expr = m.find(tok.identifier());
+
+            if (loc < 0){
+                warn("Variable ({}) not defined", tok.identifier().c_str());
+            }
+            output_stack.push({
+               AST::MathKind::VarRef,
+               0,
+               expr
+            });
+
+            EAT(tok.type());
+            debug("Added VarRef {} in output stack", tok.identifier().c_str());
+            continue;
+        } // case identifier
+
+        // Value
         case tok_float:
-        case tok_int:
+        case tok_int:{
             output_stack.push({
                 AST::MathKind::Value,
                 0,
@@ -73,16 +94,35 @@ Expression Parser::parse_expression(Module& m, std::size_t depth) {
             continue;
         }
 
-        // If the symbol is an operator, it is pushed onto the operator
-        // stack
-        // If the operator's precedence is less than that of the operators
-        // at the top of the stack
+        case '(':{
+            operator_stack.push({AST::MathKind::None, 0, Expression(), "("});
+            debug("push {} to operator", "(");
+            next_token();
+            continue;
+        }
+
+        case ')':{
+            auto node = operator_stack.peek();
+
+            while (node.name != "(" && operator_stack.size() > 0) {
+                output_stack.push(operator_stack.pop());
+                node = operator_stack.peek();
+            }
+
+            if (node.name != "(") {
+                warn("mismatched parentheses");
+            } else {
+                operator_stack.pop();
+            }
+            next_token();
+            continue;
+        }
+
+        // If the symbol is an operator, it is pushed onto the operator stack
+        // If the operator's precedence is less than that of the operators at the top of the stack
         // or the precedences are equal and the operator is left associative
         // then that operator is popped off the stack and added to the outpu
-
-        // parse an operator
-        // -------------------------------
-        if (token().type() != '(' && token().type() != ')') {
+        default:{
             String op_name = parse_operator();
 
             if (operator_stack.size() > 0) {
@@ -94,7 +134,7 @@ Expression Parser::parse_expression(Module& m, std::size_t depth) {
                 std::tie(current_pred, current_asso) =
                     module->precedence_table()[op_name];
 
-                node = operator_stack.peek();
+                auto node = operator_stack.peek();
                 std::tie(operator_pred, is_left_asso) =
                     module->precedence_table()[node.name];
 
@@ -123,49 +163,15 @@ Expression Parser::parse_expression(Module& m, std::size_t depth) {
             }
             debug("push {} to operator", op_name.c_str());
             operator_stack.push({AST::MathKind::Operator, 0, Expression(), op_name});
-        }
+            continue;
+        } // default
+        } // switch
+    } // while
 
-        if (tok.type() == '(') {
-            operator_stack.push({AST::MathKind::None, 0, Expression(), "("});
-            debug("push {} to operator", "(");
-            next_token();
-        } else if (tok.type() == ')') {
-            node = operator_stack.peek();
-            while (node.name != "(" && operator_stack.size() > 0) {
-
-                output_stack.push(operator_stack.pop());
-                node = operator_stack.peek();
-            };
-
-            if (node.name != "(") {
-                warn("mismatched parentheses");
-            } else {
-                operator_stack.pop();
-            }
-            next_token();
-        }
-    }
-
-    // Finally, any remaining operators are popped off the stack and added
-    // to the output
+    // Finally, any remaining operators are popped off the stack and added to the output
     while (operator_stack.size() > 0) {
         output_stack.push(operator_stack.pop());
     }
-
-//    auto riter = output_stack.rbegin();
-//    while (riter != output_stack.rend()) {
-//        std::cout << (*riter).name << " ";
-//        ++riter;
-//    }
-//    std::cout << "\n";
-
-//    auto iter = output_stack.begin();
-//    while (iter != output_stack.end()) {
-//        auto op = *iter;
-//        std::cout << (*iter).name << " ";
-//        ++iter;
-//    }
-//    std::cout << "\n";
 
     return Expression::make<AST::ReversePolish>(output_stack);
 }

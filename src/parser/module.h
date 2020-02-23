@@ -25,7 +25,7 @@ struct Index{
     {}
 
     operator size_t(){
-        assert(val >= 0);
+        assert(val >= 0, "");
         return size_t(val);
     }
 
@@ -170,10 +170,16 @@ class Module {
 
     static Dict<String, std::tuple<int, bool>> default_precedence() {
         static Dict<String, std::tuple<int, bool>> val = {
-            {"+", {2, true}}, // Predecence, Left Associative
-            {"-", {2, true}}, {"%", {1, true}},  {"*", {3, true}},
-            {"/", {3, true}}, {".*", {2, true}}, {"./", {2, true}},
-            {"^", {4, false}}};
+            {"+" , {2, true }}, // Predecence, Left Associative
+            {"-" , {2, true }},
+            {"%" , {1, true }},
+            {"*" , {3, true }},
+            {"/" , {3, true }},
+            {".*", {2, true }},
+            {"./", {2, true }},
+            {"." , {5, true }},
+            {"=" , {5, true }},
+            {"^" , {4, false}}};
         return val;
     }
 
