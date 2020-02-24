@@ -285,6 +285,10 @@ class Module {
             return int(fun.ref<AST::Builtin>()->argument_size);
         }
 
+        if (fun.kind() == AST::NodeKind::KStruct){
+            return int(fun.ref<AST::Struct>()->attributes.size());
+        }
+
         return -1;
     }
 
