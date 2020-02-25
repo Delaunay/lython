@@ -111,36 +111,38 @@ class Parser {
 
     AST::ParameterList parse_parameter_list(Module& m, std::size_t depth);
 
-    Expression parse_value(Module& m, std::size_t depth) {
-        TRACE_START();
-
+    Expression make_value(Token tok){
         Expression val;
-        int8 type = token().type();
+        int8 type = tok.type();
 
         switch (type) {
         case tok_string:
-            // make_type("string")
-            val =  Expression::make<AST::Value>(token().identifier(), Expression());
-            EAT(tok_string);
-            break;
+            return Expression::make<AST::Value>(tok.identifier(), module->find("String"));
         case tok_float:
-            // make_type("float")
-            val =  Expression::make<AST::Value>(token().as_float(), Expression());
-            EAT(tok_float);
-            break;
+            return Expression::make<AST::Value>(tok.as_float(), module->find("Float"));
         case tok_int:
-            // make_type("int")
-            val = Expression::make<AST::Value>(token().as_integer(), Expression());
-            EAT(tok_int);
-            break;
+            return Expression::make<AST::Value>(tok.as_integer(), module->find("Int"));
         }
 
+        return Expression();
+    }
+
+    Expression parse_value(Module& m, std::size_t depth) {
+        TRACE_START();
+
+        Expression val = make_value(token());
+
+        // Eat the token if it was a valid value token
+        if (val){
+            next_token();
+        }
+
+        // This code should be deprecated by RPE and we should always return val
         // are we done ?
         auto ttype = token().type();
         if (ttype == tok_newline || ttype == tok_eof || ttype == ',' ||
             ttype == ')')
-            return Expression(val);
-
+            return val;
 
         String name;
         if (token().type() == tok_identifier) {

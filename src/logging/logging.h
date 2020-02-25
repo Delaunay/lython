@@ -139,12 +139,12 @@ private:
 #define trace_start(depth, ...) SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
 #define trace_end(depth, ...)   SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, true, __VA_ARGS__)
 
-inline void assert_true(bool cond, char const* message,  char const* assert_expr, char const* file, int line, char const* function){
+inline void assert_true(bool cond, char const* message,  char const* assert_expr, lython::CodeLocation const& loc){
     if (!cond){
-        error("Assertion errror: {}\n"
-              "  - expr: {}\n"
-              "  - function: {}\n"
-              "  - file: {}:{}", message, assert_expr, function, file, line);
+        lython::log(lython::LogLevel::Error, loc,
+                    "Assertion errror: {}\n"
+                    "  - expr: {}", message, assert_expr);
+
         lython::show_backtrace();
         std::abort();
     }
@@ -155,4 +155,4 @@ inline void assert_true(bool cond, char const* message,  char const* assert_expr
 #endif
 
 #define assert(expr, message)\
-    assert_true(static_cast <bool> (expr), message, #expr, __FILE__, __LINE__, __FUNCTION__)
+    assert_true(static_cast <bool> (expr), message, #expr, LOC)

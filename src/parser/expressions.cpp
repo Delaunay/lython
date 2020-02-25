@@ -2,7 +2,6 @@
 
 namespace lython {
 
-
 void debug_dump(std::ostream& out, Stack<AST::MathNode> const& output_stack){
     auto riter = output_stack.rbegin();
 
@@ -48,6 +47,7 @@ void rpe_variable(Parser& self, Module& m, Stack<AST::MathNode>& output_stack){
     if (loc < 0){
         warn("Variable ({}) not defined", tok.identifier().c_str());
     }
+
     output_stack.push({
         AST::MathKind::VarRef,
         0,
@@ -57,7 +57,6 @@ void rpe_variable(Parser& self, Module& m, Stack<AST::MathNode>& output_stack){
     self.next_token();
     debug("Added VarRef {} in output stack", tok.identifier().c_str());
 }
-
 
 void rpe_value(Parser& self, Stack<AST::MathNode>& output_stack){
     Token tok = self.token();

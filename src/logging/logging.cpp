@@ -93,7 +93,7 @@ std::vector<std::string> get_backtrace(size_t size=32){
 }
 
 void show_backtrace() {
-    std::vector<std::string> symbols = get_backtrace(16);
+    std::vector<std::string> symbols = get_backtrace(32);
     int i = 0;
     for (auto& sym: symbols){
         i += 1;
