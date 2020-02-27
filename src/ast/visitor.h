@@ -30,7 +30,8 @@ struct BaseVisitor{
         NODE_KIND_ENUM(KIND)
     #undef KIND
 
-    ReturnType visit(Expr_t expr, std::size_t depth=0, Args... args){
+    // force inline to make the stacktrace prettier
+    ReturnType visit(Expr_t expr, std::size_t depth=0, Args... args) __attribute__((always_inline)) {
         using Node_T = typename std::conditional<std::is_const<Expr>::value, const AST::Node, AST::Node>::type;
 
         Node_t node = expr.template ref<Node_T>();

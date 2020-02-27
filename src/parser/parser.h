@@ -98,9 +98,6 @@ class Parser {
         return String("<identifier>");
     }
 
-    /*  <function-definition> ::= {<declaration-specifier>}* <declarator>
-     * {<declaration>}* <compound-statement>
-     */
     Expression parse_function(Module& m, std::size_t depth);
 
     Expression parse_compound_statement(Module& m, std::size_t depth);
@@ -119,8 +116,7 @@ class Parser {
 
         switch (type) {
         case tok_string:
-            return Expression::make<AST::Value>(
-                tok.identifier(), module->find("String"));
+            return Expression::make<AST::Value>(tok.identifier(), module->find("String"));
         case tok_float:
             return Expression::make<AST::Value>(tok.as_float(), module->find("Float"));
         case tok_int:
@@ -135,49 +131,6 @@ class Parser {
     //      | reference         => tok_identifier
     //      | unary operator    => tok_identifier
     Expression parse_primary(Module& m, std::size_t depth);
-
-    Expression parse_value(Module& m, std::size_t depth) {
-        TRACE_START();
-
-        Expression val = make_value(token());
-
-        // Eat the token if it was a valid value token
-        if (val){
-            next_token();
-        }
-
-        // This code should be deprecated by RPE and we should always return val
-        // are we done ?
-        auto ttype = token().type();
-        if (ttype == tok_newline || ttype == tok_eof || ttype == ',' ||
-            ttype == ')')
-            return val;
-
-        String name;
-        if (token().type() == tok_identifier) {
-            name = get_identifier();
-            EAT(tok_identifier);
-        } else {
-            name = token().type();
-            next_token();
-        }
-
-        int loc = m.find_index(name);
-        int size = m.size();
-
-        if (loc < 0){
-            warn("Undefined type \"{}\"", name.c_str());
-        }
-        // We are not creating a reference here
-        // we are using a reference that was created before
-        //auto op = new AST::Ref(name, loc, size);
-        auto op = m.find(name);
-
-        Expression rhs = parse_value(m, depth + 1);
-        Expression bin = Expression::make<AST::BinaryOperator>(rhs, val, get_string(name));
-        TRACE_END();
-        return Expression(bin);
-    }
 
     Expression parse_statement(Module& m, int8 statement, std::size_t depth) {
         TRACE_START();
@@ -194,11 +147,6 @@ class Parser {
 
     Expression parse_function_call(Module& m, Expression function, std::size_t depth);
 
-    String parse_operator() {
-        return "+";
-    }
-
-    // Shunting-yard_algorithm
     // Parse a full line of function and stuff
     Expression parse_expression(Module& m, std::size_t depth);
 
@@ -240,13 +188,6 @@ class Parser {
         return Expression();
     }
 
-    /*  <struct-or-union> ::= struct | union
-        <struct-or-union-specifier> ::= <struct-or-union> <identifier> {
-       {<struct-declaration>}+ }
-                                      | <struct-or-union> {
-       {<struct-declaration>}+ }
-                                      | <struct-or-union> <identifier>
-     */
     Expression parse_struct(Module& m, std::size_t depth) {
         TRACE_START();
         EAT(tok_struct);
@@ -330,14 +271,6 @@ class Parser {
 
         return Expression();
     }
-
-    //
-//    BaseScope parse_all() {
-//        // first token is tok_incorrect
-//        while (token()) {
-//            _scope.insert(parse_one());
-//        }
-//    }
 
   private:
     // Top Level Module

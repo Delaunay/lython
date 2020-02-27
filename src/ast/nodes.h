@@ -179,8 +179,12 @@ public:
     Expression expr;
     StringRef op;
 
-    UnaryOperator():
-        Node(NodeKind::KUnaryOperator)
+    UnaryOperator(StringRef op, Expression expr):
+        Node(NodeKind::KUnaryOperator), expr(expr), op(op)
+    {}
+
+    UnaryOperator(String const& op, Expression expr):
+        UnaryOperator(get_string(op), expr)
     {}
 };
 

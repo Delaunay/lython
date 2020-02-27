@@ -39,10 +39,14 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     }
 
     std::ostream &sequential(SeqBlock_t blocks, std::size_t d) {
-        for (auto &g : blocks->blocks) {
+        for (auto i = 0ul; i + 1 < blocks->blocks.size(); ++i) {
             out << std::string(std::size_t(indent) * 4, ' ');
-            visit(g, d);
+            visit(blocks->blocks[i], d);
+            out << '\n';
         }
+
+        out << std::string(std::size_t(indent) * 4, ' ');
+        visit(*(blocks->blocks.end() - 1), d);
         return out;
     }
 
@@ -94,11 +98,17 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
             out << indentation << "\"\"\"" << cstruct->docstring << "\"\"\"\n";
         }
 
-        for (auto &item : cstruct->attributes) {
+        //for (auto &item : cstruct->attributes) {
+        for (auto i = 0ul; i + 1 < cstruct->attributes.size(); ++i) {
+            auto const& item = cstruct->attributes[i];
             out << indentation << std::get<0>(item) << ": ";
             visit(std::get<1>(item), d);
             out << "\n";
         }
+
+        auto const& item = *(cstruct->attributes.end() - 1);
+        out << indentation << std::get<0>(item) << ": ";
+        visit(std::get<1>(item), d);
         return out;
     }
 
