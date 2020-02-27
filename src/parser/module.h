@@ -5,7 +5,6 @@
 
 #include "logging/logging.h"
 #include "dtypes.h"
-#include "utilities/trie.h"
 #include "ast/expressions.h"
 #include "ast/nodes.h"
 
@@ -126,9 +125,6 @@ class Module {
         if (!parent){
             insert("Type", type_type());
             insert("Float", float_type());
-            for (auto c : {"+", "-", "*", "/", ".*", "./", "%", "^"}) {
-                _operators.insert(c);
-            }
 
             auto f_f_f = Expression::make<AST::Arrow>();
             auto binary_type = f_f_f.ref<AST::Arrow>();
@@ -157,30 +153,7 @@ class Module {
 
     Module enter(AccessTracker* tracker = nullptr) const {
         auto m = Module(this, this->depth + 1, size(), tracker);
-        m._operators = this->_operators;
-        m._precedence_table = this->_precedence_table;
         return m;
-    }
-
-    Dict<String, std::tuple<int, bool>> &precedence_table() {
-        return _precedence_table;
-    }
-
-    Trie<128> const *operator_trie() const { return &_operators.trie(); }
-
-    static Dict<String, std::tuple<int, bool>> default_precedence() {
-        static Dict<String, std::tuple<int, bool>> val = {
-            {"+" , {2, true }}, // Predecence, Left Associative
-            {"-" , {2, true }},
-            {"%" , {1, true }},
-            {"*" , {3, true }},
-            {"/" , {3, true }},
-            {".*", {2, true }},
-            {"./", {2, true }},
-            {"." , {5, true }},
-            {"=" , {5, true }},
-            {"^" , {4, false}}};
-        return val;
     }
 
     int arg_count(std::string_view view) const {
@@ -314,8 +287,6 @@ class Module {
     }
 
     Tuple<Expression, Index> _find(String const &view) const {
-        debug("looking for {}", view.c_str());
-
         // Check in the current scope
         auto iter = _name_idx.find(view);
 
@@ -462,17 +433,10 @@ class Module {
     Module const* _parent = nullptr;
 
     // stored in an array so we can do lookup by index
-    AccessTracker* _tracker = nullptr;
-    Array<Expression> _scope;
-    Array<String>   _idx_name;
+    AccessTracker*      _tracker = nullptr;
+    Array<Expression>   _scope;
+    Array<String>       _idx_name;
     Dict<String, Index> _name_idx;
-
-    // This is more for parsing
-    // they are copied everytime a new scope is created
-    // will see if it will be an issue
-    CoWTrie<128> _operators;
-    Dict<String, std::tuple<int, bool>> _precedence_table =
-        default_precedence();
 };
 
 } // namespace lython

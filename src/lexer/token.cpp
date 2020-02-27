@@ -4,7 +4,7 @@
 namespace lython
 {
 
-String tok_to_string(int8 t){
+String to_string(int8 t){
     switch(t){
 #define X(name, nb) case nb: return String(#name);
     LYTHON_TOKEN
@@ -35,7 +35,7 @@ int8 tok_name_size()
 }
 
 std::ostream& Token::debug_print(std::ostream& out){
-    out << align_right(tok_to_string(_type), tok_name_size());
+    out << align_right(to_string(_type), tok_name_size());
 
     out << " =>" << " [l:" << to_string(_line, 4)
                   << ", c:" << to_string(_col, 4) << "] " << _identifier ;

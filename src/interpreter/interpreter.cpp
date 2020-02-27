@@ -88,7 +88,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     Value reverse_polish(ReversePolish_t rev, std::size_t d) {
         auto iter = std::begin(rev->stack);
-        return eval_rpe(iter, d);
+        return Value("nothing");
     }
 
     Value statement(Statement_t stmt, std::size_t depth) {

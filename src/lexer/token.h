@@ -38,7 +38,8 @@
     X(tok_struct,     -13)\
     X(tok_return,     -14)\
     X(tok_yield,     -15)\
-    X(tok_async,     -16)
+    X(tok_async,     -16)\
+    X(tok_operator,  -17)
 
 #define LYTHON_KEYWORDS \
     X("def", tok_def)\
@@ -63,7 +64,7 @@ ReservedKeyword& keywords();
 KeywordToString& keyword_as_string();
 
 int8 tok_name_size();
-String tok_to_string(int8 t);
+String to_string(int8 t);
 
 class Token{
 public:
@@ -82,6 +83,8 @@ public:
     int32 end_line()   const {	return col();}
     int32 begin_line() const {  return col() - int32(identifier().size()); }
 
+    String&      operator_name()       { return _identifier; }
+    String const&operator_name() const { return _identifier; }
     String&      identifier()       { return _identifier; }
     String const&identifier() const { return _identifier; }
     float64      as_float()   const { return std::stod(_identifier.c_str()); }

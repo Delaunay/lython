@@ -48,11 +48,6 @@ int main() {
 
     {
         info("Enter");
-
-        // auto cst = AST::Constant<int>(10, "int");
-        // auto pl1 = AST::Placeholder("name", "double");
-        // auto pl2 = AST::Placeholder("name", "int");
-
         //*
         // debug info
         std::cout << "\n"
@@ -69,6 +64,15 @@ int main() {
         "    x: Float\n"
         "    y: Float\n"
         "\n"
+
+        "def test1(p: Float) -> Float:\n"
+        "    return sin(1)\n\n"
+
+        "def test3(p: Float) -> Float:\n"
+        "    return sin(max(sin(p * 2), sin(p + 1)))\n\n"
+
+        "def test2(p: Float) -> Float:\n"
+        "    return sin(max(2, 3) / 3 * p)\n\n"
 
         "def get_x(p: Point) -> Float:\n"
         "    return p.x\n\n"

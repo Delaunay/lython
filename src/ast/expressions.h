@@ -24,7 +24,8 @@ class Node;
     KIND(Struct, struct_type)\
     KIND(Type, type)\
     KIND(ReversePolish, reverse_polish)\
-    KIND(ExternFunction, extern_function)
+    KIND(ExternFunction, extern_function)\
+    KIND(Operator, operator_fun)
 
 // Explicit RTTI
 enum class NodeKind {

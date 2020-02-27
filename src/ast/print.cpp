@@ -4,7 +4,7 @@
 
 namespace lython {
 
-String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev=0);
+// String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev=0);
 
 struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     std::ostream& out;
@@ -31,8 +31,8 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
     std::ostream &binary(BinaryOperator_t bin, std::size_t d) {
         visit(bin->lhs, d);
-        out << ' ';
-        visit(bin->op, d);
+        out << ' ' << bin->op.str();
+        // visit(bin->op, d);
         out << ' ';
         visit(bin->rhs, d);
         return out;
@@ -52,9 +52,11 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
-    std::ostream &reverse_polish(ReversePolish_t rev, std::size_t) {
-        auto iter = std::begin(rev->stack);
-        return out << to_infix(iter) << "\n";
+    std::ostream &reverse_polish(ReversePolish_t rev, std::size_t d) {
+        for(auto& expr: rev->stack){
+            visit(expr, d);
+        }
+        return out;
     }
 
     std::ostream &statement(Statement_t stmt, std::size_t d) {
@@ -77,7 +79,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
     std::ostream &value(Value_t val, std::size_t d) {
         val->value.print(out);
-        if (val->type){
+        if (false && val->type){
             out << ": ";
             visit(val->type, d);
         }
@@ -138,6 +140,10 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
+    std::ostream& operator_fun(Operator_t op, std::size_t d){
+        return out << op->name;
+    }
+
     std::ostream &function(Function_t fun, std::size_t d) {
         // debug("Function Print");
 
@@ -179,33 +185,36 @@ std::ostream& print(std::ostream& out, const Expression expr, int indent){
     return ASTPrinter(out, indent).visit(expr);
 }
 
-
-String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev) {
+/*
+String to_infix(Stack<Expression>::ConstIterator &iter, int prev) {
     int pred;
-    AST::MathNode op = *iter;
+    Expression op = *iter;
     iter++;
 
-    switch (op.kind) {
-    case AST::MathKind::Operator: {
-        std::tie(pred, std::ignore) = Module::default_precedence()[op.name];
+    switch (op.kind()) {
+    case AST::NodeKind::KOperator: {
+        AST::Operator* ref = op.ref<AST::Operator>();
+
+        std::tie(pred, std::ignore) = Module::default_precedence()[ref->name];
 
         auto rhs = to_infix(iter, pred);
         auto lhs = to_infix(iter, pred);
 
-
         String expr;
-        if (op.name != ".")
-            expr = lhs + ' ' + op.name + ' ' + rhs;
+        if (ref->name != ".")
+            expr = lhs + ' ' + ref->name + ' ' + rhs;
         else
-            expr = lhs + op.name + rhs;
+            expr = lhs + ref->name + rhs;
         // if parent has lower priority we have to put parens
         // if the priority is the same we still put parens for explicitness
         // but we do not have to
-        if (prev >= pred && op.name != ".")
+        if (prev >= pred && ref->name != ".")
             return '(' + expr + ')';
 
         return expr;
     }
+
+
 
     case AST::MathKind::Function: {
         int nargs = op.arg_count;
@@ -253,4 +262,5 @@ String to_infix(Stack<AST::MathNode>::ConstIterator &iter, int prev) {
 
     return "<Error>";
 }
+*/
 }

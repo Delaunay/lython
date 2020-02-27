@@ -50,22 +50,22 @@ DEFINE_SAMPLE_CODE(
     )
 DEFINE_SAMPLE_CODE(
     simple_function_max,
-    "def simple_function_max(a: Double, b: Double) -> Double:\n"
+    "def simple_function_max(a: Float, b: Float) -> Float:\n"
     "    return max(a, b)\n"
     "\n"
     )
 DEFINE_SAMPLE_CODE(
     simple_function_global,
-    "def simple_function_global(a: Double) -> Double:\n"
+    "def simple_function_global(a: Float) -> Float:\n"
     "    return a + pi\n"
     "\n"
     )
 DEFINE_SAMPLE_CODE(
     function_call,
-    "def add(a: Double, b: Double) -> Double:\n"
+    "def add(a: Float, b: Float) -> Float:\n"
     "    return a + b\n"
     "\n"
-    "def function_call() -> Double:\n"
+    "def function_call() -> Float:\n"
     "    return add(1, 2)\n"
     )
 

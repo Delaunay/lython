@@ -42,10 +42,10 @@
 
 // assert(token().type() == tok && msg)
 #define TRACE_START()                                                          \
-    trace_start(depth, "({}: {})", tok_to_string(token().type()).c_str(),      \
+    trace_start(depth, "({}: {})", to_string(token().type()).c_str(),      \
                 token().type())
 #define TRACE_END()                                                            \
-    trace_end(depth, "({}: {})", tok_to_string(token().type()).c_str(),        \
+    trace_end(depth, "({}: {})", to_string(token().type()).c_str(),        \
               token().type())
 
 #define CHECK_TYPE(type) type
@@ -71,7 +71,7 @@ class ParserException : public std::exception {
 
 #define WITH_EXPECT(tok, msg)                                                  \
     if (token().type() != tok) {                                               \
-        debug("Got (tok: {}, {})", tok_to_string(token().type()).c_str(),      \
+        debug("Got (tok: {}, {})", to_string(token().type()).c_str(),      \
               token().type());                                                 \
         throw ParserException(msg);                                            \
     } else
@@ -105,6 +105,8 @@ class Parser {
 
     Expression parse_compound_statement(Module& m, std::size_t depth);
 
+    Expression parse_expression_1(Module& m, Expression lhs, int precedence, std::size_t depth);
+
     Token ignore_newlines();
 
     Expression parse_type(Module& m, std::size_t depth);
@@ -117,7 +119,8 @@ class Parser {
 
         switch (type) {
         case tok_string:
-            return Expression::make<AST::Value>(tok.identifier(), module->find("String"));
+            return Expression::make<AST::Value>(
+                tok.identifier(), module->find("String"));
         case tok_float:
             return Expression::make<AST::Value>(tok.as_float(), module->find("Float"));
         case tok_int:
@@ -126,6 +129,12 @@ class Parser {
 
         return Expression();
     }
+
+    // Primary expressions are leaf nodes
+    // primary := value         => tok_int/tok_float/tok_string
+    //      | reference         => tok_identifier
+    //      | unary operator    => tok_identifier
+    Expression parse_primary(Module& m, std::size_t depth);
 
     Expression parse_value(Module& m, std::size_t depth) {
         TRACE_START();
@@ -165,7 +174,7 @@ class Parser {
         auto op = m.find(name);
 
         Expression rhs = parse_value(m, depth + 1);
-        Expression bin = Expression::make<AST::BinaryOperator>(rhs, val, op);
+        Expression bin = Expression::make<AST::BinaryOperator>(rhs, val, get_string(name));
         TRACE_END();
         return Expression(bin);
     }
@@ -183,95 +192,10 @@ class Parser {
         return expr;
     }
 
-    Expression parse_function_call(Module& m, Expression function, std::size_t depth) {
-        TRACE_START();
-        auto expr = Expression::make<AST::Call>();
-        auto fun = expr.ref<AST::Call>();
-
-        fun->function = function;
-
-        EXPECT('(', "`(` was expected");
-        EAT('(');
-
-        while (token().type() != ')') {
-            // token().debug_print(std::cout);
-
-            fun->arguments.push_back(parse_expression(m, depth + 1));
-
-            if (token().type() == ',') {
-                next_token();
-            }
-        }
-
-        EXPECT(')', "`)` was expected");
-        EAT(')');
-        return expr;
-    }
+    Expression parse_function_call(Module& m, Expression function, std::size_t depth);
 
     String parse_operator() {
-        Trie<128> const *iter = nullptr;
-        String op_name;
-
-        // Operator is a string
-        // Currently this code path is not used
-        // not sure if we should allow identifier to be operators
-        if (token().type() == tok_identifier) {
-            iter = module->operator_trie();
-            iter = iter->matching(token().identifier());
-
-            if (iter != nullptr) {
-                if (iter->leaf()) {
-                    op_name = token().identifier();
-                    debug("Operator is string");
-                } else {
-                    warn("Operator {} was not found, did you mean: ...",
-                         token().identifier().c_str());
-                }
-            }
-        } // ----
-        else {
-            // debug("Operator parsing");
-            iter = module->operator_trie();
-
-            bool operator_parsing = true;
-            while (operator_parsing) {
-                // debug("Tok is %c", char(token().type()));
-
-                // check next token
-                iter = iter->matching(token().type());
-
-                if (iter != nullptr) {
-                    // debug("Added tok to operator %c", char(token().type()));
-                    op_name.push_back(token().type());
-                    next_token();
-                } else {
-                    warn("Could not match {} {}", char(token().type()), token().type());
-                    operator_parsing = false;
-                    op_name.push_back(token().type());
-                    next_token();
-                    break;
-                }
-
-                // token that stop operator parsing
-                switch (token().type()) {
-                case '(':
-                case ')':
-                case tok_identifier:
-                case tok_float:
-                case tok_int:
-                case tok_newline:
-                    operator_parsing = false;
-                    // debug("Found terminal tok %c", char(token().type()));
-                    break;
-                }
-            }
-
-            if (iter != nullptr && !iter->leaf()) {
-                warn("Operator {} was not found, did you mean: ...",
-                     op_name.c_str());
-            }
-        }
-        return op_name;
+        return "+";
     }
 
     // Shunting-yard_algorithm
@@ -391,7 +315,7 @@ class Parser {
             tok = next_token();
         }
 
-        info("{}", tok_to_string(tok.type()));
+        info("{}", to_string(tok.type()));
 
         switch (tok.type()) {
         case tok_def:

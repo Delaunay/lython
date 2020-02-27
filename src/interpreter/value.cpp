@@ -77,7 +77,7 @@ bool Value::operator==(Value const& v) const{
 std::ostream& Value::print(std::ostream& out) const {
     switch (tag) {
 #define X(type) case ValueKind::pod_##type:{\
-                return out << #type << '(' << _data.v_##type << ')';\
+                return out << _data.v_##type;\
             }
         POD_TYPES(X)
 #undef X

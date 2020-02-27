@@ -110,11 +110,11 @@ void signal_handler(int sig){
 
 int register_signal_handler(){
     signal(SIGSEGV, signal_handler);   // install our handler
-//    signal(SIGINT, signal_handler);
-//    signal(SIGQUIT, signal_handler);
-//    signal(SIGABRT, signal_handler);
-//    signal(SIGKILL, signal_handler);
-//    signal(SIGTERM, signal_handler);
+    signal(SIGINT, signal_handler);
+    signal(SIGQUIT, signal_handler);
+    signal(SIGABRT, signal_handler);
+    signal(SIGKILL, signal_handler);
+    signal(SIGTERM, signal_handler);
     return 0;
 }
 #else

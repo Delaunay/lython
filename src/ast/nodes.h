@@ -127,9 +127,9 @@ struct MathNode {
  */
 struct ReversePolish: public Node {
 public:
-    Stack<MathNode> stack;
+    Stack<Expression> stack;
 
-    ReversePolish(Stack<MathNode> str)
+    ReversePolish(Stack<Expression> str)
         : Node(NodeKind::KReversePolish), stack(std::move(str)) {}
 };
 
@@ -168,10 +168,10 @@ struct BinaryOperator : public Node {
 public:
     Expression rhs;
     Expression lhs;
-    Expression op;
+    StringRef op;
 
-    BinaryOperator(Expression rhs, Expression lhs, Expression op)
-        : Node(NodeKind::KBinaryOperator), rhs(std::move(rhs)), lhs(std::move(lhs)), op(std::move(op)) {}
+    BinaryOperator(Expression lhs, Expression rhs, StringRef op)
+        : Node(NodeKind::KBinaryOperator), rhs(std::move(rhs)), lhs(std::move(lhs)), op(op) {}
 };
 
 struct UnaryOperator : public Node {
@@ -183,6 +183,15 @@ public:
         Node(NodeKind::KUnaryOperator)
     {}
 };
+
+struct Operator : public Node {
+public:
+    String name;
+
+    Operator(String op)
+        : Node(NodeKind::KOperator), name(std::move(op)) {}
+};
+
 
 struct Call : public Node {
 public:

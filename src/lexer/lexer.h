@@ -4,6 +4,7 @@
 
 #include "lexer/buffer.h"
 #include "lexer/token.h"
+#include "utilities/trie.h"
 
 #include "dtypes.h"
 
@@ -16,6 +17,58 @@
  */
 
 namespace lython{
+
+struct OpConfig{
+    int precedence = -1;
+    bool left_associative = true;
+    TokenType type;
+};
+
+inline
+Dict<String, OpConfig> default_precedence() {
+    static Dict<String, OpConfig> val = {
+        {"+" , {2, true , tok_operator}}, // Predecence, Left Associative
+        {"-" , {2, true , tok_operator}},
+        {"%" , {1, true , tok_operator}},
+        {"*" , {3, true , tok_operator}},
+        {"/" , {3, true , tok_operator}},
+        {".*", {2, true , tok_operator}},
+        {"./", {2, true , tok_operator}},
+        {"." , {5, true , tok_operator}},
+        {"=" , {5, true , tok_operator}},
+        {"^" , {4, false, tok_operator}},
+        // Not an operator but we use same data structure for parsing
+        {"->", {1, false, tok_arrow}}
+    };
+    return val;
+}
+
+class LexerOperators{
+public:
+    LexerOperators(){
+        for (auto& c : _precedence_table) {
+            _operators.insert(c.first);
+        }
+    }
+
+    Trie<128> const *match(int c) const {
+        return _operators.trie().matching(c);
+    }
+
+    Dict<String, OpConfig> const&precedence_table() const {
+        return _precedence_table;
+    }
+
+    TokenType token_type(String const& str) const {
+        return _precedence_table.at(str).type;
+    }
+
+private:
+    CoWTrie<128> _operators;
+    Dict<String, OpConfig> _precedence_table =
+        default_precedence();
+};
+
 
 class Lexer
 {
@@ -104,6 +157,25 @@ public:
             c = nextc();
         }
 
+        // Operators & Arrow
+        auto* trie_iter = _operators.match(c);
+        if (trie_iter != nullptr){
+            String opr;
+            while (trie_iter != nullptr){
+                opr.push_back(c);
+                c = nextc();
+                trie_iter = trie_iter->matching(c);
+            }
+
+            // if this is an operator then go ahead
+            auto const& op_config = _operators.precedence_table().at(opr);
+            if (op_config.precedence > -1){
+                return make_token(op_config.type, opr);
+            } else { // FIXME
+                return make_token(tok_identifier, opr);
+            }
+        }
+
         // Identifiers
         if (isalpha(c)){
             String ident;
@@ -118,19 +190,6 @@ public:
                 return make_token(t);
 
             return make_token(tok_identifier, ident);
-        }
-
-        // Arrow
-        if (c == '-'){
-            c = nextc();
-
-            if (c == '>'){
-                consume();
-
-                return make_token(tok_arrow);
-            }
-
-            return make_token('-');
         }
 
         // Numbers
@@ -251,6 +310,7 @@ private:
     int32           _oindent;
     bool            _buffered_token = false;
     Token           _buffer{dummy()};
+    LexerOperators  _operators;
 
 // debug
 public:
