@@ -49,7 +49,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         values.reserve(exprs.size());
 
         for (auto& expr: exprs)
-            values.push_back(eval(expr, depth + 1));
+            values.push_back(eval(expr, depth));
 
         return values;
     }
@@ -66,7 +66,17 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return Value("unary");
     }
 
-    Value binary(BinaryOperator_t, std::size_t d) {
+    Value binary(BinaryOperator_t bin, std::size_t d) {
+        auto lhs = eval(bin->lhs, d);
+        auto rhs = eval(bin->rhs, d);
+
+        // assignment
+        if (bin->op == get_string("=")){
+
+        } else {
+
+        }
+
         return Value("binary");
     }
 
@@ -79,16 +89,11 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
             eval(seq->blocks[i], depth + 1);
 
         // returns last line of sequential block
-        return eval(seq->blocks[n], depth + 1);
+        return eval(seq->blocks[n], depth);
     }
 
     Value unparsed(UnparsedBlock_t, std::size_t) {
         return Value("unparsed");
-    }
-
-    Value reverse_polish(ReversePolish_t rev, std::size_t d) {
-        auto iter = std::begin(rev->stack);
-        return Value("nothing");
     }
 
     Value statement(Statement_t stmt, std::size_t depth) {
@@ -131,7 +136,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     Value call(Call_t call, std::size_t depth) {
         trace_start(depth, "call");
-        Value closure = eval(call->function, depth + 1);
+        Value closure = eval(call->function, depth);
         switch (closure.tag) {
         // standard function
         case ValueKind::obj_closure: return fun_call(closure, call, depth);
@@ -209,64 +214,6 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         }
 
         return Value("closure");
-    }
-
-    Value eval_rpe(Stack<AST::MathNode>::ConstIterator &iter, size_t depth){
-        AST::MathNode op = *iter;
-        iter++;
-
-        switch (op.kind){
-        case AST::MathKind::Value:{
-            trace_start(depth, "value {}", op.name.c_str());
-            StringStream ss(op.name);
-            double d; ss >> d;
-            return Value(d);
-        }
-        case AST::MathKind::Operator:{
-            trace_start(depth, "operator {}", op.name.c_str());
-            auto rhs = eval_rpe(iter, depth + 1);
-            auto lhs = eval_rpe(iter, depth + 1);
-
-            // Create a new closure
-            // a few steps could be remove here to improve perf if needed
-            auto fun = builtins[op.name];
-            // value 0 should be self fun for recursions
-            Array<Value> args = {Value(0), lhs, rhs};
-            //
-            return closure(Value(fun, args), depth + 1);
-        }
-        case AST::MathKind::Function:{
-            trace_start(depth, "function (name: {}) (arg_count: {}) (env: {})", op.name, op.arg_count, env.size());
-            Value clo = eval(op.ref, depth + 1);
-            assert(clo.tag == ValueKind::obj_closure, "Expected closure");
-
-            debug("Retrieve closure");
-            // Value::Closure& clo = closure.get_closure();
-            int n = int(env.size());
-
-            for(int i = 0; i < op.arg_count; ++i){
-                debug("eval argument: {}", i);
-                env.push_back(eval_rpe(iter, depth + 1));
-            }
-
-            env.push_back(Value(0)); // should be self fun for recursion
-
-            // only reverse the added arguments
-            std::reverse(std::begin(env) + n, std::end(env));
-            return closure(clo, depth + 1);
-        }
-        case AST::MathKind::VarRef:{
-            trace_start(depth, "varref");
-            return eval(op.ref, depth + 1);
-        }
-        case AST::MathKind::None:{
-            trace_start(depth, "none");
-            return Value("none");
-        }
-        }
-
-        return Value("None");
-        throw std::runtime_error("unreachable");
     }
 };
 

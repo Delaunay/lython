@@ -42,8 +42,8 @@
 
 // assert(token().type() == tok && msg)
 #define TRACE_START()                                                          \
-    trace_start(depth, "({}: {})", to_string(token().type()).c_str(),      \
-                token().type())
+    trace_start(depth, "({}: {}, {})", to_string(token().type()).c_str(),      \
+                token().type(), token().identifier())
 #define TRACE_END()                                                            \
     trace_end(depth, "({}: {})", to_string(token().type()).c_str(),        \
               token().type())

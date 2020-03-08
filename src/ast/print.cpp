@@ -9,6 +9,7 @@ namespace lython {
 struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     std::ostream& out;
     int indent;
+    int precedence = -1;
 
     ASTPrinter(std::ostream& out, int indent = 0):
         out(out), indent(indent)
@@ -29,12 +30,36 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
+    int get_precedence(Expression const& node){
+        if (node.kind() == AST::NodeKind::KBinaryOperator){
+            return node.ref<AST::BinaryOperator>()->precedence;
+        }
+        if (node.kind() == AST::NodeKind::KUnaryOperator){
+            return node.ref<AST::UnaryOperator>()->precedence;
+        }
+        return -1;
+    }
+
     std::ostream &binary(BinaryOperator_t bin, std::size_t d) {
+        bool parens = false;
+
+        int prev = precedence;
+        parens = prev >= bin->precedence;
+        precedence = bin->precedence;
+
+        if (parens)
+            out << '(';
+
         visit(bin->lhs, d);
-        out << ' ' << bin->op.str();
-        // visit(bin->op, d);
-        out << ' ';
+
+        out << ' ' << bin->op.str() << ' ';
+
         visit(bin->rhs, d);
+
+        if (parens)
+            out << ')';
+
+        precedence = prev;
         return out;
     }
 
@@ -53,13 +78,6 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     std::ostream &unparsed(UnparsedBlock_t blocks, std::size_t) {
         for (auto &tok : blocks->tokens)
             tok.print(out, indent);
-        return out;
-    }
-
-    std::ostream &reverse_polish(ReversePolish_t rev, std::size_t d) {
-        for(auto& expr: rev->stack){
-            visit(expr, d);
-        }
         return out;
     }
 

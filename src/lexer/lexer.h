@@ -24,7 +24,7 @@ struct OpConfig{
     TokenType type;
 };
 
-Dict<String, OpConfig> default_precedence();
+Dict<String, OpConfig> const& default_precedence();
 
 class LexerOperators{
 public:

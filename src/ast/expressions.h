@@ -1,7 +1,10 @@
 ﻿#ifndef LYTHON_EXPR_HEADER
 #define LYTHON_EXPR_HEADER
 
+#include <spdlog/fmt/ostr.h>
+
 #include "utilities/allocator.h"
+#include "dtypes.h"
 
 namespace lython {
 
@@ -23,7 +26,6 @@ class Node;
     KIND(Reference, reference)\
     KIND(Struct, struct_type)\
     KIND(Type, type)\
-    KIND(ReversePolish, reverse_polish)\
     KIND(ExternFunction, extern_function)\
     KIND(Operator, operator_fun)
 
@@ -74,6 +76,18 @@ public:
     //! Returns true if the Expression holds a valid AST node
     operator bool() const {    return bool(_ptr); }
 
+    template<typename Stream = std::ostream>
+    friend Stream& operator<<(Stream& out, lython::Expression const& expr) {
+        expr.print(out);
+        return out;
+    }
+
+    String str() const {
+        StringStream ss;
+        ss << *this;
+        return ss.str();
+    }
+
 private:
     Expression(std::shared_ptr<AST::Node> ptr):
         _ptr(ptr)
@@ -81,12 +95,7 @@ private:
 
     std::shared_ptr<AST::Node> _ptr;
 };
-
-inline
-std::ostream& operator<<(std::ostream& out, Expression expr){
-    expr.print(out);
-    return out;
 }
 
-}
+
 #endif

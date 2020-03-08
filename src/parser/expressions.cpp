@@ -4,22 +4,6 @@ namespace lython {
 
 NEW_EXCEPTION(PrimaryExpression);
 
-// Math Nodes for ReverPolish parsing
-enum class MathKind {
-    Operator,
-    Value,
-    Function,
-    VarRef,
-    None
-};
-
-struct MathNode {
-    MathKind kind;
-    int arg_count = 1;
-    Expression ref;
-    String name = "";
-};
-
 Expression Parser::parse_primary(Module& m, std::size_t depth){
     TRACE_START();
     Token tok = token();
@@ -96,8 +80,14 @@ Expression Parser::parse_expression_1(Module& m, Expression lhs, int precedence,
     Token tok = token();
     EXPECT(tok_operator, "Expect an operator");
 
+    static auto no_op = OpConfig();
+
     auto get_op_config = [m](String const& op) -> OpConfig const& {
-        return default_precedence()[op];
+        auto val = default_precedence().find(op);
+        if (val != default_precedence().end()){
+            return (*val).second;
+        }
+        return no_op;
     };
 
     // if not a binary op precedence is -1
@@ -128,6 +118,7 @@ Expression Parser::parse_expression_1(Module& m, Expression lhs, int precedence,
         }
 
         OpConfig const& op_conf2 = get_op_config(op2);
+        // info("({}: {}) < ({} {})", op, op_conf.precedence, op2, op_conf2.precedence);
         if (op_conf.precedence < op_conf2.precedence){
             rhs = parse_expression_1(m, rhs, op_conf.precedence + 1, depth + 1);
             if (!rhs){
@@ -135,26 +126,9 @@ Expression Parser::parse_expression_1(Module& m, Expression lhs, int precedence,
             }
         }
 
-        lhs = Expression::make<AST::BinaryOperator>(lhs, rhs, get_string(op));
+        lhs = Expression::make<AST::BinaryOperator>(
+            lhs, rhs, get_string(op), op_conf.precedence);
     }
-}
-
-void debug_dump(std::ostream& out, Stack<AST::MathNode> const& output_stack){
-    auto riter = output_stack.rbegin();
-
-    while (riter != output_stack.rend()) {
-        out << (*riter).name << " ";
-        ++riter;
-    }
-    out << "\n";
-
-    auto iter = output_stack.begin();
-    while (iter != output_stack.end()) {
-        auto op = *iter;
-        out << (*iter).name << " ";
-        ++iter;
-    }
-    out << "\n";
 }
 
 // return function call

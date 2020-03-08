@@ -3,54 +3,54 @@
 
 namespace lython{
 
-Dict<String, OpConfig> default_precedence() {
+Dict<String, OpConfig> const& default_precedence() {
     static Dict<String, OpConfig> val = {
         // Arithmetic
-        {"+"  , {2, true , tok_operator}}, // Predecence, Left Associative
-        {"-"  , {2, true , tok_operator}},
-        {"%"  , {1, true , tok_operator}},
-        {"*"  , {3, true , tok_operator}},
-        {"**" , {4, true , tok_operator}},
-        {"/"  , {3, true , tok_operator}},
-        {"//" , {3, true , tok_operator}},
-        {".*" , {2, true , tok_operator}},
-        {"./" , {2, true , tok_operator}},
+        {"+"  , {20, true , tok_operator}}, // Predecence, Left Associative
+        {"-"  , {20, true , tok_operator}},
+        {"%"  , {10, true , tok_operator}},
+        {"*"  , {30, true , tok_operator}},
+        {"**" , {40, true , tok_operator}},
+        {"/"  , {30, true , tok_operator}},
+        {"//" , {30, true , tok_operator}},
+        {".*" , {20, true , tok_operator}},
+        {"./" , {20, true , tok_operator}},
         // Shorthand
-        {"+=" , {5, true , tok_operator}},
-        {"-=" , {5, true , tok_operator}},
-        {"*=" , {5, true , tok_operator}},
-        {"/=" , {5, true , tok_operator}},
-        {"%=" , {5, true , tok_operator}},
-        {"**=", {5, true , tok_operator}},
-        {"//=", {5, true , tok_operator}},
+        {"+=" , {50, true , tok_operator}},
+        {"-=" , {50, true , tok_operator}},
+        {"*=" , {50, true , tok_operator}},
+        {"/=" , {50, true , tok_operator}},
+        {"%=" , {50, true , tok_operator}},
+        {"**=", {50, true , tok_operator}},
+        {"//=", {50, true , tok_operator}},
         // Assignment
-        {"="  , {5, true , tok_operator}},
+        {"="  , {50, true , tok_operator}},
         // Logic
-        {"~"  , {4, false, tok_operator}},
-        {"<<" , {4, false, tok_operator}},
-        {">>" , {4, false, tok_operator}},
-        {"^"  , {4, false, tok_operator}},
-        {"&"  , {4, true , tok_operator}},
-        {"and", {4, true , tok_operator}},
-        {"|"  , {4, true , tok_operator}},
-        {"or" , {4, true , tok_operator}},
-        {"!"  , {4, true , tok_operator}},
-        {"not", {4, true , tok_operator}},
+        {"~"  , {40, false, tok_operator}},
+        {"<<" , {40, false, tok_operator}},
+        {">>" , {40, false, tok_operator}},
+        {"^"  , {40, false, tok_operator}},
+        {"&"  , {40, true , tok_operator}},
+        {"and", {40, true , tok_operator}},
+        {"|"  , {40, true , tok_operator}},
+        {"or" , {40, true , tok_operator}},
+        {"!"  , {40, true , tok_operator}},
+        {"not", {40, true , tok_operator}},
         // Comparison
-        {"==" , {4, true , tok_operator}},
-        {"!=" , {4, true , tok_operator}},
-        {">=" , {4, true , tok_operator}},
-        {"<=" , {4, true , tok_operator}},
-        {">"  , {4, true , tok_operator}},
-        {"<"  , {4, true , tok_operator}},
+        {"==" , {40, true , tok_operator}},
+        {"!=" , {40, true , tok_operator}},
+        {">=" , {40, true , tok_operator}},
+        {"<=" , {40, true , tok_operator}},
+        {">"  , {40, true , tok_operator}},
+        {"<"  , {40, true , tok_operator}},
         // membership
-        {"in" , {4, false, tok_operator}},
+        {"in" , {40, false, tok_operator}},
         // identity
-        {"is" , {4, false, tok_operator}},
+        {"is" , {40, false, tok_operator}},
         // Not an operator but we use same data structure for parsing
-        {"->", {1, false, tok_arrow}},
+        {"->",  {10, false, tok_arrow}},
         // Self lookup
-        {"."  , {5, true , tok_operator}},
+        {"."  , {50, true , tok_operator}},
         };
     return val;
 }

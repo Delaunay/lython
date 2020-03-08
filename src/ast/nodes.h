@@ -105,34 +105,6 @@ public:
     Type(String name) : Node(NodeKind::KType), name(std::move(name)) {}
 };
 
-// Math Nodes for ReverPolish parsing
-enum class MathKind {
-    Operator,
-    Value,
-    Function,
-    VarRef,
-    None
-};
-
-struct MathNode {
-    MathKind kind;
-    int arg_count = 1;
-    Expression ref;
-    String name = "";
-};
-
-/**
- * instead of creating a billions expression node we create a single node
- *  that holds all the expressions.
- */
-struct ReversePolish: public Node {
-public:
-    Stack<Expression> stack;
-
-    ReversePolish(Stack<Expression> str)
-        : Node(NodeKind::KReversePolish), stack(std::move(str)) {}
-};
-
 struct Value : public Node {
 public:
     lython::Value value;
@@ -169,22 +141,24 @@ public:
     Expression rhs;
     Expression lhs;
     StringRef op;
+    int precedence;
 
-    BinaryOperator(Expression lhs, Expression rhs, StringRef op)
-        : Node(NodeKind::KBinaryOperator), rhs(std::move(rhs)), lhs(std::move(lhs)), op(op) {}
+    BinaryOperator(Expression lhs, Expression rhs, StringRef op, int precedence=0)
+        : Node(NodeKind::KBinaryOperator), rhs(std::move(rhs)), lhs(std::move(lhs)), op(op), precedence(precedence) {}
 };
 
 struct UnaryOperator : public Node {
 public:
     Expression expr;
     StringRef op;
+    int precedence;
 
-    UnaryOperator(StringRef op, Expression expr):
-        Node(NodeKind::KUnaryOperator), expr(expr), op(op)
+    UnaryOperator(StringRef op, Expression expr, int precedence=0):
+        Node(NodeKind::KUnaryOperator), expr(expr), op(op), precedence(precedence)
     {}
 
-    UnaryOperator(String const& op, Expression expr):
-        UnaryOperator(get_string(op), expr)
+    UnaryOperator(String const& op, Expression expr, int precedence=0):
+        UnaryOperator(get_string(op), expr, precedence)
     {}
 };
 
