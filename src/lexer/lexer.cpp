@@ -50,7 +50,7 @@ Dict<String, OpConfig> const& default_precedence() {
         // Not an operator but we use same data structure for parsing
         {"->",  {10, false, tok_arrow}},
         // Self lookup
-        {"."  , {50, true , tok_operator}},
+        {"."  , {60, true , tok_operator}},
         };
     return val;
 }
@@ -63,7 +63,7 @@ std::ostream& Lexer::debug_print(std::ostream& out){
         out << to_string(k, 4) << "  ";
         t.debug_print(out) << std::endl;
         k += 1;
-    }while((t = next_token()));
+    } while((t = next_token()));
 
     out << to_string(k, 4) << "  ";
     t.debug_print(out) << std::endl;    // eof
@@ -165,11 +165,14 @@ Token Lexer::next_token(){
 
     // Identifiers
     if (ident.size() > 0 || isalpha(c)){
-        // FIXME: check that ident can be an identifier
-        ident.push_back(c);
 
-        while(is_identifier(c = nextc())){
+        // FIXME: check that ident can be an identifier
+        if (isalpha(c)){
             ident.push_back(c);
+
+            while(is_identifier(c = nextc())){
+                ident.push_back(c);
+            }
         }
 
         TokenType t = keywords()[ident];

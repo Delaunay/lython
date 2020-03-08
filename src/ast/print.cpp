@@ -52,7 +52,13 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
         visit(bin->lhs, d);
 
-        out << ' ' << bin->op.str() << ' ';
+        String const& str = bin->op.str();
+
+        if (str == "."){
+            out << bin->op.str();
+        } else {
+            out << ' ' << bin->op.str() << ' ';
+        }
 
         visit(bin->rhs, d);
 
@@ -212,83 +218,4 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 std::ostream& print(std::ostream& out, const Expression expr, int indent){
     return ASTPrinter(out, indent).visit(expr);
 }
-
-/*
-String to_infix(Stack<Expression>::ConstIterator &iter, int prev) {
-    int pred;
-    Expression op = *iter;
-    iter++;
-
-    switch (op.kind()) {
-    case AST::NodeKind::KOperator: {
-        AST::Operator* ref = op.ref<AST::Operator>();
-
-        std::tie(pred, std::ignore) = Module::default_precedence()[ref->name];
-
-        auto rhs = to_infix(iter, pred);
-        auto lhs = to_infix(iter, pred);
-
-        String expr;
-        if (ref->name != ".")
-            expr = lhs + ' ' + ref->name + ' ' + rhs;
-        else
-            expr = lhs + ref->name + rhs;
-        // if parent has lower priority we have to put parens
-        // if the priority is the same we still put parens for explicitness
-        // but we do not have to
-        if (prev >= pred && ref->name != ".")
-            return '(' + expr + ')';
-
-        return expr;
-    }
-
-
-
-    case AST::MathKind::Function: {
-        int nargs = op.arg_count;
-
-        std::vector<String> args;
-        for (int i = 0; i < nargs - 1; ++i) {
-            args.push_back(to_infix(iter));
-            args.emplace_back(", ");
-        }
-        if (nargs > 0) {
-            args.push_back(to_infix(iter));
-        }
-
-        // arguments are in reverse
-        String str_args =
-            std::accumulate(std::rbegin(args), std::rend(args), String(),
-                            [](String acc, String &b) { return acc + b; });
-
-
-        String fun = op.name;
-        if (op.ref){
-            StringStream ss;
-            op.ref.print(ss);
-            fun = ss.str();
-        }
-        return fun + '(' + str_args + ')';
-    }
-
-    case AST::MathKind::VarRef: {
-        String var = op.name;
-        if (op.ref){
-            StringStream ss;
-            op.ref.print(ss);
-            var = ss.str();
-        }
-        return var;
-    }
-    case  AST::MathKind::Value: {
-        return op.name;
-    }
-
-    case AST::MathKind::None:
-        return "<None>";
-    }
-
-    return "<Error>";
-}
-*/
 }

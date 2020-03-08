@@ -145,7 +145,7 @@ inline void assert_true(bool cond, char const* message,  char const* assert_expr
                     "Assertion errror: {}\n"
                     "  - expr: {}", message, assert_expr);
 
-        lython::show_backtrace();
+        // lython::show_backtrace();
         std::abort();
     }
 }

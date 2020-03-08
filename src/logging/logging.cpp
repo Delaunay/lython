@@ -223,7 +223,7 @@ bool is_log_enabled(LogLevel level){
 
 const char* Exception::what() const noexcept {
     spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
-    show_backtrace();
+    // show_backtrace();
     return message.c_str();
 }
 

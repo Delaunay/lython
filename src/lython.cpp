@@ -59,8 +59,7 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = simple_function_rpe();
-
+        String code =
         "struct Point:\n"
         "    x: Float\n"
         "    y: Float\n"
