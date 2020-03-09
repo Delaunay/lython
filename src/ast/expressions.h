@@ -77,7 +77,7 @@ public:
     operator bool() const {    return bool(_ptr); }
 
     template<typename Stream = std::ostream>
-    friend Stream& operator<<(Stream& out, lython::Expression const& expr) {
+    friend Stream& operator<<(Stream& out, Expression const& expr) {
         expr.print(out);
         return out;
     }

@@ -126,7 +126,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value value(Value_t val, std::size_t depth) {
-        trace_start(depth, "value");
+        trace_start(depth, "value {}", val->value);
         return val->value;
     }
 

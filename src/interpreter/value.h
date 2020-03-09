@@ -103,6 +103,12 @@ public:
 
     std::ostream& print(std::ostream& out) const;
 
+    template<typename Stream = std::ostream>
+    friend Stream& operator<<(Stream& out, Value const& expr) {
+        expr.print(out);
+        return out;
+    }
+
 public:
     //! T: type to retrieve the value as
     //! VTag: type held inside the Value obj
@@ -143,7 +149,7 @@ public:
         Value(get_string(str))
     {}
 
-    Value(AST::Function const* fun, Array<Value>  env);
+    Value(AST::Function const* fun, Array<Value> env);
     Value(BuiltinImpl fun, Array<Value>  env);
     Value(AST::Struct const* cstruct);
 

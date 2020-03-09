@@ -75,6 +75,6 @@ Value interpret_code(String const& code){
 
 
 TEST_CASE("Interpreter"){
-    TEST_INTERPRETER(simple_function_noargs, Value(1.0))
+    TEST_INTERPRETER(simple_function_noargs, Value(1))
     TEST_INTERPRETER_ARGS(max_alias, Value(2.0), 2.0, 1.0)
 }
