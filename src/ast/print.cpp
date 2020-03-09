@@ -57,7 +57,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         if (str == "."){
             out << bin->op.str();
         } else {
-            out << ' ' << bin->op.str() << ' ';
+            out << " " << bin->op.str() << " ";
         }
 
         visit(bin->rhs, d);

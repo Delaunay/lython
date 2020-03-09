@@ -23,7 +23,7 @@ inline String parse_it(String code){
         expr = par.parse_one(module);
 
         if (expr){
-            expr.print(ss) << '\n';
+            expr.print(ss) << "\n\n";
         }
 
     } while(expr);

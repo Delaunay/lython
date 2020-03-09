@@ -193,6 +193,7 @@ Token Lexer::next_token(){
         }
 
         if (c == '.'){
+            ntype = tok_float;
             num.push_back(c);
             c = nextc();
             while(std::isdigit(c)){

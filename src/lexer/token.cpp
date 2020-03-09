@@ -48,7 +48,6 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
     static int32 indent_level = 0;
     static bool emptyline = true;   // To generate indent when needed
     static bool open_parens = false;
-    static Set<char> special_char = {'+', '=', '*', '^', '-', '/'};
     static bool prev_is_op = false;
 
     if (indent > 0)
@@ -80,6 +79,12 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
         return out;
     }
 
+    if (type() == tok_operator){
+        out << " " << operator_name() << " ";
+        prev_is_op = true;
+        return out;
+    }
+
     // Indentation
     if (emptyline && indent_level > 0)
         out << std::string(std::size_t(indent_level * LYTHON_INDENT), ' ');
@@ -97,20 +102,11 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
 
     // Single Char
     if (type() > 0){
-        if (prev_is_op){
-            out << ' ';
-            prev_is_op = false;
-        }
 
         if (type() == '(' || type() == '[')
             open_parens = true;
         else
             open_parens = false;
-
-        if (special_char.count(type()) > 0){
-            out << ' ';
-            prev_is_op = true;
-        }
 
         emptyline = false;
         out << type();
@@ -122,10 +118,10 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
 
     // no space if the line is empty and no space if it is just after
     // a open parens
-    if (!emptyline && !open_parens){
+    if (!prev_is_op && !emptyline && !open_parens){
         out << ' ';
-        prev_is_op = false;
     }
+    prev_is_op = false;
 
     if (type() == tok_string)
         out << '"' << identifier() << '"' ;
