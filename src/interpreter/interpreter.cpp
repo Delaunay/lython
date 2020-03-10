@@ -112,7 +112,9 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         auto n = ref->index;
 
         // debug("found {}", env[n].str());
-        return env[n];
+        auto r = env[n];
+        debug("return {}", r);
+        return r;
     }
 
     Value builtin(Builtin_t blt, std::size_t depth) {
@@ -172,23 +174,16 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value fun_call(Value closure, Call_t call, std::size_t depth){
+        trace_start(depth, "fun_call");
+
         auto on = env.size();
         for (auto& expr: call->arguments)
             env.push_back(eval(expr, depth + 1));
 
-        // clo.env = eval(call->arguments(), depth);
-        // clo.env.insert(std::begin(clo.env), Value(0));
-
-        const AST::Function* fun = closure.get<value::Closure*>()->fun;
-
-        //auto old = env;
-        //env = closure.v_closure.env;
-        Value returned_value = eval(fun->body, depth);
-        // env = old;
+        Value returned_value = eval_closure(closure, depth);
 
         env.erase(env.begin() + on, env.end());
-        // returned_value.print(std::cout) << std::endl;
-        // throw InterpreterException("Not Implemented");
+        debug("return {}", returned_value);
         return returned_value;
     }
 
@@ -202,18 +197,25 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     // Helpers
     // -------
-    Value closure(Value fun, std::size_t depth){
-        trace_start(depth, "closure");
+    Value eval_closure(Value fun, std::size_t depth){
+        trace_start(depth, "closure {}", fun.tag);
+
         if (fun.tag == ValueKind::obj_closure){
             value::Closure* clo = fun.get<value::Closure*>();
 
             if (!clo->fun){
+                assert(clo->builtin, "Closure is undefined");
                 auto v = clo->builtin(env);
                 return v;
+            } else {
+                const AST::Function* fun_decl = fun.get<value::Closure*>()->fun;
+                assert(fun_decl, "fun should be defined");
+                return eval(fun_decl->body, depth);
             }
         }
 
-        return Value("closure");
+
+        return Value("NotImplemented");
     }
 };
 
@@ -240,6 +242,7 @@ Value builtin_sin(Array<Value>& args){
 
 
 Value builtin_max(Array<Value>& args){
+    debug("calling max");
     assert(args.size() >= 3, "expected 2 arguments");
 
     auto n = args.size();
