@@ -167,16 +167,19 @@ class Module {
         return -1;
     }
 
+    // make a reference from a name
+    Expression reference(String const &view){
+        int tsize = size();
+        int idx = find_index(view);
+        return Expression::make<AST::Reference>(view, tsize - idx, tsize, Expression());
+    }
+
     Index insert(String const& name, Expression const& expr, bool block_idx=false){
         // info("Inserting Expressionession");
         auto idx = _scope.size();
         _name_idx[name] = idx;
         _idx_name.push_back(name);
         _scope.push_back(expr);
-
-        if (_tracker){
-            _tracker->add_access(name, int(idx) + offset);
-        }
 
         if (!block_idx)
             return idx;
@@ -218,13 +221,7 @@ class Module {
             idx = _parent->find_index(view);
         }
 
-        if (_tracker){
-            _tracker->add_access(view, idx);
-        }
-        if (!block_loc)
-            return idx;
-
-        return int(idx) - offset;
+        return int(idx);
     }
 
     Expression find(String const &view) const {

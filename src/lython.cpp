@@ -198,7 +198,7 @@ int main() {
 Expression make_point(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.find("Point");
+    call->function = mod.reference("Point");
     call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
     call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
     return expr;
@@ -208,7 +208,7 @@ Expression make_point(Module& mod){
 Expression make_point_check(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.find("check_get_set");
+    call->function = mod.reference("check_get_set");
     return expr;
 }
 
@@ -216,7 +216,7 @@ Expression make_point_check(Module& mod){
 Expression make_max(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.find("max_alias");
+    call->function = mod.reference("max_alias");
     call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
     call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
     return expr;

@@ -94,7 +94,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     }
 
     std::ostream &reference(Reference_t ref, std::size_t) {
-        return out << ref->name;
+        return out << ref->name << "[" << ref->index << "]";
     }
 
     std::ostream &builtin(Builtin_t blt, int32) {

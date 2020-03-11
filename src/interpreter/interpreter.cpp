@@ -21,6 +21,16 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         {"*", builtin_mult},
     };
 
+    void push(Value v){
+        info("pushing {}", v);
+        env.push_back(v);
+    }
+
+    void pop(std::ptrdiff_t n){
+        info("poping {}", env.size() - n);
+        env.erase(env.begin() + n, env.end());
+    }
+
     std::ostream& dump_env(std::ostream& out){
         out << String(40, '-') << '\n';
 
@@ -38,7 +48,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
             debug("{}", m.get_name(i).c_str());
             Expression exp = m[i];
             auto v = eval(exp);
-            env.push_back(v);
+            push(v);
         }
         debug("Module evaluated (env: {})", env.size());
 
@@ -100,7 +110,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                 debug("Assign to a Reference");
 
                 auto rhs = eval(bin->rhs, d);
-                env.push_back(rhs);
+                push(rhs);
                 return Value("none");
             }
             // assign to object
@@ -160,9 +170,9 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                     env.size());
 
         assert(env.size() > ref->index, "Environment should hold the ref");
-        auto n = ref->index;
+        auto n = env.size() - ref->index;
 
-        // debug("found {}", env[n].str());
+        debug("found {} {}", n, env[n].str());
         auto r = env[n];
         // debug("return {}", r);
         return r;
@@ -184,7 +194,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value call(Call_t call, std::size_t depth) {
-        trace_start(depth, "call");
+        trace_start(depth, "{}", call->function);
         Value closure = eval(call->function, depth);
         switch (closure.tag) {
         // standard function
@@ -194,7 +204,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         case ValueKind::obj_class: return struct_call(closure, call, depth);
         }
 
-        return Value("Unsupported");
+        return closure;
     }
 
     Value struct_call(Value closure, Call_t call, std::size_t depth){
@@ -226,12 +236,13 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         trace_start(depth, "fun_call");
 
         auto on = std::ptrdiff_t(env.size());
+
         for (auto& expr: call->arguments)
-            env.push_back(eval(expr, depth + 1));
+            push(eval(expr, depth + 1));
 
         Value returned_value = eval_closure(closure, depth);
 
-        env.erase(env.begin() + on, env.end());
+        pop(on);
         // debug("return {}", returned_value);
         return returned_value;
     }

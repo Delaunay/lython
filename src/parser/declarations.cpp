@@ -6,18 +6,12 @@ Expression Parser::parse_type(Module& m, size_t depth) {
     TRACE_START();
 
     String name = "<typename>";
-    int loc = -1;
 
     WITH_EXPECT(tok_identifier, "expect type identifier") {
         name = token().identifier();
-        loc = m.find_index(name);
     }
 
-    if (loc < 0){
-        warn("Undefined type \"{}\"", name.c_str());
-    }
-    // TODO: is this correct
-    auto type = Expression::make<AST::Ref>(name, loc, m.size(), Expression());
+    auto type = m.reference(name);
     EAT(tok_identifier);
 
     TRACE_END();
@@ -68,47 +62,48 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     }
     EAT(tok_identifier);
 
-    // Creating a new module
-    AccessTracker tracker;
-    Module module = m.enter(&tracker);
-
     auto expr = Expression::make<AST::Function>(function_name);
     auto fun = expr.ref<AST::Function>();
 
-    // Insert function for recursive calls
-    module.insert(function_name, expr);
+    {
+        // Creating a new module
+        AccessTracker tracker;
+        Module module = m.enter(&tracker);
 
-    fun->args = parse_parameter_list(m, depth + 1);
+        // Insert function for recursive calls
+        module.insert(function_name, expr);
 
-    // Insert the parameters into the Scope
-    // Parameters are created by the call
-    for(AST::Parameter& param: fun->args){
-        int size = module.size();
-        auto ref = Expression::make<AST::Ref>(param.name, size, size, param.type);
-        module.insert(param.name.str(), ref);
-    }
+        fun->args = parse_parameter_list(m, depth + 1);
 
-    WITH_EXPECT(tok_arrow, "Expected -> before return type") {
-        EAT(tok_arrow);
-        fun->return_type = parse_type(m, depth + 1);
-    }
+        // Insert the parameters into the Scope
+        // Parameters are created by the call
+        for(AST::Parameter& param: fun->args){
+            auto ref = Expression::make<AST::Parameter>(param.name, param.type);
+            module.insert(param.name.str(), ref);
+        }
 
-    EXPECT(':', "Expected function to end with a `:`");
-    EAT(':');
-    EXPECT(tok_newline, "Expected function to end with a new line");
-    EAT(tok_newline);
-    EXPECT(tok_indent, "Expected function body to start with an indentation");
-    EAT(tok_indent);
+        WITH_EXPECT(tok_arrow, "Expected -> before return type") {
+            EAT(tok_arrow);
+            fun->return_type = parse_type(m, depth + 1);
+        }
 
-    if (token().type() == tok_docstring) {
-        fun->docstring = token().identifier();
-        EAT(tok_docstring);
-        EXPECT(tok_newline, "new line was expected");
+        EXPECT(':', "Expected function to end with a `:`");
+        EAT(':');
+        EXPECT(tok_newline, "Expected function to end with a new line");
         EAT(tok_newline);
-    }
+        EXPECT(tok_indent, "Expected function body to start with an indentation");
+        EAT(tok_indent);
 
-    fun->body = parse_compound_statement(module, depth + 1);
-    TRACE_END();
+        if (token().type() == tok_docstring) {
+            fun->docstring = token().identifier();
+            EAT(tok_docstring);
+            EXPECT(tok_newline, "new line was expected");
+            EAT(tok_newline);
+        }
+
+        fun->body = parse_compound_statement(module, depth + 1);
+        TRACE_END();
+    }
 
     m.insert(function_name, expr);
     // fun->frame = tracker.access;

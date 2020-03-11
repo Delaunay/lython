@@ -43,18 +43,18 @@ Expression Parser::parse_primary(Module& m, std::size_t depth){
         return Expression::make<AST::UnaryOperator>(tok.operator_name(), expr);
     }
 
-    // Function or Variable
+    // Function Call or Variable
     case tok_identifier:{
-        auto expr = m.find(tok.identifier());
+        auto ref = m.reference(tok.identifier());
         next_token();
 
         // Function
         if (token().type() == '('){
-            return parse_function_call(m, expr, depth + 1);
+            return parse_function_call(m, ref, depth + 1);
         }
 
-        // Variable
-        return expr;
+        // reference to a variable
+        return ref;
     }
 
     // ---
@@ -131,7 +131,10 @@ Expression Parser::parse_expression_1(Module& m, Expression lhs, int precedence,
             switch (lhs.kind()){
             // Default assign to a variable         A = ...
             case AST::NodeKind::KReference:{
-                m.insert(lhs.ref<AST::Reference>()->name.str(), rhs);
+                auto ref = lhs.ref<AST::Reference>();
+                ref->index = 0;
+                ref->length = 0;
+                m.insert(ref->name.str(), rhs);
             }
             // TODO: Unpacking                      A, B, C = ....
 
