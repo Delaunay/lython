@@ -104,8 +104,8 @@ public:
     std::ostream& print(std::ostream& out) const;
 
     template<typename Stream = std::ostream>
-    friend Stream& operator<<(Stream& out, Value const& expr) {
-        expr.print(out);
+    friend Stream& operator<<(Stream& out, Value const& val) {
+        val.print(out);
         return out;
     }
 

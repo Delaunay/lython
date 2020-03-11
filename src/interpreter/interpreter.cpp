@@ -21,6 +21,17 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         {"*", builtin_mult},
     };
 
+    std::ostream& dump_env(std::ostream& out){
+        out << String(40, '-') << '\n';
+
+        for(auto i = 0ul; i < env.size(); ++i){
+            out << fmt::format("{:4d} | {}\n", i, env[i]);
+        }
+
+        out << String(40, '-') << '\n';
+        return out;
+    }
+
     InterpreterImpl(Module& m){
         // Eval the module en create the environment for the interpreter
         for(int i = 0; i < m.size(); ++i){
@@ -32,9 +43,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         debug("Module evaluated (env: {})", env.size());
 
         debug("Dumping env");
-        for(auto& val: env){
-            std::cout << val.str() << '\n';
-        }
+        dump_env(std::cout);
         debug("---");
     }
 
@@ -67,11 +76,21 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value binary(BinaryOperator_t bin, std::size_t d) {
-        trace_start(d, "{} {}", bin->lhs, bin->rhs);
-        debug("`{}` `{}`", bin->op, get_string("="));
-        debug("{} {}", bin->op.ref, get_string("=").ref);
+        trace_start(d, "{} {} {}", bin->lhs, bin->op, bin->rhs);
 
         // StringDatabase::instance().report(std::cout);
+
+        // retrieval attribute
+        if (bin->op == get_string(".")){
+            auto obj = eval(bin->lhs, d);
+            debug("retrieved {}", obj);
+
+            dump_env(std::cout);
+
+            assert(obj.tag == ValueKind::obj_object, "retrieve attribute");
+            value::Struct& data = *obj.get<value::Struct*>();
+            return data.get_attributes(bin->rhs.ref<AST::Ref>()->name);
+        }
 
         // assignment
         if (bin->op == get_string("=")){
@@ -92,12 +111,12 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                 AST::BinaryOperator const* attr = bin->lhs.ref<AST::BinaryOperator>();
 
                 // fetch the p in p.x
-                auto obj = eval(attr->lhs);
+                auto obj = eval(attr->lhs, d);
                 assert(obj.tag == ValueKind::obj_object, "Assign to an object");
 
                 // set x to lhs
                 value::Struct& data = *obj.get<value::Struct*>();
-                data.set_attribute(attr->rhs, rhs);
+                data.set_attribute(attr->rhs.ref<AST::Ref>()->name, rhs);
                 return Value("none");
             }
 

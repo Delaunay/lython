@@ -84,11 +84,11 @@ std::ostream& Value::print(std::ostream& out) const {
     case ValueKind::pod_str:
         return out << "String(" << StringDatabase::instance()[_data.v_uint64] << ")";
     case ValueKind::obj_closure:
-        return get<value::Closure const*>()->print(std::cout);
+        return get<value::Closure const*>()->print(out);
     case ValueKind::obj_class:
-        return get<value::Class const*>()->print(std::cout);
+        return get<value::Class const*>()->print(out);
     case ValueKind::obj_object:
-        return get<value::Struct const*>()->print(std::cout);
+        return get<value::Struct const*>()->print(out);
     case ValueKind::obj_none:
         return out << "None";
     }
@@ -124,7 +124,7 @@ std::ostream& value::Struct::print(std::ostream& out) const{
     for(auto i = 0ul, n = size - 1; i < size; ++i){
         auto& name = std::get<0>(type->attributes[i]);
         out << name << '=';
-        attributes[i].print(std::cout);
+        attributes[i].print(out);
 
         if (i < n){
             out << ", ";
