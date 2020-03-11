@@ -30,7 +30,7 @@ Value interpret_call(String const& code, String fun_name, Args... v){
     Interpreter vm(module);
 
     // Make Fun Call
-    auto fun = module.find(fun_name);
+    auto fun = module.reference(fun_name);
 
     assert(fun, "function must exist");
 
