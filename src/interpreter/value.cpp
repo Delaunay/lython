@@ -95,13 +95,36 @@ std::ostream& Value::print(std::ostream& out) const {
     return out;
 }
 
+namespace value {
+Struct::Struct(AST::Struct const* type):
+    type(type), attributes(type->attributes.size())
+{}
+
+void Struct::set_attribute(StringRef name, Value val){
+    set_attribute(type->offset.at(name), val);
+}
+
+void Struct::set_attribute(int idx, Value val){
+    attributes[std::size_t(idx)] = val;
+}
+
+Value Struct::get_attributes(StringRef name){
+    return get_attributes(type->offset.at(name));
+}
+
+Value Struct::get_attributes(int idx){
+    return attributes[std::size_t(idx)];
+}
+}
+
+
 std::ostream& value::Struct::print(std::ostream& out) const{
     out << type->name << "(";
     auto size = type->attributes.size();
     for(auto i = 0ul, n = size - 1; i < size; ++i){
         auto& name = std::get<0>(type->attributes[i]);
         out << name << '=';
-        attributes.at(name).print(std::cout);
+        attributes[i].print(std::cout);
 
         if (i < n){
             out << ", ";

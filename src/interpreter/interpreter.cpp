@@ -62,19 +62,51 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return Value("parameter");
     }
 
-    Value unary(UnaryOperator_t, size_t d) {
+    Value unary(UnaryOperator_t, size_t) {
         return Value("unary");
     }
 
     Value binary(BinaryOperator_t bin, std::size_t d) {
-        auto lhs = eval(bin->lhs, d);
-        auto rhs = eval(bin->rhs, d);
+        trace_start(d, "{} {}", bin->lhs, bin->rhs);
+        debug("`{}` `{}`", bin->op, get_string("="));
+        debug("{} {}", bin->op.ref, get_string("=").ref);
+
+        // StringDatabase::instance().report(std::cout);
 
         // assignment
         if (bin->op == get_string("=")){
+            switch(bin->lhs.kind()){
+            // assign to variable
+            case AST::NodeKind::KReference: {
+                debug("Assign to a Reference");
 
+                auto rhs = eval(bin->rhs, d);
+                env.push_back(rhs);
+                return Value("none");
+            }
+            // assign to object
+            case AST::NodeKind::KBinaryOperator: {
+                debug("Assign to an object attribute");
+
+                auto rhs = eval(bin->rhs, d);
+                AST::BinaryOperator const* attr = bin->lhs.ref<AST::BinaryOperator>();
+
+                // fetch the p in p.x
+                auto obj = eval(attr->lhs);
+                assert(obj.tag == ValueKind::obj_object, "Assign to an object");
+
+                // set x to lhs
+                value::Struct& data = *obj.get<value::Struct*>();
+                data.set_attribute(attr->rhs, rhs);
+                return Value("none");
+            }
+
+            default:
+                return Value("Unsupported");
+            }
         } else {
-
+            auto lhs = eval(bin->lhs, d);
+            auto rhs = eval(bin->rhs, d);
         }
 
         return Value("binary");
@@ -113,7 +145,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
         // debug("found {}", env[n].str());
         auto r = env[n];
-        debug("return {}", r);
+        // debug("return {}", r);
         return r;
     }
 
@@ -121,10 +153,6 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         trace_start(depth, "{}", blt->name);
         auto fun = builtins[blt->name.str()];
         return Value(fun, Array<Value>());
-    }
-
-    Value type(Type_t type, std::size_t) {
-        return Value(type->name);
     }
 
     Value value(Value_t val, std::size_t depth) {
@@ -151,6 +179,8 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value struct_call(Value closure, Call_t call, std::size_t depth){
+        trace_start(depth, "struct constructor");
+
         AST::Struct const* cstruct = closure.get<value::Class*>()->fun;
         Value v = new_object(cstruct);
         value::Struct& data = *v.get<value::Struct*>();
@@ -160,13 +190,13 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
         // for all positional arguments
         auto n = call->arguments.size();
+
         for(auto i = 0u; i < n; ++i){
-            StringRef name = std::get<0>((*cstruct).attributes[i]);
-            data.attributes[name] = eval(call->arguments[i], depth);
+            data.set_attribute(i, eval(call->arguments[i], depth));
         }
 
         for(auto& item: call->kwargs){
-            data.attributes[item.first] = eval(item.second, depth);
+           data.set_attribute(item.first, eval(item.second, depth));
         }
 
         // v.v_object.attributes;
@@ -176,22 +206,29 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     Value fun_call(Value closure, Call_t call, std::size_t depth){
         trace_start(depth, "fun_call");
 
-        auto on = env.size();
+        auto on = std::ptrdiff_t(env.size());
         for (auto& expr: call->arguments)
             env.push_back(eval(expr, depth + 1));
 
         Value returned_value = eval_closure(closure, depth);
 
         env.erase(env.begin() + on, env.end());
-        debug("return {}", returned_value);
+        // debug("return {}", returned_value);
         return returned_value;
     }
 
     Value arrow(Arrow_t aw, std::size_t d) {
+        // this should not be called at runtime
+        // Note that there is a compile time interpreter running as well
         return Value("arrow");
     }
 
-    Value function(Function_t fun, std::size_t d) {
+    Value type(Type_t type, std::size_t) {
+        return Value(type->name);
+    }
+
+    Value function(Function_t fun, std::size_t) {
+        // make a closure out a function
         return Value(fun, env);
     }
 

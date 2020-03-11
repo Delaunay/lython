@@ -79,8 +79,9 @@ public:
     }
 
     StringRef string(String const& name){
-        std::size_t val = defined[name];
-        if (val == 0){
+        auto val = defined.find(name);
+
+        if (val == defined.end()){
             std::size_t n = strings.size();
             strings.push_back(name);
             count.push_back(1);
@@ -90,8 +91,9 @@ public:
             return StringRef(n);
         }
 
-        count[val] += 1;
-        return StringRef(val);
+        auto ref = val->second;
+        count[ref] += 1;
+        return StringRef(ref);
     }
 
     StringDatabase(){
@@ -101,11 +103,14 @@ public:
 
     std::ostream& report(std::ostream& out){
         std::size_t saved = 0;
+        out << fmt::format("| {:30} | {:4} | {:4} |\n", "str", "#", "svd");
+
         for(auto i = 0u; i < count.size(); ++i){
-            auto s = strings[i].length() * count[i];
+            auto s = strings[i].size() * count[i];
             out << fmt::format("| {:30} | {:4} | {:4} |\n", strings[i], count[i], s);
             saved += s;
         }
+
         out << fmt::format("Saved: {} bytes\n", saved);
         return out;
     }

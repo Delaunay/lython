@@ -170,13 +170,18 @@ Value new_object(const AST::Struct *type);
 namespace value {
 // Object
 struct Struct: public ValueHolder{
-    using AttrDict = Dict<StringRef, Value, string_ref_hash>;
+    using Attributes = Array<Value>;
 
-    Struct(AST::Struct const* type): type(type)
-    {}
+    Struct(AST::Struct const* type);
+
+    void set_attribute(int idx, Value val);
+    void set_attribute(StringRef name, Value val);
+
+    Value get_attributes(int idx);
+    Value get_attributes(StringRef name);
 
     AST::Struct const* type;
-    AttrDict attributes;
+    Attributes attributes;
 
     std::ostream& print(std::ostream& out) const;
 };

@@ -126,6 +126,26 @@ Expression Parser::parse_expression_1(Module& m, Expression lhs, int precedence,
             }
         }
 
+        // bind operator operator
+        if (op == "="){
+            switch (lhs.kind()){
+            // Default assign to a variable         A = ...
+            case AST::NodeKind::KReference:{
+                m.insert(lhs.ref<AST::Reference>()->name.str(), rhs);
+            }
+            // TODO: Unpacking                      A, B, C = ....
+
+            // Assign to an attribute               A.B = ....
+            // we do not need to do anything the attribute is already in scope
+            case AST::NodeKind::KBinaryOperator:
+                break;
+
+            default:
+                debug("Unsupported assignment {} = {}", lhs, rhs);
+                assert(false, "Unsupported assignment");
+            }
+        }
+
         lhs = Expression::make<AST::BinaryOperator>(
             lhs, rhs, get_string(op), op_conf.precedence);
     }
