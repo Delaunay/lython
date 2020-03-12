@@ -8,6 +8,9 @@
 
 namespace lython {
 
+
+class Token;
+
 namespace AST{
 class Node;
 
@@ -67,11 +70,17 @@ public:
         return static_cast<T const*>(_ptr.get());
     }
 
+    Token& start();
+    Token& end  ();
+
+    Token const& start() const;
+    Token const& end  () const;
+
     //! Returns the kind of the held AST Node
     AST::NodeKind kind() const;
 
     //! Prints the AST node
-    std::ostream& print(std::ostream& out, int indent = 0) const;
+    std::ostream& print(std::ostream& out, int indent = 0, bool dbg = false) const;
 
     //! Returns true if the Expression holds a valid AST node
     operator bool() const {    return bool(_ptr); }

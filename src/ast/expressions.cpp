@@ -3,8 +3,8 @@
 #include "print.h"
 
 namespace lython {
-std::ostream& Expression::print(std::ostream& out, int indent) const {
-    lython::print(out, *this, indent);
+std::ostream& Expression::print(std::ostream& out, int indent, bool dbg) const {
+    lython::print(out, *this, indent, dbg);
     return out;
 }
 
@@ -23,6 +23,11 @@ const char* to_string(NodeKind kind){
         return "<undefined>";
     }
 }
-
 }
+
+Token& Expression::start() {    return _ptr->start; }
+Token& Expression::end  () {    return _ptr->end; }
+
+Token const& Expression::start() const {    return _ptr->start; }
+Token const& Expression::end  () const {    return _ptr->end;   }
 }

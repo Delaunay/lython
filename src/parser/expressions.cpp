@@ -11,19 +11,19 @@ Expression Parser::parse_primary(Module& m, std::size_t depth){
     switch(tok.type()){
     // values
     case tok_int:{
-        auto r = Expression::make<AST::Value>(tok.as_integer(), m.find("Int"));
+        auto r = Expression::make<AST::Value>(tok.as_integer(), m.reference("Int"));
         next_token();
         return r;
     }
 
     case tok_string:{
-        auto r = Expression::make<AST::Value>(tok.identifier(), m.find("String"));
+        auto r = Expression::make<AST::Value>(tok.identifier(), m.reference("String"));
         next_token();
         return r;
     }
 
     case tok_float:{
-        auto r = Expression::make<AST::Value>(tok.as_float(), m.find("Float"));
+        auto r = Expression::make<AST::Value>(tok.as_float(), m.reference("Float"));
         next_token();
         return r;
     }
@@ -46,6 +46,7 @@ Expression Parser::parse_primary(Module& m, std::size_t depth){
     // Function Call or Variable
     case tok_identifier:{
         auto ref = m.reference(tok.identifier());
+        ref.start() = token();
         next_token();
 
         // Function

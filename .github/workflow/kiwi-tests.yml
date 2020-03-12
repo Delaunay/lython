@@ -1,0 +1,38 @@
+name: kiwi-tests
+
+on: [push]
+
+jobs:
+  kiwi-clang-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: format
+        run: |
+          echo ""
+
+  kiwi-compile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: cache-build
+        uses: actions/cache@v1
+        with:
+          path: build
+          key: ${{ runner.OS }}-build-${{ hashFiles('setup.py') }}
+          restore-keys: |
+            ${{ runner.OS }}-build-${{ env.cache-name }}-
+            ${{ runner.OS }}-build-
+            ${{ runner.OS }}-
+
+      - name: compile
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+          make enable-debug
+          make enable-tests
+          make coverage
+          bash <(curl -s https://codecov.io/bash)

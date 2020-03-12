@@ -120,29 +120,37 @@ class Module {
     }
 
     Module(Module const* parent = nullptr, int depth = 0, int offset = 0, AccessTracker* tracker = nullptr):
-        depth(depth), offset(offset), _parent(parent), _tracker(tracker)
+        depth(depth), offset(offset), _parent(parent)
     {
         if (!parent){
             insert("Type", type_type());
             insert("Float", float_type());
 
-            auto f_f_f = Expression::make<AST::Arrow>();
-            auto binary_type = f_f_f.ref<AST::Arrow>();
-            binary_type->params.push_back(AST::Parameter("a", float_type()));
-            binary_type->params.push_back(AST::Parameter("b", float_type()));
+            auto make_binary = [&](){
+                auto f_f_f = Expression::make<AST::Arrow>();
+                auto binary_type = f_f_f.ref<AST::Arrow>();
+                binary_type->params.push_back(AST::Parameter("a", reference("Float")));
+                binary_type->params.push_back(AST::Parameter("b", reference("Float")));
+                return f_f_f;
+            };
 
-            auto f_f = Expression::make<AST::Arrow>();
-            auto unary_type = f_f_f.ref<AST::Arrow>();
-            unary_type->params.push_back(AST::Parameter("a", float_type()));
+            auto make_unary = [&](){
+                auto f_f = Expression::make<AST::Arrow>();
+                auto unary_type = f_f.ref<AST::Arrow>();
+                unary_type->params.push_back(AST::Parameter("a", reference("Float")));
+                return f_f;
+            };
 
-            auto min_fun = Expression::make<AST::Builtin>("min", f_f_f, 2);
-            auto max_fun = Expression::make<AST::Builtin>("max", f_f_f, 2);
-            auto sin_fun = Expression::make<AST::Builtin>("sin", f_f, 1);
-            auto pi = Expression::make<AST::Value>(3.14, float_type());
-
+            auto min_fun = Expression::make<AST::Builtin>("min", make_binary(), 2);
             insert("min", Expression(min_fun));
-            insert("sin", Expression(sin_fun));
+
+            auto max_fun = Expression::make<AST::Builtin>("max", make_binary(), 2);
             insert("max", Expression(max_fun));
+
+            auto sin_fun = Expression::make<AST::Builtin>("sin", make_unary(), 1);
+            insert("sin", Expression(sin_fun));
+
+            auto pi = Expression::make<AST::Value>(3.14, reference("Float"));
             insert("pi", Expression(pi));
         }
     }
@@ -152,39 +160,25 @@ class Module {
     }
 
     Module enter(AccessTracker* tracker = nullptr) const {
-        auto m = Module(this, this->depth + 1, size(), tracker);
+        auto m = Module(this, this->depth + 1, size());
         return m;
     }
 
-    int arg_count(std::string_view view) const {
-        thread_local String _tmp(view.begin(), view.end());
-        Expression fun = this->find(_tmp);
-
-        if (fun && fun.kind() == AST::NodeKind::KFunction) {
-            return int(fun.ref<AST::Function>()->args.size());
-        }
-
-        return -1;
-    }
-
     // make a reference from a name
-    Expression reference(String const &view){
+    Expression reference(String const &view) const{
         int tsize = size();
-        int idx = find_index(view);
+        int idx = _find_index(view);
         return Expression::make<AST::Reference>(view, tsize - idx, tsize, Expression());
     }
 
-    Index insert(String const& name, Expression const& expr, bool block_idx=false){
+    Index insert(String const& name, Expression const& expr){
         // info("Inserting Expressionession");
         auto idx = _scope.size();
         _name_idx[name] = idx;
         _idx_name.push_back(name);
         _scope.push_back(expr);
 
-        if (!block_idx)
-            return idx;
-
-        return int(idx) - offset;
+        return idx;
     }
 
     Expression operator[](int idx) const {
@@ -210,7 +204,7 @@ class Module {
         return "nullptr";
     }
 
-    Index find_index(String const &view, bool block_loc=false) const {
+    Index _find_index(String const &view) const {
         // Check in the current scope
         auto iter = _name_idx.find(view);
         Index idx = -1;
@@ -218,86 +212,10 @@ class Module {
         if (iter != _name_idx.end()){
             idx = (*iter).second + offset;
         } else if (_parent){
-            idx = _parent->find_index(view);
+            idx = _parent->_find_index(view);
         }
 
         return int(idx);
-    }
-
-    Expression find(String const &view) const {
-        Expression expr;
-        Index idx = 0;
-
-        std::tie(expr, idx) = _find(view);
-
-        // TODO: might be interesting to create a MissingExpr in the AST
-        // itself for rendering in TIDE
-        // when expr == nullptr
-        if (expr && expr.kind() == AST::NodeKind::KReference)
-            return expr;
-
-        return Expression::make<AST::Ref>(
-            String(view),
-            idx,
-            size(),
-            Expression());
-    }
-
-    int get_nargs(Expression& fun) const {
-        if (!fun)
-            return -1;
-
-        if (fun.kind() == AST::NodeKind::KFunction){
-            return int(fun.ref<AST::Function>()->args.size());
-        }
-
-        if (fun.kind() == AST::NodeKind::KBuiltin){
-            return int(fun.ref<AST::Builtin>()->argument_size);
-        }
-
-        if (fun.kind() == AST::NodeKind::KStruct){
-            return int(fun.ref<AST::Struct>()->attributes.size());
-        }
-
-        return -1;
-    }
-
-
-    Expression make_ref(String const &view, int idx, Expression type=Expression()) const {
-        return Expression::make<AST::Ref>(
-            String(view),
-            idx,
-            size(),
-            type);
-    }
-
-    Tuple<Expression, int> find_function(String const &view) const {
-        Expression expr;
-        Index idx = 0;
-        int nargs = -1;
-
-        std::tie(expr, idx) = _find(view);
-
-        nargs = get_nargs(expr);
-
-        return std::make_tuple(make_ref(view, idx), nargs);
-    }
-
-    Tuple<Expression, Index> _find(String const &view) const {
-        // Check in the current scope
-        auto iter = _name_idx.find(view);
-
-        if (iter != _name_idx.end()){
-            debug("found {}", view.c_str());
-            Index idx = (*iter).second;
-
-            return std::make_tuple(_scope[idx], idx);
-
-        } else if (_parent){
-            return _parent->_find(view);
-        }
-
-        return std::make_tuple(Expression(), -1);
     }
 
     template<typename T>
@@ -333,43 +251,7 @@ class Module {
         return str;
     }
 
-    std::ostream& print(std::ostream& out, int depth = 0) const{
-        auto line = String(80, '-');
-
-        if (depth == 0){
-            out << "Module dump print:\n";
-        }
-
-        if (!_parent){
-            out << line << "\n";
-            out << align_right("id", 4) << "   ";
-            out << align_right("name", 30) << "   type\n";
-            out << line << "\n";
-        }
-        else{
-            _parent->print(out, depth + 1);
-            out << String(40, '-') << "\n";
-        }
-        for(Index i = 0; i < _scope.size(); ++i){
-            auto name = _idx_name[i];
-            auto expr = _scope[i];
-
-            out << to_string(int(i), 4) << "   ";
-            out << align_right(name, 30) << "   ";
-
-            std::stringstream ss;
-            expr.print(ss) << "\n";
-
-            auto str = ss.str();
-
-            out << replace(str, '\n', "\n" + std::string(40, ' ')) << '\n';
-        }
-
-        if (depth == 0){
-            out << line << "\n";
-        }
-        return out;
-    }
+    std::ostream& print(std::ostream& out, int depth = 0) const;
 
     class ModuleIterator{
     public:
@@ -430,7 +312,6 @@ class Module {
     Module const* _parent = nullptr;
 
     // stored in an array so we can do lookup by index
-    AccessTracker*      _tracker = nullptr;
     Array<Expression>   _scope;
     Array<String>       _idx_name;
     Dict<String, Index> _name_idx;

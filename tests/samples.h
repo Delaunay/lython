@@ -69,6 +69,26 @@ DEFINE_SAMPLE_CODE(
     "    return add(1, 2)\n"
     )
 
+DEFINE_SAMPLE_CODE(
+    struct_set_get,
+    "struct Point:\n"
+    "    x: Float\n"
+    "    y: Float\n\n"
+
+    "def get_x(p: Point) -> Float:\n"
+    "    return p.x\n\n"
+
+    "def set_x(p: Point, x: Float) -> Point:\n"
+    "    p.x = x\n"
+    "    return p\n\n"
+
+    "def struct_set_get(v: Float) -> Float:\n"
+    "    p = Point(1.0, 2.0)\n"
+    "    set_x(p, v)\n"
+    "    a = get_x(p)\n"
+    "    return a\n\n"
+    )
+
 
 DEFINE_SAMPLE_CODE(
     max_alias,

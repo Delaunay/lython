@@ -4,18 +4,17 @@ namespace lython {
 
 Expression Parser::parse_type(Module& m, size_t depth) {
     TRACE_START();
-
     String name = "<typename>";
-
     WITH_EXPECT(tok_identifier, "expect type identifier") {
         name = token().identifier();
     }
 
     auto type = m.reference(name);
+    type.start() = token();
     EAT(tok_identifier);
 
     TRACE_END();
-    return Expression(type);
+    return type;
 }
 
 AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
@@ -25,7 +24,6 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
 
     AST::ParameterList list;
     while (token().type() != ')' && token()) {
-
         String vname = CHECK_NAME(get_identifier());
         Expression type;
         next_token();
@@ -51,7 +49,7 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
 
 Expression Parser::parse_function(Module& m, std::size_t depth) {
     TRACE_START();
-
+    Token start = token();
     EXPECT(tok_def, "Expected function to start by `def`");
     EAT(tok_def);
 
@@ -63,6 +61,7 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     EAT(tok_identifier);
 
     auto expr = Expression::make<AST::Function>(function_name);
+    expr.start() = start;
     auto fun = expr.ref<AST::Function>();
 
     {
@@ -102,6 +101,7 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
         }
 
         fun->body = parse_compound_statement(module, depth + 1);
+        expr.end() = fun->body.end();
         TRACE_END();
     }
 

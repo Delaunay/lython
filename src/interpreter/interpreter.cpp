@@ -93,10 +93,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         // retrieval attribute
         if (bin->op == get_string(".")){
             auto obj = eval(bin->lhs, d);
-            debug("retrieved {}", obj);
-
-            dump_env(std::cout);
-
+            debug("retrieve attribute {}", obj);
             assert(obj.tag == ValueKind::obj_object, "retrieve attribute");
             value::Struct& data = *obj.get<value::Struct*>();
             return data.get_attributes(bin->rhs.ref<AST::Ref>()->name);
@@ -174,7 +171,6 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
         debug("found {} {}", n, env[n].str());
         auto r = env[n];
-        // debug("return {}", r);
         return r;
     }
 

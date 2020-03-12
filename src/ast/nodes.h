@@ -31,6 +31,8 @@ namespace AST {
 struct Node {
 public:
     NodeKind kind;
+    Token    start = dummy();
+    Token    end   = dummy();
 
     Node(NodeKind k = NodeKind::KUndefined):
         kind(k)

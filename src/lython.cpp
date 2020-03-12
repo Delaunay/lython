@@ -81,8 +81,9 @@ int main() {
         "    p.x = x\n"
         "    return p\n\n"
 
-        "def check_get_set() -> Float:\n"
+        "def struct_set_get(v: Float) -> Float:\n"
         "    p = Point(1.0, 2.0)\n"
+        "    set_x(p, v)\n"
         "    a = get_x(p)\n"
         "    return a\n\n"
         ;
@@ -161,7 +162,7 @@ int main() {
                 continue;
 
             std::cout << expr.first << ":" << std::endl;
-            expr.second.print(std::cout) << "\n\n";
+            expr.second.print(std::cout, 0, true) << "\n\n";
         }
 
         // -------------------------------------------------
@@ -208,7 +209,7 @@ Expression make_point(Module& mod){
 Expression make_point_check(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.reference("check_get_set");
+    call->function = mod.reference("struct_set_get");
     return expr;
 }
 

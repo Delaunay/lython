@@ -10,9 +10,10 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     std::ostream& out;
     int indent;
     int precedence = -1;
+    bool debug_print;
 
-    ASTPrinter(std::ostream& out, int indent = 0):
-        out(out), indent(indent)
+    ASTPrinter(std::ostream& out, int indent, bool debug_print):
+        out(out), indent(indent), debug_print(debug_print)
     {}
 
     std::ostream& undefined(Node_t, std::size_t){
@@ -71,12 +72,12 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
     std::ostream &sequential(SeqBlock_t blocks, std::size_t d) {
         for (auto i = 0ul; i + 1 < blocks->blocks.size(); ++i) {
-            out << std::string(std::size_t(indent) * 4, ' ');
+            out << String(std::size_t(indent) * 4, ' ');
             visit(blocks->blocks[i], d);
             out << '\n';
         }
 
-        out << std::string(std::size_t(indent) * 4, ' ');
+        out << String(std::size_t(indent) * 4, ' ');
         visit(*(blocks->blocks.end() - 1), d);
         return out;
     }
@@ -94,7 +95,10 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     }
 
     std::ostream &reference(Reference_t ref, std::size_t) {
-        return out << ref->name; // << "[" << ref->index << "]";
+        if (debug_print){
+            return out << ref->name << "[" << ref->index << "]";
+        }
+        return out << ref->name;
     }
 
     std::ostream &builtin(Builtin_t blt, int32) {
@@ -107,7 +111,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
     std::ostream &value(Value_t val, std::size_t d) {
         val->value.print(out);
-        if (false && val->type){
+        if (debug_print && val->type){
             out << ": ";
             visit(val->type, d);
         }
@@ -137,7 +141,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     }
 
     std::ostream &call(Call_t call, std::size_t d) {
-        call->function.print(out, indent);
+        visit(call->function, d);
         out << "(";
 
         int32 n = int32(call->arguments.size()) - 1;
@@ -168,9 +172,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         }
 
         out << ") -> ";
-        out << aw->return_type;
-
-        aw->return_type.print(out, indent);
+        visit(aw->return_type, d);
         return out;
     }
 
@@ -215,7 +217,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
     }
 };
 
-std::ostream& print(std::ostream& out, const Expression expr, int indent){
-    return ASTPrinter(out, indent).visit(expr);
+std::ostream& print(std::ostream& out, const Expression expr, int indent, bool dbg){
+    return ASTPrinter(out, indent, dbg).visit(expr);
 }
 }

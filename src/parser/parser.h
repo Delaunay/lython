@@ -116,11 +116,11 @@ class Parser {
 
         switch (type) {
         case tok_string:
-            return Expression::make<AST::Value>(tok.identifier(), module->find("String"));
+            return Expression::make<AST::Value>(tok.identifier(), module->reference("String"));
         case tok_float:
-            return Expression::make<AST::Value>(tok.as_float(), module->find("Float"));
+            return Expression::make<AST::Value>(tok.as_float(), module->reference("Float"));
         case tok_int:
-            return Expression::make<AST::Value>(tok.as_integer(), module->find("Int"));
+            return Expression::make<AST::Value>(tok.as_integer(), module->reference("Int"));
         }
 
         return Expression();
@@ -162,15 +162,6 @@ class Parser {
 
         case tok_def:
             return parse_function(m, depth + 1);
-
-        // value probably an operation X + Y
-        //            case tok_identifier:{
-        //                AST::Ref* fun_name = new AST::Ref();
-        //                fun_name->name() = token().identifier();
-        //                EAT(tok_identifier);
-        //                return parse_function_call(Expression(fun_name), depth +
-        //                1);
-        //            }
 
         case tok_struct:
             return parse_struct(m, depth + 1);

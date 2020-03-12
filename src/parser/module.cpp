@@ -26,4 +26,42 @@ namespace lython{
     bool expr_equal::operator() (const Expression& a, const Expression& b) const noexcept{
         return get_name(a) == get_name(b);
     }
+
+    std::ostream& Module::print(std::ostream& out, int depth) const {
+        auto line = String(80, '-');
+
+        if (depth == 0){
+            out << "Module dump print:\n";
+        }
+
+        if (!_parent){
+            out << line << "\n";
+            out << align_right("id", 4) << "   ";
+            out << align_right("name", 30) << "   type\n";
+            out << line << "\n";
+        }
+        else{
+            _parent->print(out, depth + 1);
+            out << String(40, '-') << "\n";
+        }
+        for(Index i = 0; i < _scope.size(); ++i){
+            auto name = _idx_name[i];
+            auto expr = _scope[i];
+
+            out << to_string(int(i), 4) << "   ";
+            out << align_right(name, 30) << "   ";
+
+            std::stringstream ss;
+            expr.print(ss) << "\n";
+
+            auto str = ss.str();
+
+            out << replace(str, '\n', "\n" + std::string(40, ' ')) << '\n';
+        }
+
+        if (depth == 0){
+            out << line << "\n";
+        }
+        return out;
+    }
 } // namespace lython
