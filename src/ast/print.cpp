@@ -172,6 +172,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         }
 
         out << ") -> ";
+
         visit(aw->return_type, d);
         return out;
     }
