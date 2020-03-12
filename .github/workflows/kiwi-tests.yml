@@ -21,18 +21,24 @@ jobs:
         uses: actions/cache@v1
         with:
           path: build
-          key: ${{ runner.OS }}-build-${{ hashFiles('setup.py') }}
+          key: ${{ runner.OS }}-build-${{ hashFiles('CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.OS }}-build-${{ env.cache-name }}-
             ${{ runner.OS }}-build-
             ${{ runner.OS }}-
 
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcovr
+
       - name: compile
         run: |
+          git submodule update --init
           mkdir -p build
           cd build
           cmake ..
           make enable-debug
-          make enable-tests
+          make enable-test
           make coverage
           bash <(curl -s https://codecov.io/bash)

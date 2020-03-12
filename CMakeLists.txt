@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # project name + language used
-PROJECT(lython C CXX CUDA)
+PROJECT(lython C CXX)
 
 # debug/release
 SET(CMAKE_RELEASE_POSTFIX "")
@@ -115,7 +115,7 @@ ADD_CUSTOM_TARGET(zothers ALL SOURCES
     .travis.yml
     .gitignore
     .gitmodules
-    .github/workflow/kiwi-tests.yml
+    .github/workflows/kiwi-tests.yml
 )
 
 

@@ -66,8 +66,8 @@ SET(ADD_SOURCE
 # Compile
 #==================
 # Compile as a library to avoid double compilation
-ADD_SUBDIRECTORY(cuda)
-ADD_SUBDIRECTORY(math)
+# ADD_SUBDIRECTORY(cuda)
+# ADD_SUBDIRECTORY(math)
 
 # Support library for utilities s
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
