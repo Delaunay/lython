@@ -143,28 +143,6 @@ int main() {
 //        std::cout << strip(code) << std::endl;
 
 //        std::cout << std::string(80, '-') << '\n';
-
-        std::cout << "Module Dump\n";
-        for (auto expr : module) {
-            if (expr.first == "sin")
-                continue;
-
-            if (expr.first == "min")
-                continue;
-
-            if (expr.first == "max")
-                continue;
-
-            if (expr.first == "Type")
-                continue;
-
-            if (expr.first == "Float")
-                continue;
-
-            std::cout << expr.first << ":" << std::endl;
-            expr.second.print(std::cout, 0, true) << "\n\n";
-        }
-
         // -------------------------------------------------
         module.print(std::cout);
 
@@ -200,8 +178,10 @@ Expression make_point(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
     call->function = mod.reference("Point");
-    call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
-    call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
+    call->arguments.emplace_back(
+        Expression::make<AST::Value>(1.0, Expression()));
+    call->arguments.emplace_back(
+        Expression::make<AST::Value>(2.0, Expression()));
     return expr;
 }
 
@@ -210,6 +190,8 @@ Expression make_point_check(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
     call->function = mod.reference("struct_set_get");
+    call->arguments.emplace_back(
+        Expression::make<AST::Value>(2.0, Expression()));
     return expr;
 }
 

@@ -80,7 +80,7 @@ public:
     AST::NodeKind kind() const;
 
     //! Prints the AST node
-    std::ostream& print(std::ostream& out, int indent = 0, bool dbg = false) const;
+    std::ostream& print(std::ostream& out, int indent = 0, bool dbg = false, bool color = false) const;
 
     //! Returns true if the Expression holds a valid AST node
     operator bool() const {    return bool(_ptr); }

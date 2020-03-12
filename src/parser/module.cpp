@@ -52,7 +52,7 @@ namespace lython{
             out << align_right(name, 30) << "   ";
 
             std::stringstream ss;
-            expr.print(ss) << "\n";
+            expr.print(ss, 0, true, true) << "\n";
 
             auto str = ss.str();
 

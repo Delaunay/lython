@@ -7,7 +7,7 @@
 
 namespace lython{
 
-std::ostream& print(std::ostream& out, Expression const expr, int indent, bool debug=false);
+std::ostream& print(std::ostream& out, Expression const expr, int indent, bool debug=false, bool colors=false);
 
 }
 

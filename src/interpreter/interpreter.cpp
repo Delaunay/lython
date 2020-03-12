@@ -11,7 +11,8 @@ Value builtin_mult(Array<Value>& args);
 
 struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     //! Execution environment
-    Array<Value> env;
+    Array<Value>  env;
+    Array<String> str;
 
     //! Builtin function defined in C++
     Dict<String, Value::BuiltinImpl> builtins = {
@@ -21,24 +22,24 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         {"*", builtin_mult},
     };
 
-    void push(Value v){
-        info("pushing {}", v);
+    void push(Value v, String const& name = ""){
         env.push_back(v);
+        str.push_back(name);
     }
 
     void pop(std::ptrdiff_t n){
-        info("poping {}", env.size() - n);
         env.erase(env.begin() + n, env.end());
+        str.erase(str.begin() + n, str.end());
     }
 
     std::ostream& dump_env(std::ostream& out){
-        out << String(40, '-') << '\n';
+        out << String(50, '-') << '\n';
 
         for(auto i = 0ul; i < env.size(); ++i){
-            out << fmt::format("{:4d} | {}\n", i, env[i]);
+            out << fmt::format("{:4d} | {:20} | {} \n", i, str[i], env[i]);
         }
 
-        out << String(40, '-') << '\n';
+        out << String(50, '-') << '\n';
         return out;
     }
 
@@ -48,7 +49,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
             debug("{}", m.get_name(i).c_str());
             Expression exp = m[i];
             auto v = eval(exp);
-            push(v);
+            push(v, m.get_name(i));
         }
         debug("Module evaluated (env: {})", env.size());
 
@@ -107,23 +108,28 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                 debug("Assign to a Reference");
 
                 auto rhs = eval(bin->rhs, d);
-                push(rhs);
+                push(rhs, bin->lhs.ref<AST::Ref>()->name.str());
                 return Value("none");
             }
             // assign to object
             case AST::NodeKind::KBinaryOperator: {
                 debug("Assign to an object attribute");
 
-                auto rhs = eval(bin->rhs, d);
+                auto new_value = eval(bin->rhs, d);
+
                 AST::BinaryOperator const* attr = bin->lhs.ref<AST::BinaryOperator>();
+                assert(attr->op == get_string("."), "Expected getattr operator");
 
                 // fetch the p in p.x
                 auto obj = eval(attr->lhs, d);
+                auto attr_name = attr->rhs.ref<AST::Ref>()->name;
                 assert(obj.tag == ValueKind::obj_object, "Assign to an object");
 
                 // set x to lhs
                 value::Struct& data = *obj.get<value::Struct*>();
-                data.set_attribute(attr->rhs.ref<AST::Ref>()->name, rhs);
+                data.set_attribute(attr_name, new_value);
+
+                dump_env(std::cout);
                 return Value("none");
             }
 
@@ -155,22 +161,29 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value statement(Statement_t stmt, std::size_t depth) {
-        trace_start(depth, "%d", stmt->statement);
+        trace_start(depth, "{} {}", stmt->statement, stmt->expr);
         return eval(stmt->expr, depth);
     }
 
     Value reference(Reference_t ref, std::size_t depth) {
-        trace_start(depth, "{}: {}, {} | {}",
+        auto n = env.size() - std::size_t(ref->index);
+        if (n >= env.size()){
+            debug("{}: {}, length={} | size={} | fetch={}",
+                  ref->name,
+                  ref->index,
+                  ref->length,
+                  env.size(),
+                  n);
+        }
+
+        auto r = env[n];
+        trace_start(depth, "{}: {}, length={} | size={} | fetch={} => {}",
                     ref->name,
                     ref->index,
                     ref->length,
-                    env.size());
-
-        assert(env.size() > ref->index, "Environment should hold the ref");
-        auto n = env.size() - ref->index;
-
-        debug("found {} {}", n, env[n].str());
-        auto r = env[n];
+                    env.size(),
+                    n,
+                    r);
         return r;
     }
 
@@ -234,7 +247,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         auto on = std::ptrdiff_t(env.size());
 
         for (auto& expr: call->arguments)
-            push(eval(expr, depth + 1));
+            push(eval(expr, depth));
 
         Value returned_value = eval_closure(closure, depth);
 
@@ -261,7 +274,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     // Helpers
     // -------
     Value eval_closure(Value fun, std::size_t depth){
-        trace_start(depth, "closure {}", fun.tag);
+        trace_start(depth, "{}", fun);
 
         if (fun.tag == ValueKind::obj_closure){
             value::Closure* clo = fun.get<value::Closure*>();

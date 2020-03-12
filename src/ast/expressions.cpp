@@ -3,8 +3,8 @@
 #include "print.h"
 
 namespace lython {
-std::ostream& Expression::print(std::ostream& out, int indent, bool dbg) const {
-    lython::print(out, *this, indent, dbg);
+std::ostream& Expression::print(std::ostream& out, int indent, bool dbg, bool color) const {
+    lython::print(out, *this, indent, dbg, color);
     return out;
 }
 
