@@ -33,7 +33,6 @@ std::string demangle(std::string const& original_str){
     auto begin = std::sregex_iterator(original_str.begin(), original_str.end(), mangled_name);
     auto end = std::sregex_iterator();
 
-    size_t size = original_str.size() - 1;
     char* buffer = nullptr;
 
     int status = 0;
@@ -101,7 +100,7 @@ void show_backtrace() {
     }
 }
 
-void signal_handler(int sig){
+[[ noreturn ]] void signal_handler(int sig) {
     spdlog_log(LogLevel::Fatal, fmt::format("Received signal {} >>>", sig));
     show_backtrace();
     spdlog_log(LogLevel::Fatal, "<<< Exiting");
