@@ -165,11 +165,18 @@ Expression Parser::parse_function_call(Module& m, Expression function, std::size
     EXPECT('(', "`(` was expected");
     EAT('(');
 
-    while (token().type() != ')') {
-        fun->arguments.push_back(parse_expression(m, depth + 1));
+    {
+        int arg_count = 0;
+        Module subscope = m.enter();
+        while (token().type() != ')') {
+            // insert dummy expression to get the correct idx
+            fun->arguments.push_back(parse_expression(subscope, depth + 1));
+            subscope.insert("", Expression());
 
-        if (token().type() == ',') {
-            next_token();
+            arg_count += 1;
+            if (token().type() == ',') {
+                next_token();
+            }
         }
     }
 

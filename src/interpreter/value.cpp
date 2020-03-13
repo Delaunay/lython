@@ -74,7 +74,11 @@ bool Value::operator==(Value const& v) const{
     }
 }
 
-std::ostream& Value::print(std::ostream& out) const {
+std::ostream& Value::print(std::ostream& out, int depth) const {
+    if (depth >= 8){
+        throw std::runtime_error("Recursion error");
+    }
+
     switch (tag) {
 #define X(type) case ValueKind::pod_##type:{\
                 return out << _data.v_##type;\
@@ -84,11 +88,11 @@ std::ostream& Value::print(std::ostream& out) const {
     case ValueKind::pod_str:
         return out << "String(" << StringDatabase::instance()[_data.v_uint64] << ")";
     case ValueKind::obj_closure:
-        return get<value::Closure const*>()->print(out);
+        return get<value::Closure const*>()->print(out, depth + 1);
     case ValueKind::obj_class:
-        return get<value::Class const*>()->print(out);
+        return get<value::Class const*>()->print(out, depth + 1);
     case ValueKind::obj_object:
-        return get<value::Struct const*>()->print(out);
+        return get<value::Struct const*>()->print(out, depth + 1);
     case ValueKind::obj_none:
         return out << "None";
     }
@@ -118,13 +122,14 @@ Value Struct::get_attributes(int idx){
 }
 
 
-std::ostream& value::Struct::print(std::ostream& out) const{
+std::ostream& value::Struct::print(std::ostream& out, int depth) const{
     out << type->name << "(";
     auto size = type->attributes.size();
+
     for(auto i = 0ul, n = size - 1; i < size; ++i){
         auto& name = std::get<0>(type->attributes[i]);
         out << name << '=';
-        attributes[i].print(out);
+        attributes[i].print(out, depth + 1);
 
         if (i < n){
             out << ", ";
@@ -133,11 +138,11 @@ std::ostream& value::Struct::print(std::ostream& out) const{
     return out << ")";
 }
 
-std::ostream& value::Class::print(std::ostream& out) const{
+std::ostream& value::Class::print(std::ostream& out, int) const{
     return out << fun->name;
 }
 
-std::ostream& value::Closure::print(std::ostream& out) const{
+std::ostream& value::Closure::print(std::ostream& out, int) const{
     if (fun)
         return out << "Closure("<< fun->name << ")";
     return out << "Closure(bltin)";

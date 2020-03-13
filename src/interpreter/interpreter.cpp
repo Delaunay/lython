@@ -23,18 +23,20 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     };
 
     void push(Value v, String const& name = ""){
+        // debug("{} = {}", name, v);
         env.push_back(v);
         str.push_back(name);
     }
 
     void pop(std::ptrdiff_t n){
+        debug("{}", n);
         env.erase(env.begin() + n, env.end());
         str.erase(str.begin() + n, str.end());
     }
 
     std::ostream& dump_env(std::ostream& out){
         out << String(50, '-') << '\n';
-
+        out << str.size() << " " << env.size() << '\n';
         for(auto i = 0ul; i < env.size(); ++i){
             out << fmt::format("{:4d} | {:20} | {} \n", i, str[i], env[i]);
         }

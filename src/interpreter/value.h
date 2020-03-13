@@ -101,7 +101,7 @@ public:
         return ss.str();
     }
 
-    std::ostream& print(std::ostream& out) const;
+    std::ostream& print(std::ostream& out, int depth = 0) const;
 
     template<typename Stream = std::ostream>
     friend Stream& operator<<(Stream& out, Value const& val) {
@@ -183,7 +183,7 @@ struct Struct: public ValueHolder{
     AST::Struct const* type;
     Attributes attributes;
 
-    std::ostream& print(std::ostream& out) const;
+    std::ostream& print(std::ostream& out, int depth = 0) const;
 };
 
 // Result of a closure
@@ -198,7 +198,7 @@ struct Closure: public ValueHolder {
     Array<Value>          env;
     BuiltinImpl           builtin;
 
-    std::ostream& print(std::ostream& out) const;
+    std::ostream& print(std::ostream& out, int depth = 0) const;
 };
 
 // Struct Type
@@ -209,7 +209,7 @@ struct Class: public ValueHolder{
 
     AST::Struct const* fun;
 
-    std::ostream& print(std::ostream& out) const;
+    std::ostream& print(std::ostream& out, int depth = 0) const;
 };
 }
 
