@@ -1,4 +1,6 @@
+#include "lexer/lexer.h"
 #include "parser/module.h"
+
 #include "allocator.h"
 #include "metadata.h"
 
@@ -27,6 +29,11 @@ bool _metadata_init_names(){
     meta::register_type<SharedPtrInternal<lython::AST::Ref>>("AST::Reference");
     meta::register_type<SharedPtrInternal<lython::AST::Builtin>>("AST::Builtin");
     meta::register_type<SharedPtrInternal<lython::AST::Type>>("AST::Type");
+    meta::register_type<SharedPtrInternal<lython::AST::Function>>("AST::Function");
+    meta::register_type<SharedPtrInternal<lython::AST::SeqBlock>>("AST::SeqBlock");
+    meta::register_type<SharedPtrInternal<lython::AST::Statement>>("AST::Statement");
+    meta::register_type<SharedPtrInternal<lython::AST::Parameter>>("AST::Parameter");
+    meta::register_type<SharedPtrInternal<lython::AST::BinaryOperator>>("AST::BinaryOperator");
 
     // value::Struct
     meta::register_type<HashNodeInternal<
@@ -61,6 +68,10 @@ bool _metadata_init_names(){
     meta::register_type<HashNodeInternal<
         std::pair<const String, TokenType>, true>>(
         "Pair[String, TokenType]");
+
+    meta::register_type<HashNodeInternal<
+        std::pair<const String, OpConfig>, true>>(
+        "Pair[String, OpConfig]");
 
     // StringDatabase
     meta::register_type<HashNodeInternal<

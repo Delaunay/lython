@@ -60,6 +60,7 @@ void show_alloc_stats(){
         "id", "name", "alloc", "dealloc", "remain", "size", "size_free", "bytes");
 
     std::cout << line << '\n';
+    int total = 0;
 
     for(size_t i = 0; i < stat.size(); ++i){
         std::string name = "";
@@ -75,10 +76,14 @@ void show_alloc_stats(){
         auto size_free = stat[i].size_free;
         auto bytes = stat[i].bytes;
 
-        std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
-            i, String(name.c_str()), alloc, dealloc, alloc - dealloc, size, size_free, bytes);
+        total += size * bytes;
 
+        if (alloc != 0){
+            std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+                i, String(name.c_str()), alloc, dealloc, alloc - dealloc, size, size_free, bytes);
+        }
     }
+    std::cout << "Total: " << total << std::endl;
     std::cout << line << '\n';
 }
 
