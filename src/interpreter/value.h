@@ -25,6 +25,7 @@ namespace lython {
     X(char   )\
 
 enum class ValueKind: uint64 {
+    invalid,
     #define X(type) pod_##type,
         POD_TYPES(X)
     #undef X
@@ -40,7 +41,7 @@ struct str{};
 
 template <typename T>
 ValueKind retrieve_tag(){
-    return ValueKind(-1);
+    return ValueKind::invalid;
 }
 
 #define X(type)\

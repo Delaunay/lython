@@ -1,3 +1,5 @@
+#include <spdlog/fmt/bundled/core.h>
+
 #include "module.h"
 
 namespace lython{
@@ -36,8 +38,8 @@ namespace lython{
 
         if (!_parent){
             out << line << "\n";
-            out << align_right("id", 4) << "   ";
-            out << align_right("name", 30) << "   type\n";
+            out << fmt::format("{:4}", "id") << "   ";
+            out << fmt::format("{:30}", "name") << "   type\n";
             out << line << "\n";
         }
         else{
@@ -48,8 +50,8 @@ namespace lython{
             auto name = _idx_name[i];
             auto expr = _scope[i];
 
-            out << to_string(int(i), 4) << "   ";
-            out << align_right(name, 30) << "   ";
+            out << fmt::format("{:4}", int(i)) << "   ";
+            out << fmt::format("{:30}", name) << "   ";
 
             std::stringstream ss;
             expr.print(ss, 0, true, true) << "\n";

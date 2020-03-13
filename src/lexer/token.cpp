@@ -1,14 +1,16 @@
+#include <spdlog/fmt/bundled/core.h>
 #include "token.h"
-#include "../fmt.h"
 
 namespace lython
 {
 
 String to_string(int8 t){
     switch(t){
-#define X(name, nb) case nb: return String(#name);
-    LYTHON_TOKEN
-#undef X
+    #define X(name, nb)\
+        case nb: return String(#name);
+
+        LYTHON_TOKEN
+    #undef X
     default:
         String s = "' '";
         s[1] = t;
@@ -35,10 +37,10 @@ int8 tok_name_size()
 }
 
 std::ostream& Token::debug_print(std::ostream& out){
-    out << align_right(to_string(_type), tok_name_size());
+    out << fmt::format("{:>20}", to_string(_type));
 
-    out << " =>" << " [l:" << to_string(_line, 4)
-                  << ", c:" << to_string(_col, 4) << "] " << _identifier ;
+    out << " =>" << " [l:" << fmt::format("{:4}", _line)
+                 << ", c:" << fmt::format("{:4}", _col) << "] " << _identifier ;
     return out;
 }
 

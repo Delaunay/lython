@@ -66,8 +66,7 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
 
     {
         // Creating a new module
-        AccessTracker tracker;
-        Module module = m.enter(&tracker);
+        Module module = m.enter();
 
         // Insert function for recursive calls
         module.insert(function_name, expr);
@@ -106,7 +105,6 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     }
 
     m.insert(function_name, expr);
-    // fun->frame = tracker.access;
     return expr;
 }
 

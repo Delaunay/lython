@@ -1,5 +1,6 @@
+#include <spdlog/fmt/bundled/core.h>
+
 #include "lexer.h"
-#include "../fmt.h"
 
 namespace lython{
 
@@ -59,13 +60,13 @@ std::ostream& Lexer::debug_print(std::ostream& out){
 
     Token t = next_token();
     int k = 1;
-    do{
-        out << to_string(k, 4) << "  ";
+    do {
+        out << fmt::format("{:4}", k) << "  ";
         t.debug_print(out) << std::endl;
         k += 1;
     } while((t = next_token()));
 
-    out << to_string(k, 4) << "  ";
+    out << fmt::format("{:4}", k) << "  ";
     t.debug_print(out) << std::endl;    // eof
 
     return out;
@@ -74,9 +75,9 @@ std::ostream& Lexer::debug_print(std::ostream& out){
 std::ostream& Lexer::print(std::ostream& out){
 
     Token t = next_token();
-    do{
+    do {
         t.print(out);
-    }while((t = next_token()));
+    } while((t = next_token()));
 
     // send eof for reset
     t.print(out);
@@ -156,7 +157,7 @@ Token Lexer::next_token(){
     }
 
     // if valid operator return that
-    if(previous != nullptr && previous->leaf()){
+    if (previous != nullptr && previous->leaf()){
         auto const& op_config = _operators.precedence_table().at(ident);
 
         return make_token(op_config.type, ident);

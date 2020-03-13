@@ -8,9 +8,6 @@
 #include "ast/expressions.h"
 #include "ast/nodes.h"
 
-#include "fmt.h"
-
-
 // This is made to indicate if the mapped value was set or not
 struct Index{
     int val;
@@ -81,21 +78,6 @@ struct expr_equal {
     bool operator()(const Expression &a, const Expression &b) const noexcept;
 };
 
-// using BaseScope = std::unordered_set<Expression, expr_hash, expr_equal>;
-
-
-struct AccessTracker{
-    Array<Tuple<String, int>> access;
-
-    void add_access(String const& v, int i){
-        for(auto j: access){
-            if (std::get<1>(j) == i)
-                return;
-        }
-        access.emplace_back(v, i);
-    }
-};
-
 // ---
 /*
  * Basic Module, used by the parser to keep track of every definition
@@ -103,8 +85,6 @@ struct AccessTracker{
  * It only saves the Name and the Expression / Type corresponding
  *
  * Evaluation use a different kind of scope.
- *
- * AccessTracker is used to keep track of all the used Expression for functions
  */
 class Module {
   public:
@@ -119,7 +99,7 @@ class Module {
         return type;
     }
 
-    Module(Module const* parent = nullptr, int depth = 0, int offset = 0, AccessTracker* tracker = nullptr):
+    Module(Module const* parent = nullptr, int depth = 0, int offset = 0):
         depth(depth), offset(offset), _parent(parent)
     {
         if (!parent){
@@ -159,7 +139,7 @@ class Module {
         return Index(offset) + _scope.size();
     }
 
-    Module enter(AccessTracker* tracker = nullptr) const {
+    Module enter() const {
         auto m = Module(this, this->depth + 1, size());
         return m;
     }

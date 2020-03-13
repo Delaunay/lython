@@ -28,7 +28,6 @@ SET(ADD_HEADERS
     parser/module.h
     utilities/optional.h
     utilities/pool.h
-    fmt.h
     sema/sema.h
     utilities/trie.h
     utilities/stack.h

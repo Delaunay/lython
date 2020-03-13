@@ -301,34 +301,6 @@ public:
     }
 };
 
-/*
-struct QualifiedType : public Node {
-public:
-    enum TypeSpecifier {
-        Void,
-        Char,
-        Short,
-        Int,
-        Long,
-        Float,
-        Double,
-        Signed,
-        Unsigned,
-        UserStruct,
-        UserEnum,
-        UserUnion,
-        UserTypedef
-    };
-    enum StorageSpecifier { Auto, Register, Static, Extern, Typedef };
-    enum TypeQualifier { Const, Volatile };
-
-    String name;
-    TypeSpecifier spec_type;
-    StorageSpecifier spec_storage;
-    TypeQualifier type_qualifier;
-};
-*/
-
 } // namespace AbstractSyntaxTree
 } // namespace lython
 

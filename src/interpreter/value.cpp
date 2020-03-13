@@ -3,7 +3,6 @@
 
 namespace lython {
 
-
 String to_string(ValueKind kind){
     switch (kind){
     #define X(type)\
@@ -21,6 +20,8 @@ String to_string(ValueKind kind){
         return "class";
     case ValueKind::obj_none:
         return "null";
+    case ValueKind::invalid:
+        break;
     }
     return "<not_implemented>";
 }
@@ -95,6 +96,8 @@ std::ostream& Value::print(std::ostream& out, int depth) const {
         return get<value::Struct const*>()->print(out, depth + 1);
     case ValueKind::obj_none:
         return out << "None";
+    case ValueKind::invalid:
+        return out << "<invalid>";
     }
     return out;
 }

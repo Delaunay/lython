@@ -63,7 +63,7 @@ struct string_ref_hash {
 };
 
 
-// Should be careful to only use this for name like strings
+// Should be careful to only use this for name-like strings
 // Since we keep the strings forever
 // At the moment this is global but we should maybe tie this to a Module
 // so the strings can expire
@@ -101,19 +101,7 @@ public:
         strings.push_back("");
     }
 
-    std::ostream& report(std::ostream& out){
-        std::size_t saved = 0;
-        out << fmt::format("| {:30} | {:4} | {:4} |\n", "str", "#", "svd");
-
-        for(auto i = 0u; i < count.size(); ++i){
-            auto s = strings[i].size() * count[i];
-            out << fmt::format("| {:30} | {:4} | {:4} |\n", strings[i], count[i], s);
-            saved += s;
-        }
-
-        out << fmt::format("Saved: {} bytes\n", saved);
-        return out;
-    }
+    std::ostream& report(std::ostream& out) const;
 
 private:
     Dict<StringView, std::size_t> defined;

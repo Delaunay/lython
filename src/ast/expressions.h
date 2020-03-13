@@ -8,7 +8,6 @@
 
 namespace lython {
 
-
 class Token;
 
 namespace AST{
