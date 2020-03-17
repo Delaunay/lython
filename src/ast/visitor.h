@@ -8,6 +8,12 @@ namespace lython {
 
 NEW_EXCEPTION(NullPointerError)
 
+#ifdef __linux__
+#define INLINE __attribute__((always_inline))
+#else
+#define INLINE __forceinline
+#endif
+
 /*!
  * Visitor implemented using static polymorphism.
  * This implementation has 2 advantages:
@@ -31,7 +37,7 @@ struct BaseVisitor{
     #undef KIND
 
     // force inline to make the stacktrace prettier
-    ReturnType visit(Expr_t expr, std::size_t depth=0, Args... args) __attribute__((always_inline)) {
+    INLINE ReturnType visit(Expr_t expr, std::size_t depth=0, Args... args)  {
         using Node_T = typename std::conditional<std::is_const<Expr>::value, const AST::Node, AST::Node>::type;
 
         Node_t node = expr.template ref<Node_T>();

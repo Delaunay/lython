@@ -8,6 +8,7 @@
 #include "ast/expressions.h"
 #include "ast/nodes.h"
 
+namespace lython {
 // This is made to indicate if the mapped value was set or not
 struct Index{
     int val;
@@ -20,21 +21,22 @@ struct Index{
         val(int(value))
     {}
 
-    operator size_t(){
+    explicit operator size_t(){
         assert(val >= 0, "");
         return size_t(val);
     }
 
-    operator int(){
+    explicit operator int(){
         return val;
     }
 
     operator bool(){ return val >= 0; }
 
-    template<typename T> bool operator < (T i) { return val < int(i);}
-    template<typename T> bool operator > (T i) { return val > int(i);}
-    template<typename T> bool operator== (T i) { return val == int(i);}
-    template<typename T> bool operator!= (T i) { return val != int(i);}
+    template<typename T> bool operator < (T i) const { return val < int(i);}
+    template<typename T> bool operator > (T i) const { return val > int(i);}
+    template<typename T> bool operator== (T i) const { return val == int(i);}
+    template<typename T> bool operator!= (T i) const { return val != int(i);}
+
     template<typename T> Index operator+ (T i) const {
         return Index(val + int(i));
     }
@@ -58,11 +60,7 @@ struct Index{
     }
 };
 
-template <typename T>
-bool operator < (T i, Index a){ return a > i; }
 
-
-namespace lython {
 //  Module
 // -------------------------------------
 

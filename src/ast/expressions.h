@@ -11,7 +11,7 @@ namespace lython {
 class Token;
 
 namespace AST{
-class Node;
+struct Node;
 
 #define NODE_KIND_ENUM(KIND)\
     KIND(Arrow, arrow)\

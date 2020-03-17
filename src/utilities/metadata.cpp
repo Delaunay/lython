@@ -6,13 +6,20 @@
 
 namespace lython{
 
+#ifdef __linux__
 template<typename T>
 using SharedPtrInternal = std::_Sp_counted_ptr_inplace<
     T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
 
 template<typename T, bool cache>
 using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
+#else
+template<typename T>
+using SharedPtrInternal = std::shared_ptr<T>;
 
+template<typename T, bool cache>
+using HashNodeInternal = T;
+#endif
 
 bool _metadata_init_names(){
     meta::register_type<int>("int");

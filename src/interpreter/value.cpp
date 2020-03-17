@@ -129,7 +129,7 @@ std::ostream& value::Struct::print(std::ostream& out, int depth) const{
     out << type->name << "(";
     auto size = type->attributes.size();
 
-    for(auto i = 0ul, n = size - 1; i < size; ++i){
+    for(std::size_t i = 0ul, n = size - 1; i < size; ++i){
         auto& name = std::get<0>(type->attributes[i]);
         out << name << '=';
         attributes[i].print(out, depth + 1);

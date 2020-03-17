@@ -27,7 +27,11 @@ struct CodeLocation{
     std::string function_long;
 };
 
+#ifdef __linux__
 #define LOC lython::CodeLocation(__FILE__, __FUNCTION__, __LINE__, __PRETTY_FUNCTION__)
+#else
+#define LOC lython::CodeLocation(__FILE__, __FUNCTION__, __LINE__, __func__)
+#endif
 
 enum LogLevel{
     Trace,

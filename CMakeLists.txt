@@ -2,7 +2,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
 # project name + language used
-PROJECT(lython C CXX)
+PROJECT(lython CXX)
 
 # debug/release
 SET(CMAKE_RELEASE_POSTFIX "")

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <cctype>
 
 #include "lexer/buffer.h"
 #include "lexer/token.h"
