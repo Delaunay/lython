@@ -2,6 +2,7 @@
 
 #include "samples.h"
 #include "lexer/lexer.h"
+#include "utilities/strings.h"
 
 using namespace lython;
 
@@ -16,9 +17,11 @@ String lex_it(String code){
 
 #define TEST_LEXING(code)\
     SECTION(#code){\
-        REQUIRE(lex_it(code()) == code());\
+        REQUIRE(strip(lex_it(code())) == strip(code()));\
     }
 
 TEST_CASE("Lexer"){
     CODE_SAMPLES(TEST_LEXING)
+
+    IMPORT_TEST(TEST_LEXING)
 }

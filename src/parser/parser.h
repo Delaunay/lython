@@ -60,13 +60,12 @@
 
 namespace lython {
 
-class ParserException : public std::exception {
+class ParserException : public Exception {
   public:
-    ParserException(String const &msg) : msg(msg) {}
-
-    const char *what() const noexcept override { return msg.c_str(); }
-
-    const String msg;
+    template<typename ... Args>
+    ParserException(const char* fmt, const Args& ... args) :
+          Exception(fmt, "ParserException", args...)
+    {}
 };
 
 #define WITH_EXPECT(tok, msg)                                                  \
@@ -150,11 +149,17 @@ class Parser {
     // Parse a full line of function and stuff
     Expression parse_expression(Module& m, std::size_t depth);
 
+    Expression parse_import(Module& m, std::size_t depth);
+
     // parse function_name(args...)
     Expression parse_top_expression(Module& m, std::size_t depth) {
         TRACE_START();
 
         switch (token().type()) {
+        case tok_import:
+        case tok_from:
+            return parse_import(m, depth + 1);
+
         case tok_async:
         case tok_yield:
         case tok_return:
@@ -255,6 +260,10 @@ class Parser {
 
         case tok_struct:
             return parse_struct(m, depth);
+
+        case tok_from:
+        case tok_import:
+            return parse_import(m, depth);
 
         default:
             assert(true, "Unknown Token");

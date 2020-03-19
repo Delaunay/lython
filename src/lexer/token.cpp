@@ -9,7 +9,7 @@ String to_string(int8 t){
     #define X(name, nb)\
         case nb: return String(#name);
 
-        LYTHON_TOKEN
+        LYTHON_TOKEN(X)
     #undef X
     default:
         String s = "' '";
@@ -24,7 +24,7 @@ int8 tok_name_size()
 {
     std::vector<String> v = {
     #define X(name, nb) #name,
-        LYTHON_TOKEN
+        LYTHON_TOKEN(X)
     #undef X
     };
 
@@ -82,22 +82,37 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
     }
 
     if (type() == tok_operator){
-        out << " " << operator_name() << " ";
+        if (operator_name() == "."){
+            out << operator_name();
+        } else {
+            out << " " << operator_name() << " ";
+        }
+
         prev_is_op = true;
         return out;
     }
 
     // Indentation
     if (emptyline && indent_level > 0)
-        out << std::string(std::size_t(indent_level * LYTHON_INDENT), ' ');
+        out << String(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
-    String& str = keyword_as_string()[type()];
+    String const& str = keyword_as_string()[type()];
 
     if (str.size() > 0){
         emptyline = false;
 
-        if (type() == tok_arrow)
+        switch (type()) {
+        case tok_arrow:
+        case tok_as:
             out << " ";
+            break;
+
+        case tok_import:
+            if (!emptyline){
+                out << " ";
+            }
+            break;
+        }
 
         return out << str;
     }
@@ -144,7 +159,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
 ReservedKeyword& keywords(){
     static ReservedKeyword _keywords = {
     #define X(str, tok) {str, tok},
-        LYTHON_KEYWORDS
+        LYTHON_KEYWORDS(X)
     #undef X
     };
     return _keywords;
@@ -153,7 +168,7 @@ ReservedKeyword& keywords(){
 KeywordToString& keyword_as_string(){
     static KeywordToString _keywords = {
     #define X(str, tok) {int(tok), String(str)},
-        LYTHON_KEYWORDS
+        LYTHON_KEYWORDS(X)
     #undef X
     };
     return _keywords;

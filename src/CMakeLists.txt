@@ -34,6 +34,7 @@ SET(ADD_HEADERS
     utilities/allocator.h
     utilities/metadata.h
     utilities/stopwatch.h
+    utilities/strings.h
     interpreter/interpreter.h
     interpreter/value.h
     dtypes.h
@@ -50,10 +51,12 @@ SET(ADD_SOURCE
     lexer/token.cpp
     parser/parser.cpp
     parser/declarations.cpp
+    parser/import.cpp
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp
     utilities/pool.cpp
+    utilities/strings.cpp
     interpreter/interpreter.cpp
     interpreter/value.cpp
 )
@@ -68,7 +71,7 @@ SET(ADD_SOURCE
 # ADD_SUBDIRECTORY(cuda)
 # ADD_SUBDIRECTORY(math)
 
-# Support library for utilities s
+# Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
 TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
 
@@ -79,7 +82,7 @@ TARGET_LINK_LIBRARIES(liblython spdlog::spdlog)
 # Main interpreter loop
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} spdlog::spdlog liblython liblogging)
-
+SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 IF(UNIX)
     setup_target_for_coverage_gcovr_html(

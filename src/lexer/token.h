@@ -22,38 +22,57 @@
  *      bin: bx010101
  */
 #define LYTHON_INDENT 4
-#define LYTHON_TOKEN \
-    X(tok_identifier, -1)\
-    X(tok_float,      -2)\
-    X(tok_string,     -3)\
-    X(tok_int,        -4)\
-    X(tok_newline,    -5)\
-    X(tok_indent,     -6)\
-    X(tok_desindent,  -7)\
-    X(tok_incorrect,  -8)\
-    X(tok_eof,        -9)\
-    X(tok_def,        -10)\
-    X(tok_docstring,  -11)\
-    X(tok_arrow,      -12)\
-    X(tok_struct,     -13)\
-    X(tok_return,     -14)\
+#define LYTHON_TOKEN(X) \
+    X(tok_identifier,-1)\
+    X(tok_float,     -2)\
+    X(tok_string,    -3)\
+    X(tok_int,       -4)\
+    X(tok_newline,   -5)\
+    X(tok_indent,    -6)\
+    X(tok_desindent, -7)\
+    X(tok_incorrect, -8)\
+    X(tok_eof,       -9)\
+    X(tok_def,       -10)\
+    X(tok_docstring, -11)\
+    X(tok_arrow,     -12)\
+    X(tok_struct,    -13)\
+    X(tok_return,    -14)\
     X(tok_yield,     -15)\
     X(tok_async,     -16)\
-    X(tok_operator,  -17)
+    X(tok_operator,  -17)\
+    X(tok_import,    -18)\
+    X(tok_as,        -19)\
+    X(tok_from,      -20)\
+    X(tok_if,        -21)\
+    X(tok_elif,      -22)\
+    X(tok_else,      -23)\
+    X(tok_try,       -24)\
+    X(tok_except,    -25)\
+    X(tok_raise,     -26)
 
-#define LYTHON_KEYWORDS \
-    X("def", tok_def)\
-    X("->", tok_arrow)\
+
+#define LYTHON_KEYWORDS(X) \
+    X("def",    tok_def)\
+    X("->",     tok_arrow)\
     X("struct", tok_struct)\
     X("return", tok_return)\
-    X("yield", tok_yield)\
-    X("async", tok_async)
+    X("yield",  tok_yield)\
+    X("async",  tok_async)\
+    X("import", tok_import)\
+    X("from",   tok_from)\
+    X("as",     tok_as)\
+    X("if",     tok_if)\
+    X("elif",   tok_elif)\
+    X("else",   tok_else)\
+    X("try",    tok_try)\
+    X("except", tok_except)\
+    X("raise",  tok_raise)\
     
 namespace lython{
 
 enum TokenType{
 #define X(name, nb) name = nb,
-    LYTHON_TOKEN
+    LYTHON_TOKEN(X)
 #undef X
 };
 

@@ -12,6 +12,7 @@ SET(TEST_HEADERS
     parser_test.cpp
     interpreter_test.cpp
     pool_test.cpp
+    utilities_test.cpp
 )
 
 # find_package(Catch2)

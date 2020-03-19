@@ -6,6 +6,7 @@
 
 #include "lexer/buffer.h"
 #include "parser/parser.h"
+#include "utilities/strings.h"
 
 using namespace lython;
 
@@ -19,27 +20,19 @@ inline String parse_it(String code){
     StringStream ss;
 
     Expression expr;
+    int k = 0;
     do {
         expr = par.parse_one(module);
 
         if (expr){
             expr.print(ss) << "\n\n";
+            k += 1;
         }
-
     } while(expr);
+
+    assert(k > 0, "Should parse more than one expression");
     return ss.str();
 }
-
-String strip(String const& v){
-    int i = int(v.size()) - 1;
-
-    while (i > 0 && v[size_t(i)] == '\n'){
-        i -= 1;
-    }
-
-    return String(v.begin(), v.begin() + i + 1);
-}
-
 
 #define TEST_PARSING(code)\
     SECTION(#code){\
@@ -48,4 +41,6 @@ String strip(String const& v){
 
 TEST_CASE("Parser"){
     CODE_SAMPLES(TEST_PARSING)
+
+    IMPORT_TEST(TEST_PARSING)
 }

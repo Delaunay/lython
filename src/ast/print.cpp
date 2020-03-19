@@ -1,6 +1,7 @@
-#include "print.h"
-#include "../parser/module.h"
-#include "visitor.h"
+#include "ast/visitor.h"
+#include "ast/print.h"
+#include "parser/module.h"
+#include "utilities/strings.h"
 
 namespace lython {
 
@@ -76,6 +77,54 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         out << un->op;
         out << ' ';
         visit(un->expr, d);
+        return out;
+    }
+
+    std::ostream& import(Import_t imp, size_t){
+        auto print_import = [&](AST::Import::DeclarationImport const& import){
+            out << import.export_name;
+
+            if (import.import_name && import.import_name != get_string("")){
+                out << " as " << import.import_name;
+            }
+        };
+
+        auto print_path = [&](AST::Import::PackagePath const& path){
+            for (auto i = path.begin(); i != path.end() - 1; ++i){
+                out << (*i) << ".";
+            }
+            out << *(path.end() - 1);
+        };
+
+        // from <> import <> as <>
+        if (imp->imports.size()){
+            out << "from ";
+            print_path(imp->path);
+            out << " import ";
+
+            size_t k = 0;
+            for(auto& import: imp->imports){
+                if (k + 1 < imp->imports.size()){
+                    print_import(import);
+                    out << ", ";
+                }
+
+                k += 1;
+            }
+            print_import(*(imp->imports.end() - 1));
+        } else {
+            out << "import ";
+            print_path(imp->path);
+
+            if (imp->name && imp->name != get_string("")){
+                out << " as " << imp->name;
+            }
+        }
+
+        return out;
+    }
+
+    std::ostream& match(Match_t mtch, size_t d){
         return out;
     }
 

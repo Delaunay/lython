@@ -29,7 +29,9 @@ struct Node;
     KIND(Struct, struct_type)\
     KIND(Type, type)\
     KIND(ExternFunction, extern_function)\
-    KIND(Operator, operator_fun)
+    KIND(Operator, operator_fun)\
+    KIND(Import, import)\
+    KIND(Match, match)
 
 // Explicit RTTI
 enum class NodeKind {

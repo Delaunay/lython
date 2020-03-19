@@ -64,6 +64,12 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return visit(expr, d);
     }
 
+    Value import(Import_t import, size_t depth){
+        // TODO tweak research paths
+        static String research = "/home/setepenre/work/lython/code";
+        return Value("importing");
+    }
+
     Array<Value> eval(Array<Expression> const & exprs, size_t depth){
         trace_start(depth, "eval_args");
 
@@ -131,7 +137,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                 value::Struct& data = *obj.get<value::Struct*>();
                 data.set_attribute(attr_name, new_value);
 
-                dump_env(std::cout);
+                // dump_env(std::cout);
                 return Value("none");
             }
 

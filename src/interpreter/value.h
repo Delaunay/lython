@@ -142,7 +142,7 @@ public:
     // I think we can only do this for compile time string
     // need a way to handle runtime string differently
     Value(StringRef const& str): tag(ValueKind::pod_str){
-      _data.v_uint64 = str.ref;
+        _data.v_uint64 = str.ref;
     }
 
     // Delegate to stringref

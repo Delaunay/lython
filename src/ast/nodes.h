@@ -184,9 +184,91 @@ public:
     // Keyword arguments
     KwArguments kwargs;
 
-
     Call():
         Node(NodeKind::KCall)
+    {}
+};
+
+// from <path> import <export_name> [as <import_name>], ...
+// import <path> [as <name>]
+struct Import: public Node{
+    struct DeclarationImport{
+        DeclarationImport(StringRef exp, StringRef imp):
+            export_name(exp), import_name(imp)
+        {}
+
+        DeclarationImport(String const& exp, String const& imp):
+            DeclarationImport(get_string(exp), get_string(imp))
+        {}
+
+        StringRef export_name;
+        StringRef import_name;
+    };
+
+    using PackagePath = Array<StringRef>;
+    using DeclarationImports = Array<DeclarationImport>;
+
+    PackagePath        path;        // package.package.package
+    StringRef          name;        // as <name>
+    DeclarationImports imports;     // *(<export_name> [as <import_name>])
+
+    Import():
+        Node(NodeKind::KImport)
+    {}
+};
+
+struct ImportExpr: public Node{
+    ImportExpr(Expression imp, StringRef ref):
+        import(imp), name(ref)
+    {}
+
+    Expression import;
+    StringRef  name;
+};
+
+
+/*
+dict.get('key') match:
+    case None:
+        raise RuntimeError
+
+    case (a, b, c):
+        return a + b + c
+
+    case (a, b) where a > 2:
+        return a + b
+
+    except ValueError:
+        pass
+
+    case Value(a, b) where a > 2:
+        return a + b
+
+    except:
+        pass
+
+    default:
+        pass
+ */
+struct Match: public Node{
+    struct Pattern{};
+
+    struct Branch{
+        Pattern     pat;
+        Expression  exec;
+        // To avoid nesting too many expression together we could attach
+        // an except to every Branch
+        // Expression except;
+    };
+
+    using Branches = Array<Branch>;
+
+    Expression target;          // match <target>:
+    Branches   branches;        // case <pattern>: <expression>
+    Expression default_branch;  // default: <expression>
+
+    Match():
+        Node(NodeKind::KMatch)
     {}
 };
 

@@ -46,11 +46,19 @@ public:
         return ref == b.ref;
     }
 
+    bool operator!= (StringRef const& b) const {
+        return ref != b.ref;
+    }
+
     String str() const;
 
     operator StringView() const;
 
     std::size_t ref = 0;
+
+    operator bool() const {
+        return ref != 0;
+    }
 };
 
 // hash the reference instead of the string itself

@@ -1,5 +1,5 @@
 ﻿# required for C++11 features
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
 
 # project name + language used
 PROJECT(lython CXX)

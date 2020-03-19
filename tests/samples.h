@@ -70,27 +70,6 @@ DEFINE_SAMPLE_CODE(
     )
 
 DEFINE_SAMPLE_CODE(
-    struct_set_get,
-    "struct Point:\n"
-    "    x: Float\n"
-    "    y: Float\n\n"
-
-    "def get_x(p: Point) -> Float:\n"
-    "    return p.x\n\n"
-
-    "def set_x(p: Point, x: Float) -> Point:\n"
-    "    p.x = x\n"
-    "    return p\n\n"
-
-    "def struct_set_get(v: Float) -> Float:\n"
-    "    p = Point(1.0, 2.0)\n"
-    "    set_x(p, v)\n"
-    "    a = get_x(p)\n"
-    "    return a\n\n"
-    )
-
-
-DEFINE_SAMPLE_CODE(
     max_alias,
     "def max_alias(a: Float, b: Float) -> Float:\n"
     "   return max(a, b)\n"
@@ -113,6 +92,61 @@ DEFINE_SAMPLE_CODE(
     "    b: c\n"
     "\n"
     )
+
+DEFINE_SAMPLE_CODE(
+    struct_set_get,
+    "struct Point:\n"
+    "    x: Float\n"
+    "    y: Float\n\n"
+
+    "def get_x(p: Point) -> Float:\n"
+    "    return p.x\n\n"
+
+    "def set_x(p: Point, x: Float) -> Point:\n"
+    "    p.x = x\n"
+    "    return p\n\n"
+
+    "def struct_set_get(v: Float) -> Float:\n"
+    "    p = Point(1.0, 2.0)\n"
+    "    set_x(p, v)\n"
+    "    a = get_x(p)\n"
+    "    return a\n\n"
+    )
+
+
+#define STRUCT_TEST(X)\
+    X(simple_struct)\
+    X(simple_struct_docstring)\
+    X(struct_set_get)
+
+// Impor
+DEFINE_SAMPLE_CODE(
+    import_code,
+    "import a.b.c"
+    )
+
+DEFINE_SAMPLE_CODE(
+    import_as_code,
+    "import a.b.c as d"
+    )
+
+DEFINE_SAMPLE_CODE(
+    from_import_code,
+    "from a.b.c import d, e, f"
+    )
+
+DEFINE_SAMPLE_CODE(
+    from_import_as_code,
+    "from a.b.c import d as e, f as g"
+    )
+
+#define IMPORT_TEST(X)\
+    X(import_code)\
+    X(import_as_code)\
+    X(from_import_code)\
+    X(from_import_as_code)
+
+
 DEFINE_SAMPLE_CODE(
     misc_code,
     "def my_function() -> e:\n"       // correct indent management
