@@ -87,7 +87,7 @@ bool _metadata_init_names(){
 
     // module
     meta::register_type<HashNodeInternal<
-        std::pair<const String, Index>, true>>(
+        std::pair<const String, int>, true>>(
         "Pair[String, Index]");
 
     // module precedence_table

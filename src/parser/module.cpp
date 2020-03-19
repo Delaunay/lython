@@ -46,9 +46,9 @@ namespace lython{
             _parent->print(out, depth + 1);
             out << String(40, '-') << "\n";
         }
-        for(Index i = 0; i < _scope.size(); ++i){
-            auto name = _idx_name[i];
-            auto expr = _scope[i];
+        for(int i = 0; i < int(_scope.size()); ++i){
+            auto name = _idx_name[size_t(i)];
+            auto expr = _scope[size_t(i)];
 
             out << fmt::format("{:4}", int(i)) << "   ";
             out << fmt::format("{:30}", name) << "   ";

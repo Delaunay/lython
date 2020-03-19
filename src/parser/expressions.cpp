@@ -133,8 +133,8 @@ Expression Parser::parse_expression_1(Module& m, Expression lhs, int precedence,
             // Default assign to a variable         A = ...
             case AST::NodeKind::KReference:{
                 auto ref = lhs.ref<AST::Reference>();
-                ref->index = 0;
-                ref->length = 0;
+                //ref->index = 0;
+                //ref->length = 0;
                 m.insert(ref->name.str(), rhs);
             }
             // TODO: Unpacking                      A, B, C = ....

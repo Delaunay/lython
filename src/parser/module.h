@@ -9,58 +9,6 @@
 #include "ast/nodes.h"
 
 namespace lython {
-// This is made to indicate if the mapped value was set or not
-struct Index{
-    int val;
-
-    Index(int value = -1):
-        val(value)
-    {}
-
-    Index(size_t value):
-        val(int(value))
-    {}
-
-    explicit operator size_t(){
-        assert(val >= 0, "");
-        return size_t(val);
-    }
-
-    explicit operator int(){
-        return val;
-    }
-
-    operator bool(){ return val >= 0; }
-
-    template<typename T> bool operator < (T i) const { return val < int(i);}
-    template<typename T> bool operator > (T i) const { return val > int(i);}
-    template<typename T> bool operator== (T i) const { return val == int(i);}
-    template<typename T> bool operator!= (T i) const { return val != int(i);}
-
-    template<typename T> Index operator+ (T i) const {
-        return Index(val + int(i));
-    }
-    template<typename T>
-    Index& operator+= (T i) {
-        val += i;
-        return *this;
-    }
-    template<typename T>
-    Index& operator-= (T i) {
-        val -= i;
-        return *this;
-    }
-    Index& operator++ () {
-        val += 1;
-        return *this;
-    }
-    Index& operator-- () {
-        val -= 1;
-        return *this;
-    }
-};
-
-
 //  Module
 // -------------------------------------
 
@@ -133,8 +81,8 @@ class Module {
         }
     }
 
-    Index size() const {
-        return Index(offset) + _scope.size();
+    int size() const {
+        return int(offset) + _scope.size();
     }
 
     Module enter() const {
@@ -149,7 +97,7 @@ class Module {
         return Expression::make<AST::Reference>(view, tsize - idx, tsize, Expression());
     }
 
-    Index insert(String const& name, Expression const& expr){
+    int insert(String const& name, Expression const& expr){
         // info("Inserting Expressionession");
         auto idx = _scope.size();
         _name_idx[name] = idx;
@@ -182,10 +130,10 @@ class Module {
         return "nullptr";
     }
 
-    Index _find_index(String const &view) const {
+    int _find_index(String const &view) const {
         // Check in the current scope
         auto iter = _name_idx.find(view);
-        Index idx = -1;
+        int idx = -1;
 
         if (iter != _name_idx.end()){
             idx = (*iter).second + offset;
@@ -193,12 +141,12 @@ class Module {
             idx = _parent->_find_index(view);
         }
 
-        return int(idx);
+        return idx;
     }
 
     template<typename T>
     T replace(T const& t, char a, T const& b) const{
-        Index n = t.size();
+        int n = t.size();
         auto iter = t.rbegin();
         while (*iter == '\n'){
             n -= 1;
@@ -206,20 +154,20 @@ class Module {
         }
 
         int count = 0;
-        for (Index i = 0; i < n; ++i){
+        for (int i = 0; i < n; ++i){
             if (t[i] == a){
                 count += 1;
             }
         }
 
         auto str = T(n + b.size() * size_t(count), ' ');
-        Index k = 0;
-        for(Index i = 0; i < n; ++i){
+        int k = 0;
+        for(int i = 0; i < n; ++i){
             if (t[i] != a){
                 str[k] = t[i];
                 k += 1;
             } else {
-                for(Index j = 0; j < b.size(); ++j){
+                for(int j = 0; j < b.size(); ++j){
                     str[k] = b[j];
                     k += 1;
                 }
@@ -290,9 +238,9 @@ class Module {
     Module const* _parent = nullptr;
 
     // stored in an array so we can do lookup by index
-    Array<Expression>   _scope;
-    Array<String>       _idx_name;
-    Dict<String, Index> _name_idx;
+    Array<Expression> _scope;
+    Array<String>     _idx_name;
+    Dict<String, int> _name_idx;
 };
 
 } // namespace lython

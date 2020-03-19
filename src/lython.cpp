@@ -122,7 +122,7 @@ int main() {
 
                 if (expr){
                     StringStream ss;
-                    expr.print(ss);
+                    expr.print(ss, 0, true, true);
                     parser_string = ss.str();
 
                     std::cout << ">>> Reading\n";
