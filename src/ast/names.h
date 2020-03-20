@@ -61,6 +61,8 @@ public:
     }
 };
 
+String join(String const& sep, Array<StringRef> const& strs);
+
 // hash the reference instead of the string itself
 // This could cause issues if we have multiple string databases
 struct string_ref_hash {

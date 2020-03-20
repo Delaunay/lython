@@ -42,7 +42,7 @@ Expression Parser::parse_import(Module& m, std::size_t){
 
             m.insert(
                 imp->name.str(),
-                Expression::make<AST::ImportExpr>(expr, imp->name));
+                Expression::make<AST::ImportedExpr>(expr, imp->name));
         } else {
             Array<String> out;
 
@@ -53,7 +53,7 @@ Expression Parser::parse_import(Module& m, std::size_t){
                 [](StringRef a) { return a.str(); });
 
             String path = join(".", out);
-            m.insert(path, Expression::make<AST::ImportExpr>(
+            m.insert(path, Expression::make<AST::ImportedExpr>(
                                expr, get_string(path)));
         }
 
@@ -84,11 +84,11 @@ Expression Parser::parse_import(Module& m, std::size_t){
 
                 m.insert(
                     import_name.str(),
-                    Expression::make<AST::ImportExpr>(expr, import_name));
+                    Expression::make<AST::ImportedExpr>(expr, import_name));
             } else {
                 m.insert(
                     export_name.str(),
-                    Expression::make<AST::ImportExpr>(expr, export_name));
+                    Expression::make<AST::ImportedExpr>(expr, export_name));
             }
 
             imp->imports.emplace_back(export_name, import_name);

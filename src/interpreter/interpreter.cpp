@@ -1,6 +1,10 @@
 #include "interpreter.h"
 #include "ast/visitor.h"
 
+#include "lexer/buffer.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
+
 namespace lython {
 
 Value builtin_sin(Array<Value>& args);
@@ -64,17 +68,39 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return visit(expr, d);
     }
 
+    Value imported_expression(ImportedExpr_t imp, std::size_t d){
+        // we need to memoize this
+        Value module = eval(imp->import, d + 1);
+
+
+        return String("fake_import");
+    }
+
     Value import(Import_t import, size_t depth){
         // TODO tweak research paths
         static String search_path = "/home/setepenre/work/lython/code";
 
+        // String path = import->path;
         // Look for <path> in module lookup path
         // load module object and return
+        String file_path;
+
+        // in the current state there are different way this could be implemented
+        // what we should do is parse the module-import during the parsing phase
+        // because we need the information for type checking
+        // so we have to do it there NOT here like I am doing.
+        // because the module is already parsed we only need to eval the module
+        // which means the Import is actually a Module and ImportExpr is a referencce
+        // into that Module
+
+        FileBuffer reader(file_path);
+        Lexer lex(reader);
+        Module module;
+        Parser par(reader, &module);
 
         // import <path_1>...<path_n>
         // insert  path_1 as an module object into the current environment
         if (import->imports.size() == 0){
-            push(Value("<NotImplemented"), import->name.str());
 
         } else {
             // from a.b.c import f
@@ -88,8 +114,6 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                 } else {
                     name = imp.export_name.str();
                 }
-
-                push(Value("<NotImplemented>"), name);
             }
         }
 

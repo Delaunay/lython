@@ -80,6 +80,10 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         return out;
     }
 
+    std::ostream& imported_expression(ImportedExpr_t expr, size_t){
+        return out << "<import>";
+    }
+
     std::ostream& import(Import_t imp, size_t){
         auto print_import = [&](AST::Import::DeclarationImport const& import){
             out << import.export_name;

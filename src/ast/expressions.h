@@ -31,6 +31,7 @@ struct Node;
     KIND(ExternFunction, extern_function)\
     KIND(Operator, operator_fun)\
     KIND(Import, import)\
+    KIND(ImportedExpr, imported_expression)\
     KIND(Match, match)
 
 // Explicit RTTI

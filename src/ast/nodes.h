@@ -215,11 +215,19 @@ struct Import: public Node{
     Import():
         Node(NodeKind::KImport)
     {}
+
+    String module_path() const {
+        return join(".", path);
+    }
+
+    String file_path() const {
+        return join("/", path);
+    }
 };
 
-struct ImportExpr: public Node{
-    ImportExpr(Expression imp, StringRef ref):
-        import(imp), name(ref)
+struct ImportedExpr: public Node{
+    ImportedExpr(Expression imp, StringRef ref):
+        Node(NodeKind::KImportedExpr), import(imp), name(ref)
     {}
 
     Expression import;

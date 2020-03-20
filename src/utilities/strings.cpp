@@ -1,23 +1,29 @@
 #include "utilities/strings.h"
+#include "parser/module.h"
 
 namespace lython {
 
-String join(String const& sep, Array<String> const& strs){
-    if (strs.size() == 1)
-        return strs.at(0);
 
-    if (strs.size() == 0)
+template<typename Iterator>
+String join(String const& sep, Iterator const& start, Iterator const& end){
+    int count = int(end - start);
+
+    if (count == 1)
+        return String(*start);
+
+    if (count == 0)
         return "";
 
     std::ptrdiff_t size = 0;
-    for(auto& str: strs)
-        size += str.size();
+    for(auto i = start; i != end; ++i)
+        size += StringView(*i).size();
 
-    size += sep.size() * (strs.size() - 1);
+    size += int(sep.size()) * (count - 1);
     String result(size_t(size), ' ');
 
     size = 0;
-    for(auto& str: strs){
+    for(auto i = start; i != end; ++i){
+        StringView const& str = *i;
         std::copy(
             std::begin(str),
             std::end(str),
@@ -34,6 +40,19 @@ String join(String const& sep, Array<String> const& strs){
     }
 
     return result;
+}
+
+
+String join(String const& sep, Array<String> const& strs){
+    return join(sep, std::begin(strs), std::end(strs));
+}
+
+String join(String const& sep, Array<StringView> const& strs){
+    return join(sep, std::begin(strs), std::end(strs));
+}
+
+String join(String const& sep, Array<StringRef> const& strs){
+    return join(sep, std::begin(strs), std::end(strs));
 }
 
 String strip(String const& v){
