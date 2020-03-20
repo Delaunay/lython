@@ -127,17 +127,17 @@ DEFINE_SAMPLE_CODE(
 
 DEFINE_SAMPLE_CODE(
     import_as_code,
-    "import a.b.c as d"
+    "import a.b.c as e"
     )
 
 DEFINE_SAMPLE_CODE(
     from_import_code,
-    "from a.b.c import d, e, f"
+    "from a.b.c import f, k"
     )
 
 DEFINE_SAMPLE_CODE(
     from_import_as_code,
-    "from a.b.c import d as e, f as g"
+    "from a.b.c import g as h, i as j"
     )
 
 #define IMPORT_TEST(X)\

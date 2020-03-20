@@ -60,6 +60,11 @@ int main() {
         // ConsoleBuffer reader;
 
         String code =
+        "import a.b.c\n"
+        "import a.b.c as e\n"
+        "from a.b.c import f, k\n"
+        "from a.b.c import g as h, i as j\n\n"
+
         "struct Point:\n"
         "    x: Float\n"
         "    y: Float\n"

@@ -7,6 +7,9 @@
 namespace lython{
 
 #ifdef __linux__
+// Shared Pointer & Hash tables do not actually allocate T
+// but a struct that includes T and other data
+// So we rename that mangled struct name by that type T it manages
 template<typename T>
 using SharedPtrInternal = std::_Sp_counted_ptr_inplace<
     T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
@@ -26,6 +29,7 @@ bool _metadata_init_names(){
     meta::register_type<AST::Parameter>("Parameter");
     meta::register_type<lython::Expression>("Expression");
     meta::register_type<lython::Value>("Value");
+    meta::register_type<lython::AST::Import::DeclarationImport>("DeclImport");
 
     meta::register_type<SharedPtrInternal<lython::value::Closure>>("Closure");
     meta::register_type<SharedPtrInternal<lython::value::Class>>("Class");
@@ -41,6 +45,8 @@ bool _metadata_init_names(){
     meta::register_type<SharedPtrInternal<lython::AST::Statement>>("AST::Statement");
     meta::register_type<SharedPtrInternal<lython::AST::Parameter>>("AST::Parameter");
     meta::register_type<SharedPtrInternal<lython::AST::BinaryOperator>>("AST::BinaryOperator");
+    meta::register_type<SharedPtrInternal<lython::AST::Import>>("AST::Import");
+    meta::register_type<SharedPtrInternal<lython::AST::ImportExpr>>("AST::ImportExpr");
 
     // value::Struct
     meta::register_type<HashNodeInternal<

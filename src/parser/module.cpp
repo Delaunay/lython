@@ -1,6 +1,7 @@
 #include <spdlog/fmt/bundled/core.h>
 
-#include "module.h"
+#include "utilities/strings.h"
+#include "parser/module.h"
 
 namespace lython{
     std::string const none_name = "<none>";

@@ -66,8 +66,34 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     Value import(Import_t import, size_t depth){
         // TODO tweak research paths
-        static String research = "/home/setepenre/work/lython/code";
-        return Value("importing");
+        static String search_path = "/home/setepenre/work/lython/code";
+
+        // Look for <path> in module lookup path
+        // load module object and return
+
+        // import <path_1>...<path_n>
+        // insert  path_1 as an module object into the current environment
+        if (import->imports.size() == 0){
+            push(Value("<NotImplemented"), import->name.str());
+
+        } else {
+            // from a.b.c import f
+            // insert f as an imported expression
+
+            for(auto& imp: import->imports){
+                String name;
+
+                if (imp.import_name){
+                    name = imp.import_name.str();
+                } else {
+                    name = imp.export_name.str();
+                }
+
+                push(Value("<NotImplemented>"), name);
+            }
+        }
+
+        return Value("none");
     }
 
     Array<Value> eval(Array<Expression> const & exprs, size_t depth){
