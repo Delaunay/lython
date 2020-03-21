@@ -4,6 +4,7 @@
 #include <string>
 
 #include "dtypes.h"
+#include "logging/logging.h"
 
 /*
  *  Buffers are special reader that keep track of current line/col and indent level
@@ -78,29 +79,24 @@ private:
     bool  _empty_line{true};
 };
 
-class FileError{
+class FileError: public Exception {
 public:
-    const char* what() noexcept{
-        return "FileError : File does not exist";
-    }
+    template<typename ... Args>
+    FileError(const char* fmt, const Args& ... args) :
+        Exception(fmt, "FileError", args...)
+    {}
 };
+
+String read_file(String const& name);
 
 class FileBuffer : public AbstractBuffer
 {
 public:
-    FileBuffer(String  name):
-        _file_name(std::move(name))
-    {
-        _file = fopen(_file_name.c_str(), "r");
-
-        if (!_file)
-            throw FileError();
-        init();
-    }
+    FileBuffer(String const& name);
 
     ~FileBuffer() override;
 
-    char getc()override {
+    char getc() override {
         return char(::getc(_file));
     }
 
@@ -114,8 +110,8 @@ private:
 class StringBuffer: public AbstractBuffer
 {
 public:
-    StringBuffer(String code):
-        _code(std::move(code)), _file_name("c++ string")
+    StringBuffer(String code, String const& file = "c++ string"):
+        _code(std::move(code)), _file_name(file)
     {
         init();
     }

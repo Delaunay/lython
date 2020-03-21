@@ -3,6 +3,7 @@
 
 #include "parser/module.h"
 #include "logging/logging.h"
+#include "interpreter/value.h"
 
 #include <cmath>
 

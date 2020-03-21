@@ -2,13 +2,60 @@
 #include "utilities/strings.h"
 
 #include <algorithm>
+#include <filesystem>
 
 namespace lython {
 
+String to_string(std::filesystem::path const& p){
+    // Want to check how versatile the STL is ?
+    //  - Use custom Allocator !
+    // auto alloc = AllocatorCPU<char>();
+    // return p.generic_string<char, std::char_traits<char>, AllocatorCPU<char>>(alloc);
+    auto str = p.string();
+    return String(std::begin(str), std::end(str));
+}
+
+String find_module_file(AST::Import* const imp){
+    std::filesystem::path search_path = "/home/setepenre/work/lython/code";
+    String path = imp->file_path();
+
+    auto p = search_path.append(path).append("__init__.py");
+
+    if (std::filesystem::exists(p)){
+        debug("loading module {}", p);
+        return to_string(p);
+    }
+
+    debug("could not find module {}", p);
+    return "";
+}
+
+void process_module(AST::Import* imp){
+    auto path = find_module_file(imp);
+
+    if (path.size() <= 0)
+        return;
+
+    // StringBuffer reader(read_file(path), path);
+    FileBuffer reader(path);
+    Lexer lex(reader);
+    Parser par(reader, &imp->module);
+
+    try {
+        Expression expr;
+        do {
+            expr = par.parse_one(imp->module);
+        } while(expr);
+
+    } catch (lython::Exception e) {
+        error("Error Occured: {}", e.what());
+    }
+}
+
 Expression Parser::parse_import(Module& m, std::size_t){
     auto tok = token();
-    Expression expr = Expression::make<AST::Import>();
-    AST::Import* imp = expr.ref<AST::Import>();
+    Expression module_expr = Expression::make<AST::Import>();
+    AST::Import* imp = module_expr.ref<AST::Import>();
 
     auto parse_path = [&](){
         // parse: <identifier>.<identifier>. ...
@@ -24,6 +71,9 @@ Expression Parser::parse_import(Module& m, std::size_t){
                 }
             }
         }
+
+        // parse the imported module
+        process_module(imp);
     };
 
     if (tok.type() == tok_import){
@@ -42,22 +92,15 @@ Expression Parser::parse_import(Module& m, std::size_t){
 
             m.insert(
                 imp->name.str(),
-                Expression::make<AST::ImportedExpr>(expr, imp->name));
+                Expression::make<AST::ImportedExpr>(module_expr, imp->name));
         } else {
-            Array<String> out;
+            auto path = imp->module_path();
 
-            std::transform(
-                std::begin(imp->path),
-                std::end(imp->path),
-                std::back_inserter(out),
-                [](StringRef a) { return a.str(); });
-
-            String path = join(".", out);
             m.insert(path, Expression::make<AST::ImportedExpr>(
-                               expr, get_string(path)));
+                               module_expr, get_string(path)));
         }
 
-        return expr;
+        return module_expr;
     }
     else if (tok.type() == tok_from){
         EAT(tok_from);
@@ -84,21 +127,21 @@ Expression Parser::parse_import(Module& m, std::size_t){
 
                 m.insert(
                     import_name.str(),
-                    Expression::make<AST::ImportedExpr>(expr, import_name));
+                    Expression::make<AST::ImportedExpr>(module_expr, import_name));
             } else {
                 m.insert(
                     export_name.str(),
-                    Expression::make<AST::ImportedExpr>(expr, export_name));
+                    Expression::make<AST::ImportedExpr>(module_expr, import_name));
             }
 
             imp->imports.emplace_back(export_name, import_name);
             EAT(',');
         }
 
-        return expr;
+        return module_expr;
     }
 
-    throw ParserException("Got {} but exepected"
+    throw ParserException("{}: Got {} but exepected"
                           "`import` or `from`", to_string(tok.type()));
 }
 

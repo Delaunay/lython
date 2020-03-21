@@ -2,9 +2,61 @@
 
 #include "utilities/strings.h"
 #include "parser/module.h"
+#include "ast/nodes.h"
 
 namespace lython{
     std::string const none_name = "<none>";
+
+    Expression Module::type_type() {
+        static auto type = Expression::make<AST::Type>("Type");
+        return type;
+    }
+
+    Expression Module::float_type() {
+        static auto type =
+            Expression::make<AST::Builtin>("Float", type_type(), 1);
+        return type;
+    }
+
+    Expression Module::reference(String const &view) const{
+        int tsize = size();
+        int idx = _find_index(view);
+        return Expression::make<AST::Reference>(view, tsize - idx, tsize, Expression());
+    }
+
+    void Module::insert_builtin(){
+        if (!_parent){
+            insert("Type", type_type());
+            insert("Float", float_type());
+
+            auto make_binary = [&](){
+                auto f_f_f = Expression::make<AST::Arrow>();
+                auto binary_type = f_f_f.ref<AST::Arrow>();
+                binary_type->params.push_back(AST::Parameter("a", reference("Float")));
+                binary_type->params.push_back(AST::Parameter("b", reference("Float")));
+                return f_f_f;
+            };
+
+            auto make_unary = [&](){
+                auto f_f = Expression::make<AST::Arrow>();
+                auto unary_type = f_f.ref<AST::Arrow>();
+                unary_type->params.push_back(AST::Parameter("a", reference("Float")));
+                return f_f;
+            };
+
+            auto min_fun = Expression::make<AST::Builtin>("min", make_binary(), 2);
+            insert("min", Expression(min_fun));
+
+            auto max_fun = Expression::make<AST::Builtin>("max", make_binary(), 2);
+            insert("max", Expression(max_fun));
+
+            auto sin_fun = Expression::make<AST::Builtin>("sin", make_unary(), 1);
+            insert("sin", Expression(sin_fun));
+
+            auto pi = Expression::make<AST::Value>(3.14, reference("Float"));
+            insert("pi", Expression(pi));
+        }
+    }
 
     std::string_view get_name(const Expression& v){
         switch (v.kind()){

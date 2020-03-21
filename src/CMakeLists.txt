@@ -73,15 +73,15 @@ SET(ADD_SOURCE
 
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
-TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
+TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog stdc++fs)
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython spdlog::spdlog)
+TARGET_LINK_LIBRARIES(liblython spdlog::spdlog stdc++fs)
 
 # Main interpreter loop
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} spdlog::spdlog liblython liblogging)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} spdlog::spdlog stdc++fs liblython liblogging)
 SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 IF(UNIX)

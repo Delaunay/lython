@@ -49,6 +49,21 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return out;
     }
 
+    Tuple<Array<Value>, Array<String>> eval_module(Module const& m) {
+        Array<Value>  env;
+        Array<String> str;
+
+        for(int i = 0; i < m.size(); ++i){
+            debug("{}", m.get_name(i).c_str());
+            Expression exp = m[i];
+            auto v = eval(exp);
+
+            env.push_back(v);
+            str.push_back(m.get_name(i));
+        }
+        return std::make_tuple(env, str);
+    }
+
     InterpreterImpl(Module& m){
         // Eval the module en create the environment for the interpreter
         for(int i = 0; i < m.size(); ++i){
@@ -77,45 +92,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value import(Import_t import, size_t depth){
-        // TODO tweak research paths
-        static String search_path = "/home/setepenre/work/lython/code";
-
-        // String path = import->path;
-        // Look for <path> in module lookup path
-        // load module object and return
-        String file_path;
-
-        // in the current state there are different way this could be implemented
-        // what we should do is parse the module-import during the parsing phase
-        // because we need the information for type checking
-        // so we have to do it there NOT here like I am doing.
-        // because the module is already parsed we only need to eval the module
-        // which means the Import is actually a Module and ImportExpr is a referencce
-        // into that Module
-
-        FileBuffer reader(file_path);
-        Lexer lex(reader);
-        Module module;
-        Parser par(reader, &module);
-
-        // import <path_1>...<path_n>
-        // insert  path_1 as an module object into the current environment
-        if (import->imports.size() == 0){
-
-        } else {
-            // from a.b.c import f
-            // insert f as an imported expression
-
-            for(auto& imp: import->imports){
-                String name;
-
-                if (imp.import_name){
-                    name = imp.import_name.str();
-                } else {
-                    name = imp.export_name.str();
-                }
-            }
-        }
+        eval_module(import->module);
 
         return Value("none");
     }

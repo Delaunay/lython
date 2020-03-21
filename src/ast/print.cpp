@@ -89,7 +89,7 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
             out << import.export_name;
 
             if (import.import_name && import.import_name != get_string("")){
-                out << " as " << import.import_name;
+                out << KEYWORD(" as ") << import.import_name;
             }
         };
 
@@ -102,9 +102,9 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
 
         // from <> import <> as <>
         if (imp->imports.size()){
-            out << "from ";
+            out << KEYWORD("from ");
             print_path(imp->path);
-            out << " import ";
+            out << KEYWORD(" import ");
 
             size_t k = 0;
             for(auto& import: imp->imports){
@@ -117,11 +117,11 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
             }
             print_import(*(imp->imports.end() - 1));
         } else {
-            out << "import ";
+            out << KEYWORD("import ");
             print_path(imp->path);
 
             if (imp->name && imp->name != get_string("")){
-                out << " as " << imp->name;
+                out << KEYWORD(" as ") << imp->name;
             }
         }
 

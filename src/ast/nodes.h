@@ -21,11 +21,9 @@
 #include "lexer/token.h"
 #include "utilities/stack.h"
 #include "interpreter/value.h"
-
+#include "parser/module.h"
 
 namespace lython {
-
-class Module;
 
 namespace AST {
 struct Node {
@@ -211,6 +209,8 @@ struct Import: public Node{
     PackagePath        path;        // package.package.package
     StringRef          name;        // as <name>
     DeclarationImports imports;     // *(<export_name> [as <import_name>])
+    // parsed module resulting of the import
+    Module             module;
 
     Import():
         Node(NodeKind::KImport)
@@ -386,7 +386,7 @@ public:
     }
 
     void insert(StringRef const& attr, Expression expr){
-        offset[attr] = attributes.size();
+        offset[attr] = int(attributes.size());
         attributes.emplace_back(attr, expr);
     }
 };
