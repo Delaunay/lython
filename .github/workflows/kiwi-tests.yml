@@ -17,27 +17,23 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install gcovr
+          sudo apt-get install gcc-8 g++-8
+          pip install gcovr
           mkdir -p build
-
-      - name: cache-build
-        uses: actions/cache@v1
-        with:
-          path: build
-          key: ${{ runner.OS }}-build-${{ hashFiles('CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.OS }}-build-${{ env.cache-name }}-
-            ${{ runner.OS }}-build-
-            ${{ runner.OS }}-
 
       - name: compile
         run: |
           git submodule update --init
           cd build
-          cmake ..
+          GCOV=gcov-8 CC=gcc-8 CXX=g++-8 cmake ..
           make enable-debug
           make enable-test
           make -j 4

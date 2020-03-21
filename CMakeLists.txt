@@ -46,7 +46,6 @@ SET(CXX_STANDARD_REQUIRED ON)
 # FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(Git REQUIRED)
 
-
 # CMake Exentions
 # ====================================
 
