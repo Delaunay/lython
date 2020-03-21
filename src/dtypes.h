@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <list>
 
 #include <sstream>
 
@@ -36,6 +37,9 @@ using AllocatorCPU = Allocator<V, device::CPU>;
 
 template<typename V>
 using Array = std::vector<V, AllocatorCPU<V>>;
+
+template<typename V>
+using List = std::list<V, AllocatorCPU<V>>;
 
 using String = std::basic_string<char, std::char_traits<char>, AllocatorCPU<char>>;
 

@@ -7,16 +7,40 @@
 
 namespace lython {
 
-Value builtin_sin(Array<Value>& args);
-Value builtin_max(Array<Value>& args);
-Value builtin_div(Array<Value>& args);
-Value builtin_mult(Array<Value>& args);
+Value builtin_sin(State& args);
+Value builtin_max(State& args);
+Value builtin_div(State& args);
+Value builtin_mult(State& args);
 
+// Execute function upon destruction
+template <typename Exit>
+struct Guard{
+    Guard(Exit fun):
+        on_exit(fun)
+    {}
+
+    ~Guard(){
+        on_exit();
+    }
+
+    Exit  on_exit;
+};
+
+template <typename Exit>
+Guard<Exit> guard(Exit fun){
+    return Guard(fun);
+}
+
+
+#define RESULT(X) (std::make_tuple(X, &main))
 
 struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
-    //! Execution environment
-    Array<Value>  env;
-    Array<String> str;
+    // Current environment
+    State* env = nullptr;
+    std::size_t env_switch = 0;
+
+    // Keep track of all the dependencies we load
+    List<State> module;
 
     //! Builtin function defined in C++
     Dict<String, Value::BuiltinImpl> builtins = {
@@ -26,57 +50,33 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         {"*", builtin_mult},
     };
 
+    // Eval a module to generate an execution context
+    State* eval_module(Module const& m) {
+        State& state = module.emplace_back();
+
+        for(int i = 0; i < m.size(); ++i){
+            debug("{}", m.get_name(i).c_str());
+            Expression exp = m[i];
+            auto v = eval(exp);
+
+            state.push(v, m.get_name(i));
+        }
+
+        return &state;
+    }
+
     void push(Value v, String const& name = ""){
-        // debug("{} = {}", name, v);
-        env.push_back(v);
-        str.push_back(name);
+        env->push(v, name);
     }
 
     void pop(std::ptrdiff_t n){
-        debug("{}", n);
-        env.erase(env.begin() + n, env.end());
-        str.erase(str.begin() + n, str.end());
-    }
-
-    std::ostream& dump_env(std::ostream& out){
-        out << String(50, '-') << '\n';
-        out << str.size() << " " << env.size() << '\n';
-        for(auto i = 0ul; i < env.size(); ++i){
-            out << fmt::format("{:4d} | {:20} | {} \n", i, str[i], env[i]);
-        }
-
-        out << String(50, '-') << '\n';
-        return out;
-    }
-
-    Tuple<Array<Value>, Array<String>> eval_module(Module const& m) {
-        Array<Value>  env;
-        Array<String> str;
-
-        for(int i = 0; i < m.size(); ++i){
-            debug("{}", m.get_name(i).c_str());
-            Expression exp = m[i];
-            auto v = eval(exp);
-
-            env.push_back(v);
-            str.push_back(m.get_name(i));
-        }
-        return std::make_tuple(env, str);
+        env->pop(n);
     }
 
     InterpreterImpl(Module& m){
-        // Eval the module en create the environment for the interpreter
-        for(int i = 0; i < m.size(); ++i){
-            debug("{}", m.get_name(i).c_str());
-            Expression exp = m[i];
-            auto v = eval(exp);
-            push(v, m.get_name(i));
-        }
-        debug("Module evaluated (env: {})", env.size());
-
-        debug("Dumping env");
-        dump_env(std::cout);
-        debug("---");
+        // Eval the main module
+        env = eval_module(m);
+        env->dump(std::cout);
     }
 
     Value eval(Expression const expr, std::size_t d=0){
@@ -84,29 +84,29 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value imported_expression(ImportedExpr_t imp, std::size_t d){
-        // we need to memoize this
-        Value module = eval(imp->import, d + 1);
+        assert(imp->import.kind() == AST::NodeKind::KImport, "Need to be an import");
+        auto package = imp->import.ref<AST::Import>();
 
+        State* old_env = env;
 
-        return String("fake_import");
+        // Save module by path
+        // package->module_path();
+        env = eval_module(package->module);
+
+        // fetch
+        if (!imp->ref){
+            return Value("<nullptr>");
+        }
+
+        auto v = eval(imp->ref, d + 1);
+        env = old_env;
+
+        return v;
     }
 
-    Value import(Import_t import, size_t depth){
-        eval_module(import->module);
-
-        return Value("none");
-    }
-
-    Array<Value> eval(Array<Expression> const & exprs, size_t depth){
-        trace_start(depth, "eval_args");
-
-        Array<Value> values;
-        values.reserve(exprs.size());
-
-        for (auto& expr: exprs)
-            values.push_back(eval(expr, depth));
-
-        return values;
+    Value import(Import_t import, size_t){
+        // this should not be called
+        return  String("import_error");
     }
 
     Value undefined(Node_t, std::size_t){
@@ -201,31 +201,18 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value reference(Reference_t ref, std::size_t depth) {
-        auto n = env.size() - std::size_t(ref->index);
-        if (n >= env.size()){
-            debug("{}: {}, length={} | size={} | fetch={}",
-                  ref->name,
-                  ref->index,
-                  ref->length,
-                  env.size(),
-                  n);
-        }
-
-        auto r = env[n];
-        trace_start(depth, "{}: {}, length={} | size={} | fetch={} => {}",
+        trace_start(depth, "{}: {}, length={} | size={}",
                     ref->name,
                     ref->index,
                     ref->length,
-                    env.size(),
-                    n,
-                    r);
-        return r;
+                    env->size());
+        return (*env)[ref->index];
     }
 
     Value builtin(Builtin_t blt, std::size_t depth) {
         trace_start(depth, "{}", blt->name);
         auto fun = builtins[blt->name.str()];
-        return Value(fun, Array<Value>());
+        return Value(fun);
     }
 
     Value value(Value_t val, std::size_t depth) {
@@ -239,16 +226,29 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     Value call(Call_t call, std::size_t depth) {
         trace_start(depth, "{}", call->function);
+
+        /*/ Restore previous environment
+        State* old_env = env;
+        auto restore_env = guard([&](){
+            if (env != old_env){
+                env_switch += 1;
+            }
+            env = old_env;
+        }); */
+
+        // This might load a custom environment
+        // (if function is an imported expression)
         Value closure = eval(call->function, depth);
+
         switch (closure.tag) {
         // standard function
         case ValueKind::obj_closure: return fun_call(closure, call, depth);
 
         // Calling a struct type
         case ValueKind::obj_class: return struct_call(closure, call, depth);
-        }
 
-        return closure;
+        default: return closure;
+        }
     }
 
     Value struct_call(Value closure, Call_t call, std::size_t depth){
@@ -272,23 +272,23 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
            data.set_attribute(item.first, eval(item.second, depth));
         }
 
-        // v.v_object.attributes;
         return v;
     }
 
     Value fun_call(Value closure, Call_t call, std::size_t depth){
         trace_start(depth, "fun_call");
 
-        auto on = std::ptrdiff_t(env.size());
+        // Clean arguments from the exec environment
+        auto on = env->size();
+        auto clean_env = guard([&]{
+            pop(on);
+        });
 
         for (auto& expr: call->arguments)
             push(eval(expr, depth));
 
-        Value returned_value = eval_closure(closure, depth);
+        return eval_closure(closure, depth);
 
-        pop(on);
-        // debug("return {}", returned_value);
-        return returned_value;
     }
 
     Value arrow(Arrow_t aw, std::size_t d) {
@@ -303,7 +303,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     Value function(Function_t fun, std::size_t) {
         // make a closure out a function
-        return Value(fun, env);
+        return Value(fun);
     }
 
     // Helpers
@@ -316,7 +316,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
             if (!clo->fun){
                 assert(clo->builtin, "Closure is undefined");
-                auto v = clo->builtin(env);
+                auto v = clo->builtin(*env);
                 return v;
             } else {
                 const AST::Function* fun_decl = fun.get<value::Closure*>()->fun;
@@ -342,9 +342,7 @@ Value Interpreter::eval(Expression const expr){
     return ptr->eval(expr);
 }
 
-Value builtin_sin(Array<Value>& args){
-    assert(args.size() == 2, "expected 1 arguments");
-
+Value builtin_sin(State& args){
     auto v = args[1].get<float64>();
 
     // std::cout << "sin(" << v << ")";
@@ -352,35 +350,27 @@ Value builtin_sin(Array<Value>& args){
 }
 
 
-Value builtin_max(Array<Value>& args){
+Value builtin_max(State& args){
     debug("calling max");
-    assert(args.size() >= 3, "expected 2 arguments");
-
-    auto n = args.size();
-
-    auto a = args[n - 2];
-    auto b = args[n - 1];
+    auto a = args[2];
+    auto b = args[1];
 
     return std::max(a.get<float64>(), b.get<float64>());
 }
 
 
-Value builtin_div(Array<Value>& args){
-    assert(args.size() >= 3, "expected 2 arguments");
-
-    auto a = args[1].get<float64>();
-    auto b = args[2].get<float64>();
+Value builtin_div(State& args){
+    auto a = args[2].get<float64>();
+    auto b = args[1].get<float64>();
 
     //std::cout << "div(" << a << ", " << b << ")";
     return a / b;
 }
 
 
-Value builtin_mult(Array<Value>& args){
-    assert(args.size() >= 3, "expected 2 arguments");
-
-    auto a = args[1].get<float64>();
-    auto b = args[2].get<float64>();
+Value builtin_mult(State& args){
+    auto a = args[2].get<float64>();
+    auto b = args[1].get<float64>();
 
     //std::cout << "mult(" << a << ", " << b << ")";
     return a * b;

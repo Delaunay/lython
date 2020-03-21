@@ -226,11 +226,16 @@ struct Import: public Node{
 };
 
 struct ImportedExpr: public Node{
+    ImportedExpr(Expression imp, Expression ref):
+        Node(NodeKind::KImportedExpr), import(imp), ref(ref)
+    {}
+
     ImportedExpr(Expression imp, StringRef ref):
         Node(NodeKind::KImportedExpr), import(imp), name(ref)
     {}
 
-    Expression import;
+    Expression import;  // package that is imported
+    Expression ref;     // reference to the imported module
     StringRef  name;
 };
 

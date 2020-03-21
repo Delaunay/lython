@@ -108,7 +108,7 @@ void show_backtrace() {
 }
 
 int register_signal_handler(){
-    signal(SIGSEGV, signal_handler);   // install our handler
+    signal(SIGSEGV, signal_handler);   // 11, install our handler
     signal(SIGINT, signal_handler);
     signal(SIGQUIT, signal_handler);
     // Sent on exceptions which already print the stack trace

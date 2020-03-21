@@ -30,6 +30,7 @@ bool _metadata_init_names(){
     meta::register_type<AST::Parameter>("Parameter");
     meta::register_type<lython::Expression>("Expression");
     meta::register_type<lython::Value>("Value");
+    meta::register_type<lython::State::Entry>("State::Entry");
     meta::register_type<lython::AST::Import::DeclarationImport>("DeclImport");
 
     meta::register_type<SharedPtrInternal<lython::value::Closure>>("Closure");
@@ -76,8 +77,8 @@ bool _metadata_init_names(){
 
     // interpreter
     meta::register_type<HashNodeInternal<
-        std::pair<const String, std::function<Value(Array<Value>&)>>, true>>(
-        "Pair[String, Value(Value[])]");
+        std::pair<const String, std::function<Value(State&)>>, true>>(
+        "Pair[String, Value(State)]");
 
     meta::register_type<HashNodeInternal<
         std::pair<const String, TokenType>, true>>(

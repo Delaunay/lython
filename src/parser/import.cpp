@@ -90,14 +90,12 @@ Expression Parser::parse_import(Module& m, std::size_t){
             imp->name = token().identifier();
             EAT(tok_identifier);
 
-            m.insert(
-                imp->name.str(),
-                Expression::make<AST::ImportedExpr>(module_expr, imp->name));
+            auto p = Expression::make<AST::ImportedExpr>(module_expr, imp->name);
+            m.insert(imp->name.str(), p);
         } else {
             auto path = imp->module_path();
-
-            m.insert(path, Expression::make<AST::ImportedExpr>(
-                               module_expr, get_string(path)));
+            auto p = Expression::make<AST::ImportedExpr>(module_expr, get_string(path));
+            m.insert(path, p);
         }
 
         return module_expr;
@@ -115,7 +113,8 @@ Expression Parser::parse_import(Module& m, std::size_t){
 
         while (token().type() == tok_identifier){
             StringRef export_name = token().identifier();
-            StringRef import_name;
+            StringRef import_name = export_name;
+            bool renamed = false;
 
             next_token();
             if (token().type() == tok_as){
@@ -124,15 +123,15 @@ Expression Parser::parse_import(Module& m, std::size_t){
                                        "`from <path> import <identifier> as <identifier?>`");
                 import_name = token().identifier();
                 next_token();
-
-                m.insert(
-                    import_name.str(),
-                    Expression::make<AST::ImportedExpr>(module_expr, import_name));
-            } else {
-                m.insert(
-                    export_name.str(),
-                    Expression::make<AST::ImportedExpr>(module_expr, import_name));
+                renamed = true;
             }
+
+            auto ref = imp->module.reference(export_name.str());
+            auto p = Expression::make<AST::ImportedExpr>(module_expr, ref);
+            m.insert(import_name.str(), p);
+
+            if (!renamed)
+                import_name = StringRef();
 
             imp->imports.emplace_back(export_name, import_name);
             EAT(',');

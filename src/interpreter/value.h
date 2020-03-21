@@ -33,6 +33,7 @@ enum class ValueKind: uint64 {
     obj_closure,
     obj_object,     // class instance object
     obj_class,      // class type
+    obj_module,     // imported package
     obj_none
 };
 
@@ -78,10 +79,55 @@ namespace value {
     struct Closure;
 }
 
+template<typename V>
+struct _State{
+    struct Entry{
+        Entry(V v, String const& name = ""):
+            v(v), n(name)
+        {}
+
+        V      v;
+        String n;
+    };
+
+    Array<Entry> env;
+
+    std::ostream& dump(std::ostream& out){
+        out << String(50, '-') << '\n';
+        out << env.size() << std::endl;
+
+        for(auto i = 0ul; i < env.size(); ++i){
+            out << fmt::format("{:4d} | {:20} | {}", i, env.at(i).n, env.at(i).v) << std::endl;
+        }
+
+        out << String(50, '-') << '\n';
+        return out;
+    }
+
+    void push(V v, String const& name = ""){
+        env.emplace_back(v, name);
+    }
+
+    void pop(std::ptrdiff_t n){
+        env.erase(env.begin() + n, env.end());
+    }
+
+    template<typename T = int>
+    T size() const {
+        return T(env.size());
+    }
+
+    template<typename T>
+    V operator[] (T i) const {
+        assert(env.size() > i, "Index should be inside size()");
+        return env[env.size() - std::size_t(i)].v;
+    }
+};
+
 struct Value {
     friend Value new_object(AST::Struct const *type);
 
-    using BuiltinImpl = std::function<Value(Array<Value>&)>;
+    using BuiltinImpl = std::function<Value(_State<Value>&)>;
 
     ValueKind tag;
 
@@ -150,9 +196,10 @@ public:
         Value(get_string(str))
     {}
 
-    Value(AST::Function const* fun, Array<Value> env);
-    Value(BuiltinImpl fun, Array<Value>  env);
+    Value(AST::Function const* fun, _State<Value>* env = nullptr);
+    Value(BuiltinImpl fun, _State<Value>* env = nullptr);
     Value(AST::Struct const* cstruct);
+    Value(_State<Value>& state, String const& name = "-");
 
     Value():
         tag(ValueKind::obj_none)
@@ -165,6 +212,8 @@ private:
         tag(tag)
     {}
 };
+
+using State = _State<Value>;
 
 Value new_object(const AST::Struct *type);
 
@@ -189,14 +238,14 @@ struct Struct: public ValueHolder{
 
 // Result of a closure
 struct Closure: public ValueHolder {
-    using BuiltinImpl = std::function<Value(Array<Value>&)>;
+    using BuiltinImpl = std::function<Value(State&)>;
 
-    Closure(AST::Function const* fun, Array<Value> env, BuiltinImpl builtin):
+    Closure(AST::Function const* fun, State* env, BuiltinImpl builtin):
         fun(fun), env(env), builtin(builtin)
     {}
 
     AST::Function const * fun = nullptr;
-    Array<Value>          env;
+    State*                env = nullptr;
     BuiltinImpl           builtin;
 
     std::ostream& print(std::ostream& out, int depth = 0) const;
@@ -212,6 +261,19 @@ struct Class: public ValueHolder{
 
     std::ostream& print(std::ostream& out, int depth = 0) const;
 };
+
+struct Module: public ValueHolder{
+    Module(State& state, String const& name): state(state), name(name)
+    {}
+
+    State state;
+    String name;
+
+    std::ostream& print(std::ostream& out, int = 0) const {
+        return out << "Module<" << name << ">";
+    }
+};
+
 }
 
 #define X(type)\

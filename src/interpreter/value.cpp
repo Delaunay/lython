@@ -26,15 +26,20 @@ String to_string(ValueKind kind){
     return "<not_implemented>";
 }
 
-Value::Value(AST::Function const* fun, Array<Value>  env):
+Value::Value(AST::Function const* fun, State* env):
     tag(ValueKind::obj_closure),
-    _obj(lython::make_shared<value::Closure>(fun, std::move(env), nullptr))
+    _obj(lython::make_shared<value::Closure>(fun, env, nullptr))
+{}
+
+Value::Value(State& state, String const& name):
+    tag(ValueKind::obj_module),
+    _obj(lython::make_shared<value::Module>(state, name))
 {
 }
 
-Value::Value(BuiltinImpl fun, Array<Value>  env):
+Value::Value(BuiltinImpl fun, State* env):
     tag(ValueKind::obj_closure),
-    _obj(lython::make_shared<value::Closure>(nullptr, std::move(env), std::move(fun)))
+    _obj(lython::make_shared<value::Closure>(nullptr, env, std::move(fun)))
 {}
 
 Value::Value(AST::Struct const* cstruct):
