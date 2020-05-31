@@ -55,6 +55,11 @@ bool _metadata_init_names(){
         std::pair<const StringRef, Value>, false>>(
         "Pair[StringRef, Value]");
 
+    // Module dict
+    meta::register_type<HashNodeInternal<
+        std::pair<const String, State>, true>>(
+        "Pair[String, State]");
+
     // AST::Struct
     meta::register_type<HashNodeInternal<
         std::pair<const StringRef, int>, false>>(

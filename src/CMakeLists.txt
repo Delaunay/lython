@@ -35,6 +35,7 @@ SET(ADD_HEADERS
     utilities/metadata.h
     utilities/stopwatch.h
     utilities/strings.h
+    utilities/guard.h
     interpreter/interpreter.h
     interpreter/value.h
     dtypes.h

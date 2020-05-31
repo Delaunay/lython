@@ -140,6 +140,14 @@ DEFINE_SAMPLE_CODE(
     "from a.b.c import g as h, i as j"
     )
 
+DEFINE_SAMPLE_CODE(
+    from_import_call_code,
+    "from a.b.c import g as h\n"
+
+    "def fun(a, b):\n"
+    "    return h(a, b)\n\n"
+    )
+
 #define IMPORT_TEST(X)\
     X(import_code)\
     X(import_as_code)\

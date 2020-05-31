@@ -41,7 +41,7 @@ String strip(String const& v){
 
 Expression make_point(Module& mod);
 Expression make_point_check(Module& mod);
-
+Expression make_import_call_check(Module& mod);
 
 int main() {
     metadata_init_names();
@@ -91,6 +91,9 @@ int main() {
         "    set_x(p, v)\n"
         "    a = get_x(p)\n"
         "    return a\n\n"
+
+        "def call_import() -> Float:\n"
+        "    return k(1.0, 2.0)\n\n"
         ;
 
         "def function2(test: double, test) -> double:\n"
@@ -167,6 +170,7 @@ int main() {
 
 //        "get_x(pp)\n";
 
+        // auto expr = make_import_call_check(module);
         auto expr = make_point_check(module);
         Value v = vm.eval(expr);
 
@@ -197,6 +201,13 @@ Expression make_point_check(Module& mod){
     call->function = mod.reference("struct_set_get");
     call->arguments.emplace_back(
         Expression::make<AST::Value>(2.0, Expression()));
+    return expr;
+}
+
+Expression make_import_call_check(Module& mod){
+    auto expr = Expression::make<AST::Call>();
+    AST::Call* call = expr.ref<AST::Call>();
+    call->function = mod.reference("call_import");
     return expr;
 }
 

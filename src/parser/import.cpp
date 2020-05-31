@@ -50,6 +50,8 @@ void process_module(AST::Import* imp){
     } catch (lython::Exception e) {
         error("Error Occured: {}", e.what());
     }
+
+    imp->module.print(std::cout);
 }
 
 Expression Parser::parse_import(Module& m, std::size_t){

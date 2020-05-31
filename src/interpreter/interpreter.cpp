@@ -4,6 +4,7 @@
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
+#include "utilities/guard.h"
 
 namespace lython {
 
@@ -11,26 +12,6 @@ Value builtin_sin(State& args);
 Value builtin_max(State& args);
 Value builtin_div(State& args);
 Value builtin_mult(State& args);
-
-// Execute function upon destruction
-template <typename Exit>
-struct Guard{
-    Guard(Exit fun):
-        on_exit(fun)
-    {}
-
-    ~Guard(){
-        on_exit();
-    }
-
-    Exit  on_exit;
-};
-
-template <typename Exit>
-Guard<Exit> guard(Exit fun){
-    return Guard(fun);
-}
-
 
 #define RESULT(X) (std::make_tuple(X, &main))
 
@@ -40,7 +21,8 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     std::size_t env_switch = 0;
 
     // Keep track of all the dependencies we load
-    List<State> module;
+    // List<State> module;
+    Dict<String, State> modules;
 
     //! Builtin function defined in C++
     Dict<String, Value::BuiltinImpl> builtins = {
@@ -51,13 +33,21 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     };
 
     // Eval a module to generate an execution context
-    State* eval_module(Module const& m) {
-        State& state = module.emplace_back();
+    State* eval_module(Module const& m, String const& name) {
+        State& state = modules[name];
+
+        if (state.size() > 0){
+            return &state;
+        }
 
         for(int i = 0; i < m.size(); ++i){
             debug("{}", m.get_name(i).c_str());
             Expression exp = m[i];
             auto v = eval(exp);
+
+            if (v.env == nullptr){
+                v.env = &state;
+            }
 
             state.push(v, m.get_name(i));
         }
@@ -75,8 +65,15 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
     InterpreterImpl(Module& m){
         // Eval the main module
-        env = eval_module(m);
+        env = eval_module(m, "__main__");
         env->dump(std::cout);
+    }
+
+    template<typename ...Args>
+    Value value(Args... args){
+        auto v = Value(args...);
+        v.env = env;
+        return v;
     }
 
     Value eval(Expression const expr, std::size_t d=0){
@@ -88,37 +85,39 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         auto package = imp->import.ref<AST::Import>();
 
         State* old_env = env;
+        auto _ = guard([&](){
+            env = old_env;
+        });
 
         // Save module by path
-        // package->module_path();
-        env = eval_module(package->module);
+        env = eval_module(package->module, package->module_path());
 
         // fetch
         if (!imp->ref){
-            return Value("<nullptr>");
+            return value("<nullptr>");
         }
 
         auto v = eval(imp->ref, d + 1);
-        env = old_env;
+        v.env = env;
 
         return v;
     }
 
-    Value import(Import_t import, size_t){
+    Value import(Import_t, size_t){
         // this should not be called
-        return  String("import_error");
+        return value("import_error");
     }
 
     Value undefined(Node_t, std::size_t){
-        return Value("undefined");
+        return value("undefined");
     }
 
     Value parameter(Parameter_t, std::size_t) {
-        return Value("parameter");
+        return value("parameter");
     }
 
     Value unary(UnaryOperator_t, size_t) {
-        return Value("unary");
+        return value("unary");
     }
 
     Value binary(BinaryOperator_t bin, std::size_t d) {
@@ -144,7 +143,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
                 auto rhs = eval(bin->rhs, d);
                 push(rhs, bin->lhs.ref<AST::Ref>()->name.str());
-                return Value("none");
+                return value("none");
             }
             // assign to object
             case AST::NodeKind::KBinaryOperator: {
@@ -165,18 +164,18 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                 data.set_attribute(attr_name, new_value);
 
                 // dump_env(std::cout);
-                return Value("none");
+                return value("none");
             }
 
             default:
-                return Value("Unsupported");
+                return value("Unsupported");
             }
         } else {
             auto lhs = eval(bin->lhs, d);
             auto rhs = eval(bin->rhs, d);
         }
 
-        return Value("binary");
+        return value("binary");
     }
 
     Value sequential(SeqBlock_t seq, std::size_t depth) {
@@ -192,7 +191,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value unparsed(UnparsedBlock_t, std::size_t) {
-        return Value("unparsed");
+        return value("unparsed");
     }
 
     Value statement(Statement_t stmt, std::size_t depth) {
@@ -206,13 +205,15 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
                     ref->index,
                     ref->length,
                     env->size());
-        return (*env)[ref->index];
+        auto v = (*env)[ref->index];
+        trace_end(depth, "Found {}", v.str());
+        return v;
     }
 
     Value builtin(Builtin_t blt, std::size_t depth) {
         trace_start(depth, "{}", blt->name);
         auto fun = builtins[blt->name.str()];
-        return Value(fun);
+        return value(fun);
     }
 
     Value value(Value_t val, std::size_t depth) {
@@ -221,20 +222,11 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     }
 
     Value struct_type(Struct_t cstruct, std::size_t) {
-        return Value(cstruct);
+        return value(cstruct);
     }
 
     Value call(Call_t call, std::size_t depth) {
         trace_start(depth, "{}", call->function);
-
-        /*/ Restore previous environment
-        State* old_env = env;
-        auto restore_env = guard([&](){
-            if (env != old_env){
-                env_switch += 1;
-            }
-            env = old_env;
-        }); */
 
         // This might load a custom environment
         // (if function is an imported expression)
@@ -242,10 +234,12 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
         switch (closure.tag) {
         // standard function
-        case ValueKind::obj_closure: return fun_call(closure, call, depth);
+        case ValueKind::obj_closure:
+            return fun_call(closure, call, depth);
 
         // Calling a struct type
-        case ValueKind::obj_class: return struct_call(closure, call, depth);
+        case ValueKind::obj_class:
+            return struct_call(closure, call, depth);
 
         default: return closure;
         }
@@ -256,6 +250,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
 
         AST::Struct const* cstruct = closure.get<value::Class*>()->fun;
         Value v = new_object(cstruct);
+        v.env = env;
         value::Struct& data = *v.get<value::Struct*>();
 
         assert(call->arguments.size() == cstruct->attributes.size(),
@@ -265,7 +260,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         auto n = call->arguments.size();
 
         for(auto i = 0u; i < n; ++i){
-            data.set_attribute(i, eval(call->arguments[i], depth));
+            data.set_attribute(int(i), eval(call->arguments[i], depth));
         }
 
         for(auto& item: call->kwargs){
@@ -278,32 +273,39 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
     Value fun_call(Value closure, Call_t call, std::size_t depth){
         trace_start(depth, "fun_call");
 
+        // Restore previous environment
+        State* old_env = env;
+        env = closure.env;
+
+        // Dump the environment of the call
+        env->dump(std::cout);
+
         // Clean arguments from the exec environment
         auto on = env->size();
         auto clean_env = guard([&]{
             pop(on);
+            env = old_env;
         });
 
         for (auto& expr: call->arguments)
             push(eval(expr, depth));
 
         return eval_closure(closure, depth);
-
     }
 
-    Value arrow(Arrow_t aw, std::size_t d) {
+    Value arrow(Arrow_t, std::size_t) {
         // this should not be called at runtime
         // Note that there is a compile time interpreter running as well
-        return Value("arrow");
+        return value("arrow");
     }
 
     Value type(Type_t type, std::size_t) {
-        return Value(type->name);
+        return value(type->name);
     }
 
     Value function(Function_t fun, std::size_t) {
         // make a closure out a function
-        return Value(fun);
+        return value(fun);
     }
 
     // Helpers
@@ -321,12 +323,12 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
             } else {
                 const AST::Function* fun_decl = fun.get<value::Closure*>()->fun;
                 assert(fun_decl, "fun should be defined");
-                return eval(fun_decl->body, depth);
+                auto v = eval(fun_decl->body, depth);
+                return v;
             }
         }
 
-
-        return Value("NotImplemented");
+        return value("NotImplemented");
     }
 };
 
@@ -344,35 +346,24 @@ Value Interpreter::eval(Expression const expr){
 
 Value builtin_sin(State& args){
     auto v = args[1].get<float64>();
-
-    // std::cout << "sin(" << v << ")";
     return std::sin(v);
 }
 
-
 Value builtin_max(State& args){
-    debug("calling max");
-    auto a = args[2];
-    auto b = args[1];
-
-    return std::max(a.get<float64>(), b.get<float64>());
+    auto a = args[2].get<float64>();
+    auto b = args[1].get<float64>();
+    return std::max(a, b);
 }
-
 
 Value builtin_div(State& args){
     auto a = args[2].get<float64>();
     auto b = args[1].get<float64>();
-
-    //std::cout << "div(" << a << ", " << b << ")";
     return a / b;
 }
-
 
 Value builtin_mult(State& args){
     auto a = args[2].get<float64>();
     auto b = args[1].get<float64>();
-
-    //std::cout << "mult(" << a << ", " << b << ")";
     return a * b;
 }
 
