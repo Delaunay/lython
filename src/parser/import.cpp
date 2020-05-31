@@ -39,7 +39,7 @@ void process_module(AST::Import* imp){
     // StringBuffer reader(read_file(path), path);
     FileBuffer reader(path);
     Lexer lex(reader);
-    Parser par(reader, &imp->module);
+    Parser par(lex, &imp->module);
 
     try {
         Expression expr;

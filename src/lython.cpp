@@ -123,7 +123,8 @@ int main() {
         String parser_string;
 
         try {
-            Parser par(reader, &module);
+            Lexer lex(reader);
+            Parser par(lex, &module);
             Expression expr;
             do {
                 expr = par.parse_one(module);

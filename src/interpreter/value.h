@@ -97,9 +97,14 @@ struct _State{
         out << env.size() << std::endl;
 
         for(auto i = 0ul; i < env.size(); ++i){
+            auto env_size = 0;
+            if (env.at(i).v.env != nullptr){
+                env_size = env.at(i).v.env->size();
+            }
+
             out << fmt::format(
-                "{:4d} | {:20} | {} | {}",
-                i, env.at(i).n, env.at(i).v, std::size_t(env.at(i).v.env)) << std::endl;
+                "{:4d} | {:4d} | {:20} | {} ",
+                i, env_size, env.at(i).n, env.at(i).v) << std::endl;
         }
 
         out << String(50, '-') << '\n';
@@ -174,7 +179,7 @@ public:
         throw TypeError("{}(const): expected {} got {}", to_string(retrieve_tag<T>()), to_string(tag));
     }
 
-    _State<Value>* env;
+    _State<Value>* env = nullptr;
     value::Closure* get_closure();
 
 public:

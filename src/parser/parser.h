@@ -78,8 +78,8 @@ class ParserException : public Exception {
 
 class Parser {
   public:
-    Parser(AbstractBuffer &buffer, Module *module)
-        : module(module), _lex(buffer) {
+    Parser(AbstractLexer &lexer, Module *module)
+        : module(module), _lex(lexer) {
         metadata_init_names();
     }
 
@@ -96,6 +96,9 @@ class Parser {
         debug("Missing identifier");
         return String("<identifier>");
     }
+
+    // Consume a tokens without parsing them
+    Expression consume_block(std::size_t depth);
 
     Expression parse_function(Module& m, std::size_t depth);
 
@@ -275,7 +278,7 @@ class Parser {
   private:
     // Top Level Module
     Module *module;
-    Lexer _lex;
+    AbstractLexer& _lex;
     // BaseScope _scope;
 };
 

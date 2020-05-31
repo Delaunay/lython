@@ -15,7 +15,8 @@ inline String parse_it(String code){
     StringBuffer reader(code);
     Module module;
 
-    Parser par(reader, &module);
+    Lexer lex(reader);
+    Parser par(lex, &module);
 
     StringStream ss;
 

@@ -19,7 +19,8 @@ Value interpret_call(String const& code, String fun_name, Args... v){
 
     // Parse code
     Module module;
-    Parser par(reader, &module);
+    Lexer lex(reader);
+    Parser par(lex, &module);
 
     Expression expr;
     do {
@@ -49,7 +50,8 @@ Value interpret_code(String const& code){
 
     // Parse code
     Module module;
-    Parser par(reader, &module);
+    Lexer lex(reader);
+    Parser par(lex, &module);
 
     Expression expr;
     do {

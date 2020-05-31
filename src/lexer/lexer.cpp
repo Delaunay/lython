@@ -56,7 +56,7 @@ Dict<String, OpConfig> const& default_precedence() {
     return val;
 }
 
-std::ostream& Lexer::debug_print(std::ostream& out){
+std::ostream& AbstractLexer::debug_print(std::ostream& out){
 
     Token t = next_token();
     int k = 1;
@@ -71,8 +71,9 @@ std::ostream& Lexer::debug_print(std::ostream& out){
 
     return out;
 }
+
 // print out tokens as they were inputed
-std::ostream& Lexer::print(std::ostream& out){
+std::ostream& AbstractLexer::print(std::ostream& out){
 
     Token t = next_token();
     do {
