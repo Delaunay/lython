@@ -76,7 +76,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return v;
     }
 
-    Value eval(Expression const expr, std::size_t d=0){
+    KIWI_INLINE Value eval(Expression const expr, std::size_t d=0){
         return visit(expr, d);
     }
 
@@ -173,6 +173,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         } else {
             auto lhs = eval(bin->lhs, d);
             auto rhs = eval(bin->rhs, d);
+            // fetch binary opt and returns it
         }
 
         return value("binary");
@@ -241,8 +242,21 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         case ValueKind::obj_class:
             return struct_call(closure, call, depth);
 
-        default: return closure;
+        default:
+            return closure;
         }
+    }
+
+    Value extern_function(ExternFunction_t, std::size_t){
+        return Value("Not Implemented");
+    }
+
+    Value operator_fun(Operator_t, std::size_t){
+        return Value("Not Implemented");
+    }
+
+    Value match(Match_t, std::size_t){
+        return Value("Not Implemented");
     }
 
     Value struct_call(Value closure, Call_t call, std::size_t depth){

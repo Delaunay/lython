@@ -9,9 +9,9 @@ namespace lython {
 NEW_EXCEPTION(NullPointerError)
 
 #ifdef __linux__
-#define INLINE __attribute__((always_inline))
+#define KIWI_INLINE __attribute__((always_inline))
 #else
-#define INLINE __forceinline
+#define KIWI_INLINE __forceinline
 #endif
 
 /*!
@@ -37,13 +37,14 @@ struct BaseVisitor{
     #undef KIND
 
     // force inline to make the stacktrace prettier
-    INLINE ReturnType visit(Expr_t expr, std::size_t depth=0, Args... args)  {
+    KIWI_INLINE ReturnType visit(Expr_t expr, std::size_t depth=0, Args... args)  {
         using Node_T = typename std::conditional<std::is_const<Expr>::value, const AST::Node, AST::Node>::type;
 
         Node_t node = expr.template ref<Node_T>();
         return visit(node, depth, args...);
     }
 
+    // Dispatch table
     ReturnType visit(Node_t expr, std::size_t depth=0, Args... args){
         switch (expr->kind){
         #define KIND(name, funname)\
@@ -62,8 +63,9 @@ struct BaseVisitor{
         return static_cast<Implementation*>(this)->undefined(node, depth, args...);
     }
 
+    // inline will make the stacktrace better and throw an error if the function is not implemented
     #define KIND(name, funname)\
-        ReturnType funname(name##_t node, std::size_t depth, Args... args){\
+        KIWI_INLINE ReturnType funname(name##_t node, std::size_t depth, Args... args){\
             return reinterpret_cast<Implementation*>(this)->funname(node, depth, args...);\
         }
         NODE_KIND_ENUM(KIND)

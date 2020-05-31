@@ -284,6 +284,10 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         return out << op->name;
     }
 
+    std::ostream& extern_function(ExternFunction_t extern_fun, std::size_t d){
+        return out << extern_fun->name;
+    }
+
     std::ostream &function(Function_t fun, std::size_t d) {
         // debug("Function Print");
 
