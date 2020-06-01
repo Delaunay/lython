@@ -32,15 +32,18 @@ namespace lython{
             auto make_binary = [&](){
                 auto f_f_f = Expression::make<AST::Arrow>();
                 auto binary_type = f_f_f.ref<AST::Arrow>();
-                binary_type->params.push_back(AST::Parameter("a", reference("Float")));
-                binary_type->params.push_back(AST::Parameter("b", reference("Float")));
+                binary_type->params.push_back(
+                    AST::Parameter("a", reference("Float")));
+                binary_type->params.push_back(
+                    AST::Parameter("b", reference("Float")));
                 return f_f_f;
             };
 
             auto make_unary = [&](){
                 auto f_f = Expression::make<AST::Arrow>();
                 auto unary_type = f_f.ref<AST::Arrow>();
-                unary_type->params.push_back(AST::Parameter("a", reference("Float")));
+                unary_type->params.push_back(
+                    AST::Parameter("a", reference("Float")));
                 return f_f;
             };
 

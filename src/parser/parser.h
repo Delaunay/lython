@@ -8,6 +8,7 @@
 #include "utilities/stack.h"
 #include "utilities/trie.h"
 #include "utilities/metadata.h"
+#include "utilities/guard.h"
 
 #include "ast/nodes.h"
 #include "parser/module.h"
@@ -84,9 +85,9 @@ class Parser {
     }
 
     // Shortcut
-    Token next_token()  { return _lex.next_token(); }
-    Token token()       { return _lex.token();      }
-    Token peek_token()  { return _lex.peek_token(); }
+    Token const& next_token()  { return _lex.next_token(); }
+    Token const& token()       { return _lex.token();      }
+    Token const& peek_token()  { return _lex.peek_token(); }
 
     String get_identifier() {
         if (token().type() == tok_identifier) {
@@ -98,9 +99,11 @@ class Parser {
     }
 
     // Consume a tokens without parsing them
-    Expression consume_block(std::size_t depth);
+    Array<Token> consume_block(std::size_t depth);
 
     Expression parse_function(Module& m, std::size_t depth);
+
+    Expression parse_function_body(Expression expr, Module& m, std::size_t depth);
 
     Expression parse_compound_statement(Module& m, std::size_t depth);
 
@@ -144,6 +147,7 @@ class Parser {
         stmt->statement = statement;
 
         stmt->expr = parse_expression(m, depth + 1);
+        TRACE_END();
         return expr;
     }
 
@@ -154,9 +158,14 @@ class Parser {
 
     Expression parse_import(Module& m, std::size_t depth);
 
+    void parse_struct_fields(Module& m, AST::Struct* data, std::size_t depth);
+
     // parse function_name(args...)
     Expression parse_top_expression(Module& m, std::size_t depth) {
         TRACE_START();
+        auto _ = guard([&](){
+            TRACE_END();
+        });
 
         switch (token().type()) {
         case tok_import:
@@ -187,62 +196,7 @@ class Parser {
         return Expression();
     }
 
-    Expression parse_struct(Module& m, std::size_t depth) {
-        TRACE_START();
-        EAT(tok_struct);
-
-        Token tok = token();
-        EXPECT(tok_identifier, "Expect an identifier");
-        String struct_name = tok.identifier();
-        EAT(tok_identifier);
-
-        auto struct_ = Expression::make<AST::Struct>(struct_name);
-        auto *data = struct_.ref<AST::Struct>();
-
-        EXPECT(':', ": was expected");
-        EAT(':');
-        EXPECT(tok_newline, "newline was expected");
-        EAT(tok_newline);
-
-        EXPECT(tok_indent, "indentation was expected");
-        EAT(tok_indent);
-
-        tok = token();
-
-        // docstring
-        if (tok.type() == tok_docstring) {
-            data->docstring = tok.identifier();
-            tok = next_token();
-        }
-
-        while (tok.type() == tok_newline) {
-            tok = next_token();
-        }
-
-        tok = token();
-        while (tok.type() != tok_desindent && tok.type() != tok_eof) {
-            String attribute_name = "<attribute>";
-
-            WITH_EXPECT(tok_identifier, "Expected identifier 1") {
-                attribute_name = tok.identifier();
-                EAT(tok_identifier);
-            }
-
-            EXPECT(':', "Expect :");
-            EAT(':');
-
-            data->insert(attribute_name, parse_type(m, depth));
-            tok = token();
-
-            while (tok.type() == tok_newline) {
-                tok = next_token();
-            }
-        }
-
-        EAT(tok_desindent);
-        module->insert(struct_name, struct_);
-        return struct_;
-    }
+    Expression parse_struct(Module& m, std::size_t depth);
 
     // return One Top level Expression (Functions)
     Expression parse_one(Module& m, std::size_t depth = 0) {

@@ -47,6 +47,21 @@ AST::ParameterList Parser::parse_parameter_list(Module& m, std::size_t depth) {
     return list;
 }
 
+Expression Parser::parse_function_body(Expression expr, Module& m, std::size_t depth)
+{
+    // prepare the parsing context to parse the body
+    auto fun = expr.ref<AST::Function>();
+    Module module = m.enter();
+    module.insert(fun->name.str(), expr);
+
+    for(AST::Parameter& param: fun->args){
+        auto ref = Expression::make<AST::Parameter>(param.name, param.type);
+        module.insert(param.name.str(), ref);
+    }
+
+    return parse_compound_statement(module, depth + 1);
+}
+
 Expression Parser::parse_function(Module& m, std::size_t depth) {
     TRACE_START();
     Token start = token();
@@ -67,18 +82,7 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     {
         // Creating a new module
         Module module = m.enter();
-
-        // Insert function for recursive calls
-        module.insert(function_name, expr);
-
         fun->args = parse_parameter_list(m, depth + 1);
-
-        // Insert the parameters into the Scope
-        // Parameters are created by the call
-        for(AST::Parameter& param: fun->args){
-            auto ref = Expression::make<AST::Parameter>(param.name, param.type);
-            module.insert(param.name.str(), ref);
-        }
 
         WITH_EXPECT(tok_arrow, "Expected -> before return type") {
             EAT(tok_arrow);
@@ -99,7 +103,18 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
             EAT(tok_newline);
         }
 
-        fun->body = parse_compound_statement(module, depth + 1);
+        //
+        {
+            auto tokens = consume_block(depth);
+
+            for (auto& t: tokens){
+                t.debug_print(std::cout) << "\n";
+            }
+
+            ReplayLexer lexer(tokens);
+            Parser par(lexer, &m);
+            fun->body = par.parse_function_body(expr, m, depth);
+        }
         expr.end() = fun->body.end();
         TRACE_END();
     }
@@ -135,6 +150,7 @@ Expression Parser::parse_compound_statement(Module& m, std::size_t depth) {
     }
 
     if (token().type() == tok_eof) {
+        TRACE_END();
         return expr;
     }
 

@@ -377,6 +377,7 @@ public:
     Attributes   attributes;  // Ordered list of attributes
     IndexMapping offset;      // String to int
     String       docstring;
+    Array<Token> unparsed_tokens;
 
     Struct(StringRef name):
         Node(NodeKind::KStruct), name(name)

@@ -3,26 +3,37 @@
 
 namespace lython {
 // Consume a tokens without parsing them
-Expression Parser::consume_block(std::size_t depth){
+Array<Token> Parser::consume_block(std::size_t depth){
     TRACE_START();
     // a block starts with indent and finished disindent
     Array<Token> tokens;
     Token tok = token();
 
-    EXPECT(tok_indent, "Indentation is expected");
-
+    EAT(tok_indent);
+    tok = token();
     auto level = 1;
-    while (level != 0) {
-        tok = next_token();
 
-        if (tok.type() == tok_desindent)
+    // Improve that loop
+    while (level != 0 && tok.type() != tok_eof) {
+        if (tok.type() == tok_desindent) {
             level -= 1;
-        else if (tok.type() == tok_indent)
+        }
+
+        if (tok.type() == tok_indent) {
             level += 1;
+        }
 
         tokens.push_back(tok);
+        tok = next_token();
     }
 
-    return Expression::make<AST::UnparsedBlock>(tokens);
+    // Generate a tok_desindent if EOF was reached
+    if (tok.type() == tok_eof){
+        tokens.push_back(Token(tok_desindent, tok.line(), tok.col()));
+    }
+
+    EAT(tok_desindent);
+    TRACE_END();
+    return tokens;
 }
 }

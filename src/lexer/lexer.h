@@ -58,11 +58,11 @@ class AbstractLexer {
 public:
     virtual ~AbstractLexer() {}
 
-    virtual Token next_token() = 0;
+    virtual Token const& next_token() = 0;
 
-    virtual Token peek_token() = 0;
+    virtual Token const& peek_token() = 0;
 
-    virtual Token& token() = 0;
+    virtual Token const& token() = 0;
 
     // print tokens with their info
     std::ostream& debug_print(std::ostream& out);
@@ -91,21 +91,23 @@ public:
         tokens(tokens)
     {}
 
-    Token next_token() override final {
-        i += 1;
+    Token const& next_token() override final {
+        if (i + 1 < tokens.size())
+            i += 1;
+
         return tokens[i];
     }
 
-    Token peek_token() override final {
+    Token const& peek_token() override final {
         auto n = i + 1;
 
-        if (n == tokens.size())
+        if (n >= tokens.size())
             n = i;
 
-        return tokens[i + 1];
+        return tokens[n];
     }
 
-    Token& token() override final {
+    Token const& token() override final {
         return tokens[i];
     }
 
@@ -126,9 +128,11 @@ public:
 
     ~Lexer() {}
 
-    Token& token()      override final {    return _token;              }
-    Token  next_token() override final;
-    Token  peek_token() override final{
+    Token const& token()      override final {
+        return _token;
+    }
+    Token const& next_token() override final;
+    Token const& peek_token() override final{
         // we can only peek ahead once
         if (_buffered_token)
             return _buffer;
@@ -141,12 +145,12 @@ public:
         return _buffer;
     }
 
-    Token make_token(int8 t){
+    Token const& make_token(int8 t){
         _token = Token(t, line(), col());
         return _token;
     }
 
-    Token make_token(int8 t, const String& identifier){
+    Token const& make_token(int8 t, const String& identifier){
         _token = Token(t, line(), col());
         _token.identifier() = identifier;
         return _token;

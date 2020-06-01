@@ -53,6 +53,7 @@ SET(ADD_SOURCE
     parser/parser.cpp
     parser/declarations.cpp
     parser/import.cpp
+    parser/struct.cpp
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp

@@ -87,7 +87,7 @@ std::ostream& AbstractLexer::print(std::ostream& out){
 }
 
 
-Token Lexer::next_token(){
+Token const& Lexer::next_token(){
     // if we peeked ahead return that one
     if (_buffered_token){
         _buffered_token = false;

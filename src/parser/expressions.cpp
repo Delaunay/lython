@@ -1,4 +1,5 @@
 #include "parser/parser.h"
+#include "utilities/guard.h"
 
 namespace lython {
 
@@ -6,6 +7,10 @@ NEW_EXCEPTION(PrimaryExpression);
 
 Expression Parser::parse_primary(Module& m, std::size_t depth){
     TRACE_START();
+    auto _ = guard([&](){
+        TRACE_END();
+    });
+
     Token tok = token();
 
     switch(tok.type()){
@@ -182,6 +187,7 @@ Expression Parser::parse_function_call(Module& m, Expression function, std::size
 
     EXPECT(')', "`)` was expected");
     EAT(')');
+    TRACE_END();
     return expr;
 }
 

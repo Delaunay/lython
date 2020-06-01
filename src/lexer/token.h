@@ -109,7 +109,7 @@ public:
     float64      as_float()   const { return std::stod(_identifier.c_str()); }
     int32        as_integer() const { return std::stoi(_identifier.c_str()); }
 
-    operator bool(){
+    operator bool() const {
         return _type != tok_eof;
     }
 
