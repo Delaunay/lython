@@ -66,6 +66,19 @@ void unparse_struct(Expression struct_, Module& module){
     }
 }
 
+
+void parse_sublocks(Expression expr, Module& module){
+    assert(expr, "Expression should not be null");
+
+    if (expr.kind() == AST::NodeKind::KFunction){
+        unparse_function(expr, module);
+    }
+
+    if (expr.kind() == AST::NodeKind::KStruct){
+        unparse_struct(expr, module);
+    }
+}
+
 void parse(AbstractLexer& lexer, Module& module){
     Parser par(lexer, &module);
 
@@ -83,14 +96,7 @@ void parse(AbstractLexer& lexer, Module& module){
     // Parse top level expression
     for (auto pair: module){
         Expression expr = pair.second;
-
-        if (expr.kind() == AST::NodeKind::KFunction){
-            unparse_function(expr, module);
-        }
-
-        if (expr.kind() == AST::NodeKind::KStruct){
-            unparse_struct(expr, module);
-        }
+        parse_sublocks(expr, module);
     }
 };
 

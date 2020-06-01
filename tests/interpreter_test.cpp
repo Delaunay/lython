@@ -20,13 +20,7 @@ Value interpret_call(String const& code, String fun_name, Args... v){
     // Parse code
     Module module;
     Lexer lex(reader);
-    Parser par(lex, &module);
-
-    Expression expr;
-    do {
-        expr = par.parse_one(module);
-    } while(expr);
-    // ---
+    parse(lex, module);
 
     Interpreter vm(module);
 
@@ -35,7 +29,7 @@ Value interpret_call(String const& code, String fun_name, Args... v){
 
     assert(fun, "function must exist");
 
-    expr = Expression::make<AST::Call>();
+    Expression expr = Expression::make<AST::Call>();
     auto* call = expr.ref<AST::Call>();
     call->function = fun;
 

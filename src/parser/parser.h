@@ -75,6 +75,8 @@ namespace lython {
  */
 void parse(AbstractLexer& lexer, Module& module);
 
+// Finishing parsing the subblocks
+void parse_sublocks(Expression expr, Module& module);
 
 class ParserException : public Exception {
   public:

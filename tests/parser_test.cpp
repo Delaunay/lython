@@ -16,16 +16,18 @@ inline String parse_it(String code){
     Module module;
 
     Lexer lex(reader);
-    Parser par(lex, &module);
+    Parser parser(lex, &module);
 
     StringStream ss;
 
     Expression expr;
     int k = 0;
     do {
-        expr = par.parse_one(module);
+        expr = parser.parse_one(module);
 
         if (expr){
+            parse_sublocks(expr, module);
+
             expr.print(ss) << "\n\n";
             k += 1;
         }
