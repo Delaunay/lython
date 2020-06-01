@@ -49,6 +49,7 @@ bool _metadata_init_names(){
     meta::register_type<SharedPtrInternal<lython::AST::BinaryOperator>>("AST::BinaryOperator");
     meta::register_type<SharedPtrInternal<lython::AST::Import>>("AST::Import");
     meta::register_type<SharedPtrInternal<lython::AST::ImportedExpr>>("AST::ImportedExpr");
+    meta::register_type<SharedPtrInternal<lython::AST::UnparsedBlock>>("AST::UnparsedBlock");
 
     // value::Struct
     meta::register_type<HashNodeInternal<

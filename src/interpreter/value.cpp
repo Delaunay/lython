@@ -153,7 +153,11 @@ std::ostream& value::Class::print(std::ostream& out, int) const{
 std::ostream& value::Closure::print(std::ostream& out, int) const{
     if (fun)
         return out << "Closure("<< fun->name << ")";
-    return out << "Closure(bltin)";
+
+    if (builtin)
+        return out << "Closure(bltin)";
+
+    return out << "Closure(undef)";
 }
 
 }

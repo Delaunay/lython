@@ -61,6 +61,18 @@
 
 namespace lython {
 
+/**
+ * Kiwi parse source code in two passes.
+ * The first one insert all the top level expression to the module without parsing the sublocks.
+ * A second pass is done to parse the subblocks.
+ *
+ * - it allows us to get a full picture of the module expressions.
+ * Users do not need to care about the order of the declarations.
+ * It allows us to make lazy checking (only check what is used)
+ * which gives a dynamic feels to the language (error will not happen unless used).
+ *
+ * - it makes the module size static and we do not need to adjust the debruijn indices
+ */
 void parse(AbstractLexer& lexer, Module& module);
 
 

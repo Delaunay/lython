@@ -292,7 +292,7 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         env = closure.env;
 
         // Dump the environment of the call
-        env->dump(std::cout);
+        // env->dump(std::cout);
 
         // Clean arguments from the exec environment
         auto on = env->size();

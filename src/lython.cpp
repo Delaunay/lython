@@ -156,8 +156,8 @@ int main() {
 
 //        "get_x(pp)\n";
 
-        // auto expr = make_import_call_check(module);
-        auto expr = make_point_check(module);
+        auto expr = make_import_call_check(module);
+        // auto expr = make_point_check(module);
         Value v = vm.eval(expr);
 
         v.print(std::cout) << std::endl;
@@ -165,7 +165,7 @@ int main() {
         std::cout << std::endl;
     }
     show_alloc_stats();
-    // StringDatabase::instance().report(std::cout);
+    StringDatabase::instance().report(std::cout);
     return 0;
 }
 

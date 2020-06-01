@@ -52,7 +52,6 @@ Expression Parser::parse_function_body(Expression expr, Module& m, std::size_t d
     // prepare the parsing context to parse the body
     auto fun = expr.ref<AST::Function>();
     Module module = m.enter();
-    module.insert(fun->name.str(), expr);
 
     for(AST::Parameter& param: fun->args){
         auto ref = Expression::make<AST::Parameter>(param.name, param.type);
