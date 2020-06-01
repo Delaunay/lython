@@ -50,6 +50,9 @@ Value interpret_code(String const& code){
     Expression expr;
     do {
         expr = par.parse_one(module);
+        if (expr){
+            parse_sublocks(expr, module);
+        }
     } while(expr);
     // ---
 
@@ -74,4 +77,7 @@ TEST_CASE("Interpreter"){
     TEST_INTERPRETER(simple_function_noargs, Value(1))
     TEST_INTERPRETER_ARGS(max_alias, Value(2.0), 2.0, 1.0)
     TEST_INTERPRETER_ARGS(struct_set_get, Value(3.0), 3.0)
+
+    show_alloc_stats();
+    StringDatabase::instance().report(std::cout);
 }
