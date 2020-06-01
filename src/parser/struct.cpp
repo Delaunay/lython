@@ -2,11 +2,12 @@
 
 namespace lython {
 
-void Parser::parse_struct_fields(Module& m, AST::Struct* data, std::size_t depth){
+void Parser::parse_struct_fields(Module& m, Expression expr, std::size_t depth){
     TRACE_START();
     Token tok = token();
+    auto data = expr.ref<AST::Struct>();
+    Module module = m.enter();
 
-    // EXPECT(tok_indent, "Expect indentation");
     EAT(tok_indent);
 
     while (tok.type() != tok_desindent && tok.type() != tok_eof) {
@@ -20,7 +21,7 @@ void Parser::parse_struct_fields(Module& m, AST::Struct* data, std::size_t depth
         EXPECT(':', "Expect :");
         EAT(':');
 
-        data->insert(attribute_name, parse_type(m, depth));
+        data->insert(attribute_name, parse_type(module, depth));
         tok = token();
 
         while (tok.type() == tok_newline) {
@@ -42,6 +43,8 @@ Expression Parser::parse_struct(Module& m, std::size_t depth) {
     EAT(tok_identifier);
 
     auto struct_ = Expression::make<AST::Struct>(struct_name);
+    // insert now for recursive DS
+    m.insert(struct_name, struct_);
     auto *data = struct_.ref<AST::Struct>();
 
     EXPECT(':', ": was expected");
@@ -64,27 +67,11 @@ Expression Parser::parse_struct(Module& m, std::size_t depth) {
         tok = next_token();
     }
 
-    // Temporary implementation
-    // Next steps will be to only use the unparsed tokens
-    // and parse after the entire file is processed
-    {
-        // >>> Read the tokens
-        auto tokens = consume_block(depth);
+    // >>> Read the tokens
+    auto tokens = consume_block(depth);
+    data->unparsed_tokens = tokens;
 
-        for (auto& t: tokens){
-            t.debug_print(std::cout) << "\n";
-        }
-        // Parse the tokes
-        ReplayLexer lexer(tokens);
-        Module struct_mod = m.enter();
-        Parser par(lexer, &struct_mod);
-        par.parse_struct_fields(struct_mod, data, depth + 1);
-        // <<<
-    }
-
-    struct_.print(std::cout);
-
-    module->insert(struct_name, struct_);
+    // struct_.print(std::cout);
     TRACE_END();
     return struct_;
 }

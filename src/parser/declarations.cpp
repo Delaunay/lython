@@ -76,6 +76,8 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
     EAT(tok_identifier);
 
     auto expr = Expression::make<AST::Function>(function_name);
+    m.insert(function_name, expr);
+
     expr.start() = start;
     auto fun = expr.ref<AST::Function>();
 
@@ -103,23 +105,12 @@ Expression Parser::parse_function(Module& m, std::size_t depth) {
             EAT(tok_newline);
         }
 
-        //
-        {
-            auto tokens = consume_block(depth);
+        auto tokens = consume_block(depth);
+        fun->body = Expression::make<AST::UnparsedBlock>(tokens);
 
-            for (auto& t: tokens){
-                t.debug_print(std::cout) << "\n";
-            }
-
-            ReplayLexer lexer(tokens);
-            Parser par(lexer, &m);
-            fun->body = par.parse_function_body(expr, m, depth);
-        }
         expr.end() = fun->body.end();
         TRACE_END();
     }
-
-    m.insert(function_name, expr);
     return expr;
 }
 

@@ -38,18 +38,9 @@ void process_module(AST::Import* imp){
 
     // StringBuffer reader(read_file(path), path);
     FileBuffer reader(path);
+
     Lexer lex(reader);
-    Parser par(lex, &imp->module);
-
-    try {
-        Expression expr;
-        do {
-            expr = par.parse_one(imp->module);
-        } while(expr);
-
-    } catch (lython::Exception e) {
-        error("Error Occured: {}", e.what());
-    }
+    parse(lex, imp->module);
 
     imp->module.print(std::cout);
 }

@@ -124,22 +124,7 @@ int main() {
 
         try {
             Lexer lex(reader);
-            Parser par(lex, &module);
-            Expression expr;
-            do {
-                expr = par.parse_one(module);
-
-                if (expr){
-                    StringStream ss;
-                    expr.print(ss, 0, true, true);
-                    parser_string = ss.str();
-
-                    std::cout << ">>> Reading\n";
-                    std::cout << strip(parser_string) << "\n<<<" << std::endl;
-                }
-
-            } while(expr);
-
+            parse(lex, module);
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;

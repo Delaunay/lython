@@ -106,9 +106,10 @@ class Module {
 
     std::ostream& print(std::ostream& out, int depth = 0) const;
 
+    template<typename T>
     class ModuleIterator{
     public:
-        ModuleIterator(Module const& iter, std::size_t index = 0):
+        ModuleIterator(T& iter, std::size_t index = 0):
             iter(iter), index(int(index))
         {}
 
@@ -149,14 +150,14 @@ class Module {
         }
 
     private:
-        Module const& iter;
+        T& iter;
         int index;
     };
 
-    ModuleIterator       begin()        { return ModuleIterator(*this); }
-    ModuleIterator const begin() const  { return ModuleIterator(*this); }
-    ModuleIterator       end()          { return ModuleIterator(*this, _scope.size()); }
-    ModuleIterator const end() const    { return ModuleIterator(*this, _scope.size()); }
+    ModuleIterator<Module> begin() { return ModuleIterator<Module>(*this); }
+    ModuleIterator<Module> end()   { return ModuleIterator<Module>(*this, _scope.size()); }
+    ModuleIterator<Module const> const begin() const  { return ModuleIterator<Module const>(*this); }
+    ModuleIterator<Module const> const end()   const  { return ModuleIterator<Module const>(*this, _scope.size()); }
 
   private:
     //

@@ -61,6 +61,9 @@
 
 namespace lython {
 
+void parse(AbstractLexer& lexer, Module& module);
+
+
 class ParserException : public Exception {
   public:
     template<typename ... Args>
@@ -158,7 +161,7 @@ class Parser {
 
     Expression parse_import(Module& m, std::size_t depth);
 
-    void parse_struct_fields(Module& m, AST::Struct* data, std::size_t depth);
+    void parse_struct_fields(Module& m, Expression data, std::size_t depth);
 
     // parse function_name(args...)
     Expression parse_top_expression(Module& m, std::size_t depth) {
