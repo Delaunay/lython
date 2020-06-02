@@ -41,9 +41,9 @@ ENDMACRO(TEST_MACRO)
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
 TEST_MACRO(main)
 
-ADD_TEST(
-    NAME lythonMain
-    WORKING_DIRECTORY .
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
+#ADD_TEST(
+#    NAME lythonMain
+#    WORKING_DIRECTORY .
+#    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
 
 

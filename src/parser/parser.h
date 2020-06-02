@@ -215,6 +215,8 @@ class Parser {
 
     Expression parse_struct(Module& m, std::size_t depth);
 
+    Expression parse_match(Module& m, std::size_t depth);
+
     // return One Top level Expression (Functions)
     Expression parse_one(Module& m, std::size_t depth = 0) {
         Token tok = token();

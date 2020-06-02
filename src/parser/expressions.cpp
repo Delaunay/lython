@@ -5,6 +5,59 @@ namespace lython {
 
 NEW_EXCEPTION(PrimaryExpression);
 
+Expression Parser::parse_type(Module& m, size_t depth) {
+    TRACE_START();
+    String name = "<typename>";
+    WITH_EXPECT(tok_identifier, "expect type identifier") {
+        name = token().identifier();
+    }
+
+    auto type = m.reference(name);
+    type.start() = token();
+    EAT(tok_identifier);
+
+    TRACE_END();
+    return type;
+}
+
+Token Parser::ignore_newlines() {
+    Token tok = token();
+    while (tok.type() == tok_newline) {
+        tok = next_token();
+    }
+    return tok;
+}
+
+Expression Parser::parse_compound_statement(Module& m, std::size_t depth) {
+    TRACE_START();
+    // if a docstring is present the indent token was already eaten
+    // EXPECT(tok_indent, "Expected start of compound statement");
+    // EAT(tok_indent);
+
+    auto expr = Expression::make<AST::SeqBlock>();
+    auto *block = expr.ref<AST::SeqBlock>();
+    Token tok = token();
+
+    while (tok.type() != tok_desindent && tok.type() != tok_eof) {
+        auto expr = parse_top_expression(m, depth + 1);
+
+        block->blocks.push_back(expr);
+
+        tok = ignore_newlines();
+    }
+
+    if (token().type() == tok_eof) {
+        TRACE_END();
+        return expr;
+    }
+
+    EXPECT(tok_desindent, "Expected end of compound statement");
+    EAT(tok_desindent);
+    TRACE_END();
+    return expr;
+}
+
+
 Expression Parser::parse_primary(Module& m, std::size_t depth){
     TRACE_START();
     auto _ = guard([&](){

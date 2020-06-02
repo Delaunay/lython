@@ -41,14 +41,16 @@
     X(tok_async,     -16)\
     X(tok_operator,  -17)\
     X(tok_import,    -18)\
-    X(tok_as,        -19)\
-    X(tok_from,      -20)\
-    X(tok_if,        -21)\
-    X(tok_elif,      -22)\
-    X(tok_else,      -23)\
-    X(tok_try,       -24)\
-    X(tok_except,    -25)\
-    X(tok_raise,     -26)
+    X(tok_match,     -19)\
+    X(tok_as,        -20)\
+    X(tok_from,      -21)\
+    X(tok_if,        -22)\
+    X(tok_elif,      -23)\
+    X(tok_else,      -24)\
+    X(tok_try,       -25)\
+    X(tok_except,    -26)\
+    X(tok_raise,     -27)\
+    X(tok_case,      -28)
 
 
 #define LYTHON_KEYWORDS(X) \
@@ -66,7 +68,9 @@
     X("else",   tok_else)\
     X("try",    tok_try)\
     X("except", tok_except)\
+    X("match",  tok_match)\
     X("raise",  tok_raise)\
+    X("case",   tok_case)
     
 namespace lython{
 

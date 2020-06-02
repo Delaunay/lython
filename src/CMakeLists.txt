@@ -51,9 +51,10 @@ SET(ADD_SOURCE
     lexer/buffer.cpp
     lexer/token.cpp
     parser/parser.cpp
-    parser/declarations.cpp
     parser/import.cpp
     parser/struct.cpp
+    parser/function.cpp
+    parser/match.cpp
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp

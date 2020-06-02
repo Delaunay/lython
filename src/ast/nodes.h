@@ -241,7 +241,7 @@ struct ImportedExpr: public Node{
 
 
 /*
-dict.get('key') match:
+match dict.get('key'):
     case None:
         raise RuntimeError
 
@@ -260,15 +260,37 @@ dict.get('key') match:
     except:
         pass
 
-    default:
+    else:
         pass
  */
 struct Match: public Node{
-    struct Pattern{};
+    enum class PatKind {
+        Value
+    };
+
+    struct Pattern{
+        // Match against a simple value
+        Expression value;
+        // Match against a constructor / type
+        Expression constructor;
+        // Patterns to extract info
+        Array<Expression> patterns;
+        //
+        Expression where;
+    };
+
+//    struct ValuePat{
+//        PatKind kind = PatKind::Value;
+//        Expression value;
+//    };
 
     struct Branch{
-        Pattern     pat;
-        Expression  exec;
+        Branch(Expression cond, Expression exec):
+            cond(cond), exec(exec)
+        {}
+
+        Expression cond;
+        Expression exec;
         // To avoid nesting too many expression together we could attach
         // an except to every Branch
         // Expression except;

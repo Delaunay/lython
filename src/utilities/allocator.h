@@ -174,14 +174,26 @@ private:
     Device allocator;
 };
 
+
+template<typename V>
+using SharedPtr = std::shared_ptr<V>;
+
 template<typename _Tp, typename... _Args>
-inline std::shared_ptr<_Tp> make_shared(_Args&&... __args)
+inline SharedPtr<_Tp> make_shared(_Args&&... __args)
 {
     typedef typename std::remove_cv<_Tp>::type _Tp_nc;
     return std::allocate_shared<_Tp>(
         Allocator<_Tp_nc, device::CPU>(), std::forward<_Args>(__args)...);
 }
 
+template<typename V>
+using UniquePtr = std::unique_ptr<V>;
+
+template<typename _Tp, typename... _Args>
+inline UniquePtr<_Tp> make_unique(_Args&&... __args){
+    auto ptr = Allocator<_Tp, device::CPU>().allocate(1);
+    return UniquePtr<_Tp>(new (ptr) _Tp(std::forward<_Args>(__args)...));
+}
 
 } // namespace lython
 
