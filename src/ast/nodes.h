@@ -307,6 +307,45 @@ struct Match: public Node{
     {}
 };
 
+
+/*
+ *
+ *  for <value> in <iterable>:
+ *      block
+ *  except:
+ *      pass
+ *  else:
+ *      something else
+ */
+struct Loop: public Node{
+    Loop():
+        Node(NodeKind::KLoop)
+    {}
+
+    // For loop
+    Expression value;
+    Expression iterable;
+
+    // While loop
+    Expression cond;
+
+    // Standard loop body
+    Expression loop_blk;
+    // Exception handling
+    Expression except_blk;
+    // Executed if no break happened
+    Expression else_blk;
+
+    bool is_while() {
+        return (!value && !iterable) && cond;
+    }
+
+    bool is_for() {
+        return (value && iterable) && !cond;
+    }
+};
+
+
 // Block Instruction
 // -------------------------------------
 

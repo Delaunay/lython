@@ -32,7 +32,8 @@ struct Node;
     KIND(Operator, operator_fun)\
     KIND(Import, import)\
     KIND(ImportedExpr, imported_expression)\
-    KIND(Match, match)
+    KIND(Match, match)\
+    KIND(Loop, loop)
 
 // Explicit RTTI
 enum class NodeKind {

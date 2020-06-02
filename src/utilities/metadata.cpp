@@ -50,6 +50,7 @@ bool _metadata_init_names(){
     meta::register_type<SharedPtrInternal<lython::AST::Import>>("AST::Import");
     meta::register_type<SharedPtrInternal<lython::AST::ImportedExpr>>("AST::ImportedExpr");
     meta::register_type<SharedPtrInternal<lython::AST::UnparsedBlock>>("AST::UnparsedBlock");
+    meta::register_type<SharedPtrInternal<lython::AST::Match>>("AST::Match");
 
     // value::Struct
     meta::register_type<HashNodeInternal<
@@ -65,6 +66,15 @@ bool _metadata_init_names(){
     meta::register_type<HashNodeInternal<
         std::pair<const StringRef, int>, false>>(
         "Pair[StringRef, int]");
+
+
+    meta::register_type<HashNodeInternal<
+        std::pair<const String, lython::OpConfig>, true>>(
+        "Pair[String, OpConfig]");
+
+    meta::register_type<HashNodeInternal<
+        std::pair<const String, lython::TokenType>, true>>(
+        "Pair[String, TokenType]");
 
     // AST::KwArguments
     meta::register_type<HashNodeInternal<

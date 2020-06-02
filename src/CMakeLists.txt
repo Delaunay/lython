@@ -55,6 +55,7 @@ SET(ADD_SOURCE
     parser/struct.cpp
     parser/function.cpp
     parser/match.cpp
+    parser/loop.cpp
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp

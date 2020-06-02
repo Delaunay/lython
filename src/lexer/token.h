@@ -50,7 +50,9 @@
     X(tok_try,       -25)\
     X(tok_except,    -26)\
     X(tok_raise,     -27)\
-    X(tok_case,      -28)
+    X(tok_case,      -28)\
+    X(tok_for,       -29)\
+    X(tok_while,     -30)
 
 
 #define LYTHON_KEYWORDS(X) \
@@ -70,7 +72,9 @@
     X("except", tok_except)\
     X("match",  tok_match)\
     X("raise",  tok_raise)\
-    X("case",   tok_case)
+    X("case",   tok_case)\
+    X("while",  tok_while)\
+    X("for",    tok_for)
     
 namespace lython{
 

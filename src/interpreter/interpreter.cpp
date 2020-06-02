@@ -80,6 +80,10 @@ struct InterpreterImpl: public ConstVisitor<InterpreterImpl, Value>{
         return visit(expr, d);
     }
 
+    Value loop(Loop_t loop, std::size_t){
+        return Value("<NotImplemented>");
+    }
+
     Value imported_expression(ImportedExpr_t imp, std::size_t d){
         assert(imp->import.kind() == AST::NodeKind::KImport, "Need to be an import");
         auto package = imp->import.ref<AST::Import>();

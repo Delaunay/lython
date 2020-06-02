@@ -74,7 +74,38 @@ DEFINE_SAMPLE_CODE(
     "def max_alias(a: Float, b: Float) -> Float:\n"
     "   return max(a, b)\n"
     "\n"
-   // "max_alias(1.0, 2.0)"
+    // "max_alias(1.0, 2.0)"
+    )
+
+DEFINE_SAMPLE_CODE(
+    simple_match,
+    "def simple_match(a: bool) -> Float:\n"
+    "   match a:\n"
+    "       case true:\n"
+    "           return false\n"
+    "       casef false:\n"
+    "           return true\n"
+    "\n"
+    "simple_match(true)"
+    )
+
+DEFINE_SAMPLE_CODE(
+    simple_while_loop,
+    "def simple_while_loop():\n"
+    "   i = 10\n"
+    "   while i > 0:\n"
+    "       i -= 1\n"
+    "\n"
+    "simple_while_loop()"
+    )
+
+DEFINE_SAMPLE_CODE(
+    simple_for_loop,
+    "def simple_for_loop():\n"
+    "   for i in range(10):\n"
+    "       d = 2\n"
+    "\n"
+    "simple_while_loop()"
     )
 
 // Struct
@@ -188,6 +219,9 @@ DEFINE_SAMPLE_CODE(
     X(simple_function_global)\
     X(simple_function_max)\
     X(simple_function_return_args)\
-    X(simple_function_rpe)
+    X(simple_function_rpe)\
+    X(simple_match)\
+    X(simple_while_loop)\
+    X(simple_for_loop)
 
 #endif

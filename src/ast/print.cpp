@@ -142,6 +142,10 @@ struct ASTPrinter: public ConstVisitor<ASTPrinter, std::ostream&>{
         return -1;
     }
 
+    std::ostream& loop(Loop_t loop, std::size_t){
+        return out << "<loop>";
+    }
+
     std::ostream &binary(BinaryOperator_t bin, std::size_t d) {
         bool parens = false;
 

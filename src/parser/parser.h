@@ -206,8 +206,12 @@ class Parser {
         case tok_float:
             return parse_expression(m, depth + 1);
 
-            //            default:
-            //                return parse_operator(depth + 1);
+        case tok_match:
+            return parse_match(m, depth + 1);
+
+        case tok_while:
+        case tok_for:
+            return parse_loop(m, depth + 1);
         }
 
         return Expression();
@@ -216,6 +220,8 @@ class Parser {
     Expression parse_struct(Module& m, std::size_t depth);
 
     Expression parse_match(Module& m, std::size_t depth);
+
+    Expression parse_loop(Module& m, std::size_t depth);
 
     // return One Top level Expression (Functions)
     Expression parse_one(Module& m, std::size_t depth = 0) {
