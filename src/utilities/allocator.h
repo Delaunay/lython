@@ -134,11 +134,11 @@ public:
         using other = Allocator<_Tp1, Device>;
     };
 
-    bool operator==(Allocator const&){
+    bool operator==(Allocator const&) const {
         return true;
     }
 
-    bool operator!=(Allocator const& alloc){
+    bool operator!=(Allocator const& alloc) const {
         return !(*this == alloc);
     }
 

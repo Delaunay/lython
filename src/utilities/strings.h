@@ -12,12 +12,12 @@ String strip(String const& v);
 // Replace a by b in t
 template<typename T>
 T replace(T const& t, char a, T const& b) {
-    int n = t.size();
-    auto iter = t.rbegin();
-    while (*iter == '\n'){
-        n -= 1;
-        iter -= 1;
-    }
+    int n = int(t.size());
+    //auto iter = t.rbegin();
+    //while (iter != t.rend() && *iter == a){
+    //    n -= 1;
+    //    iter -= 1;
+    //}
 
     int count = 0;
     for (int i = 0; i < n; ++i){

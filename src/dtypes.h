@@ -54,10 +54,10 @@ namespace std {
 
 template <typename Char, typename Allocator>
 struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>>{
-    using key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
+    using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
 
-    std::size_t operator()(key const& k) const {
-        auto a = std::hash<std::string>();
+    std::size_t operator()(Key const& k) const noexcept {
+        auto a = std::hash<const Char*>();
         return a(k.c_str());
     }
 };
@@ -68,6 +68,11 @@ struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>>{
 // ---------------
 namespace lython {
 
+template<class _Ty, class _Dx = std::default_delete<_Ty>>
+using Unique = std::unique_ptr<_Ty, _Dx>;
+
+template<class _Ty>
+using Shared = std::shared_ptr<_Ty>;
 
 template<typename ...Args>
 using Tuple = std::tuple<Args...>;

@@ -72,7 +72,6 @@ struct string_ref_hash {
     std::hash<std::size_t> _h;
 };
 
-
 // Should be careful to only use this for name-like strings
 // Since we keep the strings forever
 // At the moment this is global but we should maybe tie this to a Module
@@ -93,6 +92,7 @@ public:
 
         if (val == defined.end()){
             std::size_t n = strings.size();
+
             strings.push_back(name);
             count.push_back(1);
 
@@ -108,15 +108,18 @@ public:
 
     StringDatabase(){
         strings.reserve(128);
+        count.reserve(128);
+
         strings.push_back("");
+        count.push_back(1);
     }
 
     std::ostream& report(std::ostream& out) const;
 
 private:
-    Dict<StringView, std::size_t> defined;
-    Array<String>                 strings;
-    Array<int>                    count;
+    Dict<StringView, std::size_t> defined; // Used to check if the string is already stored
+    Array<String>                 strings; // String storage
+    Array<int>                    count;   // Counts for stats
 };
 
 }

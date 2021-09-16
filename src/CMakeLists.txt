@@ -18,6 +18,7 @@ AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 SET(ADD_HEADERS
     ast/expressions.h
     ast/nodes.h
+    ast/sexpression.h
     ast/names.h
     ast/visitor.h
     ast/print.h
@@ -44,6 +45,7 @@ SET(ADD_HEADERS
 
 SET(ADD_SOURCE
     ast/expressions.cpp
+    ast/sexpression.cpp
     ast/names.cpp
     ast/print.cpp
     ast/nodes.cpp
@@ -75,17 +77,21 @@ SET(ADD_SOURCE
 # ADD_SUBDIRECTORY(cuda)
 # ADD_SUBDIRECTORY(math)
 
+# if not windows
+#  stdc++fs
+# endif
+
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
-TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog stdc++fs)
+TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython spdlog::spdlog stdc++fs)
+TARGET_LINK_LIBRARIES(liblython spdlog::spdlog)
 
 # Main interpreter loop
 ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} spdlog::spdlog stdc++fs liblython liblogging)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} spdlog::spdlog liblython liblogging)
 SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 IF(UNIX)

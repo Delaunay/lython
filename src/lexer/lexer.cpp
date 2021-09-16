@@ -159,9 +159,13 @@ Token const& Lexer::next_token(){
 
     // if valid operator return that
     if (previous != nullptr && previous->leaf()){
-        auto const& op_config = _operators.precedence_table().at(ident);
+        try {
+            auto const& op_config = _operators.precedence_table().at(ident);
+            return make_token(op_config.type, ident);
+        }  catch (std::exception) {
 
-        return make_token(op_config.type, ident);
+            return make_token(tok_incorrect, ident);
+        }
     }
     // else it might be an identifier
 
