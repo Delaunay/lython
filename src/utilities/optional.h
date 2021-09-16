@@ -15,18 +15,25 @@ public:
         _has_data(false){
     }
 
-    Optional(Optional&& opt):
-        _has_data(opt._has_data){
-        if (_has_data){
-            holder.data.value = std::move(holder.data.value);
-        }
-    }
-
     Optional(const Optional& opt):
         _has_data(opt._has_data){
         if (_has_data){
-            holder.data.value = holder.data.value;
+            holder.data.value = opt.data.value;
         }
+    }
+
+    Optional& operator= (const T& data) {
+        *this = Optional(data);
+        return *this;
+    }
+
+    Optional& operator= (Optional const& opt) {
+        _has_data = opt._has_data;
+
+        if (_has_data){
+            holder.data.value = opt.data.value;
+        }
+        return *this;
     }
 
     ~Optional(){

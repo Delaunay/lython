@@ -133,6 +133,9 @@ class Parser {
         return stmt_expr;
     }
 
+    void start_code_loc(CommonAttributes* target, Token tok);
+    void end_code_loc(CommonAttributes* target, Token tok);
+
     // Primary expression
     // parse_expression_1
     ExprNode* parse_await(GCObject* parent, int depth);
@@ -148,6 +151,9 @@ class Parser {
     ExprNode* parse_tuple_generator(GCObject* parent, int depth);
     ExprNode* parse_set_dict(GCObject* parent, int depth);
 
+    Array<Comprehension> parse_comprehension(GCObject* parent, char kind, int depth);
+    Arguments parse_arguments(char kind);
+
     // parse_expression_2
     ExprNode* parse_named_expr(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_bool_operator(GCObject* parent, ExprNode* primary, int depth);
@@ -157,6 +163,7 @@ class Parser {
     ExprNode* parse_call(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_attribute(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_subscript(GCObject* parent, ExprNode* primary, int depth);
+    ExprNode* parse_slice(GCObject* parent, int depth);
 
     ExprNode* parse_expression(GCObject* parent, int depth) {
         auto primary = parse_expression_1(parent, depth);

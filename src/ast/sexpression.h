@@ -39,6 +39,86 @@ private:
     Array<GCObject*> children;
 };
 
+struct ConstantValue {
+public:
+    enum Type {
+        TInt,
+        TFloat,
+        TString
+    };
+
+    ConstantValue() = default;
+
+    ConstantValue(int v):
+        kind(TInt)
+    {
+        value.integer = v;
+    }
+
+    ConstantValue(float v):
+        kind(TFloat)
+    {
+        value.decimal = v;
+    }
+
+    ConstantValue(double v):
+        kind(TFloat)
+    {
+        value.decimal = v;
+    }
+
+    ConstantValue(String const& v):
+        kind(TString)
+    {
+        value.string = v;
+    }
+
+    ConstantValue(ConstantValue const& v){
+        copy_union(v.kind, v.value);
+    }
+
+    ~ConstantValue() {
+        if (kind == TString) {
+            value.string.~String();
+        }
+    }
+
+    ConstantValue& operator= (ConstantValue const& v) {
+        copy_union(v.kind, v.value);
+        return *this;
+    }
+
+    template<typename T>
+    ConstantValue& operator= (T v) {
+        *this = ConstantValue(v);
+        return *this;
+    }
+
+private:
+    // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
+    union ValueVariant {
+        ValueVariant()  {}
+        ~ValueVariant() {}
+
+        int integer;
+        double decimal;
+        String string;
+    };
+
+    ValueVariant value;
+
+    Type kind;
+
+    void copy_union(Type k, ValueVariant const& v) {
+        kind = k;
+        switch (kind) {
+        case TString: value.string = v.string;
+        case TFloat: value.decimal = v.decimal;
+        case TInt: value.integer = v.integer;
+        }
+    }
+};
+
 // col_offset is the byte offset in the utf8 string the parser uses
 struct CommonAttributes {
     int lineno;
@@ -127,6 +207,10 @@ struct Arg: public CommonAttributes {
 };
 
 struct Arguments {
+    Arguments() = default;
+
+    Arguments(Arguments const&) = default;
+
     Array<Arg> posonlyargs;
     Array<Arg> args;
     Optional<Arg> vararg;
@@ -163,7 +247,7 @@ struct MatchValue : public Pattern {
 };
 
 struct MatchSingleton: public Pattern {
-    // (constant value)
+    ConstantValue value;
 };
 
 struct MatchSequence: public Pattern {
@@ -270,7 +354,7 @@ struct GeneratorExp: public ExprNode{
 
 // the grammar constrains where yield expressions can occur
 struct Await: public ExprNode{
-    ExprNode value;
+    ExprNode* value;
 };
 
 struct Yield: public ExprNode{
@@ -306,20 +390,8 @@ struct FormattedValue: public ExprNode{
     JoinedStr format_spec;
 };
 
-struct ConstantValue {
-
-private:
-    union {
-        int integer;
-        double decimal;
-        ExprNode object;
-        // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
-    } value;
-};
-
-
 struct Constant: public ExprNode{
-    union {} value;
+    ConstantValue value;
     Optional<String> kind;
 };
 
