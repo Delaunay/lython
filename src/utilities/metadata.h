@@ -2,7 +2,7 @@
 #define LYTHON_METADATA_H
 
 #include "dtypes.h"
-#include "ast/nodes.h"
+// #include "ast/nodes.h"
 
 namespace lython {
 

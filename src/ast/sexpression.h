@@ -9,11 +9,18 @@ namespace lython {
 using Identifier = String;
 
 
+enum class ObjectKind {
+    Module,
+    Statement,
+    Expression,
+    Pattern,
+};
+
 struct GCObject {
 public:
     template<typename T, typename... Args>
     T* new_object() {
-        auto obj = get_allocator<GCObject>().allocate(1);
+        T* obj = get_allocator<T>().allocate(1);
         children.push_back(obj);
         return obj;
     }
@@ -50,6 +57,20 @@ public:
         for (auto obj: children) {
             delete obj;
         }
+    }
+
+    GCObject(ObjectKind k):
+        kind(k)
+    {}
+
+
+    ObjectKind const kind;
+
+private:
+    template<typename T>
+    AllocatorCPU<T>& get_allocator() {
+        static auto alloc = AllocatorCPU<T>();
+        return alloc;
     }
 
 private:
@@ -144,11 +165,23 @@ struct CommonAttributes {
     Optional<int> end_col_offset;
 };
 
-struct ModNode: public GCObject {};
+struct ModNode: public GCObject {
+    ModNode():
+        GCObject(ObjectKind::Module)
+    {}
+};
 
-struct StmtNode: public CommonAttributes, public GCObject {};
+struct StmtNode: public CommonAttributes, public GCObject {
+    StmtNode():
+        GCObject(ObjectKind::Statement)
+    {}
+};
 
-struct ExprNode: public CommonAttributes, public GCObject  {};
+struct ExprNode: public CommonAttributes, public GCObject {
+    ExprNode():
+        GCObject(ObjectKind::Expression)
+    {}
+};
 
 enum class ConversionKind {
     None = -1,
@@ -257,7 +290,11 @@ struct TypeIgnore {
     String tag;
 };
 
-struct Pattern: public CommonAttributes, public GCObject {};
+struct Pattern: public CommonAttributes, public GCObject {
+    Pattern():
+        GCObject(ObjectKind::Pattern)
+    {}
+};
 
 struct MatchValue : public Pattern {
     ExprNode* value;

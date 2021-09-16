@@ -21,6 +21,10 @@ void Parser::end_code_loc(CommonAttributes* target, Token tok) {}
 Token Parser::parse_body(GCObject* parent, Array<StmtNode*>& out, int depth) {
     while (token().type() != tok_desindent && token().type() != tok_eof) {
         out.push_back(parse_statement(parent, depth));
+
+        if (token().type() == tok_incorrect) {
+            next_token();
+        }
     }
 
     auto last = token();
@@ -318,7 +322,7 @@ Pattern* Parser::parse_pattern_1(GCObject* parent, int depth) {
         case tok_string:
         case tok_float: {
             auto pat = parent->new_object<MatchSingleton>();
-            pat->value = parse_constant(pat, depth + 1);
+            pat->value = get_value();
             return pat;
         }
 
@@ -465,6 +469,8 @@ StmtNode* Parser::parse_raise(GCObject* parent, int depth) {
         end_code_loc(stmt, token());
         next_token();
     }
+
+    return stmt;
 }
 
 Token Parser::parse_except_handler(GCObject* parent, Array<ExceptHandler>& out, int depth) {
@@ -483,9 +489,10 @@ Token Parser::parse_except_handler(GCObject* parent, Array<ExceptHandler>& out, 
 
         expect_token(':', true, parent);
         parse_body(parent, handler.body, depth + 1);
-
         out.push_back(handler);
     }
+
+    return token();
 }
 
 StmtNode* Parser::parse_try(GCObject* parent, int depth) {
@@ -746,21 +753,31 @@ ExprNode* Parser::parse_name(GCObject* parent, int depth) {
     expect_token(tok_identifier, true, expr);
     return expr;
 }
+
+
+ConstantValue Parser::get_value() {
+    ConstantValue v;
+
+    switch (token().type()){
+    case tok_string:{
+        v = token().identifier();
+    }
+    case tok_int:{
+        v = token().as_integer();
+    }
+    case tok_float:{
+        v = token().as_float();
+    }
+    }
+
+    return v;
+}
+
 ExprNode* Parser::parse_constant(GCObject* parent, int depth){
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
 
-    switch (token().type()){
-    case tok_string:{
-        expr->value = token().identifier();
-    }
-    case tok_int:{
-         expr->value = token().as_integer();
-    }
-    case tok_float:{
-        expr->value = token().as_float();
-    }
-    }
+    expr->value = get_value();
 
     end_code_loc(expr, token());
     next_token();
@@ -848,12 +865,31 @@ ExprNode* Parser::parse_starred(GCObject* parent, int depth){
     return expr;
 }
 
+void Parser::parse_comprehension(GCObject* parent, Array<Comprehension>& out, char kind, int depth) {
+    while (token().type() != kind) {
+        expect_token(tok_for, true, parent);
+        Comprehension cmp;
+
+        cmp.target = parse_expression(parent, depth + 1);
+        expect_token(tok_in, true, parent);
+        cmp.iter = parse_expression(parent, depth + 1);
+
+        while (token().type() == tok_if) {
+            next_token();
+            cmp.ifs.push_back(parse_expression(parent, depth + 1));
+        }
+
+        cmp.is_async = async();
+        out.push_back(cmp);
+    }
+}
+
 template<typename Comp>
 ExprNode* parse_comprehension(Parser* parser, GCObject* parent, ExprNode* child, char kind, int depth) {
     auto expr = parent->new_object<Comp>();
 
     expr->elt = child;
-    expr->generators = parser->parse_comprehension(expr, kind, depth);
+    parser->parse_comprehension(expr, expr->generators, kind, depth);
 
     parser->end_code_loc(expr, parser->token());
     return expr;
@@ -864,7 +900,7 @@ ExprNode* parse_dictcomprehension(Parser* parser, GCObject* parent, ExprNode* ke
 
     expr->key = key;
     expr->value = value;
-    expr->generators = parser->parse_comprehension(expr, kind, depth);
+    parser->parse_comprehension(expr, expr->generators, kind, depth);
 
     parser->end_code_loc(expr, parser->token());
     return expr;
@@ -931,8 +967,8 @@ ExprNode* parse_comprehension_or_literal(Parser* parser, GCObject* parent, int t
     bool dictionary = true;
 
     // Dictionary
-    if (token.type() == ':') {
-        next_token();
+    if (parser->token().type() == ':') {
+        parser->next_token();
         value = parser->parse_expression(parent, depth + 1);
         dictionary = true;
     }
@@ -940,18 +976,18 @@ ExprNode* parse_comprehension_or_literal(Parser* parser, GCObject* parent, int t
 
     //
     ExprNode* expr = nullptr;
-    if (token().type() == tok_for) {
+    if (parser->token().type() == tok_for) {
         // This is generator comprehension
         if (dictionary) {
             expr = parse_dictcomprehension(parser, parent, child, value, kind, depth);
         } else {
-            expr = parse_comprehension(parser, parent, child, kind, depth);
+            expr = parse_comprehension<Comp>(parser, parent, child, kind, depth);
         }
     } else {
         if (dictionary) {
             expr = parse_dictliteral(parser, parent, child, value, kind, depth);
         } else {
-            expr = parse_literal(parser, parent, child, kind, depth);
+            expr = parse_literal<Literal>(parser, parent, child, kind, depth);
         }
     }
 

@@ -1,5 +1,5 @@
 #include "lexer/lexer.h"
-#include "parser/module.h"
+// #include "parser/module.h"
 
 #include "allocator.h"
 #include "metadata.h"
@@ -27,6 +27,7 @@ using HashNodeInternal = T;
 
 bool _metadata_init_names(){
     meta::register_type<int>("int");
+    /*
     meta::register_type<AST::Parameter>("Parameter");
     meta::register_type<lython::Expression>("Expression");
     meta::register_type<lython::Value>("Value");
@@ -51,6 +52,7 @@ bool _metadata_init_names(){
     meta::register_type<SharedPtrInternal<lython::AST::ImportedExpr>>("AST::ImportedExpr");
     meta::register_type<SharedPtrInternal<lython::AST::UnparsedBlock>>("AST::UnparsedBlock");
     meta::register_type<SharedPtrInternal<lython::AST::Match>>("AST::Match");
+
 
     // value::Struct
     meta::register_type<HashNodeInternal<
@@ -149,6 +151,7 @@ bool _metadata_init_names(){
     //register_type<Keyword>("Keyword");
     //register_type<Token>("Token");
     //register_type<AST::MathNode>("MathNode");
+    */
 
     #define INIT_METADATA(name, typname)\
         meta::type_name<name>();

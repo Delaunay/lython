@@ -3,12 +3,13 @@
 
 #include "utilities/metadata.h"
 
-#include "ast/expressions.h"
+// #include "ast/expressions.h"
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
+#include "ast/sexpression.h"
 
-#include "interpreter/interpreter.h"
+// #include "interpreter/interpreter.h"
 #include "logging/logging.h"
 
 #include "../tests/samples.h"
@@ -119,12 +120,16 @@ int main() {
         }
 
         reader.reset();
-        Module module;
         String parser_string;
+        Module* mod = nullptr;
 
         try {
             Lexer lex(reader);
-            parse(lex, module);
+
+            Parser parser(lex);
+
+            mod = parser.parse_module();
+
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;
@@ -138,7 +143,7 @@ int main() {
 
 //        std::cout << std::string(80, '-') << '\n';
         // -------------------------------------------------
-        module.print(std::cout);
+//        module.print(std::cout);
 
 //        for(Index i = 0; i < module.size(); ++i){
 //            std::cout << int(i) << " " << std::endl;
@@ -146,7 +151,7 @@ int main() {
 //        }
         std::cout << std::string(80, '-') << '\n';
 
-        Interpreter vm(module);
+ //       Interpreter vm(module);
 
 //        "pp = Point(1.0, 2.0)\n"
 
@@ -156,19 +161,20 @@ int main() {
 
 //        "get_x(pp)\n";
 
-        auto expr = make_import_call_check(module);
+        // auto expr = make_import_call_check(module);
         // auto expr = make_point_check(module);
-        Value v = vm.eval(expr);
+      //  Value v = vm.eval(expr);
 
-        v.print(std::cout) << std::endl;
+      //   v.print(std::cout) << std::endl;
         std::cout << code.size() << std::endl;
         std::cout << std::endl;
     }
     show_alloc_stats();
-    StringDatabase::instance().report(std::cout);
+    // StringDatabase::instance().report(std::cout);
     return 0;
 }
 
+/*
 Expression make_point(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
@@ -206,3 +212,4 @@ Expression make_max(Module& mod){
     call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
     return expr;
 }
+*/

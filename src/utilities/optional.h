@@ -18,7 +18,7 @@ public:
     Optional(const Optional& opt):
         _has_data(opt._has_data){
         if (_has_data){
-            holder.data.value = opt.data.value;
+            holder.data.value = opt.holder.data.value;
         }
     }
 
@@ -31,7 +31,7 @@ public:
         _has_data = opt._has_data;
 
         if (_has_data){
-            holder.data.value = opt.data.value;
+            holder.data.value = opt.holder.data.value;
         }
         return *this;
     }

@@ -11,7 +11,6 @@
 #include "utilities/guard.h"
 
 #include "ast/sexpression.h"
-#include "parser/module.h"
 
 #include <iostream>
 #include <numeric>
@@ -37,6 +36,7 @@ struct ParsingError {
     Token received_token;
     StmtNode* stmt;
     ExprNode* expr;
+    Pattern*  pat;
     String message;
 
     ParsingError():
@@ -47,16 +47,14 @@ struct ParsingError {
         expected_token(expected), received_token(token)
     {}
 
-    ParsingError(int expected, Token token, StmtNode* _stmt):
+    ParsingError(int expected, Token token, GCObject* obj):
         ParsingError(expected, token)
     {
-        stmt = _stmt;
-    }
-
-    ParsingError(int expected, Token token, ExprNode* _expr):
-        ParsingError(expected, token)
-    {
-         expr = _expr;
+         switch (obj->kind) {
+            case ObjectKind::Expression: expr = (ExprNode*)obj;
+            case ObjectKind::Pattern:    pat  = (Pattern*)obj;
+            case ObjectKind::Statement:  stmt = (StmtNode*)obj;
+         }
     }
 
     static ParsingError syntax_error(String const& message) {
@@ -90,19 +88,11 @@ class Parser {
         metadata_init_names();
     }
 
-    static ModNode* parse_module(String name) {
+    Module* parse_module() {
         // lookup the module
-
         Module* module = new Module();
-
-
-        return (ModNode*)module;
-
-        // is this just for repl ?
-        // Interactive;
-        // Expression;
-        //?
-        // FunctionType;
+        parse_body(module, module->body, 0);
+        return module;
     }
 
     Token parse_body(GCObject* parent, Array<StmtNode*>& out, int depth);
@@ -206,6 +196,8 @@ class Parser {
     void start_code_loc(CommonAttributes* target, Token tok);
     void end_code_loc(CommonAttributes* target, Token tok);
 
+    ConstantValue get_value();
+
     // Primary expression
     // parse_expression_1
     ExprNode* parse_await(GCObject* parent, int depth);
@@ -221,7 +213,7 @@ class Parser {
     ExprNode* parse_tuple_generator(GCObject* parent, int depth);
     ExprNode* parse_set_dict(GCObject* parent, int depth);
 
-    Array<Comprehension> parse_comprehension(GCObject* parent, char kind, int depth);
+    void parse_comprehension(GCObject* parent, Array<Comprehension>& out, char kind, int depth);
     Arguments parse_arguments(GCObject* parent, char kind, int depth);
     Token parse_call_args(GCObject* parent, Array<ExprNode*>& args, Array<Keyword>& keywords, int depth);
     void parse_withitem(GCObject* parent, Array<WithItem>& out, int depth);

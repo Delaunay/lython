@@ -16,17 +16,17 @@ AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 
 # Source
 SET(ADD_HEADERS
-    ast/expressions.h
-    ast/nodes.h
+    # ast/expressions.h
+    # ast/nodes.h
     ast/sexpression.h
     ast/names.h
-    ast/visitor.h
-    ast/print.h
+    # ast/visitor.h
+    # ast/print.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
     parser/parser.h
-    parser/module.h
+    # parser/module.h
     utilities/optional.h
     utilities/pool.h
     sema/sema.h
@@ -37,34 +37,34 @@ SET(ADD_HEADERS
     utilities/stopwatch.h
     utilities/strings.h
     utilities/guard.h
-    interpreter/interpreter.h
-    interpreter/value.h
+    # interpreter/interpreter.h
+    # interpreter/value.h
     dtypes.h
     "${BUILDDIR}/revision_data.h"
 )
 
 SET(ADD_SOURCE
-    ast/expressions.cpp
+    # ast/expressions.cpp
     ast/sexpression.cpp
     ast/names.cpp
-    ast/print.cpp
-    ast/nodes.cpp
+    # ast/print.cpp
+    # ast/nodes.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp
     parser/parser.cpp
-    parser/import.cpp
-    parser/struct.cpp
-    parser/function.cpp
-    parser/match.cpp
-    parser/loop.cpp
+    # parser/import.cpp
+    # parser/struct.cpp
+    # parser/function.cpp
+    # parser/match.cpp
+    # parser/loop.cpp
     sema/sema.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp
     utilities/pool.cpp
     utilities/strings.cpp
-    interpreter/interpreter.cpp
-    interpreter/value.cpp
+    # interpreter/interpreter.cpp
+    # interpreter/value.cpp
 )
 
 #SET (CUDA_SUPPORT

@@ -1,5 +1,5 @@
 #include "utilities/strings.h"
-#include "parser/module.h"
+// #include "parser/module.h"
 #include "ast/names.h"
 
 namespace lython {
