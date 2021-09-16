@@ -52,8 +52,32 @@
     X(tok_raise,     -27)\
     X(tok_case,      -28)\
     X(tok_for,       -29)\
-    X(tok_while,     -30)
-
+    X(tok_while,     -30)\
+    X(tok_with,      -31)\
+    X(tok_class,     -32)\
+    X(tok_assert,    -33)\
+    X(tok_global,    -34)\
+    X(tok_del,       -35)\
+    X(tok_pass,      -36)\
+    X(tok_break,     -37)\
+    X(tok_continue,  -38)\
+    X(tok_parens,    '(')\
+    X(tok_square,    '[')\
+    X(tok_dot,       '.')\
+    X(tok_assign,    '=')\
+    X(tok_curly,     '{')\
+    X(tok_star,      '*')\
+    X(tok_augassign, -39)\
+    X(tok_annassign, -40)\
+    X(tok_walrus,    -41)\
+    X(tok_boolop,    -42)\
+    X(tok_binaryop,  -43)\
+    X(tok_compareop, -44)\
+    X(tok_unaryop,   -45)\
+    X(tok_await,     -46)\
+    X(tok_lambda,    -47)\
+    X(tok_fstring,   -48)\
+    X(tok_yield_from, -49)
 
 #define LYTHON_KEYWORDS(X) \
     X("def",    tok_def)\
@@ -74,7 +98,19 @@
     X("raise",  tok_raise)\
     X("case",   tok_case)\
     X("while",  tok_while)\
-    X("for",    tok_for)
+    X("for",    tok_for)\
+    X("with",     tok_with)\
+    X("class",    tok_class)\
+    X("assert",   tok_assert)\
+    X("global",   tok_global)\
+    X("del",      tok_del)\
+    X("pass",     tok_pass)\
+    X("break",    tok_break)\
+    X("continue", tok_continue)\
+    X(":=",       tok_walrus)\
+    X("await",    tok_await)\
+    X("lambda",   tok_lambda)
+
     
 namespace lython{
 

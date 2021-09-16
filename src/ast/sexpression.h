@@ -156,6 +156,53 @@ struct TypeIgnore {
     String tag;
 };
 
+struct Pattern: public CommonAttributes {};
+
+struct MatchValue : public Pattern {
+    ExprNode* value;
+};
+
+struct MatchSingleton: public Pattern {
+    // (constant value)
+};
+
+struct MatchSequence: public Pattern {
+    Array<Pattern*> patterns;
+};
+
+struct MatchMapping: public Pattern {
+    Array<ExprNode> keys;
+    Array<Pattern*> patterns;
+    Optional<Identifier> rest;
+};
+
+struct MatchClass: public Pattern {
+    ExprNode* cls;
+    Array<Pattern*> patterns;
+    Array<Identifier> kwd_attrs;
+    Array<Pattern*> kwd_patterns;
+};
+
+struct MatchStar: public Pattern {
+    Optional<Identifier> name;
+};
+
+// The optional "rest" MatchMapping parameter handles capturing extra mapping keys
+struct MatchAs: public Pattern {
+    Optional<Pattern*> pattern;
+    Optional<Identifier> name;
+};
+
+struct MatchOr: public Pattern {
+    Array<Pattern*> patterns;
+};
+
+struct MatchCase {
+    Pattern* pattern;
+    Optional<ExprNode*> guard;
+    Array<StmtNode*> body;
+};
+
 // Expressions
 // -----------
 
@@ -321,6 +368,8 @@ struct Slice: public ExprNode {
 // -------
 struct Module: public ModNode {
     Array<StmtNode*> body;
+
+    String docstring;
 };
 
 struct Interactive: public ModNode {
@@ -345,6 +394,8 @@ struct FunctionDef: public StmtNode {
     Array<ExprNode*> decorator_list;
     Optional<ExprNode*> returns;
     String type_comment;
+
+    String docstring;
 };
 
 struct AsyncFunctionDef: public StmtNode {
@@ -354,6 +405,8 @@ struct AsyncFunctionDef: public StmtNode {
     Array<ExprNode*> decorator_list;
     Optional<ExprNode*> returns;
     String type_comment;
+
+    String docstring;
 };
 
 struct ClassDef: public StmtNode {
@@ -362,6 +415,8 @@ struct ClassDef: public StmtNode {
     Array<Keyword> keywords;
     Array<StmtNode*> body;
     Array<ExprNode*> decorator_list;
+
+    String docstring;
 };
 
 struct Return: public StmtNode {
@@ -480,6 +535,17 @@ struct Break: public StmtNode {
 
 struct Continue: public StmtNode {
 };
+
+struct Match: public StmtNode {
+    ExprNode* subject;
+    Array<MatchCase> cases;
+};
+
+//
+struct NotImplementedStmt: public StmtNode {};
+
+struct NotImplementedExpr: public ExprNode {};
+
 
 }
 
