@@ -29,6 +29,23 @@ public:
         children.push_back(child.release());
     }
 
+    void remove_child(GCObject* child, bool free) {
+        auto elem = std::find(children.rbegin(), children.rend(), child);
+        // This is why people hate C++
+        //
+        // This removes the element found by the reverse iterator.
+        // Reverse iterator do not point to the found element
+        // but the element before it.
+        // erase is not specialized to take reverse iterator
+        // so we need to convert it ourselves and KNOW that this is what is
+        // expected but nobody could have guessed that
+        children.erase(std::next(elem).base());
+
+        if (free) {
+            delete child;
+        }
+    }
+
     ~GCObject(){
         for (auto obj: children) {
             delete obj;
@@ -240,7 +257,7 @@ struct TypeIgnore {
     String tag;
 };
 
-struct Pattern: public CommonAttributes {};
+struct Pattern: public CommonAttributes, public GCObject {};
 
 struct MatchValue : public Pattern {
     ExprNode* value;
@@ -254,8 +271,9 @@ struct MatchSequence: public Pattern {
     Array<Pattern*> patterns;
 };
 
+// The optional "rest" MatchMapping parameter handles capturing extra mapping keys
 struct MatchMapping: public Pattern {
-    Array<ExprNode> keys;
+    Array<ExprNode*> keys;
     Array<Pattern*> patterns;
     Optional<Identifier> rest;
 };
@@ -271,7 +289,6 @@ struct MatchStar: public Pattern {
     Optional<Identifier> name;
 };
 
-// The optional "rest" MatchMapping parameter handles capturing extra mapping keys
 struct MatchAs: public Pattern {
     Optional<Pattern*> pattern;
     Optional<Identifier> name;
@@ -468,17 +485,10 @@ struct FunctionDef: public StmtNode {
     String type_comment;
 
     String docstring;
+    bool async = false;
 };
 
-struct AsyncFunctionDef: public StmtNode {
-    Identifier name;
-    Arguments args;
-    Array<StmtNode*> body;
-    Array<ExprNode*> decorator_list;
-    Optional<ExprNode*> returns;
-    String type_comment;
-
-    String docstring;
+struct AsyncFunctionDef: public FunctionDef {
 };
 
 struct ClassDef: public StmtNode {
@@ -526,14 +536,13 @@ struct For: public StmtNode {
     Array<StmtNode*> body;
     Array<StmtNode*> orelse;
     Optional<String> type_comment;
+
+    bool async = false;
 };
 
-struct AsyncFor: public StmtNode {
-    ExprNode* target = nullptr;
-    ExprNode* iter = nullptr;
-    Array<StmtNode*> body;
-    Array<StmtNode*> orelse;
-    Optional<String> type_comment;
+// Keeping it for consistency with python docs, but useless
+struct AsyncFor: public For {
+
 };
 
 struct While: public StmtNode {
@@ -552,12 +561,13 @@ struct With: public StmtNode {
     Array<WithItem> items;
     Array<StmtNode*> body;
     Optional<String> type_comment;
+
+    bool async = false;
 };
 
-struct AsyncWith: public StmtNode {
-    Array<WithItem> items;
-    Array<StmtNode*> body;
-    Optional<String> type_comment;
+// Keeping it for consistency with python docs, but useless
+struct AsyncWith: public With {
+
 };
 
 struct Raise: public StmtNode {
@@ -618,7 +628,9 @@ struct NotImplementedStmt: public StmtNode {};
 
 struct NotImplementedExpr: public ExprNode {};
 
+struct NotAllowedEpxr: public ExprNode {
+    String msg;
+};
 
 }
-
 #endif

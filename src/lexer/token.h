@@ -68,16 +68,19 @@
     X(tok_curly,     '{')\
     X(tok_star,      '*')\
     X(tok_augassign, -39)\
-    X(tok_annassign, -40)\
-    X(tok_walrus,    -41)\
-    X(tok_boolop,    -42)\
-    X(tok_binaryop,  -43)\
-    X(tok_compareop, -44)\
-    X(tok_unaryop,   -45)\
-    X(tok_await,     -46)\
-    X(tok_lambda,    -47)\
-    X(tok_fstring,   -48)\
-    X(tok_yield_from, -49)
+    X(tok_annassign,  -40)\
+    X(tok_walrus,     -41)\
+    X(tok_boolop,     -42)\
+    X(tok_binaryop,   -43)\
+    X(tok_compareop,  -44)\
+    X(tok_unaryop,    -45)\
+    X(tok_await,      -46)\
+    X(tok_lambda,     -47)\
+    X(tok_fstring,    -48)\
+    X(tok_yield_from, -49)\
+    X(tok_in,         -50)\
+    X(tok_finally,    -51)\
+    X(tok_nonlocal,   -52)
 
 #define LYTHON_KEYWORDS(X) \
     X("def",    tok_def)\
@@ -109,9 +112,12 @@
     X("continue", tok_continue)\
     X(":=",       tok_walrus)\
     X("await",    tok_await)\
-    X("lambda",   tok_lambda)
+    X("lambda",   tok_lambda)\
+    X("in",       tok_in)\
+    X("finally",  tok_finally)\
+    X("nonlocal", tok_nonlocal)
 
-    
+
 namespace lython{
 
 enum TokenType{

@@ -29,7 +29,61 @@
         TRACE_END();\
     });}
 
+
 namespace lython {
+
+struct ParsingError {
+    int expected_token;
+    Token received_token;
+    StmtNode* stmt;
+    ExprNode* expr;
+    String message;
+
+    ParsingError():
+        received_token(dummy())
+    {}
+
+    ParsingError(int expected, Token token):
+        expected_token(expected), received_token(token)
+    {}
+
+    ParsingError(int expected, Token token, StmtNode* _stmt):
+        ParsingError(expected, token)
+    {
+        stmt = _stmt;
+    }
+
+    ParsingError(int expected, Token token, ExprNode* _expr):
+        ParsingError(expected, token)
+    {
+         expr = _expr;
+    }
+
+    static ParsingError syntax_error(String const& message) {
+        auto p = ParsingError();
+        p.message = message;
+        return p;
+    }
+};
+
+
+
+inline
+void add_wip_expr(ParsingError* err, StmtNode* stmt) {
+    if (err == nullptr)
+        return;
+
+    err->stmt = stmt;
+}
+
+inline
+void add_wip_expr(ParsingError* err, ExprNode* expr) {
+    if (err == nullptr)
+        return;
+
+    err->expr = expr;
+}
+
 class Parser {
   public:
     Parser(AbstractLexer &lexer): _lex(lexer) {
@@ -51,9 +105,24 @@ class Parser {
         // FunctionType;
     }
 
+    Token parse_body(GCObject* parent, Array<StmtNode*>& out, int depth);
+    Token parse_except_handler(GCObject* parent, Array<ExceptHandler>& out, int depth);
+    void parse_alias(GCObject* parent, Array<Alias>& out, int depth);
+    Token parse_match_case(GCObject* parent, Array<MatchCase>& out, int depth);
+
+    Pattern* parse_pattern(GCObject* parent, int depth);
+    Pattern* parse_pattern_1(GCObject* parent, int depth);
+
+    Pattern* parse_match_sequence(GCObject* parent, int depth);
+    Pattern* parse_match_star(GCObject* parent, int depth);
+    Pattern* parse_match_mapping(GCObject* parent, int depth);
+
+    Pattern* parse_match_or(GCObject* parent, Pattern* primary, int depth);
+    Pattern* parse_match_as(GCObject* parent, Pattern* primary, int depth);
+    Pattern* parse_match_class(GCObject* parent, ExprNode* cls, int depth);
+
     // Statement_1
-    StmtNode* parse_function_def(GCObject* parent, int depth);
-    StmtNode* parse_async_function_def(GCObject* parent, int depth);
+    StmtNode* parse_function_def(GCObject* parent, bool async, int depth);
     StmtNode* parse_class_def(GCObject* parent, int depth);
     StmtNode* parse_for(GCObject* parent, int depth);
     StmtNode* parse_while(GCObject* parent, int depth);
@@ -66,6 +135,7 @@ class Parser {
     StmtNode* parse_import(GCObject* parent, int depth);
     StmtNode* parse_import_from(GCObject* parent, int depth);
     StmtNode* parse_global(GCObject* parent, int depth);
+    StmtNode* parse_nonlocal(GCObject* parent, int depth);
     StmtNode* parse_return(GCObject* parent, int depth);
     StmtNode* parse_del(GCObject* parent, int depth);
     StmtNode* parse_pass(GCObject* parent, int depth);
@@ -83,14 +153,14 @@ class Parser {
         // Statement we can guess rightaway from the current token we are seeing
         switch (token().type()) {
             // def <name>(...
-            case tok_def:       return parse_function_def(parent, depth);
+            case tok_def:       return parse_function_def(parent, false, depth);
 
             // async def <name>(...
-            case tok_async:     return parse_async_function_def(parent, depth);
+            case tok_async:     return parse_function_def(parent, true, depth);
 
             case tok_class:     return parse_class_def(parent, depth);
 
-            // Async for ?
+            // Async for: only valid inside async function
             case tok_for:       return parse_for(parent, depth);
 
             case tok_while:     return parse_while(parent, depth);
@@ -98,7 +168,7 @@ class Parser {
 
             case tok_match:     return parse_match(parent, depth);
             case tok_with:      return parse_with(parent, depth);
-            // Async with ?
+            // Async with: only valid inside async function
 
             case tok_raise:     return parse_raise(parent, depth);
             case tok_try:       return parse_try(parent, depth);
@@ -108,7 +178,7 @@ class Parser {
             case tok_from:      return parse_import_from(parent, depth);
 
             case tok_global:    return parse_global(parent, depth);
-            // Nonlocal(identifier* names)
+            case tok_nonlocal:  return parse_nonlocal(parent, depth);
 
             case tok_return:    return parse_return(parent, depth);
             case tok_del:       return parse_del(parent, depth);
@@ -152,9 +222,12 @@ class Parser {
     ExprNode* parse_set_dict(GCObject* parent, int depth);
 
     Array<Comprehension> parse_comprehension(GCObject* parent, char kind, int depth);
-    Arguments parse_arguments(char kind);
+    Arguments parse_arguments(GCObject* parent, char kind, int depth);
+    Token parse_call_args(GCObject* parent, Array<ExprNode*>& args, Array<Keyword>& keywords, int depth);
+    void parse_withitem(GCObject* parent, Array<WithItem>& out, int depth);
 
     // parse_expression_2
+    // TODO: primary has the parent has GC not the expression it belongs to
     ExprNode* parse_named_expr(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_bool_operator(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_binary_operator(GCObject* parent, ExprNode* primary, int depth);
@@ -163,7 +236,7 @@ class Parser {
     ExprNode* parse_call(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_attribute(GCObject* parent, ExprNode* primary, int depth);
     ExprNode* parse_subscript(GCObject* parent, ExprNode* primary, int depth);
-    ExprNode* parse_slice(GCObject* parent, int depth);
+    ExprNode* parse_slice(GCObject* parent, ExprNode* primary, int depth);
 
     ExprNode* parse_expression(GCObject* parent, int depth) {
         auto primary = parse_expression_1(parent, depth);
@@ -185,6 +258,8 @@ class Parser {
         case tok_dot:       return parse_attribute(parent, primary, depth);
         // <expr>[
         case tok_square:    return parse_subscript(parent, primary, depth);
+
+        case ':':           return parse_slice(parent, primary, depth);
         }
 
         return primary;
@@ -233,6 +308,22 @@ class Parser {
         return nullptr;
     }
 
+    template<typename T>
+    ParsingError* expect_token(int tok, bool eat, T* wip_expression) {
+        if (token().type() == tok) {
+            if (eat) {
+                next_token();
+            }
+
+            return nullptr;
+        }
+
+        // if the token does not match assume we "had it"
+        // and record the error
+        // so we can try to parse as much as possible
+        return &errors.emplace_back(tok, token(), wip_expression);
+    }
+
     // Shortcuts
     Token const& next_token()  { return _lex.next_token(); }
     Token const& token()       { return _lex.token();      }
@@ -242,13 +333,40 @@ class Parser {
         if (token().type() == tok_identifier) {
             return token().identifier();
         }
-
-        debug("Missing identifier");
         return String("<identifier>");
     }
 
+    bool async() const {
+        if (async_mode.size() <= 0) {
+            return false;
+        }
+
+        return async_mode[int(async_mode.size()) - 1];
+    }
+
+    // not 100% sure this is the right way
+    ExprContext context() const {
+        if (_context.size() <= 0) {
+            return ExprContext::Load;
+        }
+
+        return _context[int(_context.size()) - 1];
+    }
+
+    bool allow_slice()  const {
+        if (_allow_slice.size() <= 0) {
+            return false;
+        }
+
+        return _allow_slice[int(_allow_slice.size()) - 1];
+    }
+
 private:
-  AbstractLexer& _lex;
+    std::vector<bool> _allow_slice;
+    std::vector<ExprContext> _context;
+    std::vector<bool> async_mode;
+    AbstractLexer& _lex;
+    Array<ParsingError> errors;
 };
 
 } // namespace lython
