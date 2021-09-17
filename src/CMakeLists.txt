@@ -20,12 +20,16 @@ SET(ADD_HEADERS
     # ast/nodes.h
     ast/sexpression.h
     ast/names.h
+    ast/object.h
+    ast/magic.h 
+    ast/constant.h
     # ast/visitor.h
     # ast/print.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
     parser/parser.h
+    parser/parsing_error.h
     # parser/module.h
     utilities/optional.h
     utilities/pool.h
@@ -47,12 +51,13 @@ SET(ADD_SOURCE
     # ast/expressions.cpp
     ast/sexpression.cpp
     ast/names.cpp
-    # ast/print.cpp
+    ast/print.cpp
     # ast/nodes.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp
     parser/parser.cpp
+    parser/parsing_error.cpp
     # parser/import.cpp
     # parser/struct.cpp
     # parser/function.cpp

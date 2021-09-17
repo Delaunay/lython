@@ -2,8 +2,10 @@
 // #include "parser/module.h"
 #include "ast/names.h"
 
-namespace lython {
+#include "ast/sexpression.h"
+#include "ast/magic.h"
 
+namespace lython {
 
 template<typename Iterator>
 String join(String const& sep, Iterator const& start, Iterator const& end){
@@ -43,7 +45,6 @@ String join(String const& sep, Iterator const& start, Iterator const& end){
     return result;
 }
 
-
 String join(String const& sep, Array<String> const& strs){
     return join(sep, std::begin(strs), std::end(strs));
 }
@@ -55,6 +56,10 @@ String join(String const& sep, Array<StringView> const& strs){
 String join(String const& sep, Array<StringRef> const& strs){
     return join(sep, std::begin(strs), std::end(strs));
 }
+
+template String join(String const& sep, Array<ExprNode*> const& exprs);
+template String join(String const& sep, Array<Pattern*> const& exprs);
+
 
 String strip(String const& v){
     static Set<char> char_set = {'\n', ' ', '\t'};

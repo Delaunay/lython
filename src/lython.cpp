@@ -114,22 +114,33 @@ int main() {
 
         StringBuffer reader(code);
 
+        std::cout << std::string(80, '=') << '\n';
+        std::cout << "Lexer Token Dump\n";
+        {
+            Lexer lex(reader);
+            lex.debug_print(std::cout);
+            reader.reset();
+        }
+        std::cout << std::string(80, '-') << '\n';
+
+
+        std::cout << std::string(80, '=') << '\n';
+        std::cout << "Lexing Round-trip\n";
         String lexer_string;
         {
             Lexer lex(reader);
             StringStream ss;
             lex.print(ss);
             lexer_string = ss.str();
-        }
-
-        {
             reader.reset();
-            Lexer lex(reader);
-            lex.debug_print(std::cout);
         }
+        std::cout << std::string(80, '-') << '\n';
+        std::cout << strip(lexer_string) << std::endl;
+        std::cout << std::string(80, '-') << '\n';
 
-        reader.reset();
-        String parser_string;
+        std::cout << std::string(80, '=') << '\n';
+        std::cout << "Parsing Trace\n";
+        std::cout << std::string(80, '-') << '\n';
         Module* mod = nullptr;
 
         try {
@@ -139,9 +150,20 @@ int main() {
 
             mod = parser.parse_module();
 
-            std::cout << std::endl << std::endl;
+            std::cout << std::string(80, '-') << '\n';
+            std::cout << "Parsing Diag\n";
+            std::cout << std::string(80, '-') << '\n';
             for(auto& diag: parser.get_errors()) {
                 diag.print(std::cout);
+            }
+            std::cout << std::string(80, '-') << '\n';
+
+            std::cout << std::string(80, '-') << '\n';
+            std::cout << "Parsed Module dump\n";
+            std::cout << std::string(80, '-') << '\n';
+            for(auto stmt: mod->body) {
+                stmt->print(std::cout, 0);
+                std::cout << "\n";
             }
 
         } catch (lython::Exception e) {
@@ -149,42 +171,12 @@ int main() {
             std::cout << "\t" << e.what() << std::endl;
         }
 
-        std::cout << std::string(80, '-') << '\n';
-        std::cout << strip(lexer_string) << std::endl;
-
-        std::cout << strip(parser_string) << std::endl;
-        std::cout << strip(code) << std::endl;
-
-        std::cout << std::string(80, '-') << '\n';
-        // -------------------------------------------------
-//        module.print(std::cout);
-
-//        for(Index i = 0; i < module.size(); ++i){
-//            std::cout << int(i) << " " << std::endl;
-//            module.get_item(i)->print(std::cout) << std::endl;
-//        }
-        std::cout << std::string(80, '-') << '\n';
-
- //       Interpreter vm(module);
-
-//        "pp = Point(1.0, 2.0)\n"
-
-//        "get_x(pp)\n"
-
-//        "set_x(pp, 3)\n"
-
-//        "get_x(pp)\n";
-
-        // auto expr = make_import_call_check(module);
-        // auto expr = make_point_check(module);
-      //  Value v = vm.eval(expr);
-
-      //   v.print(std::cout) << std::endl;
-        std::cout << code.size() << std::endl;
-        std::cout << std::endl;
-
         delete mod;
     }
+
+
+    std::cout << std::string(80, '=') << '\n';
+    std::cout << "Alloc\n";
     show_alloc_stats();
     // StringDatabase::instance().report(std::cout);
     return 0;

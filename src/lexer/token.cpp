@@ -39,8 +39,8 @@ int8 tok_name_size()
 std::ostream& Token::debug_print(std::ostream& out){
     out << fmt::format("{:>20}", to_string(_type));
 
-		out << " =>" << " [l:" << fmt::format("{:4}", _line)
-				<< ", c:" << fmt::format("{:4}", _col) << "] `" << _identifier << "`";
+    out << " =>" << " [l:" << fmt::format("{:4}", _line)
+				 << ", c:" << fmt::format("{:4}", _col) << "] `" << _identifier << "`";
     return out;
 }
 

@@ -42,11 +42,15 @@ public:
         }
     }
 
-    bool has_value(){
+    bool has_value() const {
         return _has_data;
     }
 
-    T value(){
+    T const& value() const {
+        return holder.data.value;
+    }
+
+    T& value() {
         return holder.data.value;
     }
 

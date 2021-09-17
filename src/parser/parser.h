@@ -4,89 +4,20 @@
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 
-#include "utilities/optional.h"
-#include "utilities/stack.h"
-#include "utilities/trie.h"
+// #include "utilities/optional.h"
+// #include "utilities/stack.h"
+// #include "utilities/trie.h"
 #include "utilities/metadata.h"
-#include "utilities/guard.h"
+// #include "utilities/guard.h"
 
+#include "parser/parsing_error.h"
 #include "ast/sexpression.h"
 
 #include <iostream>
 #include <numeric>
 
-#define TRACE_START()                                                          \
-    trace_start(depth, "({}: {}, {})", to_string(token().type()).c_str(),      \
-                token().type(), token().identifier())
-#define TRACE_END()                                                            \
-    trace_end(depth, "({}: {})", to_string(token().type()).c_str(),            \
-              token().type())
 
 namespace lython {
-
-struct ParsingError {
-		int expected_token = tok_incorrect;
-    Token received_token;
-    StmtNode* stmt;
-    ExprNode* expr;
-    Pattern*  pat;
-    String message;
-		CodeLocation loc;
-
-		ParsingError():
-				received_token(dummy()), loc(LOC)
-    {}
-
-		ParsingError(int expected, Token token, CodeLocation loc_):
-				expected_token(expected), received_token(token), loc(loc_)
-    {}
-
-		ParsingError(int expected, Token token, GCObject* obj, CodeLocation loc):
-				ParsingError(expected, token, loc)
-    {
-         switch (obj->kind) {
-            case ObjectKind::Expression: expr = (ExprNode*)obj;
-            case ObjectKind::Pattern:    pat  = (Pattern*)obj;
-            case ObjectKind::Statement:  stmt = (StmtNode*)obj;
-         }
-    }
-
-    static ParsingError syntax_error(String const& message) {
-        auto p = ParsingError();
-        p.message = message;
-        return p;
-    }
-
-    void print(std::ostream& out) {
-        out << loc.repr() << std::endl;
-
-        if (expected_token != tok_incorrect){
-            out << "    Expected: " << to_string(expected_token) << " but got ";
-            received_token.debug_print(out);
-        } else {
-            out << "    " << message;
-        }
-        out << std::endl << std::endl;
-    }
-};
-
-
-
-inline
-void add_wip_expr(ParsingError* err, StmtNode* stmt) {
-    if (err == nullptr)
-        return;
-
-    err->stmt = stmt;
-}
-
-inline
-void add_wip_expr(ParsingError* err, ExprNode* expr) {
-    if (err == nullptr)
-        return;
-
-    err->expr = expr;
-}
 
 class Parser {
   public:
@@ -259,7 +190,11 @@ class Parser {
         // <expr>[
         case tok_square:    return parse_subscript(parent, primary, depth);
 
-        case ':':           return parse_slice(parent, primary, depth);
+        // ':' is only valid inside a subscript
+        case ':': {
+            if (allow_slice())
+                return parse_slice(parent, primary, depth);
+        }
         }
 
         return primary;
@@ -309,19 +244,38 @@ class Parser {
     }
 
     template<typename T>
-		ParsingError* expect_token(int tok, bool eat, T* wip_expression, CodeLocation loc) {
-        if (token().type() == tok) {
-            if (eat) {
-                next_token();
+    ParsingError* expect_token(int expected, bool eat, T* wip_expression, CodeLocation loc) {
+        return expect_tokens<T>(Array<int>{expected}, eat, wip_expression, loc);
+    }
+
+    template<typename T>
+    ParsingError* expect_tokens(Array<int> const& expected, bool eat, T* wip_expression, CodeLocation loc) {
+        for (auto& tok : expected) {
+            if (token().type() == tok) {
+                if (eat) {
+                    next_token();
+                }
+
+                return nullptr;
             }
-
-            return nullptr;
         }
+        // ----
 
+        return write_error(expected, wip_expression, loc);
+    }
+
+    template<typename T> 
+    ParsingError* write_error(Array<int> const& expected, T* wip_expression, CodeLocation loc) {
         // if the token does not match assume we "had it"
         // and record the error
         // so we can try to parse as much as possible
-				return &errors.emplace_back(tok, token(), wip_expression, loc);
+        auto err = &errors.emplace_back(expected, token(), wip_expression, loc);
+
+        StringStream ss;
+        err->print(ss);
+
+        warn("{}", ss.str());
+        return err;
     }
 
     // Shortcuts
@@ -361,9 +315,9 @@ class Parser {
         return _allow_slice[int(_allow_slice.size()) - 1];
     }
 
-		Array<ParsingError> get_errors() {
-				return errors;
-		}
+    Array<ParsingError> get_errors() {
+        return errors;
+    }
 
 private:
     std::vector<bool> _allow_slice;

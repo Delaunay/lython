@@ -6,169 +6,12 @@
 #include "../dtypes.h"
 #include "../utilities/optional.h"
 
+#include "constant.h"
+#include "object.h"
+
 namespace lython {
 
 using Identifier = String;
-
-
-enum class ObjectKind {
-    Module,
-    Statement,
-    Expression,
-    Pattern,
-};
-
-struct GCObject {
-public:
-    template<typename T, typename... Args>
-		T* new_object(Args&&... args) {
-				auto& alloc = get_allocator<T>();
-
-				// allocate
-				T* memory = alloc.allocate(1);
-
-				// construct
-				T* obj = new((void*)memory) T(std::forward<Args>(args)...);
-
-        children.push_back(obj);
-        return obj;
-    }
-
-    //! Make an object match the lifetime of the parent
-    template<typename T>
-    void add_child(T* child) {
-				children.push_back(child);
-    }
-
-    template<typename T, typename D>
-    void add_child(Unique<T, D> child) {
-        children.push_back(child.release());
-    }
-
-    void remove_child(GCObject* child, bool free) {
-        auto elem = std::find(children.rbegin(), children.rend(), child);
-        // This is why people hate C++
-        //
-        // This removes the element found by the reverse iterator.
-        // Reverse iterator do not point to the found element
-        // but the element before it.
-        // erase is not specialized to take reverse iterator
-        // so we need to convert it ourselves and KNOW that this is what is
-        // expected but nobody could have guessed that
-				auto n = children.size();
-				children.erase(std::next(elem).base());
-				assert(n > children.size(), "Child was not removed");
-
-        if (free) {
-						// FIXME: this breaks the metadata
-						device::CPU().free((void*)child, 1);
-        }
-    }
-
-    ~GCObject(){
-        for (auto obj: children) {
-						// FIXME: this breaks the metadata
-						device::CPU().free((void*)obj, 1);
-        }
-    }
-
-    GCObject(ObjectKind k):
-        kind(k)
-    {}
-
-
-    ObjectKind const kind;
-
-private:
-    template<typename T>
-    AllocatorCPU<T>& get_allocator() {
-        static auto alloc = AllocatorCPU<T>();
-        return alloc;
-    }
-
-private:
-    Array<GCObject*> children;
-};
-
-struct ConstantValue {
-public:
-    enum Type {
-        TInt,
-        TFloat,
-        TString
-    };
-
-    ConstantValue() = default;
-
-    ConstantValue(int v):
-        kind(TInt)
-    {
-        value.integer = v;
-    }
-
-    ConstantValue(float v):
-        kind(TFloat)
-    {
-        value.decimal = v;
-    }
-
-    ConstantValue(double v):
-        kind(TFloat)
-    {
-        value.decimal = v;
-    }
-
-    ConstantValue(String const& v):
-        kind(TString)
-    {
-        value.string = v;
-    }
-
-    ConstantValue(ConstantValue const& v){
-        copy_union(v.kind, v.value);
-    }
-
-    ~ConstantValue() {
-        if (kind == TString) {
-            value.string.~String();
-        }
-    }
-
-    ConstantValue& operator= (ConstantValue const& v) {
-        copy_union(v.kind, v.value);
-        return *this;
-    }
-
-    template<typename T>
-    ConstantValue& operator= (T v) {
-        *this = ConstantValue(v);
-        return *this;
-    }
-
-private:
-    // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
-    union ValueVariant {
-        ValueVariant()  {}
-        ~ValueVariant() {}
-
-        int integer;
-        double decimal;
-        String string;
-    };
-
-    ValueVariant value;
-
-    Type kind;
-
-    void copy_union(Type k, ValueVariant const& v) {
-        kind = k;
-        switch (kind) {
-        case TString: value.string = v.string;
-        case TFloat: value.decimal = v.decimal;
-        case TInt: value.integer = v.integer;
-        }
-    }
-};
 
 // col_offset is the byte offset in the utf8 string the parser uses
 struct CommonAttributes {
@@ -179,7 +22,10 @@ struct CommonAttributes {
 };
 
 struct Node {
-	virtual void print(std::ostream& out, int indent) {}
+    // I think only statements need the indentaion
+	virtual void print(std::ostream& out, int indent = 0) const {}
+
+    String __str__() const;
 };
 
 struct ModNode: public GCObject, public Node {
@@ -259,41 +105,27 @@ struct Comprehension {
     ExprNode* iter = nullptr;
     Array<ExprNode*> ifs;
     int is_async;
+
+    void print(std::ostream& out, int indent) const;
 };
 
-inline
-void print(std::ostream& out, int indent, Array<StmtNode*> const& body) {
-    for(auto& stmt: body) {
-        out << std::string(indent * 4, ' ');
-        stmt->print(out, indent);
-    }
-}
+
+void print(std::ostream& out, int indent, Array<StmtNode*> const& body);
 
 struct ExceptHandler: public CommonAttributes {
     Optional<ExprNode*> type;
     Optional<Identifier> name;
     Array<StmtNode*> body;
 
-    void print(std::ostream& out, int indent) {
-        out << "except ";
-
-        if (type.has_value()) {
-            type.value()->print(out, indent);
-        }
-
-        if (name.has_value()) {
-            out << name.value();
-        }
-        
-        out << ":\n";
-        lython::print(out, indent + 1, body);
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Arg: public CommonAttributes {
     Identifier arg;
     Optional<ExprNode*> annotation;
     Optional<String> type_comment;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Arguments {
@@ -309,51 +141,28 @@ struct Arguments {
     Optional<Arg> kwarg;				// **kwargs
     Array<ExprNode*> defaults;
 
-    void print(std::ostream& out, int indent) {
-        for(auto& arg: args) {
-            out << arg.arg;
-
-            if (arg.annotation.has_value()) {
-                out << ": ";
-                arg.annotation.value()->print(out, indent);
-            }
-        }
-
-        for(auto& kw: kwonlyargs) {
-            out << kw.arg;
-
-            if (kw.annotation.has_value()) {
-                out << ": ";
-                kw.annotation.value()->print(out, indent);
-            }
-        }
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Keyword: public CommonAttributes {
     Optional<Identifier> arg;   // why is this optional ?
     ExprNode* value = nullptr;
 
-    void print(std::ostream& out, int indent) {
-        if (arg.has_value()) {
-            out << arg.value();
-        }
-
-        if (value != nullptr) {
-            out << " = ";
-            value->print(out, indent);
-        }
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Alias {
     Identifier name;
     Optional<Identifier> asname;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct WithItem {
     ExprNode* context_expr = nullptr;
     Optional<ExprNode*> optional_vars;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct TypeIgnore {
@@ -365,18 +174,28 @@ struct Pattern: public CommonAttributes, public GCObject {
     Pattern():
         GCObject(ObjectKind::Pattern)
     {}
+
+    virtual void print(std::ostream& out) const {}
+
+    String __str__() const;
 };
 
 struct MatchValue : public Pattern {
     ExprNode* value;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchSingleton: public Pattern {
     ConstantValue value;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchSequence: public Pattern {
     Array<Pattern*> patterns;
+
+    void print(std::ostream& out) const override;
 };
 
 // The optional "rest" MatchMapping parameter handles capturing extra mapping keys
@@ -450,10 +269,14 @@ struct IfExp: public ExprNode{
 struct DictExpr: public ExprNode{
     Array<ExprNode*> keys;
     Array<ExprNode*> values;
+
+    void print(std::ostream& out, int indent) const ;
 };
 
 struct SetExpr: public ExprNode{
     Array<ExprNode*> elts;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct ListComp: public ExprNode{
@@ -503,7 +326,7 @@ struct Call: public ExprNode{
     Array<ExprNode*> args;
     Array<Keyword> keywords;
 
-    void print(std::ostream &out, int indent) override {
+    void print(std::ostream &out, int indent) const override {
         func->print(out, indent);
         out << "(";
         
@@ -549,7 +372,7 @@ struct Attribute: public ExprNode{
     Identifier attr;
     ExprContext ctx;
 
-    void print(std::ostream &out, int indent) override {
+    void print(std::ostream &out, int indent) const override {
         value->print(out, indent);
         out << ".";
         out << attr;
@@ -561,7 +384,7 @@ struct Subscript: public ExprNode{
     ExprNode* slice = nullptr;
     ExprContext ctx;
 
-    void print(std::ostream &out, int indent) override {
+    void print(std::ostream &out, int indent) const override {
         value->print(out, indent);
         out << "[";
         slice->print(out, indent);
@@ -573,7 +396,7 @@ struct Starred: public ExprNode{
     ExprNode* value = nullptr;
     ExprContext ctx;
 
-    void print(std::ostream &out, int indent) override {
+    void print(std::ostream &out, int indent) const override {
         out << "*";
         value->print(out, indent);
     }
@@ -583,7 +406,7 @@ struct Name: public ExprNode{
     Identifier id;
     ExprContext ctx;
 
-    void print(std::ostream &out, int indent) override {
+    void print(std::ostream &out, int indent) const override {
         out << id;
     }
 };
@@ -591,11 +414,15 @@ struct Name: public ExprNode{
 struct ListExpr: public ExprNode{
     Array<ExprNode*> elts;
     ExprContext ctx;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct TupleExpr: public ExprNode{
     Array<ExprNode*> elts;
     ExprContext ctx;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 // can appear only in Subscript
@@ -604,22 +431,7 @@ struct Slice: public ExprNode {
     Optional<ExprNode*> upper;
     Optional<ExprNode*> step;
 
-    void print(std::ostream& out, int indent) {
-        if (lower.has_value()) {
-            lower.value()->print(out, indent);
-        }
-
-        out << ":";
-
-        if (upper.has_value()) {
-            upper.value()->print(out, indent);
-        }
-
-        if (step.has_value()) {
-            out << ":";
-            step.value()->print(out, indent);
-        }
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 // Modules
@@ -656,7 +468,7 @@ struct FunctionDef: public StmtNode {
     String docstring;
     bool async = false;
 
-    void print(std::ostream &out, int indent) override {
+    void print(std::ostream &out, int indent) const override {
         out << "def " << name << "(";
 
         args.print(out, indent);
@@ -688,7 +500,7 @@ struct ClassDef: public StmtNode {
 struct Return: public StmtNode {
     Optional<ExprNode*> value;
 
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "return ";
         
         if (value.has_value()) {
@@ -700,7 +512,7 @@ struct Return: public StmtNode {
 struct Delete: public StmtNode {
     Array<ExprNode*> targets;
 
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "del ";
         
         for(int i = 0; i < targets.size(); i++){
@@ -717,7 +529,7 @@ struct Assign: public StmtNode {
     ExprNode* value = nullptr;
     Optional<String> type_comment;
 
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         targets[0]->print(out, indent);
         out << " = ";
         value->print(out, indent);
@@ -737,7 +549,7 @@ struct AnnAssign: public StmtNode {
     Optional<ExprNode*> value;
     int simple;
 
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         target->print(out, indent);
         out << ": ";
         annotation->print(out, indent);
@@ -829,19 +641,19 @@ struct Expr: public StmtNode {
 };
 
 struct Pass: public StmtNode {
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "pass";
     }
 };
 
 struct Break: public StmtNode {
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "break";
     }
 };
 
 struct Continue: public StmtNode {
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "continue";
     }
 };
@@ -853,13 +665,13 @@ struct Match: public StmtNode {
 
 //
 struct NotImplementedStmt: public StmtNode {
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "<not implemented>";
     }
 };
 
 struct NotImplementedExpr: public ExprNode {
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "<not implemented>";
     }
 };
@@ -867,7 +679,7 @@ struct NotImplementedExpr: public ExprNode {
 struct NotAllowedEpxr: public ExprNode {
     String msg;
 
-    void print(std::ostream& out, int indent) {
+    void print(std::ostream& out, int indent) const {
         out << "<not allowed: " << msg << ">";
     }
 };

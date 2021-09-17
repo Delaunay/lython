@@ -9,6 +9,23 @@ String join(String const& sep, Array<String> const& strs);
 
 String strip(String const& v);
 
+String join(String const& sep, Array<struct ExprNode*> const& exprs);
+
+template<typename T>
+String join(String const& sep, Array<T> const& exprs){
+    Array<String> strs;
+    strs.reserve(exprs.size());
+
+    std::transform(std::begin(exprs), std::end(exprs), 
+        std::back_inserter(strs),
+        [](T e) -> String {
+            return str(e);
+        }
+    );
+
+    return join(sep, strs);
+}
+
 // Replace a by b in t
 template<typename T>
 T replace(T const& t, char a, T const& b) {
@@ -42,6 +59,7 @@ T replace(T const& t, char a, T const& b) {
 
     return str;
 }
+
 }
 
 #endif
