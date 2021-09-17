@@ -52,16 +52,18 @@ using StringView = std::string_view;
 // ------------
 namespace std {
 
+//*
 template <typename Char, typename Allocator>
 struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>>{
     using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
 
-    std::size_t operator()(Key const& k) const noexcept {
-        auto a = std::hash<const Char*>();
-        return a(k.c_str());
+		std::size_t operator()(Key const& k) const noexcept {
+				auto a = std::hash<std::string>();
+				// FIXME: find a way to reuse the string hashing without transforming the string
+				return a(std::string(k.c_str()));
     }
 };
-
+//*/
 
 } // namespace std
 

@@ -19,21 +19,31 @@ void Parser::start_code_loc(CommonAttributes* target, Token tok) {}
 void Parser::end_code_loc(CommonAttributes* target, Token tok) {}
 
 Token Parser::parse_body(GCObject* parent, Array<StmtNode*>& out, int depth) {
-    while (token().type() != tok_desindent && token().type() != tok_eof) {
-        out.push_back(parse_statement(parent, depth));
+		while (token().type() != tok_desindent && token().type() != tok_eof) {
+				auto expr = parse_statement(parent, depth);
+				out.push_back(expr);
+				expr->print(std::cout);
 
         if (token().type() == tok_incorrect) {
             next_token();
         }
+
+				if (token().type() == tok_newline) {
+						next_token();
+				}
+
+				break;
     }
 
     auto last = token();
-    expect_token(tok_desindent, true, parent);
+		expect_token(tok_desindent, true, parent, LOC);
     return last;
 }
 
 // Statement_1
 StmtNode* Parser::parse_function_def(GCObject* parent, bool async, int depth) {
+		TRACE_START();
+
     FunctionDef* stmt = nullptr;
     auto start = token();
     async_mode.push_back(async);
@@ -49,20 +59,24 @@ StmtNode* Parser::parse_function_def(GCObject* parent, bool async, int depth) {
     next_token();
 
     stmt->name = get_identifier();
-    expect_token(tok_identifier, true, stmt);
-    expect_token(tok_parens, true, stmt);
+		expect_token(tok_identifier, true, stmt, LOC);
+		expect_token(tok_parens, true, stmt, LOC);
     stmt->args = parse_arguments(stmt, ')', depth + 1);
 
     if (token().type() == tok_arrow) {
+				next_token();
         stmt->returns = parse_expression(stmt, depth + 1);
     }
 
-    expect_token(':', true, stmt);
-    expect_token(tok_indent, true, stmt);
+		expect_token(':', true, stmt, LOC);
+		expect_token(tok_newline, true, stmt, LOC);
+		expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
     end_code_loc(stmt, last);
     async_mode.pop_back();
+
+		TRACE_END();
     return stmt;
 }
 
@@ -76,7 +90,7 @@ StmtNode* Parser::parse_class_def(GCObject* parent, int depth) {
         parse_call_args(stmt, stmt->bases, stmt->keywords, depth + 1);
     }
 
-    expect_token(':', true, stmt);
+		expect_token(':', true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
     end_code_loc(stmt, last);
@@ -96,14 +110,14 @@ StmtNode* Parser::parse_for(GCObject* parent, int depth) {
     next_token();
 
     stmt->target = parse_expression(stmt, depth + 1);
-    expect_token(tok_in, true, stmt);
+		expect_token(tok_in, true, stmt, LOC);
     stmt->iter = parse_expression(stmt, depth + 1);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
     if (token().type() == tok_else) {
         next_token();
-        expect_token(tok_indent, true, stmt);
+				expect_token(tok_indent, true, stmt, LOC);
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
 
@@ -117,12 +131,12 @@ StmtNode* Parser::parse_while(GCObject* parent, int depth) {
     next_token();
 
     stmt->test = parse_expression(stmt, depth + 1);
-    expect_token(':', true, stmt);
+		expect_token(':', true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
         if (token().type() == tok_else) {
         next_token();
-        expect_token(tok_indent, true, stmt);
+				expect_token(tok_indent, true, stmt, LOC);
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
 
@@ -137,15 +151,15 @@ StmtNode* Parser::parse_if(GCObject* parent, int depth) {
 
     stmt->test = parse_expression(stmt, depth + 1);
 
-    expect_token(':', true, stmt);
-    expect_token(tok_indent, true, stmt);
+		expect_token(':', true, stmt, LOC);
+		expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
     // The else belongs to the last ifexpr if any
     if (token().type() == tok_else) {
         next_token();
-        expect_token(tok_indent, true, stmt);
+				expect_token(tok_indent, true, stmt, LOC);
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
 
@@ -172,7 +186,7 @@ Pattern* Parser::parse_match_sequence(GCObject* parent, int depth) {
             next_token();
         } else {
             end_code_loc(pat, token());
-            expect_token(']', true, pat);
+						expect_token(']', true, pat, LOC);
             break;
         }
     }
@@ -187,7 +201,7 @@ Pattern* Parser::parse_match_star(GCObject* parent, int depth) {
     next_token();
 
     pat->name = get_identifier();
-    expect_token(tok_identifier, true, pat);
+		expect_token(tok_identifier, true, pat, LOC);
 
     end_code_loc(pat, token());
     return pat;
@@ -200,7 +214,7 @@ Pattern* Parser::parse_match_class(GCObject* parent, ExprNode* cls, int depth) {
 
     // TODO: This is the location of '(' not the full pattern
     start_code_loc(pat, token());
-    expect_token(tok_parens, true, pat);
+		expect_token(tok_parens, true, pat, LOC);
 
     bool keyword = false;
     while (token().type() != ')') {
@@ -218,7 +232,7 @@ Pattern* Parser::parse_match_class(GCObject* parent, ExprNode* cls, int depth) {
         // keywords
         if (keyword) {
             pat->kwd_attrs.push_back(get_identifier());
-            expect_token(tok_identifier, true, pat);
+						expect_token(tok_identifier, true, pat, LOC);
             pat->kwd_patterns.push_back(parse_pattern(pat, depth + 1));
         }
 
@@ -226,7 +240,7 @@ Pattern* Parser::parse_match_class(GCObject* parent, ExprNode* cls, int depth) {
             next_token();
         } else {
             end_code_loc(pat, token());
-            expect_token(')', true, pat);
+						expect_token(')', true, pat, LOC);
             break;
         }
     }
@@ -245,7 +259,7 @@ Pattern* Parser::parse_match_mapping(GCObject* parent, int depth) {
 
     while (token().type() != '}') {
         auto key = parse_expression(pat, depth + 1);
-        expect_token(':', true, pat);
+				expect_token(':', true, pat, LOC);
         auto child = parse_pattern(pat, depth + 1);
 
         pat->keys.push_back(key);
@@ -255,7 +269,7 @@ Pattern* Parser::parse_match_mapping(GCObject* parent, int depth) {
             next_token();
         } else {
             end_code_loc(pat, token());
-            expect_token('}', true, pat);
+						expect_token('}', true, pat, LOC);
             break;
         }
     }
@@ -280,7 +294,7 @@ Pattern* Parser::parse_match_or(GCObject* parent, Pattern* child, int depth) {
             next_token();
         } else {
             // could be ":" or "if"
-            // expect_token(':', false, pat);
+						// expect_token(':', false, pat, LOC);
             break;
         }
     }
@@ -296,11 +310,11 @@ Pattern* Parser::parse_match_as(GCObject* parent, Pattern* primary, int depth) {
     // TODO: this is the loc of 'as' not the start of the expression
     start_code_loc(pat, token());
 
-    expect_token(tok_as, true, pat);
+		expect_token(tok_as, true, pat, LOC);
     pat->name = get_identifier();
 
     end_code_loc(pat, token());
-    expect_token(tok_identifier, true, pat);
+		expect_token(tok_identifier, true, pat, LOC);
 
     return pat;
 }
@@ -360,7 +374,7 @@ Pattern* Parser::parse_pattern(GCObject* parent, int depth) {
     }
 
     // could be ":" or "if"
-    // expect_token(':', false, primary);
+		// expect_token(':', false, primary, LOC);
     return primary;
 }
 
@@ -369,7 +383,7 @@ Token Parser::parse_match_case(GCObject* parent, Array<MatchCase>& out, int dept
 
     while (token().type() != tok_desindent) {
         MatchCase case_;
-        expect_token(tok_case, true, parent);
+				expect_token(tok_case, true, parent, LOC);
         // Patern
         case_.pattern = parse_pattern(parent, depth);
 
@@ -378,8 +392,8 @@ Token Parser::parse_match_case(GCObject* parent, Array<MatchCase>& out, int dept
             case_.guard = parse_expression(parent, depth + 1);
         }
 
-        expect_token(':', true, parent);
-        expect_token(tok_indent, true, parent);
+				expect_token(':', true, parent, LOC);
+				expect_token(tok_indent, true, parent, LOC);
 
         // Branch
         last = parse_body(parent, case_.body, depth + 1);
@@ -387,7 +401,7 @@ Token Parser::parse_match_case(GCObject* parent, Array<MatchCase>& out, int dept
 
         // Stop if next token is not for another branch
         if (token().type() != tok_case) {
-            expect_token(tok_desindent, false, parent);
+						expect_token(tok_desindent, false, parent, LOC);
             break;
         }
     }
@@ -401,8 +415,8 @@ StmtNode* Parser::parse_match(GCObject* parent, int depth) {
     next_token();
 
     stmt->subject = parse_expression(stmt, depth + 1);
-    expect_token(':', true, stmt);
-    expect_token(tok_indent, true, parent);
+		expect_token(':', true, stmt, LOC);
+		expect_token(tok_indent, true, parent, LOC);
 
     auto last = parse_match_case(stmt, stmt->cases, depth);
 
@@ -443,8 +457,8 @@ StmtNode* Parser::parse_with(GCObject* parent, int depth) {
 
     parse_withitem(stmt, stmt->items, depth + 1);
 
-    expect_token(':', true, stmt);
-    expect_token(tok_indent, true, stmt);
+		expect_token(':', true, stmt, LOC);
+		expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
@@ -487,7 +501,7 @@ Token Parser::parse_except_handler(GCObject* parent, Array<ExceptHandler>& out, 
             }
         }
 
-        expect_token(':', true, parent);
+				expect_token(':', true, parent, LOC);
         parse_body(parent, handler.body, depth + 1);
         out.push_back(handler);
     }
@@ -500,8 +514,8 @@ StmtNode* Parser::parse_try(GCObject* parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    expect_token(':', true, stmt);
-    expect_token(tok_indent, true, stmt);
+		expect_token(':', true, stmt, LOC);
+		expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
@@ -543,11 +557,11 @@ StmtNode* Parser::parse_assert(GCObject* parent, int depth) {
     while (token().type() != tok_newline) {
         Alias alias;
         alias.name = get_identifier();
-        expect_token(tok_identifier, true, parent);
+				expect_token(tok_identifier, true, parent, LOC);
 
         if (token().type() == tok_as) {
             alias.asname = get_identifier();
-            expect_token(tok_identifier, true, parent);
+						expect_token(tok_identifier, true, parent, LOC);
         }
 
         out.push_back(alias);
@@ -568,7 +582,7 @@ StmtNode* Parser::parse_import(GCObject* parent, int depth) {
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt);
+		expect_token(tok_newline, true, stmt, LOC);
     return stmt;
  }
 
@@ -581,12 +595,12 @@ StmtNode* Parser::parse_import_from(GCObject* parent, int depth) {
     // count the level ..
     // stmt->level = ;
     stmt->module = get_identifier();
-    expect_token(tok_identifier, true, parent);
+		expect_token(tok_identifier, true, parent, LOC);
 
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt);
+		expect_token(tok_newline, true, stmt, LOC);
     return stmt;
  }
 
@@ -597,7 +611,7 @@ StmtNode* Parser::parse_global(GCObject* parent, int depth) {
 
     while (token().type() != tok_newline) {
         stmt->names.push_back(get_identifier());
-        expect_token(tok_identifier, true, parent);
+				expect_token(tok_identifier, true, parent, LOC);
 
         if (token().type() == ',') {
             next_token();
@@ -607,7 +621,7 @@ StmtNode* Parser::parse_global(GCObject* parent, int depth) {
     }
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt);
+		expect_token(tok_newline, true, stmt, LOC);
     return stmt;
  }
 
@@ -618,7 +632,7 @@ StmtNode* Parser::parse_global(GCObject* parent, int depth) {
 
     while (token().type() != tok_newline) {
         stmt->names.push_back(get_identifier());
-        expect_token(tok_identifier, true, parent);
+				expect_token(tok_identifier, true, parent, LOC);
 
         if (token().type() == ',') {
             next_token();
@@ -628,7 +642,7 @@ StmtNode* Parser::parse_global(GCObject* parent, int depth) {
     }
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt);
+		expect_token(tok_newline, true, stmt, LOC);
     return stmt;
  }
 
@@ -660,7 +674,7 @@ StmtNode* Parser::parse_del(GCObject* parent, int depth) {
         if (token().type() == ',') {
             next_token();
         } else {
-            expect_token(tok_newline, true, stmt);
+						expect_token(tok_newline, true, stmt, LOC);
             break;
         }
     }
@@ -733,7 +747,7 @@ StmtNode* Parser::parse_annassign(GCObject* parent, ExprNode* expr, int depth) {
 
     stmt->annotation = parse_expression(stmt, depth + 1);
 
-    expect_token(tok_assign, true, stmt);
+		expect_token(tok_assign, true, stmt, LOC);
     stmt->value = parse_expression(stmt, depth + 1);
 
     end_code_loc(stmt, token());
@@ -750,7 +764,7 @@ ExprNode* Parser::parse_name(GCObject* parent, int depth) {
     expr->id = get_identifier();
     end_code_loc(expr, token());
 
-    expect_token(tok_identifier, true, expr);
+		expect_token(tok_identifier, true, expr, LOC);
     return expr;
 }
 
@@ -820,7 +834,50 @@ ExprNode* Parser::parse_yield_from(GCObject* parent, int depth){
 }
 
 Arguments Parser::parse_arguments(GCObject* parent, char kind, int depth) {
-    return Arguments();
+		Arguments args;
+
+		bool keywords = false;
+
+		while (token().type() != kind) {
+				ExprNode* value = nullptr;
+
+				Arg arg;
+				start_code_loc(&arg, token());
+				arg.arg = get_identifier();
+
+				expect_token(tok_identifier, true, parent, LOC);
+
+				if (token().type() == ':') {
+						next_token();
+						arg.annotation = parse_expression(parent, depth + 1);
+				}
+
+				if (token().type() == tok_assign) {
+						next_token();
+						keywords = true;
+						value = parse_expression(parent, depth + 1);
+				}
+
+				if (!keywords) {
+						args.args.push_back(arg);
+						if (value){
+								args.defaults.push_back(value);
+						}
+						end_code_loc(&arg, token());
+				} else {
+						args.kwonlyargs.push_back(arg);
+						args.kw_defaults.push_back(value);
+				}
+
+				if (token().type() == ',') {
+						next_token();
+				} else {
+						expect_token(kind, true, parent, LOC);
+						break;
+				}
+		}
+
+		return args;
 }
 
 ExprNode* Parser::parse_lambda(GCObject* parent, int depth){
@@ -844,12 +901,12 @@ ExprNode* Parser::parse_ifexp(GCObject* parent, int depth){
     start_code_loc(expr, token());
 
     expr->test = parse_expression(expr, depth + 1);
-    expect_token(':', true, expr);
+		expect_token(':', true, expr, LOC);
     next_token();
 
     expr->body = parse_expression(expr, depth + 1);
 
-    expect_token(tok_else, true, expr);
+		expect_token(tok_else, true, expr, LOC);
     next_token();
 
     expr->orelse = parse_expression(expr, depth + 1);
@@ -860,18 +917,18 @@ ExprNode* Parser::parse_ifexp(GCObject* parent, int depth){
 
 ExprNode* Parser::parse_starred(GCObject* parent, int depth){
     auto expr = parent->new_object<Starred>();
-    expect_token(tok_star, true, expr);
+		expect_token(tok_star, true, expr, LOC);
     expr->value = parse_expression(expr, depth + 1);
     return expr;
 }
 
 void Parser::parse_comprehension(GCObject* parent, Array<Comprehension>& out, char kind, int depth) {
     while (token().type() != kind) {
-        expect_token(tok_for, true, parent);
+				expect_token(tok_for, true, parent, LOC);
         Comprehension cmp;
 
         cmp.target = parse_expression(parent, depth + 1);
-        expect_token(tok_in, true, parent);
+				expect_token(tok_in, true, parent, LOC);
         cmp.iter = parse_expression(parent, depth + 1);
 
         while (token().type() == tok_if) {
@@ -921,7 +978,7 @@ ExprNode* parse_literal(Parser* parser, GCObject* parent, ExprNode* child, char 
         if (parser->token().type() == ',') {
             parser->next_token();
         } else {
-            parser->expect_token(kind, true, expr);
+						parser->expect_token(kind, true, expr, LOC);
             break;
         }
     }
@@ -939,13 +996,13 @@ ExprNode* parse_dictliteral(Parser* parser, GCObject* parent, ExprNode* key, Exp
     // {a: b, c: d}
     while (parser->token().type() != kind) {
         expr->keys.push_back(parser->parse_expression(parent, depth + 1));
-        parser->expect_token(':', true, expr);
+				parser->expect_token(':', true, expr, LOC);
         expr->values.push_back(parser->parse_expression(parent, depth + 1));
 
         if (parser->token().type() == ',') {
             parser->next_token();
         } else {
-            parser->expect_token(kind, true, expr);
+						parser->expect_token(kind, true, expr, LOC);
             break;
         }
     }
@@ -958,7 +1015,7 @@ template<typename Comp, typename Literal>
 ExprNode* parse_comprehension_or_literal(Parser* parser, GCObject* parent, int tok, char kind, int depth) {
     // Save the start token to set the code loc when we know if this is a tuple or a generator
     auto start_tok = parser->token();
-    auto err = parser->expect_token<ExprNode>(tok, true, nullptr);
+		auto err = parser->expect_token<ExprNode>(tok, true, nullptr, LOC);
 
     // Warning: the parent is wrong but we need to parse the expression right now
     auto child = parser->parse_expression(parent, depth + 1);
@@ -1054,7 +1111,7 @@ Token Parser::parse_call_args(GCObject* expr, Array<ExprNode*>& args, Array<Keyw
             auto kwarg = Keyword();
             kwarg.arg = get_identifier(); // <= NB: this checks for tok_identifier
                                           // if not returns a dummy identifier
-            expect_token(tok_identifier, true, expr);
+						expect_token(tok_identifier, true, expr, LOC);
 
             kwarg.value = parse_expression(expr, depth + 1);
             keywords.push_back(kwarg);
@@ -1064,7 +1121,7 @@ Token Parser::parse_call_args(GCObject* expr, Array<ExprNode*>& args, Array<Keyw
             next_token();
         } else {
             auto last = token();
-            expect_token(')', true, expr);
+						expect_token(')', true, expr, LOC);
             return last;
         }
     }
@@ -1073,18 +1130,20 @@ Token Parser::parse_call_args(GCObject* expr, Array<ExprNode*>& args, Array<Keyw
 }
 
 ExprNode* Parser::parse_call(GCObject* parent, ExprNode* primary, int depth){
+		TRACE_START();
+
     auto expr = parent->new_object<Call>();
     start_code_loc(expr, token());
-    next_token();
-
     expr->func = primary;
 
     // FIXME: this is the location of '(' not the start of the full expression
     start_code_loc(expr, token());
-    expect_token(tok_parens, true, expr);
+		expect_token(tok_parens, true, expr, LOC);
 
     auto last = parse_call_args(expr, expr->args, expr->keywords, depth + 1);
     end_code_loc(expr, last);
+
+		TRACE_END();
     return expr;
 }
 
@@ -1099,7 +1158,7 @@ ExprNode* Parser::parse_attribute(GCObject* parent, ExprNode* primary, int depth
     expr->attr = get_identifier();
 
     end_code_loc(expr, token());
-    expect_token(tok_identifier, true, expr);
+		expect_token(tok_identifier, true, expr, LOC);
 
     // expr->ctx = ;
     return expr;
@@ -1111,7 +1170,7 @@ ExprNode* Parser::parse_subscript(GCObject* parent, ExprNode* primary, int depth
 
     // FIXME: this is the location of '[' not the start of the full expression
     start_code_loc(expr, token());
-    expect_token(tok_square, true, expr);
+		expect_token(tok_square, true, expr, LOC);
 
     // a[2:3]       => Slice(2, 3)
     // a[1:2, 2:3]  => Tuple(Slice(1, 2), Slice(2, 3))
@@ -1129,7 +1188,7 @@ ExprNode* Parser::parse_subscript(GCObject* parent, ExprNode* primary, int depth
         if (token().type() == ',') {
             next_token();
         } else {
-            expect_token(']', true, expr);
+						expect_token(']', true, expr, LOC);
             break;
         }
     }
@@ -1150,7 +1209,7 @@ ExprNode* Parser::parse_subscript(GCObject* parent, ExprNode* primary, int depth
     }
 
     end_code_loc(expr, token());
-    expect_token(']', true, expr);
+		expect_token(']', true, expr, LOC);
 
     return expr;
 }
@@ -1167,7 +1226,7 @@ ExprNode* Parser::parse_slice(GCObject* parent, ExprNode* primary, int depth) {
     start_code_loc(expr, token());
 
     expr->lower = primary;
-    expect_token(':', true, expr);
+		expect_token(':', true, expr, LOC);
 
     expr->upper = parse_expression(expr, depth + 1);
 

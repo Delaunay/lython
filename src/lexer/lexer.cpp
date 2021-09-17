@@ -61,12 +61,12 @@ std::ostream& AbstractLexer::debug_print(std::ostream& out){
     Token t = next_token();
     int k = 1;
     do {
-        out << fmt::format("{:4}", k) << "  ";
+				out << fmt::format("{:4}" , k) << "  ";
         t.debug_print(out) << std::endl;
         k += 1;
     } while((t = next_token()));
 
-    out << fmt::format("{:4}", k) << "  ";
+		out << fmt::format("{:4}", k) << "  ";
     t.debug_print(out) << std::endl;    // eof
 
     return out;
@@ -181,9 +181,10 @@ Token const& Lexer::next_token(){
             }
         }
 
-        TokenType t = keywords()[ident];
-        if (t)
-            return make_token(t);
+				auto result = keywords().find(ident);
+				if (result != keywords().end()) {
+					return make_token(result->second);
+				}
 
         return make_token(tok_identifier, ident);
     }

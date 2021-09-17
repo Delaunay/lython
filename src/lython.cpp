@@ -60,7 +60,11 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code =
+				String code =
+					"def test1(p: Float) -> Float:\n"
+					"    return sin(1)\n\n"
+
+				;
         "import a.b.c\n"
         "import a.b.c as e\n"
         "from a.b.c import f, k\n"
@@ -113,10 +117,15 @@ int main() {
         String lexer_string;
         {
             Lexer lex(reader);
-
             StringStream ss;
             lex.print(ss);
             lexer_string = ss.str();
+        }
+
+        {
+            reader.reset();
+            Lexer lex(reader);
+            lex.debug_print(std::cout);
         }
 
         reader.reset();
@@ -130,18 +139,23 @@ int main() {
 
             mod = parser.parse_module();
 
+            std::cout << std::endl << std::endl;
+            for(auto& diag: parser.get_errors()) {
+                diag.print(std::cout);
+            }
+
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;
         }
 
-//        std::cout << std::string(80, '-') << '\n';
+        std::cout << std::string(80, '-') << '\n';
+        std::cout << strip(lexer_string) << std::endl;
 
-//        std::cout << strip(lexer_string) << std::endl;
-//        std::cout << strip(parser_string) << std::endl;
-//        std::cout << strip(code) << std::endl;
+        std::cout << strip(parser_string) << std::endl;
+        std::cout << strip(code) << std::endl;
 
-//        std::cout << std::string(80, '-') << '\n';
+        std::cout << std::string(80, '-') << '\n';
         // -------------------------------------------------
 //        module.print(std::cout);
 
@@ -168,6 +182,8 @@ int main() {
       //   v.print(std::cout) << std::endl;
         std::cout << code.size() << std::endl;
         std::cout << std::endl;
+
+        delete mod;
     }
     show_alloc_stats();
     // StringDatabase::instance().report(std::cout);

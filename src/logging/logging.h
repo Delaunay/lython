@@ -25,6 +25,10 @@ struct CodeLocation{
     std::string function_name;
     int line;
     std::string function_long;
+
+		std::string repr() {
+				return fmt::format("{}:{} {}", filename, line, function_name);
+		}
 };
 
 #ifdef __linux__

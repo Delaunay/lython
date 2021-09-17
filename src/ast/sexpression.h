@@ -1,6 +1,8 @@
 #ifndef LYTHON_SEXPR_HEADER
 #define LYTHON_SEXPR_HEADER
 
+#include <memory>
+
 #include "../dtypes.h"
 #include "../utilities/optional.h"
 
@@ -19,8 +21,15 @@ enum class ObjectKind {
 struct GCObject {
 public:
     template<typename T, typename... Args>
-    T* new_object() {
-        T* obj = get_allocator<T>().allocate(1);
+		T* new_object(Args&&... args) {
+				auto& alloc = get_allocator<T>();
+
+				// allocate
+				T* memory = alloc.allocate(1);
+
+				// construct
+				T* obj = new((void*)memory) T(std::forward<Args>(args)...);
+
         children.push_back(obj);
         return obj;
     }
@@ -165,19 +174,23 @@ struct CommonAttributes {
     Optional<int> end_col_offset;
 };
 
-struct ModNode: public GCObject {
+struct Node {
+	virtual void print(std::ostream& out) {}
+};
+
+struct ModNode: public GCObject, public Node {
     ModNode():
         GCObject(ObjectKind::Module)
     {}
 };
 
-struct StmtNode: public CommonAttributes, public GCObject {
+struct StmtNode: public CommonAttributes, public GCObject, public Node {
     StmtNode():
         GCObject(ObjectKind::Statement)
     {}
 };
 
-struct ExprNode: public CommonAttributes, public GCObject {
+struct ExprNode: public CommonAttributes, public GCObject, public Node {
     ExprNode():
         GCObject(ObjectKind::Expression)
     {}
@@ -263,10 +276,10 @@ struct Arguments {
 
     Array<Arg> posonlyargs;
     Array<Arg> args;
-    Optional<Arg> vararg;
+		Optional<Arg> vararg;				// *args
     Array<Arg> kwonlyargs;
     Array<ExprNode*> kw_defaults;
-    Optional<Arg> kwarg;
+		Optional<Arg> kwarg;				// **kwargs
     Array<ExprNode*> defaults;
 };
 
@@ -471,6 +484,10 @@ struct Starred: public ExprNode{
 struct Name: public ExprNode{
     Identifier id;
     ExprContext ctx;
+
+		void print(std::ostream &out) override {
+				out << id;
+		}
 };
 
 struct ListExpr: public ExprNode{
@@ -523,6 +540,22 @@ struct FunctionDef: public StmtNode {
 
     String docstring;
     bool async = false;
+
+		void print(std::ostream &out) override {
+			out << "def " << name << "(";
+
+			out << ")";
+
+			if (returns.has_value()) {
+				out << " -> "; returns.value()->print(out);
+			}
+
+			out << ":";
+
+			for(auto& stmt: body) {
+				stmt->print(out);
+			}
+		}
 };
 
 struct AsyncFunctionDef: public FunctionDef {

@@ -22,33 +22,27 @@
     trace_end(depth, "({}: {})", to_string(token().type()).c_str(),            \
               token().type())
 
-#define TRACE() {\
-    TRACE_START();\
-    auto _ = guard([&](){\
-        TRACE_END();\
-    });}
-
-
 namespace lython {
 
 struct ParsingError {
-    int expected_token;
+		int expected_token = tok_incorrect;
     Token received_token;
     StmtNode* stmt;
     ExprNode* expr;
     Pattern*  pat;
     String message;
+		CodeLocation loc;
 
-    ParsingError():
-        received_token(dummy())
+		ParsingError():
+				received_token(dummy()), loc(LOC)
     {}
 
-    ParsingError(int expected, Token token):
-        expected_token(expected), received_token(token)
+		ParsingError(int expected, Token token, CodeLocation loc_):
+				expected_token(expected), received_token(token), loc(loc_)
     {}
 
-    ParsingError(int expected, Token token, GCObject* obj):
-        ParsingError(expected, token)
+		ParsingError(int expected, Token token, GCObject* obj, CodeLocation loc):
+				ParsingError(expected, token, loc)
     {
          switch (obj->kind) {
             case ObjectKind::Expression: expr = (ExprNode*)obj;
@@ -62,6 +56,18 @@ struct ParsingError {
         p.message = message;
         return p;
     }
+
+		void print(std::ostream& out) {
+				out << loc.repr() << std::endl;
+
+				if (expected_token != tok_incorrect){
+						out << "    Expected: " << to_string(expected_token) << " but got ";
+						received_token.debug_print(out);
+				} else {
+						out << "    " << message;
+				}
+				out << std::endl << std::endl;
+		}
 };
 
 
@@ -88,7 +94,11 @@ class Parser {
         metadata_init_names();
     }
 
-    Module* parse_module() {
+		Module* parse_module() {
+				if (token().type() == tok_incorrect){
+					next_token();
+				}
+
         // lookup the module
         Module* module = new Module();
         parse_body(module, module->body, 0);
@@ -138,8 +148,6 @@ class Parser {
     StmtNode* parse_annassign(GCObject* parent, ExprNode* epxr, int depth);
 
     StmtNode* parse_statement(GCObject* parent, int depth) {
-        TRACE();
-
         // Statement we can guess rightaway from the current token we are seeing
         switch (token().type()) {
             // def <name>(...
@@ -301,7 +309,7 @@ class Parser {
     }
 
     template<typename T>
-    ParsingError* expect_token(int tok, bool eat, T* wip_expression) {
+		ParsingError* expect_token(int tok, bool eat, T* wip_expression, CodeLocation loc) {
         if (token().type() == tok) {
             if (eat) {
                 next_token();
@@ -313,15 +321,15 @@ class Parser {
         // if the token does not match assume we "had it"
         // and record the error
         // so we can try to parse as much as possible
-        return &errors.emplace_back(tok, token(), wip_expression);
+				return &errors.emplace_back(tok, token(), wip_expression, loc);
     }
 
     // Shortcuts
     Token const& next_token()  { return _lex.next_token(); }
-    Token const& token()       { return _lex.token();      }
-    Token const& peek_token()  { return _lex.peek_token(); }
+		Token const& token()       const { return _lex.token();      }
+		Token const& peek_token()  const { return _lex.peek_token(); }
 
-    String get_identifier() {
+		String get_identifier() const {
         if (token().type() == tok_identifier) {
             return token().identifier();
         }
@@ -352,6 +360,10 @@ class Parser {
 
         return _allow_slice[int(_allow_slice.size()) - 1];
     }
+
+		Array<ParsingError> get_errors() {
+				return errors;
+		}
 
 private:
     std::vector<bool> _allow_slice;

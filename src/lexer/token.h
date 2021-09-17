@@ -154,8 +154,8 @@ public:
 
     String&      operator_name()       { return _identifier; }
     String const&operator_name() const { return _identifier; }
-    String&      identifier()       { return _identifier; }
-    String const&identifier() const { return _identifier; }
+		String&      identifier()       { return _identifier; }
+		String const&identifier() const { return _identifier; }
     float64      as_float()   const { return std::stod(_identifier.c_str()); }
     int32        as_integer() const { return std::stoi(_identifier.c_str()); }
 
