@@ -37,7 +37,7 @@ public:
     //! Make an object match the lifetime of the parent
     template<typename T>
     void add_child(T* child) {
-        children.push_back(child);
+				children.push_back(child);
     }
 
     template<typename T, typename D>
@@ -55,16 +55,20 @@ public:
         // erase is not specialized to take reverse iterator
         // so we need to convert it ourselves and KNOW that this is what is
         // expected but nobody could have guessed that
-        children.erase(std::next(elem).base());
+				auto n = children.size();
+				children.erase(std::next(elem).base());
+				assert(n > children.size(), "Child was not removed");
 
         if (free) {
-            delete child;
+						// FIXME: this breaks the metadata
+						device::CPU().free((void*)child, 1);
         }
     }
 
     ~GCObject(){
         for (auto obj: children) {
-            delete obj;
+						// FIXME: this breaks the metadata
+						device::CPU().free((void*)obj, 1);
         }
     }
 
