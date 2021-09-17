@@ -57,17 +57,17 @@ struct ParsingError {
         return p;
     }
 
-		void print(std::ostream& out) {
-				out << loc.repr() << std::endl;
+    void print(std::ostream& out) {
+        out << loc.repr() << std::endl;
 
-				if (expected_token != tok_incorrect){
-						out << "    Expected: " << to_string(expected_token) << " but got ";
-						received_token.debug_print(out);
-				} else {
-						out << "    " << message;
-				}
-				out << std::endl << std::endl;
-		}
+        if (expected_token != tok_incorrect){
+            out << "    Expected: " << to_string(expected_token) << " but got ";
+            received_token.debug_print(out);
+        } else {
+            out << "    " << message;
+        }
+        out << std::endl << std::endl;
+    }
 };
 
 
@@ -94,10 +94,10 @@ class Parser {
         metadata_init_names();
     }
 
-		Module* parse_module() {
-				if (token().type() == tok_incorrect){
-					next_token();
-				}
+    Module* parse_module() {
+        if (token().type() == tok_incorrect){
+            next_token();
+        }
 
         // lookup the module
         Module* module = new Module();

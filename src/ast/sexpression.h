@@ -179,7 +179,7 @@ struct CommonAttributes {
 };
 
 struct Node {
-	virtual void print(std::ostream& out) {}
+	virtual void print(std::ostream& out, int indent) {}
 };
 
 struct ModNode: public GCObject, public Node {
@@ -261,10 +261,33 @@ struct Comprehension {
     int is_async;
 };
 
+inline
+void print(std::ostream& out, int indent, Array<StmtNode*> const& body) {
+    for(auto& stmt: body) {
+        out << std::string(indent * 4, ' ');
+        stmt->print(out, indent);
+    }
+}
+
 struct ExceptHandler: public CommonAttributes {
     Optional<ExprNode*> type;
     Optional<Identifier> name;
     Array<StmtNode*> body;
+
+    void print(std::ostream& out, int indent) {
+        out << "except ";
+
+        if (type.has_value()) {
+            type.value()->print(out, indent);
+        }
+
+        if (name.has_value()) {
+            out << name.value();
+        }
+        
+        out << ":\n";
+        lython::print(out, indent + 1, body);
+    }
 };
 
 struct Arg: public CommonAttributes {
@@ -280,16 +303,47 @@ struct Arguments {
 
     Array<Arg> posonlyargs;
     Array<Arg> args;
-		Optional<Arg> vararg;				// *args
+	Optional<Arg> vararg;				// *args
     Array<Arg> kwonlyargs;
     Array<ExprNode*> kw_defaults;
-		Optional<Arg> kwarg;				// **kwargs
+    Optional<Arg> kwarg;				// **kwargs
     Array<ExprNode*> defaults;
+
+    void print(std::ostream& out, int indent) {
+        for(auto& arg: args) {
+            out << arg.arg;
+
+            if (arg.annotation.has_value()) {
+                out << ": ";
+                arg.annotation.value()->print(out, indent);
+            }
+        }
+
+        for(auto& kw: kwonlyargs) {
+            out << kw.arg;
+
+            if (kw.annotation.has_value()) {
+                out << ": ";
+                kw.annotation.value()->print(out, indent);
+            }
+        }
+    }
 };
 
 struct Keyword: public CommonAttributes {
-    Optional<Identifier> arg;
+    Optional<Identifier> arg;   // why is this optional ?
     ExprNode* value = nullptr;
+
+    void print(std::ostream& out, int indent) {
+        if (arg.has_value()) {
+            out << arg.value();
+        }
+
+        if (value != nullptr) {
+            out << " = ";
+            value->print(out, indent);
+        }
+    }
 };
 
 struct Alias {
@@ -448,6 +502,29 @@ struct Call: public ExprNode{
     ExprNode* func = nullptr;
     Array<ExprNode*> args;
     Array<Keyword> keywords;
+
+    void print(std::ostream &out, int indent) override {
+        func->print(out, indent);
+        out << "(";
+        
+        for(int i = 0; i < args.size(); i++){
+            args[i]->print(out, indent);
+
+            if (i < args.size() - 1 || keywords.size() > 0)
+                out << ", ";
+        }
+
+        for(int i = 0; i < keywords.size(); i++){
+            out << keywords[i].arg.value();
+            out << " = ";
+            keywords[i].value->print(out, indent);
+
+            if (i < keywords.size() - 1)
+                out << ", ";
+        }
+
+        out << ")";
+    }
 };
 
 struct JoinedStr: public ExprNode{
@@ -466,32 +543,49 @@ struct Constant: public ExprNode{
     Optional<String> kind;
 };
 
-
  // the following expression can appear in assignment context
 struct Attribute: public ExprNode{
     ExprNode* value = nullptr;
     Identifier attr;
     ExprContext ctx;
+
+    void print(std::ostream &out, int indent) override {
+        value->print(out, indent);
+        out << ".";
+        out << attr;
+    }
 };
 
 struct Subscript: public ExprNode{
     ExprNode* value = nullptr;
     ExprNode* slice = nullptr;
     ExprContext ctx;
+
+    void print(std::ostream &out, int indent) override {
+        value->print(out, indent);
+        out << "[";
+        slice->print(out, indent);
+        out << "]";
+    }
 };
 
 struct Starred: public ExprNode{
     ExprNode* value = nullptr;
     ExprContext ctx;
+
+    void print(std::ostream &out, int indent) override {
+        out << "*";
+        value->print(out, indent);
+    }
 };
 
 struct Name: public ExprNode{
     Identifier id;
     ExprContext ctx;
 
-		void print(std::ostream &out) override {
-				out << id;
-		}
+    void print(std::ostream &out, int indent) override {
+        out << id;
+    }
 };
 
 struct ListExpr: public ExprNode{
@@ -509,6 +603,23 @@ struct Slice: public ExprNode {
     Optional<ExprNode*> lower;
     Optional<ExprNode*> upper;
     Optional<ExprNode*> step;
+
+    void print(std::ostream& out, int indent) {
+        if (lower.has_value()) {
+            lower.value()->print(out, indent);
+        }
+
+        out << ":";
+
+        if (upper.has_value()) {
+            upper.value()->print(out, indent);
+        }
+
+        if (step.has_value()) {
+            out << ":";
+            step.value()->print(out, indent);
+        }
+    }
 };
 
 // Modules
@@ -545,21 +656,20 @@ struct FunctionDef: public StmtNode {
     String docstring;
     bool async = false;
 
-		void print(std::ostream &out) override {
-			out << "def " << name << "(";
+    void print(std::ostream &out, int indent) override {
+        out << "def " << name << "(";
 
-			out << ")";
+        args.print(out, indent);
+        out << ")";
 
-			if (returns.has_value()) {
-				out << " -> "; returns.value()->print(out);
-			}
+        if (returns.has_value()) {
+            out << " -> "; returns.value()->print(out, indent);
+        }
 
-			out << ":";
+        out << ":\n";
 
-			for(auto& stmt: body) {
-				stmt->print(out);
-			}
-		}
+        lython::print(out, indent + 1, body);
+    }
 };
 
 struct AsyncFunctionDef: public FunctionDef {
@@ -577,16 +687,41 @@ struct ClassDef: public StmtNode {
 
 struct Return: public StmtNode {
     Optional<ExprNode*> value;
+
+    void print(std::ostream& out, int indent) {
+        out << "return ";
+        
+        if (value.has_value()) {
+            value.value()->print(out, indent);
+        }
+    }
 };
 
 struct Delete: public StmtNode {
     Array<ExprNode*> targets;
+
+    void print(std::ostream& out, int indent) {
+        out << "del ";
+        
+        for(int i = 0; i < targets.size(); i++){
+            targets[i]->print(out, indent);
+
+            if (i < targets.size() - 1)
+                out << ", ";
+        }
+    }
 };
 
 struct Assign: public StmtNode {
     Array<ExprNode*> targets;
     ExprNode* value = nullptr;
     Optional<String> type_comment;
+
+    void print(std::ostream& out, int indent) {
+        targets[0]->print(out, indent);
+        out << " = ";
+        value->print(out, indent);
+    }
 };
 
 struct AugAssign: public StmtNode{
@@ -601,6 +736,16 @@ struct AnnAssign: public StmtNode {
     ExprNode* annotation = nullptr;
     Optional<ExprNode*> value;
     int simple;
+
+    void print(std::ostream& out, int indent) {
+        target->print(out, indent);
+        out << ": ";
+        annotation->print(out, indent);
+        if (value.has_value()){
+            out << " = ";
+            value.value()->print(out, indent);
+        }
+    }
 };
 
 // use 'orelse' because else is a keyword in target languages
@@ -684,12 +829,21 @@ struct Expr: public StmtNode {
 };
 
 struct Pass: public StmtNode {
+    void print(std::ostream& out, int indent) {
+        out << "pass";
+    }
 };
 
 struct Break: public StmtNode {
+    void print(std::ostream& out, int indent) {
+        out << "break";
+    }
 };
 
 struct Continue: public StmtNode {
+    void print(std::ostream& out, int indent) {
+        out << "continue";
+    }
 };
 
 struct Match: public StmtNode {
@@ -698,12 +852,24 @@ struct Match: public StmtNode {
 };
 
 //
-struct NotImplementedStmt: public StmtNode {};
+struct NotImplementedStmt: public StmtNode {
+    void print(std::ostream& out, int indent) {
+        out << "<not implemented>";
+    }
+};
 
-struct NotImplementedExpr: public ExprNode {};
+struct NotImplementedExpr: public ExprNode {
+    void print(std::ostream& out, int indent) {
+        out << "<not implemented>";
+    }
+};
 
 struct NotAllowedEpxr: public ExprNode {
     String msg;
+
+    void print(std::ostream& out, int indent) {
+        out << "<not allowed: " << msg << ">";
+    }
 };
 
 }

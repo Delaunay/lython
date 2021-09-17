@@ -19,20 +19,20 @@ void Parser::start_code_loc(CommonAttributes* target, Token tok) {}
 void Parser::end_code_loc(CommonAttributes* target, Token tok) {}
 
 Token Parser::parse_body(GCObject* parent, Array<StmtNode*>& out, int depth) {
-		while (token().type() != tok_desindent && token().type() != tok_eof) {
-				auto expr = parse_statement(parent, depth);
-				out.push_back(expr);
-				expr->print(std::cout);
+    while (token().type() != tok_desindent && token().type() != tok_eof) {
+        auto expr = parse_statement(parent, depth);
+        out.push_back(expr);
+        expr->print(std::cout, 0);
 
         if (token().type() == tok_incorrect) {
             next_token();
         }
 
-				if (token().type() == tok_newline) {
-						next_token();
-				}
+        if (token().type() == tok_newline) {
+                next_token();
+        }
 
-				break;
+        break;
     }
 
     auto last = token();
@@ -42,7 +42,7 @@ Token Parser::parse_body(GCObject* parent, Array<StmtNode*>& out, int depth) {
 
 // Statement_1
 StmtNode* Parser::parse_function_def(GCObject* parent, bool async, int depth) {
-		TRACE_START();
+	TRACE_START();
 
     FunctionDef* stmt = nullptr;
     auto start = token();
@@ -59,8 +59,8 @@ StmtNode* Parser::parse_function_def(GCObject* parent, bool async, int depth) {
     next_token();
 
     stmt->name = get_identifier();
-		expect_token(tok_identifier, true, stmt, LOC);
-		expect_token(tok_parens, true, stmt, LOC);
+    expect_token(tok_identifier, true, stmt, LOC);
+    expect_token(tok_parens, true, stmt, LOC);
     stmt->args = parse_arguments(stmt, ')', depth + 1);
 
     if (token().type() == tok_arrow) {
@@ -68,15 +68,15 @@ StmtNode* Parser::parse_function_def(GCObject* parent, bool async, int depth) {
         stmt->returns = parse_expression(stmt, depth + 1);
     }
 
-		expect_token(':', true, stmt, LOC);
-		expect_token(tok_newline, true, stmt, LOC);
-		expect_token(tok_indent, true, stmt, LOC);
+    expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, LOC);
+    expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
     end_code_loc(stmt, last);
     async_mode.pop_back();
 
-		TRACE_END();
+    TRACE_END();
     return stmt;
 }
 
@@ -90,7 +90,7 @@ StmtNode* Parser::parse_class_def(GCObject* parent, int depth) {
         parse_call_args(stmt, stmt->bases, stmt->keywords, depth + 1);
     }
 
-		expect_token(':', true, stmt, LOC);
+    expect_token(':', true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
     end_code_loc(stmt, last);
@@ -1130,7 +1130,7 @@ Token Parser::parse_call_args(GCObject* expr, Array<ExprNode*>& args, Array<Keyw
 }
 
 ExprNode* Parser::parse_call(GCObject* parent, ExprNode* primary, int depth){
-		TRACE_START();
+	TRACE_START();
 
     auto expr = parent->new_object<Call>();
     start_code_loc(expr, token());
@@ -1138,12 +1138,12 @@ ExprNode* Parser::parse_call(GCObject* parent, ExprNode* primary, int depth){
 
     // FIXME: this is the location of '(' not the start of the full expression
     start_code_loc(expr, token());
-		expect_token(tok_parens, true, expr, LOC);
+	expect_token(tok_parens, true, expr, LOC);
 
     auto last = parse_call_args(expr, expr->args, expr->keywords, depth + 1);
     end_code_loc(expr, last);
 
-		TRACE_END();
+	TRACE_END();
     return expr;
 }
 
