@@ -25,6 +25,12 @@ String str(T* const& obj) {
     return obj->__str__();
 }
 
+inline
+template<> String str(String const& obj) {
+		return obj;
+}
+
+
 } // lython
 
 #endif

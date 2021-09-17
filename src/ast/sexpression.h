@@ -480,7 +480,7 @@ struct FunctionDef: public StmtNode {
     String type_comment;
 
     String docstring;
-    bool async = false;
+    bool async: 1 = false;
 
     void print(std::ostream &out, int indent) const override;
 };

@@ -78,4 +78,14 @@ Optional<T> none() { return Optional<T>();}
 template<typename T>
 Optional<T> some(const T& value) { return Optional<T>(value);}
 
+
+template<typename T>
+String str(Optional<T> const& obj) {
+    if (obj.has_value()) {
+        return "Some(" + str(obj.value()) + ")";
+    }
+
+    return "None";
+}
+
 }

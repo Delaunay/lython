@@ -352,13 +352,13 @@ void Arg::print(std::ostream& out, int indent) const {
 
 void ClassDef::print(std::ostream &out, int indent) const {
     out << "class " << name;
-    if (bases.size() + keyword.size() > 0) {
+    if (bases.size() + keywords.size() > 0) {
         out << '(';
     }
 
-    out << join(", ", bases);
+    out << join<ExprNode*>(", ", bases);
 
-    if (bases.size() > 0 && keyword.size() > 0) {
+    if (bases.size() > 0 && keywords.size() > 0) {
         out << ", ";
     }
 
@@ -370,9 +370,9 @@ void ClassDef::print(std::ostream &out, int indent) const {
         kwd.push_back(String(fmt::format("{}={}", str(kw.arg), str(kw.value)).c_str()));
     }
 
-    out << kwd;
+    out << join(", ", kwd);
 
-    if (bases.size() + keyword.size() > 0) {
+    if (bases.size() + keywords.size() > 0) {
         out << ')';
     }
 
