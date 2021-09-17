@@ -18,7 +18,7 @@ String join(String const& sep, Array<T> const& exprs){
 
     std::transform(std::begin(exprs), std::end(exprs), 
         std::back_inserter(strs),
-        [](T e) -> String {
+        [](T const& e) -> String {
             return str(e);
         }
     );

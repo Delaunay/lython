@@ -16,6 +16,12 @@ String Node::__str__() const {
     return ss.str();
 }
 
+String Comprehension::__str__() const {
+    StringStream ss;
+    print(ss, 0);
+    return ss.str();
+}
+
 void ConstantValue::print(std::ostream& out) const {
     switch (kind) {
         case TString: 
@@ -46,7 +52,7 @@ void Slice::print(std::ostream& out, int indent) const {
     }
 }
 
-void print(std::ostream& out, int indent, Array<StmtNode*> const& body) {
+void print_body(std::ostream& out, int indent,  Array<StmtNode*> const& body) {
     for(auto& stmt: body) {
         out << std::string(indent * 4, ' ');
         stmt->print(out, indent);
@@ -65,19 +71,19 @@ void ExceptHandler::print(std::ostream& out, int indent) const {
     }
     
     out << ":\n";
-    lython::print(out, indent + 1, body);
+    lython::print_body(out, indent + 1, body);
 }
 
 void TupleExpr::print(std::ostream& out, int indent) const {
-    out << "(" << join(", ", elts) << ")";
+    out << "(" << join<ExprNode*>(", ", elts) << ")";
 }
 
 void ListExpr::print(std::ostream& out, int indent) const {
-    out << "[" << join(", ", elts) << "]";
+    out << "[" << join<ExprNode*>(", ", elts) << "]";
 }
 
 void SetExpr::print(std::ostream& out, int indent) const {
-    out << "{" << join(", ", elts) << "}";
+    out << "{" << join<ExprNode*>(", ", elts) << "}";
 }
 
 void DictExpr::print(std::ostream& out, int indent) const {
@@ -143,6 +149,179 @@ void MatchSequence::print(std::ostream& out) const {
     out << "[" << result << "]";
 }
 
+void MatchMapping::print(std::ostream& out) const {
+    Array<String> strs;
+    strs.reserve(keys.size());
+
+    for(int i = 0; i < keys.size(); i++) {
+        // FIXME std::string -> String conversion
+        strs.push_back(String(fmt::format("{}: {}", str(keys[i]), str(patterns[i])).c_str()));
+    }
+
+    out << "{" << join(", ", strs) << "}";
+}
+
+void MatchClass::print(std::ostream& out) const {
+    cls->print(out);
+    out << "(" << join(", ", patterns);
+    
+    if (patterns.size() > 0 && kwd_attrs.size() > 0) {
+        out << ",";
+    }
+
+    Array<String> kwdpat;
+    kwdpat.reserve(kwd_attrs.size());
+
+    for(int i = 0; i < kwd_attrs.size(); i++) {
+        // FIXME std::string -> String conversion
+        kwdpat.push_back(String(fmt::format("{}={}", kwd_attrs[i], str(kwd_patterns[i])).c_str()));
+    }
+
+    out << join(", ", kwdpat);
+    out << ")";
+}
+
+void MatchStar::print(std::ostream& out) const {
+    out << "*";
+
+    if (name.has_value()){
+        out << name.value();
+    }
+}
+
+void MatchAs::print(std::ostream& out) const {
+    if (pattern.has_value()) {
+        pattern.value()->print(out);
+    }
+
+    if (name.has_value()) {
+        out << " as " << name.value();
+    }
+}
+
+void MatchOr::print(std::ostream& out) const {
+    out << join(" | ", patterns);
+}
+
+void MatchCase::print(std::ostream& out, int indent) const {
+    out << "case ";
+    pattern->print(out);
+
+    if (guard.has_value()) {
+        out << " if ";
+        guard.value()->print(out);
+    }
+
+    out << ":\n";
+    print_body(out, indent + 1, body);
+}
+
+void Match::print(std::ostream& out, int indent) const {
+    out << "match ";
+    subject->print(out, indent);
+
+    for(auto& case_: cases) {
+        case_.print(out, indent);
+    } 
+}
+
+void Lambda::print(std::ostream& out, int indent) const {
+    out << "lambda ";
+    args.print(out, 0);
+    out << ": ";
+    body->print(out, indent);
+}
+
+void IfExp::print(std::ostream& out, int indent) const {
+    out << "if ";
+    test->print(out);
+    out << ": ";
+    body->print(out);
+    out << " else ";
+    orelse->print(out, indent);
+}
+
+void ListComp::print(std::ostream& out, int indent) const {
+    out << "[";
+    elt->print(out);
+
+    out << join(" ", generators);
+
+    out << "]";
+}
+
+void SetComp::print(std::ostream& out, int indent) const {
+    out << "{";
+    elt->print(out);
+
+    out << join(" ", generators);
+
+    out << "}";
+}
+
+void GeneratorExp::print(std::ostream& out, int indent) const {
+    out << "(";
+    elt->print(out);
+
+    out << join(" ", generators);
+
+    out << ")";
+}
+
+void DictComp::print(std::ostream& out, int indent) const {
+    out << "{";
+    key->print(out);
+    out << ": ";
+    value->print(out);
+
+    out << join(" ", generators);
+    out << "}";
+}
+
+void Await::print(std::ostream& out, int indent) const {
+    out << "await ";
+    value->print(out);
+}
+
+void Yield::print(std::ostream& out, int indent) const {
+     out << "yield ";
+     if (value.has_value()){
+         value.value()->print(out);
+     }
+}
+
+void YieldFrom::print(std::ostream& out, int indent) const {
+     out << "yield from ";
+     value->print(out);
+}
+
+void Call::print(std::ostream &out, int indent) const {
+    func->print(out, indent);
+    out << "(";
+    
+    for(int i = 0; i < args.size(); i++){
+        args[i]->print(out, indent);
+
+        if (i < args.size() - 1 || keywords.size() > 0)
+            out << ", ";
+    }
+
+    for(int i = 0; i < keywords.size(); i++){
+        out << keywords[i].arg.value();
+        out << " = ";
+        keywords[i].value->print(out, indent);
+
+        if (i < keywords.size() - 1)
+            out << ", ";
+    }
+
+    out << ")";
+}
+
+void Constant::print(std::ostream &out, int indent) const {
+    value.print(out);
+}
+
 void Arguments::print(std::ostream& out, int indent) const {
     for(auto& arg: args) {
         out << arg.arg;
@@ -169,6 +348,112 @@ void Arg::print(std::ostream& out, int indent) const {
         out << ": ";
         annotation.value()->print(out, indent);
     }
+}
+
+void ClassDef::print(std::ostream &out, int indent) const {
+    out << "class " << name;
+    if (bases.size() + keyword.size() > 0) {
+        out << '(';
+    }
+
+    out << join(", ", bases);
+
+    if (bases.size() > 0 && keyword.size() > 0) {
+        out << ", ";
+    }
+
+    Array<String> kwd;
+    kwd.reserve(keywords.size());
+
+    for(auto kw: keywords) {
+        // FIXME std::string -> String conversion
+        kwd.push_back(String(fmt::format("{}={}", str(kw.arg), str(kw.value)).c_str()));
+    }
+
+    out << kwd;
+
+    if (bases.size() + keyword.size() > 0) {
+        out << ')';
+    }
+
+    out << ":\n";
+
+    print_body(out, indent + 1, body);
+}
+
+void FunctionDef::print(std::ostream &out, int indent) const {
+    out << "def " << name << "(";
+
+    args.print(out, indent);
+    out << ")";
+
+    if (returns.has_value()) {
+        out << " -> "; returns.value()->print(out, indent);
+    }
+
+    out << ":\n";
+
+    lython::print_body(out, indent + 1, body);
+}
+
+void Return::print(std::ostream& out, int indent) const {
+    out << "return ";
+    
+    if (value.has_value()) {
+        value.value()->print(out, indent);
+    }
+}
+
+void Delete::print(std::ostream& out, int indent) const {
+    out << "del ";
+    
+    for(int i = 0; i < targets.size(); i++){
+        targets[i]->print(out, indent);
+
+        if (i < targets.size() - 1)
+            out << ", ";
+    }
+}
+
+void Assign::print(std::ostream& out, int indent) const {
+    targets[0]->print(out, indent);
+    out << " = ";
+    value->print(out, indent);
+}
+
+void AnnAssign::print(std::ostream& out, int indent) const {
+    target->print(out, indent);
+    out << ": ";
+    annotation->print(out, indent);
+    if (value.has_value()){
+        out << " = ";
+        value.value()->print(out, indent);
+    }
+}
+
+void Pass::print(std::ostream& out, int indent) const {
+    out << "pass";
+}
+
+void Break::print(std::ostream& out, int indent) const {
+    out << "break";
+}
+
+void Continue::print(std::ostream& out, int indent) const {
+    out << "continue";
+}
+
+void Expr::print(std::ostream& out, int indent) const {
+    if (value != nullptr)
+        value->print(out, indent);
+}
+
+void Global::print(std::ostream& out, int indent) const {
+    out << "global " << join(", ", names);
+}
+
+void Nonlocal::print(std::ostream& out, int indent) const {
+     out << "nonlocal " << join(", ", names);
 }
 
 } // lython

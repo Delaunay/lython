@@ -106,6 +106,8 @@ struct Comprehension {
     Array<ExprNode*> ifs;
     int is_async;
 
+    String __str__() const;
+
     void print(std::ostream& out, int indent) const;
 };
 
@@ -125,7 +127,7 @@ struct Arg: public CommonAttributes {
     Optional<ExprNode*> annotation;
     Optional<String> type_comment;
 
-    void print(std::ostream& out, int indent) const;
+    void print(std::ostream& out, int indent = 0) const;
 };
 
 struct Arguments {
@@ -203,6 +205,8 @@ struct MatchMapping: public Pattern {
     Array<ExprNode*> keys;
     Array<Pattern*> patterns;
     Optional<Identifier> rest;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchClass: public Pattern {
@@ -210,25 +214,35 @@ struct MatchClass: public Pattern {
     Array<Pattern*> patterns;
     Array<Identifier> kwd_attrs;
     Array<Pattern*> kwd_patterns;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchStar: public Pattern {
     Optional<Identifier> name;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchAs: public Pattern {
     Optional<Pattern*> pattern;
     Optional<Identifier> name;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchOr: public Pattern {
     Array<Pattern*> patterns;
+
+    void print(std::ostream& out) const override;
 };
 
 struct MatchCase {
     Pattern* pattern;
     Optional<ExprNode*> guard;
     Array<StmtNode*> body;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 // Expressions
@@ -258,12 +272,16 @@ struct UnaryOp: public ExprNode{
 struct Lambda: public ExprNode{
     Arguments args;
     ExprNode* body = nullptr;
+
+    void print(std::ostream& out, int indent) const ;
 };
 
 struct IfExp: public ExprNode{
     ExprNode* test = nullptr;
     ExprNode* body = nullptr;
     ExprNode* orelse = nullptr;
+
+    void print(std::ostream& out, int indent) const ;
 };
 
 struct DictExpr: public ExprNode{
@@ -282,35 +300,50 @@ struct SetExpr: public ExprNode{
 struct ListComp: public ExprNode{
     ExprNode* elt = nullptr;
     Array<Comprehension> generators;
+
+    void print(std::ostream& out, int indent) const;
+};
+
+struct GeneratorExp: public ExprNode{
+    ExprNode* elt = nullptr;
+    Array<Comprehension> generators;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct SetComp: public ExprNode{
     ExprNode* elt = nullptr;
     Array<Comprehension> generators;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct DictComp: public ExprNode{
     ExprNode* key = nullptr;
     ExprNode* value = nullptr;
     Array<Comprehension> generators;
+
+    void print(std::ostream& out, int indent) const;
 };
 
-struct GeneratorExp: public ExprNode{
-    ExprNode* elt = nullptr;
-    Array<Comprehension> generators;
-};
 
 // the grammar constrains where yield expressions can occur
 struct Await: public ExprNode{
     ExprNode* value;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Yield: public ExprNode{
     Optional<ExprNode*> value;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct YieldFrom: public ExprNode{
     ExprNode* value = nullptr;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 // need sequences for compare to distinguish between
@@ -326,28 +359,7 @@ struct Call: public ExprNode{
     Array<ExprNode*> args;
     Array<Keyword> keywords;
 
-    void print(std::ostream &out, int indent) const override {
-        func->print(out, indent);
-        out << "(";
-        
-        for(int i = 0; i < args.size(); i++){
-            args[i]->print(out, indent);
-
-            if (i < args.size() - 1 || keywords.size() > 0)
-                out << ", ";
-        }
-
-        for(int i = 0; i < keywords.size(); i++){
-            out << keywords[i].arg.value();
-            out << " = ";
-            keywords[i].value->print(out, indent);
-
-            if (i < keywords.size() - 1)
-                out << ", ";
-        }
-
-        out << ")";
-    }
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct JoinedStr: public ExprNode{
@@ -364,6 +376,8 @@ struct FormattedValue: public ExprNode{
 struct Constant: public ExprNode{
     ConstantValue value;
     Optional<String> kind;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
  // the following expression can appear in assignment context
@@ -468,20 +482,7 @@ struct FunctionDef: public StmtNode {
     String docstring;
     bool async = false;
 
-    void print(std::ostream &out, int indent) const override {
-        out << "def " << name << "(";
-
-        args.print(out, indent);
-        out << ")";
-
-        if (returns.has_value()) {
-            out << " -> "; returns.value()->print(out, indent);
-        }
-
-        out << ":\n";
-
-        lython::print(out, indent + 1, body);
-    }
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct AsyncFunctionDef: public FunctionDef {
@@ -495,33 +496,20 @@ struct ClassDef: public StmtNode {
     Array<ExprNode*> decorator_list;
 
     String docstring;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct Return: public StmtNode {
     Optional<ExprNode*> value;
 
-    void print(std::ostream& out, int indent) const {
-        out << "return ";
-        
-        if (value.has_value()) {
-            value.value()->print(out, indent);
-        }
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Delete: public StmtNode {
     Array<ExprNode*> targets;
 
-    void print(std::ostream& out, int indent) const {
-        out << "del ";
-        
-        for(int i = 0; i < targets.size(); i++){
-            targets[i]->print(out, indent);
-
-            if (i < targets.size() - 1)
-                out << ", ";
-        }
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Assign: public StmtNode {
@@ -529,11 +517,7 @@ struct Assign: public StmtNode {
     ExprNode* value = nullptr;
     Optional<String> type_comment;
 
-    void print(std::ostream& out, int indent) const {
-        targets[0]->print(out, indent);
-        out << " = ";
-        value->print(out, indent);
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct AugAssign: public StmtNode{
@@ -549,15 +533,7 @@ struct AnnAssign: public StmtNode {
     Optional<ExprNode*> value;
     int simple;
 
-    void print(std::ostream& out, int indent) const {
-        target->print(out, indent);
-        out << ": ";
-        annotation->print(out, indent);
-        if (value.has_value()){
-            out << " = ";
-            value.value()->print(out, indent);
-        }
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 // use 'orelse' because else is a keyword in target languages
@@ -630,37 +606,39 @@ struct ImportFrom: public StmtNode {
 
 struct Global: public StmtNode {
     Array<Identifier> names;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Nonlocal: public StmtNode {
     Array<Identifier> names;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Expr: public StmtNode {
     ExprNode* value = nullptr;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Pass: public StmtNode {
-    void print(std::ostream& out, int indent) const {
-        out << "pass";
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Break: public StmtNode {
-    void print(std::ostream& out, int indent) const {
-        out << "break";
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Continue: public StmtNode {
-    void print(std::ostream& out, int indent) const {
-        out << "continue";
-    }
+    void print(std::ostream& out, int indent) const;
 };
 
 struct Match: public StmtNode {
     ExprNode* subject;
     Array<MatchCase> cases;
+
+    void print(std::ostream& out, int indent) const;
 };
 
 //
