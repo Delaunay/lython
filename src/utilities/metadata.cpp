@@ -30,59 +30,18 @@ using HashNodeInternal = T;
 
 bool _metadata_init_names(){
     meta::register_type<int>("int");
-    /*
-    meta::register_type<AST::Parameter>("Parameter");
-    meta::register_type<lython::Expression>("Expression");
-    meta::register_type<lython::Value>("Value");
-    meta::register_type<lython::State::Entry>("State::Entry");
-    meta::register_type<lython::AST::Import::DeclarationImport>("DeclImport");
 
-    meta::register_type<SharedPtrInternal<lython::value::Closure>>("Closure");
-    meta::register_type<SharedPtrInternal<lython::value::Class>>("Class");
-    meta::register_type<SharedPtrInternal<lython::AST::Call>>("AST::Call");
-    meta::register_type<SharedPtrInternal<lython::AST::Arrow>>("AST::Arrow");
-    meta::register_type<SharedPtrInternal<lython::AST::Value>>("AST::Value");
-    meta::register_type<SharedPtrInternal<lython::AST::Struct>>("AST::Struct");
-    meta::register_type<SharedPtrInternal<lython::AST::Ref>>("AST::Reference");
-    meta::register_type<SharedPtrInternal<lython::AST::Builtin>>("AST::Builtin");
-    meta::register_type<SharedPtrInternal<lython::AST::Type>>("AST::Type");
-    meta::register_type<SharedPtrInternal<lython::AST::Function>>("AST::Function");
-    meta::register_type<SharedPtrInternal<lython::AST::SeqBlock>>("AST::SeqBlock");
-    meta::register_type<SharedPtrInternal<lython::AST::Statement>>("AST::Statement");
-    meta::register_type<SharedPtrInternal<lython::AST::Parameter>>("AST::Parameter");
-    meta::register_type<SharedPtrInternal<lython::AST::BinaryOperator>>("AST::BinaryOperator");
-    meta::register_type<SharedPtrInternal<lython::AST::Import>>("AST::Import");
-    meta::register_type<SharedPtrInternal<lython::AST::ImportedExpr>>("AST::ImportedExpr");
-    meta::register_type<SharedPtrInternal<lython::AST::UnparsedBlock>>("AST::UnparsedBlock");
-    meta::register_type<SharedPtrInternal<lython::AST::Match>>("AST::Match");
-		*/
+		meta::register_type<lython::GCObject*>("GCObject*");
+		meta::register_type<lython::ExprNode*>("ExprNode*");
+		meta::register_type<lython::StmtNode*>("StmtNode*");
 
 		meta::register_type<lython::FunctionDef>("FunctionDef");
-		meta::register_type<lython::GCObject>("GCObject");
 		meta::register_type<lython::Name>("Name");
 		meta::register_type<lython::Arg>("Arg");
 		meta::register_type<lython::ParsingError>("ParsingError");
 		meta::register_type<lython::Return>("Return");
 		meta::register_type<lython::Call>("Call");
 		meta::register_type<lython::Constant>("Constant");
-		meta::register_type<lython::ExprNode>("ExprNode");
-		meta::register_type<lython::StmtNode>("StmtNode");
-
-		/*/ value::Struct
-    meta::register_type<HashNodeInternal<
-        std::pair<const StringRef, Value>, false>>(
-        "Pair[StringRef, Value]");
-
-    // Module dict
-    meta::register_type<HashNodeInternal<
-        std::pair<const String, State>, true>>(
-        "Pair[String, State]");
-
-    // AST::Struct
-    meta::register_type<HashNodeInternal<
-        std::pair<const StringRef, int>, false>>(
-        "Pair[StringRef, int]");
-		*/
 
     meta::register_type<HashNodeInternal<
 				std::pair<const String, lython::OpConfig>, false>>(
@@ -91,27 +50,6 @@ bool _metadata_init_names(){
     meta::register_type<HashNodeInternal<
 				std::pair<const String, lython::TokenType>, false>>(
         "Pair[String, TokenType]");
-
-		/*/ AST::KwArguments
-    meta::register_type<HashNodeInternal<
-        std::pair<const StringRef, Expression>, false>>(
-        "Pair[StringRef, Expression]");
-
-    // AST::Variables
-    meta::register_type<HashNodeInternal<
-        std::pair<const AST::Parameter, Expression>, false>>(
-        "Pair[Parameter, Expression]");
-
-    // ParameterDict
-    meta::register_type<HashNodeInternal<
-        std::pair<const String, AST::Parameter>, false>>(
-        "Pair[String, Parameter]");
-
-    // interpreter
-    meta::register_type<HashNodeInternal<
-        std::pair<const String, std::function<Value(State&)>>, true>>(
-        "Pair[String, Value(State)]");
-		*/
 
     meta::register_type<HashNodeInternal<
         std::pair<const String, TokenType>, true>>(
@@ -145,28 +83,6 @@ bool _metadata_init_names(){
     meta::register_type<HashNodeInternal<
         char, false>>(
         "Set char");
-
-
-    // std::unordered_map
-
-
-    //using PairStringSize_t = Dict<String, Index>::value_type;
-    //register_type<PairStringSize_t>("Pair[String, Index]");
-
-    //using PairStringTupleIntBool = Dict<String, std::tuple<int, bool>>::value_type;
-    //register_type<PairStringTupleIntBool>("Pair[String, Tuple[Int, Bool]]");
-
-		//meta::register_type<Attributes::value_type>("Attribute");
-
-    // Token
-    //using RKeyword =  Dict<String, TokenType>::value_type;
-    //register_type<RKeyword>("RKeyword");
-
-    //using Keyword =  Dict<int, String>::value_type;
-    //register_type<Keyword>("Keyword");
-    //register_type<Token>("Token");
-    //register_type<AST::MathNode>("MathNode");
-		//*/
 
     #define INIT_METADATA(name, typname)\
         meta::type_name<name>();
