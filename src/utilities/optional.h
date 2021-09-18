@@ -6,11 +6,11 @@ namespace lython {
 template <typename T>
 class Optional {
     public:
-    Optional(const T &data) : _has_data(true) { holder.data.value = data; }
+    Optional(const T &data): _has_data(true) { holder.data.value = data; }
 
-    Optional() : _has_data(false) {}
+    Optional(): _has_data(false) {}
 
-    Optional(const Optional &opt) : _has_data(opt._has_data) {
+    Optional(const Optional &opt): _has_data(opt._has_data) {
         if (_has_data) {
             holder.data.value = opt.holder.data.value;
         }

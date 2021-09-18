@@ -53,7 +53,7 @@ void Slice::print(std::ostream &out, int indent) const {
 }
 
 void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body) {
-    for (auto &stmt : body) {
+    for (auto &stmt: body) {
         out << std::string(indent * 4, ' ');
         stmt->print(out, indent);
     }
@@ -104,7 +104,7 @@ void Comprehension::print(std::ostream &out, int indent) const {
     out << " in ";
     iter->print(out, indent);
 
-    for (auto expr : ifs) {
+    for (auto expr: ifs) {
         out << "if ";
         expr->print(out, indent);
     }
@@ -214,7 +214,7 @@ void Match::print(std::ostream &out, int indent) const {
     out << "match ";
     subject->print(out, indent);
 
-    for (auto &case_ : cases) {
+    for (auto &case_: cases) {
         case_.print(out, indent);
     }
 }
@@ -315,7 +315,7 @@ void Call::print(std::ostream &out, int indent) const {
 void Constant::print(std::ostream &out, int indent) const { value.print(out); }
 
 void Arguments::print(std::ostream &out, int indent) const {
-    for (auto &arg : args) {
+    for (auto &arg: args) {
         out << arg.arg;
 
         if (arg.annotation.has_value()) {
@@ -324,7 +324,7 @@ void Arguments::print(std::ostream &out, int indent) const {
         }
     }
 
-    for (auto &kw : kwonlyargs) {
+    for (auto &kw: kwonlyargs) {
         out << kw.arg;
 
         if (kw.annotation.has_value()) {
@@ -357,7 +357,7 @@ void ClassDef::print(std::ostream &out, int indent) const {
     Array<String> kwd;
     kwd.reserve(keywords.size());
 
-    for (auto kw : keywords) {
+    for (auto kw: keywords) {
         // FIXME std::string -> String conversion
         kwd.push_back(String(fmt::format("{}={}", str(kw.arg), str(kw.value)).c_str()));
     }

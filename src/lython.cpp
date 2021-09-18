@@ -150,7 +150,7 @@ int main() {
             std::cout << std::string(80, '-') << '\n';
             std::cout << "Parsing Diag\n";
             std::cout << std::string(80, '-') << '\n';
-            for (auto &diag : parser.get_errors()) {
+            for (auto &diag: parser.get_errors()) {
                 diag.print(std::cout);
             }
             std::cout << std::string(80, '-') << '\n';
@@ -158,17 +158,23 @@ int main() {
             std::cout << std::string(80, '-') << '\n';
             std::cout << "Parsed Module dump\n";
             std::cout << std::string(80, '-') << '\n';
-            for (auto stmt : mod->body) {
+            for (auto stmt: mod->body) {
                 stmt->print(std::cout, 0);
                 std::cout << "\n";
             }
+            std::cout << std::string(80, '-') << '\n';
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;
         }
 
+        std::cout << std::string(80, '=') << '\n';
+        std::cout << "Layout\n";
+        std::cout << std::string(80, '-') << '\n';
         mod->dump(std::cout);
+        std::cout << std::string(80, '-') << '\n';
+
         delete mod;
     }
 
