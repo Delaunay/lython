@@ -204,8 +204,14 @@ class Parser {
     ExprNode *parse_slice(Node *parent, ExprNode *primary, int depth);
 
     ExprNode *parse_expression(Node *parent, int depth) {
-        auto primary = parse_expression_1(parent, depth);
+        // parse primary
+        auto primary = parse_expression_primary(parent, depth);
 
+        return parse_expression_1(parent, primary, 0, depth);
+    }
+
+    // check if this is a composed expression
+    ExprNode *parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth) {
         //
         switch (token().type()) {
         // <expr> := <expr>
@@ -242,8 +248,40 @@ class Parser {
         return primary;
     }
 
+    ExprNode *parse_operators(Node *parent, ExprNode *primary, int min_precedence, int depth) {
+        auto lookahead = token();
+        auto oppred    = get_precendence(lookahead);
+
+        // lookahead is a binary operator whose precedence is >= min_precedence
+        while (oppred >= min_precedence) {
+            Token optok = lookahead;
+            next_token();
+
+            rhs       = parse_expression(parent, depth);
+            lookahead = token();
+
+            auto lookpred = get_precendence(lookahead);
+
+            // lookahead is a binary operator whose precedence is greater
+            // than op's, or a right-associative operator
+            // whose precedence is equal to op's
+            while (lookpred > oppred || (right_assoc && lookpred == oppred)) {
+                rhs       = parse_expression_1(parent, rhs, precedence + 1);
+                lookahead = token();
+
+                // the result of applying op with operands lhs and rhs
+                auto result = parent->new_object<>();
+                result->lhs = lhs;
+                result->op  = op;
+                result->rhs = rhs;
+                lhs         = result;
+            }
+        }
+        return lhs
+    }
+
     // Expression we can guess rightaway from the current token we are seeing
-    ExprNode *parse_expression_1(Node *parent, int depth) {
+    ExprNode *parse_expression_primary(Node *parent, int depth) {
         switch (token().type()) {
         // await <expr>
         case tok_await:
