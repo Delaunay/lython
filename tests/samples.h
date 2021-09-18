@@ -143,8 +143,6 @@ DEFINE_SAMPLE_CODE(edge_case_incorrect_num,
     X(simple_function)             \
     X(simple_function_noargs)      \
     X(simple_function_docstring)   \
-    X(simple_struct)               \
-    X(simple_struct_docstring)     \
     X(misc_code)                   \
     X(function_call)               \
     X(simple_function_global)      \

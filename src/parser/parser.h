@@ -1,17 +1,12 @@
 ﻿#ifndef LYTHON_PARSER_H
 #define LYTHON_PARSER_H
 
+#include "ast/magic.h"
+#include "ast/sexpression.h"
 #include "lexer/lexer.h"
 #include "logging/logging.h"
-
-// #include "utilities/optional.h"
-// #include "utilities/stack.h"
-// #include "utilities/trie.h"
-#include "utilities/metadata.h"
-// #include "utilities/guard.h"
-
-#include "ast/sexpression.h"
 #include "parser/parsing_error.h"
+#include "utilities/metadata.h"
 
 #include <iostream>
 #include <numeric>
@@ -81,8 +76,17 @@ class Parser {
     StmtNode *parse_augassign(Node *parent, ExprNode *epxr, int depth);
     StmtNode *parse_annassign(Node *parent, ExprNode *epxr, int depth);
 
+    Token previous = dummy();
+
     StmtNode *parse_statement(Node *parent, int depth) {
         TRACE_START();
+
+        if (previous == token()) {
+            error("Unhandled token {} previous tok was {}", str(token()), str(previous));
+            return nullptr;
+        } else {
+            previous = token();
+        }
 
         // Statement we can guess rightaway from the current token we are seeing
         switch (token().type()) {
@@ -255,6 +259,10 @@ class Parser {
         // lambda <name>:
         case tok_lambda:
             return parse_lambda(parent, depth);
+
+        case tok_float:
+            return parse_constant(parent, depth);
+
         case tok_int:
             return parse_constant(parent, depth);
         // "

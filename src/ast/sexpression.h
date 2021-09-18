@@ -241,17 +241,17 @@ struct Arguments {
 
     Array<Arg>        posonlyargs;
     Array<Arg>        args;
-    Optional<Arg>     vararg;   // *args
+    Optional<Arg>     vararg; // *args
     Array<Arg>        kwonlyargs;
     Array<ExprNode *> kw_defaults;
-    Optional<Arg>     kwarg;   // **kwargs
+    Optional<Arg>     kwarg; // **kwargs
     Array<ExprNode *> defaults;
 
     void print(std::ostream &out, int indent) const;
 };
 
 struct Keyword: public CommonAttributes {
-    Optional<Identifier> arg;   // why is this optional ?
+    Optional<Identifier> arg; // why is this optional ?
     ExprNode *           value = nullptr;
 
     void print(std::ostream &out, int indent) const;
@@ -627,6 +627,8 @@ struct Module: public ModNode {
     String docstring;
 
     Module(): ModNode(NodeKind::Module) {}
+
+    void print(std::ostream &out, int) const;
 };
 
 struct Interactive: public ModNode {
@@ -882,5 +884,5 @@ struct NotAllowedEpxr: public ExprNode {
     void print(std::ostream &out, int indent) const { out << "<not allowed: " << msg << ">"; }
 };
 
-}   // namespace lython
+} // namespace lython
 #endif

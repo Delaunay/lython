@@ -56,6 +56,7 @@ void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body) {
     for (auto &stmt: body) {
         out << std::string(indent * 4, ' ');
         stmt->print(out, indent);
+        out << "\n";
     }
 }
 
@@ -197,6 +198,8 @@ void MatchAs::print(std::ostream &out) const {
 
 void MatchOr::print(std::ostream &out) const { out << join(" | ", patterns); }
 
+void Module::print(std::ostream &out, int indent) const { print_body(out, indent, body); }
+
 void MatchCase::print(std::ostream &out, int indent) const {
     out << "case ";
     pattern->print(out);
@@ -315,6 +318,7 @@ void Call::print(std::ostream &out, int indent) const {
 void Constant::print(std::ostream &out, int indent) const { value.print(out); }
 
 void Arguments::print(std::ostream &out, int indent) const {
+    int i = 0;
     for (auto &arg: args) {
         out << arg.arg;
 
@@ -322,8 +326,18 @@ void Arguments::print(std::ostream &out, int indent) const {
             out << ": ";
             arg.annotation.value()->print(out, indent);
         }
+
+        if (i + 1 < args.size()) {
+            out << ", ";
+        }
+        i += 1;
     }
 
+    if (args.size() > 0 && kwonlyargs.size() > 0) {
+        out << ", ";
+    }
+
+    i = 0;
     for (auto &kw: kwonlyargs) {
         out << kw.arg;
 
@@ -331,6 +345,11 @@ void Arguments::print(std::ostream &out, int indent) const {
             out << ": ";
             kw.annotation.value()->print(out, indent);
         }
+
+        if (i + 1 < kwonlyargs.size()) {
+            out << ", ";
+        }
+        i += 1;
     }
 }
 
@@ -385,6 +404,10 @@ void FunctionDef::print(std::ostream &out, int indent) const {
     }
 
     out << ":\n";
+
+    if (docstring.size() > 0) {
+        out << String((indent + 1) * 4, ' ') << "\"\"\"" << docstring << "\"\"\"\n";
+    }
 
     lython::print_body(out, indent + 1, body);
 }

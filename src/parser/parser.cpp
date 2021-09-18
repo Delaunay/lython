@@ -15,7 +15,12 @@ Token Parser::parse_body(Node *parent, Array<StmtNode *> &out, int depth) {
     TRACE_START();
 
     while (token().type() != tok_desindent && token().type() != tok_eof) {
-        auto expr = parse_statement(parent, depth);
+        auto expr = parse_statement(parent, depth + 1);
+
+        if (expr == nullptr) {
+            return token();
+        }
+
         out.push_back(expr);
 
         if (token().type() == tok_incorrect) {
@@ -64,6 +69,13 @@ StmtNode *Parser::parse_function_def(Node *parent, bool async, int depth) {
     expect_token(tok_newline, true, stmt, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
+    if (token().type() == tok_docstring) {
+        stmt->docstring = token().identifier();
+        next_token();
+
+        expect_token(tok_newline, true, stmt, LOC);
+    }
+
     auto last = parse_body(stmt, stmt->body, depth + 1);
     end_code_loc(stmt, last);
     async_mode.pop_back();
@@ -85,6 +97,13 @@ StmtNode *Parser::parse_class_def(Node *parent, int depth) {
     }
 
     expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, LOC);
+    expect_token(tok_indent, true, stmt, LOC);
+
+    if (token().type() == tok_docstring) {
+        stmt->docstring = token().identifier();
+        next_token();
+    }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
     end_code_loc(stmt, last);
@@ -707,6 +726,7 @@ StmtNode *Parser::parse_return(Node *parent, int depth) {
         next_token();
     }
 
+    TRACE_END();
     return stmt;
 }
 
@@ -915,7 +935,6 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
         Arg arg;
         start_code_loc(&arg, token());
         arg.arg = get_identifier();
-
         expect_token(tok_identifier, true, parent, LOC);
 
         if (token().type() == ':') {
@@ -942,12 +961,10 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
 
         if (token().type() == ',') {
             next_token();
-        } else {
-            expect_token(kind, true, parent, LOC);
-            break;
         }
     }
 
+    expect_token(kind, true, parent, LOC);
     return args;
 }
 
@@ -1144,14 +1161,15 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
 // [a, b] or [a for b in c]
 ExprNode *Parser::parse_list(Node *parent, int depth) {
     TRACE_START();
-    return parse_comprehension_or_literal<ListComp, ListExpr>(this, parent, tok_square, ']', depth);
+    return parse_comprehension_or_literal<ListComp, ListExpr>(this, parent, tok_square, ']',
+                                                              depth + 1);
 }
 
 // (a, b) or (a for b in c)
 ExprNode *Parser::parse_tuple_generator(Node *parent, int depth) {
     TRACE_START();
     return parse_comprehension_or_literal<GeneratorExp, TupleExpr>(this, parent, tok_parens, ')',
-                                                                   depth);
+                                                                   depth + 1);
 }
 
 // {a, b} or {a for b in c} or {a: b, c: d} or {a: b for a, b in c}
