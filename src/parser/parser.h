@@ -34,10 +34,11 @@ class Parser {
         return module;
     }
 
-    Token parse_body(Node *parent, Array<StmtNode *> &out, int depth);
-    Token parse_except_handler(Node *parent, Array<ExceptHandler> &out, int depth);
-    void  parse_alias(Node *parent, Array<Alias> &out, int depth);
-    Token parse_match_case(Node *parent, Array<MatchCase> &out, int depth);
+    Token  parse_body(Node *parent, Array<StmtNode *> &out, int depth);
+    Token  parse_except_handler(Node *parent, Array<ExceptHandler> &out, int depth);
+    void   parse_alias(Node *parent, Array<Alias> &out, int depth);
+    Token  parse_match_case(Node *parent, Array<MatchCase> &out, int depth);
+    String parse_module_path(Node *parent, int &level, int depth);
 
     Pattern *parse_pattern(Node *parent, int depth);
     Pattern *parse_pattern_1(Node *parent, int depth);
@@ -303,6 +304,26 @@ class Parser {
 
     ParsingError *expect_token(int expected, bool eat, Node *wip_expression, CodeLocation loc) {
         return expect_tokens(Array<int>{expected}, eat, wip_expression, loc);
+    }
+
+    ParsingError *expect_operator(String const &op, bool eat, Node *wip_expression,
+                                  CodeLocation loc) {
+        Token tok = token();
+
+        auto err = expect_token(tok_operator, eat, wip_expression, LOC);
+        if (err != nullptr) {
+            return err;
+        }
+
+        if (tok.operator_name() == op) {
+            return nullptr;
+        }
+
+        err = &errors.emplace_back(ParsingError::syntax_error("Wrong operator"));
+        StringStream ss;
+        err->print(ss);
+        warn("{}", ss.str());
+        return err;
     }
 
     ParsingError *expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,

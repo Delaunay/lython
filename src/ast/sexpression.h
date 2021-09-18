@@ -741,6 +741,8 @@ struct For: public StmtNode {
     bool async = false;
 
     For(): StmtNode(NodeKind::For) {}
+
+    void print(std::ostream &out, int indent) const;
 };
 
 // Keeping it for consistency with python docs, but useless
@@ -752,6 +754,8 @@ struct While: public StmtNode {
     Array<StmtNode *> orelse;
 
     While(): StmtNode(NodeKind::While) {}
+
+    void print(std::ostream &out, int indent) const;
 };
 
 struct If: public StmtNode {

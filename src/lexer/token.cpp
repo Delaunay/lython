@@ -1,88 +1,88 @@
-#include <spdlog/fmt/bundled/core.h>
 #include "token.h"
+#include <spdlog/fmt/bundled/core.h>
 
-namespace lython
-{
+namespace lython {
 
-String to_string(int8 t){
-    switch(t){
-    #define X(name, nb)\
-        case nb: return String(#name);
+String to_string(int8 t) {
+    switch (t) {
+#define X(name, nb) \
+    case nb:        \
+        return String(#name);
 
         LYTHON_TOKEN(X)
-    #undef X
+#undef X
     default:
         String s = "' '";
-        s[1] = t;
+        s[1]     = t;
         return s;
     }
 }
 
 // this should be computed at compile time
 // this is used for pretty printing
-int8 tok_name_size()
-{
+int8 tok_name_size() {
     std::vector<String> v = {
-    #define X(name, nb) #name,
+#define X(name, nb) #name,
         LYTHON_TOKEN(X)
-    #undef X
+#undef X
     };
 
     int8 max = 0;
 
-    for (auto& i:v)
+    for (auto &i: v)
         max = std::max(int8(i.size()), max);
 
     return max;
 }
 
-std::ostream& Token::debug_print(std::ostream& out){
+std::ostream &Token::debug_print(std::ostream &out) const {
     out << fmt::format("{:>20}", to_string(_type));
 
-    out << " =>" << " [l:" << fmt::format("{:4}", _line)
-				 << ", c:" << fmt::format("{:4}", _col) << "] `" << _identifier << "`";
+    out << " =>"
+        << " [l:" << fmt::format("{:4}", _line) << ", c:" << fmt::format("{:4}", _col) << "] `"
+        << _identifier << "`";
     return out;
 }
 
 // could be used for code formatting
-std::ostream& Token::print(std::ostream& out, int32 indent) const {
+std::ostream &Token::print(std::ostream &out, int32 indent) const {
     // Keep track of some variable for correct printing
     static int32 indent_level = 0;
-    static bool emptyline = true;   // To generate indent when needed
-    static bool open_parens = false;
-    static bool prev_is_op = false;
+    static bool  emptyline    = true; // To generate indent when needed
+    static bool  open_parens  = false;
+    static bool  prev_is_op   = false;
 
     if (indent > 0)
         indent_level = indent;
 
     // because indent_level is static we need a token to reset the value
-    if (type() == tok_eof){
+    if (type() == tok_eof) {
         indent_level = 0;
-        emptyline = true;
-        open_parens = false;
-        prev_is_op = false;
+        emptyline    = true;
+        open_parens  = false;
+        prev_is_op   = false;
         return out;
     }
 
     // Invisible Token
-    if (type() == tok_indent){
+    if (type() == tok_indent) {
         indent_level += 1;
         return out;
     }
 
-    if (type() == tok_desindent){
+    if (type() == tok_desindent) {
         indent_level -= 1;
         return out;
     }
 
-    if (type() == tok_newline){
+    if (type() == tok_newline) {
         out << std::endl;
         emptyline = true;
         return out;
     }
 
-    if (type() == tok_operator){
-        if (operator_name() == "."){
+    if (type() == tok_operator || type() == tok_dot || type() == tok_in || type() == tok_assign) {
+        if (operator_name() == ".") {
             out << operator_name();
         } else {
             out << " " << operator_name() << " ";
@@ -96,9 +96,9 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
     if (emptyline && indent_level > 0)
         out << String(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
-    String const& str = keyword_as_string()[type()];
+    String const &str = keyword_as_string()[type()];
 
-    if (str.size() > 0){
+    if (str.size() > 0) {
         emptyline = false;
 
         switch (type()) {
@@ -108,7 +108,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
             break;
 
         case tok_import:
-            if (!emptyline){
+            if (!emptyline) {
                 out << " ";
             }
             break;
@@ -118,7 +118,7 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
     }
 
     // Single Char
-    if (type() > 0){
+    if (type() > 0) {
 
         if (type() == '(' || type() == '[')
             open_parens = true;
@@ -135,13 +135,13 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
 
     // no space if the line is empty and no space if it is just after
     // a open parens
-    if (!prev_is_op && !emptyline && !open_parens){
+    if (!prev_is_op && !emptyline && !open_parens) {
         out << ' ';
     }
     prev_is_op = false;
 
     if (type() == tok_string)
-        out << '"' << identifier() << '"' ;
+        out << '"' << identifier() << '"';
     else if (type() == tok_docstring)
         out << "\"\"\"" << identifier() << "\"\"\"";
     else if (type() == tok_int || type() == tok_float)
@@ -150,28 +150,28 @@ std::ostream& Token::print(std::ostream& out, int32 indent) const {
         out << identifier();
 
     open_parens = false;
-    emptyline = false;
-    prev_is_op = false;
+    emptyline   = false;
+    prev_is_op  = false;
 
     return out;
 }
 
-ReservedKeyword& keywords(){
+ReservedKeyword &keywords() {
     static ReservedKeyword _keywords = {
-    #define X(str, tok) {str, tok},
+#define X(str, tok) {str, tok},
         LYTHON_KEYWORDS(X)
-    #undef X
+#undef X
     };
     return _keywords;
 }
 
-KeywordToString& keyword_as_string(){
+KeywordToString &keyword_as_string() {
     static KeywordToString _keywords = {
-    #define X(str, tok) {int(tok), String(str)},
+#define X(str, tok) {int(tok), String(str)},
         LYTHON_KEYWORDS(X)
-    #undef X
+#undef X
     };
     return _keywords;
 }
 
-}
+} // namespace lython

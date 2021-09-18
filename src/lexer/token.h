@@ -171,7 +171,7 @@ class Token {
 
     public:
     // print all tokens and their info
-    std::ostream &debug_print(std::ostream &out);
+    std::ostream &debug_print(std::ostream &out) const;
 
     String __str__() const { return to_string(_type); }
 

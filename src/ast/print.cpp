@@ -201,7 +201,7 @@ void MatchOr::print(std::ostream &out) const { out << join(" | ", patterns); }
 void Module::print(std::ostream &out, int indent) const { print_body(out, indent, body); }
 
 void MatchCase::print(std::ostream &out, int indent) const {
-    out << "case ";
+    out << String(4 * indent, ' ') << "case ";
     pattern->print(out);
 
     if (guard.has_value()) {
@@ -216,9 +216,10 @@ void MatchCase::print(std::ostream &out, int indent) const {
 void Match::print(std::ostream &out, int indent) const {
     out << "match ";
     subject->print(out, indent);
+    out << ":\n";
 
     for (auto &case_: cases) {
-        case_.print(out, indent);
+        case_.print(out, indent + 1);
     }
 }
 
@@ -410,6 +411,32 @@ void FunctionDef::print(std::ostream &out, int indent) const {
     }
 
     lython::print_body(out, indent + 1, body);
+}
+
+void For::print(std::ostream &out, int indent) const {
+    out << "for ";
+    target->print(out);
+    out << " in ";
+    iter->print(out);
+    out << ":\n";
+    print_body(out, indent + 1, body);
+
+    if (orelse.size() > 0) {
+        out << String(indent * 4, ' ') << "else:\n";
+        print_body(out, indent + 1, body);
+    }
+}
+
+void While::print(std::ostream &out, int indent) const {
+    out << "while ";
+    test->print(out);
+    out << ":\n";
+    print_body(out, indent + 1, body);
+
+    if (orelse.size() > 0) {
+        out << String(indent * 4, ' ') << "else:\n";
+        print_body(out, indent + 1, body);
+    }
 }
 
 void Return::print(std::ostream &out, int indent) const {

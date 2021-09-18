@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "utilities/strings.h"
 
 namespace lython {
 
@@ -127,6 +128,10 @@ StmtNode *Parser::parse_for(Node *parent, int depth) {
     stmt->target = parse_expression(stmt, depth + 1);
     expect_token(tok_in, true, stmt, LOC);
     stmt->iter = parse_expression(stmt, depth + 1);
+
+    expect_token(':', true, parent, LOC);
+    expect_token(tok_newline, true, parent, LOC);
+    expect_token(tok_indent, true, parent, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
@@ -434,6 +439,7 @@ Token Parser::parse_match_case(Node *parent, Array<MatchCase> &out, int depth) {
         }
 
         expect_token(':', true, parent, LOC);
+        expect_token(tok_newline, true, parent, LOC);
         expect_token(tok_indent, true, parent, LOC);
 
         // Branch
@@ -459,6 +465,7 @@ StmtNode *Parser::parse_match(Node *parent, int depth) {
 
     stmt->subject = parse_expression(stmt, depth + 1);
     expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, parent, LOC);
     expect_token(tok_indent, true, parent, LOC);
 
     auto last = parse_match_case(stmt, stmt->cases, depth);
@@ -608,13 +615,56 @@ StmtNode *Parser::parse_assert(Node *parent, int depth) {
     return stmt;
 }
 
+String Parser::parse_module_path(Node *parent, int &level, int depth) {
+    level = 0;
+    Array<String> path;
+
+    while (true) {
+        // relative path
+        if (token().type() == tok_dot && path.size() <= 0) {
+            level += 1;
+            next_token();
+        }
+
+        if (token().type() == tok_operator && token().operator_name() == "." && path.size() <= 0) {
+            level += 1;
+            next_token();
+        }
+
+        // module name
+        if (token().type() == tok_identifier) {
+            path.push_back(get_identifier());
+            next_token();
+        }
+
+        // separator
+        if (token().type() == tok_dot) {
+            next_token();
+        }
+
+        if (token().type() == tok_operator && token().operator_name() == ".") {
+            next_token();
+        }
+
+        if (token().type() == tok_as || token().type() == ',' || token().type() == tok_newline ||
+            token().type() == tok_eof) {
+            break;
+        }
+
+        // token().debug_print(std::cout);
+    }
+
+    return join(".", path);
+}
+
 void Parser::parse_alias(Node *parent, Array<Alias> &out, int depth) {
     TRACE_START();
 
-    while (token().type() != tok_newline) {
+    while (token().type() != tok_newline && token().type() != tok_eof) {
         Alias alias;
-        alias.name = get_identifier();
-        expect_token(tok_identifier, true, parent, LOC);
+
+        int level  = 0;
+        alias.name = parse_module_path(parent, level, depth);
 
         if (token().type() == tok_as) {
             alias.asname = get_identifier();
@@ -641,7 +691,7 @@ StmtNode *Parser::parse_import(Node *parent, int depth) {
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt, LOC);
+    expect_tokens({tok_newline, tok_eof}, true, stmt, LOC);
     return stmt;
 }
 
@@ -661,7 +711,7 @@ StmtNode *Parser::parse_import_from(Node *parent, int depth) {
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt, LOC);
+    expect_tokens({tok_newline, tok_eof}, true, stmt, LOC);
     return stmt;
 }
 
