@@ -16,8 +16,8 @@
 #include <iostream>
 #include <numeric>
 
-#define TRACE_START()                                                                              \
-    trace_start(depth, "{}: {} - `{}`", to_string(token().type()).c_str(), token().type(),         \
+#define TRACE_START()                                                                      \
+    trace_start(depth, "{}: {} - `{}`", to_string(token().type()).c_str(), token().type(), \
                 token().identifier())
 
 #define TRACE_END() trace_end(depth, "{}: {}", to_string(token().type()).c_str(), token().type())
@@ -26,7 +26,7 @@ namespace lython {
 
 class Parser {
     public:
-    Parser(AbstractLexer &lexer) : _lex(lexer) { metadata_init_names(); }
+    Parser(AbstractLexer &lexer): _lex(lexer) { metadata_init_names(); }
 
     Module *parse_module() {
         if (token().type() == tok_incorrect) {
@@ -299,7 +299,7 @@ class Parser {
 
     ParsingError *expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,
                                 CodeLocation loc) {
-        for (auto &tok : expected) {
+        for (auto &tok: expected) {
             if (token().type() == tok) {
                 if (eat) {
                     next_token();

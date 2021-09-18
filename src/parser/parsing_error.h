@@ -16,9 +16,9 @@ struct ParsingError {
     String       message;
     CodeLocation loc;
 
-    ParsingError() : received_token(dummy()), loc(LOC) {}
+    ParsingError(): received_token(dummy()), loc(LOC) {}
 
-    ParsingError(Array<int> expected, Token token, CodeLocation loc_) :
+    ParsingError(Array<int> expected, Token token, CodeLocation loc_):
         expected_tokens(expected), received_token(token), loc(loc_) {}
 
     ParsingError(Array<int> expected, Token token, Node *obj, CodeLocation loc);

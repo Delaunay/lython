@@ -13,7 +13,8 @@ namespace lython {
 
 using Identifier = String;
 
-enum class NodeKind : int8_t {
+enum class NodeKind : int8_t
+{
     Invalid,
 
     EXPR_START,
@@ -97,7 +98,8 @@ enum class NodeKind : int8_t {
     PAT_END
 };
 
-enum class NodeFamily : int8_t {
+enum class NodeFamily : int8_t
+{
     Module,
     Statement,
     Expression,
@@ -112,40 +114,47 @@ struct CommonAttributes {
     Optional<int> end_col_offset;
 };
 
-struct Node : public GCObject {
+struct Node: public GCObject {
     // I think only statements need the indentaion
     virtual void print(std::ostream &out, int indent = 0) const {}
 
     String __str__() const;
 
-    Node(NodeKind _kind) : kind(_kind) {}
+    Node(NodeKind _kind): kind(_kind) {}
 
     virtual NodeFamily family() const = 0;
 
     const NodeKind kind;
 };
 
-struct ModNode : public Node {
-    ModNode(NodeKind kind) : Node(kind) {}
+struct ModNode: public Node {
+    ModNode(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Module; }
 };
 
-struct StmtNode : public CommonAttributes, public Node {
-    StmtNode(NodeKind kind) : Node(kind) {}
+struct StmtNode: public CommonAttributes, public Node {
+    StmtNode(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Statement; }
 };
 
-struct ExprNode : public CommonAttributes, public Node {
-    ExprNode(NodeKind kind) : Node(kind) {}
+struct ExprNode: public CommonAttributes, public Node {
+    ExprNode(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Expression; }
 };
 
-enum class ConversionKind : int8_t { None = -1, String = 115, Representation = 114, ASCII = 97 };
+enum class ConversionKind : int8_t
+{
+    None           = -1,
+    String         = 115,
+    Representation = 114,
+    ASCII          = 97
+};
 
-enum class BinaryOperator : int8_t {
+enum class BinaryOperator : int8_t
+{
     Add,
     Sub,
     Mult,
@@ -161,18 +170,29 @@ enum class BinaryOperator : int8_t {
     FloorDiv
 };
 
-enum class BoolOperator : int8_t { And, Or };
+enum class BoolOperator : int8_t
+{
+    And,
+    Or
+};
 
-enum class UnaryOperator : int8_t {
+enum class UnaryOperator : int8_t
+{
     Invert,
     Not,
     UAdd,
     USub,
 };
 
-enum class ExprContext : int8_t { Load, Store, Del };
+enum class ExprContext : int8_t
+{
+    Load,
+    Store,
+    Del
+};
 
-enum class CmpOperator : int8_t {
+enum class CmpOperator : int8_t
+{
     Eq,
     NotEq,
     Lt,
@@ -198,7 +218,7 @@ struct Comprehension {
 
 void print(std::ostream &out, int indent, Array<StmtNode *> const &body);
 
-struct ExceptHandler : public CommonAttributes {
+struct ExceptHandler: public CommonAttributes {
     Optional<ExprNode *> type;
     Optional<Identifier> name;
     Array<StmtNode *>    body;
@@ -206,7 +226,7 @@ struct ExceptHandler : public CommonAttributes {
     void print(std::ostream &out, int indent) const;
 };
 
-struct Arg : public CommonAttributes {
+struct Arg: public CommonAttributes {
     Identifier           arg;
     Optional<ExprNode *> annotation;
     Optional<String>     type_comment;
@@ -221,17 +241,17 @@ struct Arguments {
 
     Array<Arg>        posonlyargs;
     Array<Arg>        args;
-    Optional<Arg>     vararg; // *args
+    Optional<Arg>     vararg;   // *args
     Array<Arg>        kwonlyargs;
     Array<ExprNode *> kw_defaults;
-    Optional<Arg>     kwarg; // **kwargs
+    Optional<Arg>     kwarg;   // **kwargs
     Array<ExprNode *> defaults;
 
     void print(std::ostream &out, int indent) const;
 };
 
-struct Keyword : public CommonAttributes {
-    Optional<Identifier> arg; // why is this optional ?
+struct Keyword: public CommonAttributes {
+    Optional<Identifier> arg;   // why is this optional ?
     ExprNode *           value = nullptr;
 
     void print(std::ostream &out, int indent) const;
@@ -256,8 +276,8 @@ struct TypeIgnore {
     String tag;
 };
 
-struct Pattern : public CommonAttributes, public Node {
-    Pattern(NodeKind kind) : Node(kind) {}
+struct Pattern: public CommonAttributes, public Node {
+    Pattern(NodeKind kind): Node(kind) {}
 
     virtual void print(std::ostream &out) const {}
 
@@ -266,42 +286,42 @@ struct Pattern : public CommonAttributes, public Node {
     String __str__() const;
 };
 
-struct MatchValue : public Pattern {
+struct MatchValue: public Pattern {
     ExprNode *value;
 
     void print(std::ostream &out) const override;
 
-    MatchValue() : Pattern(NodeKind::MatchValue) {}
+    MatchValue(): Pattern(NodeKind::MatchValue) {}
 };
 
-struct MatchSingleton : public Pattern {
+struct MatchSingleton: public Pattern {
     ConstantValue value;
 
     void print(std::ostream &out) const override;
 
-    MatchSingleton() : Pattern(NodeKind::MatchSingleton) {}
+    MatchSingleton(): Pattern(NodeKind::MatchSingleton) {}
 };
 
-struct MatchSequence : public Pattern {
+struct MatchSequence: public Pattern {
     Array<Pattern *> patterns;
 
     void print(std::ostream &out) const override;
 
-    MatchSequence() : Pattern(NodeKind::MatchSequence) {}
+    MatchSequence(): Pattern(NodeKind::MatchSequence) {}
 };
 
 // The optional "rest" MatchMapping parameter handles capturing extra mapping keys
-struct MatchMapping : public Pattern {
+struct MatchMapping: public Pattern {
     Array<ExprNode *>    keys;
     Array<Pattern *>     patterns;
     Optional<Identifier> rest;
 
     void print(std::ostream &out) const override;
 
-    MatchMapping() : Pattern(NodeKind::MatchMapping) {}
+    MatchMapping(): Pattern(NodeKind::MatchMapping) {}
 };
 
-struct MatchClass : public Pattern {
+struct MatchClass: public Pattern {
     ExprNode *        cls;
     Array<Pattern *>  patterns;
     Array<Identifier> kwd_attrs;
@@ -309,32 +329,32 @@ struct MatchClass : public Pattern {
 
     void print(std::ostream &out) const override;
 
-    MatchClass() : Pattern(NodeKind::MatchClass) {}
+    MatchClass(): Pattern(NodeKind::MatchClass) {}
 };
 
-struct MatchStar : public Pattern {
+struct MatchStar: public Pattern {
     Optional<Identifier> name;
 
     void print(std::ostream &out) const override;
 
-    MatchStar() : Pattern(NodeKind::MatchStar) {}
+    MatchStar(): Pattern(NodeKind::MatchStar) {}
 };
 
-struct MatchAs : public Pattern {
+struct MatchAs: public Pattern {
     Optional<Pattern *>  pattern;
     Optional<Identifier> name;
 
     void print(std::ostream &out) const override;
 
-    MatchAs() : Pattern(NodeKind::MatchAs) {}
+    MatchAs(): Pattern(NodeKind::MatchAs) {}
 };
 
-struct MatchOr : public Pattern {
+struct MatchOr: public Pattern {
     Array<Pattern *> patterns;
 
     void print(std::ostream &out) const override;
 
-    MatchOr() : Pattern(NodeKind::MatchOr) {}
+    MatchOr(): Pattern(NodeKind::MatchOr) {}
 };
 
 struct MatchCase {
@@ -348,179 +368,179 @@ struct MatchCase {
 // Expressions
 // -----------
 
-struct BoolOp : public ExprNode {
+struct BoolOp: public ExprNode {
     BoolOperator      op;
     Array<ExprNode *> values;
 
-    BoolOp() : ExprNode(NodeKind::BoolOp) {}
+    BoolOp(): ExprNode(NodeKind::BoolOp) {}
 };
 
-struct NamedExpr : public ExprNode {
+struct NamedExpr: public ExprNode {
     ExprNode *target = nullptr;
     ExprNode *value  = nullptr;
 
-    NamedExpr() : ExprNode(NodeKind::NamedExpr) {}
+    NamedExpr(): ExprNode(NodeKind::NamedExpr) {}
 };
 
-struct BinOp : public ExprNode {
+struct BinOp: public ExprNode {
     ExprNode *     left = nullptr;
     BinaryOperator op;
     ExprNode *     right = nullptr;
 
-    BinOp() : ExprNode(NodeKind::BinOp) {}
+    BinOp(): ExprNode(NodeKind::BinOp) {}
 };
 
-struct UnaryOp : public ExprNode {
+struct UnaryOp: public ExprNode {
     UnaryOperator op;
     ExprNode *    operand;
 
-    UnaryOp() : ExprNode(NodeKind::UnaryOp) {}
+    UnaryOp(): ExprNode(NodeKind::UnaryOp) {}
 };
 
-struct Lambda : public ExprNode {
+struct Lambda: public ExprNode {
     Arguments args;
     ExprNode *body = nullptr;
 
     void print(std::ostream &out, int indent) const;
 
-    Lambda() : ExprNode(NodeKind::Lambda) {}
+    Lambda(): ExprNode(NodeKind::Lambda) {}
 };
 
-struct IfExp : public ExprNode {
+struct IfExp: public ExprNode {
     ExprNode *test   = nullptr;
     ExprNode *body   = nullptr;
     ExprNode *orelse = nullptr;
 
     void print(std::ostream &out, int indent) const;
 
-    IfExp() : ExprNode(NodeKind::IfExp) {}
+    IfExp(): ExprNode(NodeKind::IfExp) {}
 };
 
-struct DictExpr : public ExprNode {
+struct DictExpr: public ExprNode {
     Array<ExprNode *> keys;
     Array<ExprNode *> values;
 
     void print(std::ostream &out, int indent) const;
 
-    DictExpr() : ExprNode(NodeKind::DictExpr) {}
+    DictExpr(): ExprNode(NodeKind::DictExpr) {}
 };
 
-struct SetExpr : public ExprNode {
+struct SetExpr: public ExprNode {
     Array<ExprNode *> elts;
 
     void print(std::ostream &out, int indent) const;
 
-    SetExpr() : ExprNode(NodeKind::SetExpr) {}
+    SetExpr(): ExprNode(NodeKind::SetExpr) {}
 };
 
-struct ListComp : public ExprNode {
+struct ListComp: public ExprNode {
     ExprNode *           elt = nullptr;
     Array<Comprehension> generators;
 
     void print(std::ostream &out, int indent) const;
 
-    ListComp() : ExprNode(NodeKind::ListComp) {}
+    ListComp(): ExprNode(NodeKind::ListComp) {}
 };
 
-struct GeneratorExp : public ExprNode {
+struct GeneratorExp: public ExprNode {
     ExprNode *           elt = nullptr;
     Array<Comprehension> generators;
 
     void print(std::ostream &out, int indent) const;
 
-    GeneratorExp() : ExprNode(NodeKind::GeneratorExp) {}
+    GeneratorExp(): ExprNode(NodeKind::GeneratorExp) {}
 };
 
-struct SetComp : public ExprNode {
+struct SetComp: public ExprNode {
     ExprNode *           elt = nullptr;
     Array<Comprehension> generators;
 
     void print(std::ostream &out, int indent) const;
 
-    SetComp() : ExprNode(NodeKind::SetComp) {}
+    SetComp(): ExprNode(NodeKind::SetComp) {}
 };
 
-struct DictComp : public ExprNode {
+struct DictComp: public ExprNode {
     ExprNode *           key   = nullptr;
     ExprNode *           value = nullptr;
     Array<Comprehension> generators;
 
     void print(std::ostream &out, int indent) const;
 
-    DictComp() : ExprNode(NodeKind::DictComp) {}
+    DictComp(): ExprNode(NodeKind::DictComp) {}
 };
 
 // the grammar constrains where yield expressions can occur
-struct Await : public ExprNode {
+struct Await: public ExprNode {
     ExprNode *value;
 
     void print(std::ostream &out, int indent) const;
 
-    Await() : ExprNode(NodeKind::Await) {}
+    Await(): ExprNode(NodeKind::Await) {}
 };
 
-struct Yield : public ExprNode {
+struct Yield: public ExprNode {
     Optional<ExprNode *> value;
 
     void print(std::ostream &out, int indent) const;
 
-    Yield() : ExprNode(NodeKind::Yield) {}
+    Yield(): ExprNode(NodeKind::Yield) {}
 };
 
-struct YieldFrom : public ExprNode {
+struct YieldFrom: public ExprNode {
     ExprNode *value = nullptr;
 
     void print(std::ostream &out, int indent) const;
 
-    YieldFrom() : ExprNode(NodeKind::YieldFrom) {}
+    YieldFrom(): ExprNode(NodeKind::YieldFrom) {}
 };
 
 // need sequences for compare to distinguish between
 // x < 4 < 3 and (x < 4) < 3
-struct Compare : public ExprNode {
+struct Compare: public ExprNode {
     ExprNode *         left = nullptr;
     Array<CmpOperator> ops;
     Array<ExprNode *>  comparators;
 
-    Compare() : ExprNode(NodeKind::Compare) {}
+    Compare(): ExprNode(NodeKind::Compare) {}
 };
 
-struct Call : public ExprNode {
+struct Call: public ExprNode {
     ExprNode *        func = nullptr;
     Array<ExprNode *> args;
     Array<Keyword>    keywords;
 
     void print(std::ostream &out, int indent) const override;
 
-    Call() : ExprNode(NodeKind::Call) {}
+    Call(): ExprNode(NodeKind::Call) {}
 };
 
-struct JoinedStr : public ExprNode {
+struct JoinedStr: public ExprNode {
     Array<ExprNode *> values;
 
-    JoinedStr() : ExprNode(NodeKind::JoinedStr) {}
+    JoinedStr(): ExprNode(NodeKind::JoinedStr) {}
 };
 
-struct FormattedValue : public ExprNode {
+struct FormattedValue: public ExprNode {
     ExprNode *               value      = nullptr;
     Optional<ConversionKind> conversion = ConversionKind::None;
     // defined as ExprNode*
     JoinedStr format_spec;
 
-    FormattedValue() : ExprNode(NodeKind::FormattedValue) {}
+    FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
 
-struct Constant : public ExprNode {
+struct Constant: public ExprNode {
     ConstantValue    value;
     Optional<String> kind;
 
     void print(std::ostream &out, int indent) const override;
 
-    Constant() : ExprNode(NodeKind::Constant) {}
+    Constant(): ExprNode(NodeKind::Constant) {}
 };
 
 // the following expression can appear in assignment context
-struct Attribute : public ExprNode {
+struct Attribute: public ExprNode {
     ExprNode *  value = nullptr;
     Identifier  attr;
     ExprContext ctx;
@@ -531,10 +551,10 @@ struct Attribute : public ExprNode {
         out << attr;
     }
 
-    Attribute() : ExprNode(NodeKind::Attribute) {}
+    Attribute(): ExprNode(NodeKind::Attribute) {}
 };
 
-struct Subscript : public ExprNode {
+struct Subscript: public ExprNode {
     ExprNode *  value = nullptr;
     ExprNode *  slice = nullptr;
     ExprContext ctx;
@@ -546,10 +566,10 @@ struct Subscript : public ExprNode {
         out << "]";
     }
 
-    Subscript() : ExprNode(NodeKind::Subscript) {}
+    Subscript(): ExprNode(NodeKind::Subscript) {}
 };
 
-struct Starred : public ExprNode {
+struct Starred: public ExprNode {
     ExprNode *  value = nullptr;
     ExprContext ctx;
 
@@ -558,79 +578,79 @@ struct Starred : public ExprNode {
         value->print(out, indent);
     }
 
-    Starred() : ExprNode(NodeKind::Starred) {}
+    Starred(): ExprNode(NodeKind::Starred) {}
 };
 
-struct Name : public ExprNode {
+struct Name: public ExprNode {
     Identifier  id;
     ExprContext ctx;
 
     void print(std::ostream &out, int indent) const override { out << id; }
 
-    Name() : ExprNode(NodeKind::Name) {}
+    Name(): ExprNode(NodeKind::Name) {}
 };
 
-struct ListExpr : public ExprNode {
+struct ListExpr: public ExprNode {
     Array<ExprNode *> elts;
     ExprContext       ctx;
 
     void print(std::ostream &out, int indent) const;
 
-    ListExpr() : ExprNode(NodeKind::ListExpr) {}
+    ListExpr(): ExprNode(NodeKind::ListExpr) {}
 };
 
-struct TupleExpr : public ExprNode {
+struct TupleExpr: public ExprNode {
     Array<ExprNode *> elts;
     ExprContext       ctx;
 
     void print(std::ostream &out, int indent) const;
 
-    TupleExpr() : ExprNode(NodeKind::TupleExpr) {}
+    TupleExpr(): ExprNode(NodeKind::TupleExpr) {}
 };
 
 // can appear only in Subscript
-struct Slice : public ExprNode {
+struct Slice: public ExprNode {
     Optional<ExprNode *> lower;
     Optional<ExprNode *> upper;
     Optional<ExprNode *> step;
 
     void print(std::ostream &out, int indent) const;
 
-    Slice() : ExprNode(NodeKind::Slice) {}
+    Slice(): ExprNode(NodeKind::Slice) {}
 };
 
 // Modules
 // -------
-struct Module : public ModNode {
+struct Module: public ModNode {
     Array<StmtNode *> body;
 
     String docstring;
 
-    Module() : ModNode(NodeKind::Module) {}
+    Module(): ModNode(NodeKind::Module) {}
 };
 
-struct Interactive : public ModNode {
+struct Interactive: public ModNode {
     Array<StmtNode *> body;
 
-    Interactive() : ModNode(NodeKind::Interactive) {}
+    Interactive(): ModNode(NodeKind::Interactive) {}
 };
 
-struct Expression : public ModNode {
+struct Expression: public ModNode {
     ExprNode *body = nullptr;
 
-    Expression() : ModNode(NodeKind::Expression) {}
+    Expression(): ModNode(NodeKind::Expression) {}
 };
 
-struct FunctionType : public ModNode {
+struct FunctionType: public ModNode {
     Array<ExprNode *> argtypes;
     ExprNode *        returns = nullptr;
 
-    FunctionType() : ModNode(NodeKind::FunctionType) {}
+    FunctionType(): ModNode(NodeKind::FunctionType) {}
 };
 
 // Statements
 // ----------
-struct FunctionDef : public StmtNode {
+struct FunctionDef: public StmtNode {
     Identifier           name;
     Arguments            args;
     Array<StmtNode *>    body;
@@ -643,12 +663,12 @@ struct FunctionDef : public StmtNode {
 
     void print(std::ostream &out, int indent) const override;
 
-    FunctionDef() : StmtNode(NodeKind::FunctionDef) {}
+    FunctionDef(): StmtNode(NodeKind::FunctionDef) {}
 };
 
-struct AsyncFunctionDef : public FunctionDef {};
+struct AsyncFunctionDef: public FunctionDef {};
 
-struct ClassDef : public StmtNode {
+struct ClassDef: public StmtNode {
     Identifier        name;
     Array<ExprNode *> bases;
     Array<Keyword>    keywords;
@@ -659,45 +679,45 @@ struct ClassDef : public StmtNode {
 
     void print(std::ostream &out, int indent) const override;
 
-    ClassDef() : StmtNode(NodeKind::ClassDef) {}
+    ClassDef(): StmtNode(NodeKind::ClassDef) {}
 };
 
-struct Return : public StmtNode {
+struct Return: public StmtNode {
     Optional<ExprNode *> value;
 
     void print(std::ostream &out, int indent) const;
 
-    Return() : StmtNode(NodeKind::Return) {}
+    Return(): StmtNode(NodeKind::Return) {}
 };
 
-struct Delete : public StmtNode {
+struct Delete: public StmtNode {
     Array<ExprNode *> targets;
 
     void print(std::ostream &out, int indent) const;
 
-    Delete() : StmtNode(NodeKind::Delete) {}
+    Delete(): StmtNode(NodeKind::Delete) {}
 };
 
-struct Assign : public StmtNode {
+struct Assign: public StmtNode {
     Array<ExprNode *> targets;
     ExprNode *        value = nullptr;
     Optional<String>  type_comment;
 
     void print(std::ostream &out, int indent) const;
 
-    Assign() : StmtNode(NodeKind::Assign) {}
+    Assign(): StmtNode(NodeKind::Assign) {}
 };
 
-struct AugAssign : public StmtNode {
+struct AugAssign: public StmtNode {
     ExprNode *     target = nullptr;
     BinaryOperator op;
     ExprNode *     value = nullptr;
 
-    AugAssign() : StmtNode(NodeKind::AugAssign) {}
+    AugAssign(): StmtNode(NodeKind::AugAssign) {}
 };
 
 // 'simple' indicates that we annotate simple name without parens
-struct AnnAssign : public StmtNode {
+struct AnnAssign: public StmtNode {
     ExprNode *           target     = nullptr;
     ExprNode *           annotation = nullptr;
     Optional<ExprNode *> value;
@@ -705,11 +725,11 @@ struct AnnAssign : public StmtNode {
 
     void print(std::ostream &out, int indent) const;
 
-    AnnAssign() : StmtNode(NodeKind::AnnAssign) {}
+    AnnAssign(): StmtNode(NodeKind::AnnAssign) {}
 };
 
 // use 'orelse' because else is a keyword in target languages
-struct For : public StmtNode {
+struct For: public StmtNode {
     ExprNode *        target = nullptr;
     ExprNode *        iter   = nullptr;
     Array<StmtNode *> body;
@@ -718,149 +738,149 @@ struct For : public StmtNode {
 
     bool async = false;
 
-    For() : StmtNode(NodeKind::For) {}
+    For(): StmtNode(NodeKind::For) {}
 };
 
 // Keeping it for consistency with python docs, but useless
-struct AsyncFor : public For {};
+struct AsyncFor: public For {};
 
-struct While : public StmtNode {
+struct While: public StmtNode {
     ExprNode *        test = nullptr;
     Array<StmtNode *> body;
     Array<StmtNode *> orelse;
 
-    While() : StmtNode(NodeKind::While) {}
+    While(): StmtNode(NodeKind::While) {}
 };
 
-struct If : public StmtNode {
+struct If: public StmtNode {
     ExprNode *        test = nullptr;
     Array<StmtNode *> body;
     Array<StmtNode *> orelse;
 
-    If() : StmtNode(NodeKind::If) {}
+    If(): StmtNode(NodeKind::If) {}
 };
 
-struct With : public StmtNode {
+struct With: public StmtNode {
     Array<WithItem>   items;
     Array<StmtNode *> body;
     Optional<String>  type_comment;
 
     bool async = false;
 
-    With() : StmtNode(NodeKind::With) {}
+    With(): StmtNode(NodeKind::With) {}
 };
 
 // Keeping it for consistency with python docs, but useless
-struct AsyncWith : public With {};
+struct AsyncWith: public With {};
 
-struct Raise : public StmtNode {
+struct Raise: public StmtNode {
     Optional<ExprNode *> exc;
     Optional<ExprNode *> cause;
 
-    Raise() : StmtNode(NodeKind::Raise) {}
+    Raise(): StmtNode(NodeKind::Raise) {}
 };
 
-struct Try : public StmtNode {
+struct Try: public StmtNode {
     Array<StmtNode *>    body;
     Array<ExceptHandler> handlers;
     Array<StmtNode *>    orelse;
     Array<StmtNode *>    finalbody;
 
-    Try() : StmtNode(NodeKind::Try) {}
+    Try(): StmtNode(NodeKind::Try) {}
 };
 
-struct Assert : public StmtNode {
+struct Assert: public StmtNode {
     ExprNode *           test = nullptr;
     Optional<ExprNode *> msg;
 
-    Assert() : StmtNode(NodeKind::Assert) {}
+    Assert(): StmtNode(NodeKind::Assert) {}
 };
 
-struct Import : public StmtNode {
+struct Import: public StmtNode {
     Array<Alias> names;
 
-    Import() : StmtNode(NodeKind::Import) {}
+    Import(): StmtNode(NodeKind::Import) {}
 };
 
-struct ImportFrom : public StmtNode {
+struct ImportFrom: public StmtNode {
     Optional<Identifier> module;
     Array<Alias>         names;
     Optional<int>        level;
 
-    ImportFrom() : StmtNode(NodeKind::ImportFrom) {}
+    ImportFrom(): StmtNode(NodeKind::ImportFrom) {}
 };
 
-struct Global : public StmtNode {
+struct Global: public StmtNode {
     Array<Identifier> names;
 
     void print(std::ostream &out, int indent) const;
 
-    Global() : StmtNode(NodeKind::Global) {}
+    Global(): StmtNode(NodeKind::Global) {}
 };
 
-struct Nonlocal : public StmtNode {
+struct Nonlocal: public StmtNode {
     Array<Identifier> names;
 
     void print(std::ostream &out, int indent) const;
 
-    Nonlocal() : StmtNode(NodeKind::Nonlocal) {}
+    Nonlocal(): StmtNode(NodeKind::Nonlocal) {}
 };
 
-struct Expr : public StmtNode {
+struct Expr: public StmtNode {
     ExprNode *value = nullptr;
 
     void print(std::ostream &out, int indent) const;
 
-    Expr() : StmtNode(NodeKind::Expr) {}
+    Expr(): StmtNode(NodeKind::Expr) {}
 };
 
-struct Pass : public StmtNode {
+struct Pass: public StmtNode {
     void print(std::ostream &out, int indent) const;
 
-    Pass() : StmtNode(NodeKind::Pass) {}
+    Pass(): StmtNode(NodeKind::Pass) {}
 };
 
-struct Break : public StmtNode {
+struct Break: public StmtNode {
     void print(std::ostream &out, int indent) const;
 
-    Break() : StmtNode(NodeKind::Break) {}
+    Break(): StmtNode(NodeKind::Break) {}
 };
 
-struct Continue : public StmtNode {
+struct Continue: public StmtNode {
     void print(std::ostream &out, int indent) const;
 
-    Continue() : StmtNode(NodeKind::Continue) {}
+    Continue(): StmtNode(NodeKind::Continue) {}
 };
 
-struct Match : public StmtNode {
+struct Match: public StmtNode {
     ExprNode *       subject;
     Array<MatchCase> cases;
 
     void print(std::ostream &out, int indent) const;
 
-    Match() : StmtNode(NodeKind::Match) {}
+    Match(): StmtNode(NodeKind::Match) {}
 };
 
 //
-struct NotImplementedStmt : public StmtNode {
-    NotImplementedStmt() : StmtNode(NodeKind::Invalid) {}
+struct NotImplementedStmt: public StmtNode {
+    NotImplementedStmt(): StmtNode(NodeKind::Invalid) {}
 
     void print(std::ostream &out, int indent) const { out << "<not implemented>"; }
 };
 
-struct NotImplementedExpr : public ExprNode {
-    NotImplementedExpr() : ExprNode(NodeKind::Invalid) {}
+struct NotImplementedExpr: public ExprNode {
+    NotImplementedExpr(): ExprNode(NodeKind::Invalid) {}
 
     void print(std::ostream &out, int indent) const { out << "<not implemented>"; }
 };
 
-struct NotAllowedEpxr : public ExprNode {
-    NotAllowedEpxr() : ExprNode(NodeKind::Invalid) {}
+struct NotAllowedEpxr: public ExprNode {
+    NotAllowedEpxr(): ExprNode(NodeKind::Invalid) {}
 
     String msg;
 
     void print(std::ostream &out, int indent) const { out << "<not allowed: " << msg << ">"; }
 };
 
-} // namespace lython
+}   // namespace lython
 #endif

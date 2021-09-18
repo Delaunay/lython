@@ -3,12 +3,34 @@ IndentWidth: 4
 ColumnLimit: 100
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: true
+AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true 
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortEnumsOnASingleLine: false
+IndentPPDirectives: AfterHash
+# PackConstructorInitializers: CurrentLine 
+# ReferenceAlignmentStyle: Left
+DerivePointerAlignment: false
+PointerAlignment: Left
+UseCRLF: false
 BreakBeforeInheritanceComma: false
 BreakConstructorInitializers: AfterColon
 Cpp11BracedListStyle: true
 PointerAlignment: Right
-SpaceBeforeParens: Never
 SpaceInEmptyParentheses: false
 AccessModifierOffset: 0
-SpaceBeforeParens: ControlStatements
+SpaceBeforeParens: ControlStatements 
 AlwaysBreakTemplateDeclarations: true
+BraceWrapping:
+  AfterEnum: true
+  AfterCaseLabel: false
+SpaceBeforeCaseColon: false
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeInheritanceColon: false
+SpaceBeforeRangeBasedForLoopColon: false
+# SpacesBeforeTrailingComments: 2 
+
+ 
