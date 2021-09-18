@@ -52,6 +52,7 @@ SET(ADD_SOURCE
     ast/sexpression.cpp
     ast/names.cpp
     ast/print.cpp
+    ast/object.cpp
     # ast/nodes.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp

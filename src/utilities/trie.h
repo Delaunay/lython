@@ -7,8 +7,9 @@
 
 #include "logging/logging.h"
 
-template <size_t size> class Trie {
-  public:
+template <size_t size>
+class Trie {
+    public:
     Trie() {
         for (auto &child : children) {
             child = nullptr;
@@ -98,17 +99,18 @@ template <size_t size> class Trie {
 
     bool leaf() const { return _leaf; }
 
-  private:
+    private:
     std::array<std::unique_ptr<Trie>, size> children;
-    bool _leaf = false;
+    bool                                    _leaf = false;
 };
 
 // naive CoWTrie
 // this should not happen often as the top level module should be the one
 // handling the addition of new operators. Although users can define
 // local operators which does require to copy the entrie Trie
-template <size_t size> class CoWTrie {
-  public:
+template <size_t size>
+class CoWTrie {
+    public:
     CoWTrie(Trie<size> const *original) : original(original) {}
 
     // if no original is provided just use the copy
@@ -122,15 +124,13 @@ template <size_t size> class CoWTrie {
 
     bool has(std::string_view const &name) const { return trie().has(name); }
 
-    Trie<size> const *matching(std::string_view const &name) const {
-        return trie().matching(name);
-    }
+    Trie<size> const *matching(std::string_view const &name) const { return trie().matching(name); }
 
     Trie<size> const *matching(int c) const { return trie().matching(c); }
 
     Trie<size> const &trie() const { return was_copied ? copy : *original; }
 
-  private:
+    private:
     Trie<size> &trie() {
         if (!was_copied) {
             copy = Trie<size>(*original);
@@ -138,9 +138,9 @@ template <size_t size> class CoWTrie {
         return copy;
     }
 
-    bool was_copied = false;
+    bool              was_copied = false;
     Trie<size> const *original;
-    Trie<size> copy;
+    Trie<size>        copy;
 };
 
 #endif

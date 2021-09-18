@@ -7,83 +7,54 @@
 
 namespace lython {
 
-enum class ObjectKind {
-    Module,
-    Statement,
-    Expression,
-    Pattern,
-};
-
 struct GCObject {
-public:
-    template<typename T, typename... Args>
-    T* new_object(Args&&... args) {
-        auto& alloc = get_allocator<T>();
+    public:
+    template <typename T, typename... Args>
+    T *new_object(Args &&... args) {
+        auto &alloc = get_allocator<T>();
 
         // allocate
-        T* memory = alloc.allocate(1);
+        T *memory = alloc.allocate(1);
 
         // construct
-        T* obj = new((void*)memory) T(std::forward<Args>(args)...);
+        T *obj        = new ((void *)memory) T(std::forward<Args>(args)...);
+        obj->class_id = meta::type_id<T>();
 
         children.push_back(obj);
         return obj;
     }
 
     //! Make an object match the lifetime of the parent
-    template<typename T>
-    void add_child(T* child) {
+    template <typename T>
+    void add_child(T *child) {
         children.push_back(child);
     }
 
-    template<typename T, typename D>
+    template <typename T, typename D>
     void add_child(Unique<T, D> child) {
         children.push_back(child.release());
     }
 
-    void remove_child(GCObject* child, bool free) {
-        auto elem = std::find(children.rbegin(), children.rend(), child);
-        // This is why people hate C++
-        //
-        // This removes the element found by the reverse iterator.
-        // Reverse iterator do not point to the found element
-        // but the element before it.
-        // erase is not specialized to take reverse iterator
-        // so we need to convert it ourselves and KNOW that this is what is
-        // expected but nobody could have guessed that
-        auto n = children.size();
-        children.erase(std::next(elem).base());
-        assert(n > children.size(), "Child was not removed");
+    void remove_child(GCObject *child, bool dofree);
 
-        if (free) {
-            // FIXME: this breaks the metadata
-            device::CPU().free((void*)child, 1);
-        }
-    }
+    void free(GCObject *child);
 
-    ~GCObject(){
-        for (auto obj: children) {
-            // FIXME: this breaks the metadata
-            device::CPU().free((void*)obj, 1);
-        }
-    }
+    void dump(std::ostream &, int depth = 0);
 
-    GCObject(ObjectKind k):
-        kind(k)
-    {}
+    ~GCObject();
 
-    ObjectKind const kind;
+    int class_id;
 
-private:
-    template<typename T>
-    AllocatorCPU<T>& get_allocator() {
+    private:
+    template <typename T>
+    AllocatorCPU<T> &get_allocator() {
         static auto alloc = AllocatorCPU<T>();
         return alloc;
     }
 
-private:
-    Array<GCObject*> children;
+    private:
+    Array<GCObject *> children;
 };
 
-} // lython
+} // namespace lython
 #endif

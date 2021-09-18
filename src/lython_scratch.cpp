@@ -3,13 +3,12 @@
 
 #include "utilities/metadata.h"
 
-// #include "ast/expressions.h"
-#include "ast/sexpression.h"
+#include "ast/expressions.h"
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 
-// #include "interpreter/interpreter.h"
+#include "interpreter/interpreter.h"
 #include "logging/logging.h"
 
 #include "../tests/samples.h"
@@ -17,11 +16,11 @@
 
 using namespace lython;
 
-bool compare(String const &a, String const &b) {
+bool compare(String const& a, String const& b){
     auto size = std::min(a.size(), b.size());
 
-    for (size_t i = 0; i < size; ++i) {
-        if (a[i] != b[i]) {
+    for(size_t i = 0; i < size; ++i){
+        if (a[i] != b[i]){
             std::cout << i << " `" << a[i] << "` != `" << b[i] << "` | ";
             return false;
         }
@@ -30,19 +29,19 @@ bool compare(String const &a, String const &b) {
     return a.size() == b.size();
 }
 
-String strip(String const &v) {
+String strip(String const& v){
     int i = int(v.size()) - 1;
 
-    while (i > 0 && v[size_t(i)] == '\n') {
+    while (i > 0 && v[size_t(i)] == '\n'){
         i -= 1;
     }
 
     return String(v.begin(), v.begin() + i + 1);
 }
 
-Expression make_point(Module &mod);
-Expression make_point_check(Module &mod);
-Expression make_import_call_check(Module &mod);
+Expression make_point(Module& mod);
+Expression make_point_check(Module& mod);
+Expression make_import_call_check(Module& mod);
 
 int main() {
     metadata_init_names();
@@ -60,10 +59,7 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = "def test1(p: Float) -> Float:\n"
-                      "    return sin(1)\n\n"
-
-            ;
+        String code =
         "import a.b.c\n"
         "import a.b.c as e\n"
         "from a.b.c import f, k\n"
@@ -97,7 +93,8 @@ int main() {
         "    return a\n\n"
 
         "def call_import() -> Float:\n"
-        "    return k(1.0, 2.0)\n\n";
+        "    return k(1.0, 2.0)\n\n"
+        ;
 
         "def function2(test: double, test) -> double:\n"
         "    \"\"\"This is a docstring\"\"\"\n"
@@ -112,74 +109,66 @@ int main() {
 
         StringBuffer reader(code);
 
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Lexer Token Dump\n";
-        {
-            Lexer lex(reader);
-            lex.debug_print(std::cout);
-            reader.reset();
-        }
-        std::cout << std::string(80, '-') << '\n';
-
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Lexing Round-trip\n";
         String lexer_string;
         {
-            Lexer        lex(reader);
+            Lexer lex(reader);
+
             StringStream ss;
             lex.print(ss);
             lexer_string = ss.str();
-            reader.reset();
         }
-        std::cout << std::string(80, '-') << '\n';
-        std::cout << strip(lexer_string) << std::endl;
-        std::cout << std::string(80, '-') << '\n';
 
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Parsing Trace\n";
-        std::cout << std::string(80, '-') << '\n';
-        Module *mod = nullptr;
+        reader.reset();
+        Module module;
+        String parser_string;
 
         try {
             Lexer lex(reader);
-
-            Parser parser(lex);
-
-            mod = parser.parse_module();
-
-            std::cout << std::string(80, '-') << '\n';
-            std::cout << "Parsing Diag\n";
-            std::cout << std::string(80, '-') << '\n';
-            for (auto &diag : parser.get_errors()) {
-                diag.print(std::cout);
-            }
-            std::cout << std::string(80, '-') << '\n';
-
-            std::cout << std::string(80, '-') << '\n';
-            std::cout << "Parsed Module dump\n";
-            std::cout << std::string(80, '-') << '\n';
-            for (auto stmt : mod->body) {
-                stmt->print(std::cout, 0);
-                std::cout << "\n";
-            }
-
+            parse(lex, module);
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
             std::cout << "\t" << e.what() << std::endl;
         }
 
-        mod->dump(std::cout);
-        delete mod;
-    }
+//        std::cout << std::string(80, '-') << '\n';
 
-    std::cout << std::string(80, '=') << '\n';
-    std::cout << "Alloc\n";
+//        std::cout << strip(lexer_string) << std::endl;
+//        std::cout << strip(parser_string) << std::endl;
+//        std::cout << strip(code) << std::endl;
+
+//        std::cout << std::string(80, '-') << '\n';
+        // -------------------------------------------------
+        module.print(std::cout);
+
+//        for(Index i = 0; i < module.size(); ++i){
+//            std::cout << int(i) << " " << std::endl;
+//            module.get_item(i)->print(std::cout) << std::endl;
+//        }
+        std::cout << std::string(80, '-') << '\n';
+
+        Interpreter vm(module);
+
+//        "pp = Point(1.0, 2.0)\n"
+
+//        "get_x(pp)\n"
+
+//        "set_x(pp, 3)\n"
+
+//        "get_x(pp)\n";
+
+        auto expr = make_import_call_check(module);
+        // auto expr = make_point_check(module);
+        Value v = vm.eval(expr);
+
+        v.print(std::cout) << std::endl;
+        std::cout << code.size() << std::endl;
+        std::cout << std::endl;
+    }
     show_alloc_stats();
-    // StringDatabase::instance().report(std::cout);
+    StringDatabase::instance().report(std::cout);
     return 0;
 }
 
-/*
 Expression make_point(Module& mod){
     auto expr = Expression::make<AST::Call>();
     AST::Call* call = expr.ref<AST::Call>();
@@ -217,4 +206,3 @@ Expression make_max(Module& mod){
     call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
     return expr;
 }
-*/
