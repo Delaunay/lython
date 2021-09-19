@@ -22,6 +22,34 @@ String Comprehension::__str__() const {
     return ss.str();
 }
 
+void print_op(std::ostream &out, BoolOperator op) {
+    switch (op) {
+    case BoolOperator::And:
+        out << " and ";
+    }
+}
+
+void print_op(std::ostream &out, BinaryOperator op) {
+    switch (op) {
+    case BinaryOperator::Add:
+        out << " + ";
+    }
+}
+
+void print_op(std::ostream &out, CmpOperator op) {
+    switch (op) {
+    case CmpOperator::Lt:
+        out << " < ";
+    }
+}
+
+void print_op(std::ostream &out, UnaryOperator op) {
+    switch (op) {
+    case UnaryOperator::Not:
+        out << "!";
+    }
+}
+
 void ConstantValue::print(std::ostream &out) const {
     switch (kind) {
     case TString:
@@ -425,6 +453,32 @@ void For::print(std::ostream &out, int indent) const {
         out << String(indent * 4, ' ') << "else:\n";
         print_body(out, indent + 1, body);
     }
+}
+
+void Compare::print(std::ostream &out, int indent) const {
+    left->print(out, indent);
+
+    for (int i = 0; i < ops.size(); i++) {
+        print_op(out, ops[i]);
+        comparators[i]->print(out, indent);
+    }
+}
+
+void BinOp::print(std::ostream &out, int indent) const {
+    left->print(out, indent);
+    print_op(out, op);
+    right->print(out, indent);
+}
+
+void BoolOp::print(std::ostream &out, int indent) const {
+    values[0]->print(out, indent);
+    print_op(out, op);
+    values[1]->print(out, indent);
+}
+
+void UnaryOp::print(std::ostream &out, int indent) const {
+    print_op(out, op);
+    operand->print(out, indent);
 }
 
 void While::print(std::ostream &out, int indent) const {

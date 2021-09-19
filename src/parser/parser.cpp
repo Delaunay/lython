@@ -154,6 +154,8 @@ StmtNode *Parser::parse_while(Node *parent, int depth) {
 
     stmt->test = parse_expression(stmt, depth + 1);
     expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, LOC);
+    expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
     if (token().type() == tok_else) {
@@ -1257,9 +1259,27 @@ ExprNode *Parser::parse_compare_operator(Node *parent, ExprNode *primary, int de
     TRACE_START();
     return not_implemented_expr(parent);
 }
-ExprNode *Parser::parse_unary(Node *parent, ExprNode *primary, int depth) {
+ExprNode *Parser::parse_suffix_unary(Node *parent, ExprNode *primary, int depth) {
     TRACE_START();
     return not_implemented_expr(parent);
+}
+
+ExprNode *Parser::parse_prefix_unary(Node *parent, int depth) {
+    TRACE_START();
+    auto expr = parent->new_object<UnaryOp>();
+    start_code_loc(expr, token());
+
+    auto conf = get_operator_config(token());
+    if (conf.unarykind == UnaryOperator::None) {
+        error("expected an unary operator not {}", str(token()));
+    }
+    next_token();
+
+    expr->op      = conf.unarykind;
+    expr->operand = parse_expression(expr, depth + 1);
+
+    end_code_loc(expr, token());
+    return expr;
 }
 
 Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword> &keywords,

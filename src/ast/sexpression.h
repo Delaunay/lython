@@ -155,6 +155,7 @@ enum class ConversionKind : int8_t
 
 enum class BinaryOperator : int8_t
 {
+    None,
     Add,
     Sub,
     Mult,
@@ -167,21 +168,26 @@ enum class BinaryOperator : int8_t
     BitOr,
     BitXor,
     BitAnd,
-    FloorDiv
+    FloorDiv,
+
+    EltMult,
+    EltDiv
 };
 
 enum class BoolOperator : int8_t
 {
+    None,
     And,
     Or
 };
 
 enum class UnaryOperator : int8_t
 {
-    Invert,
-    Not,
-    UAdd,
-    USub,
+    None,
+    Invert, // ~
+    Not,    // !
+    UAdd,   // +
+    USub,   // -
 };
 
 enum class ExprContext : int8_t
@@ -193,6 +199,7 @@ enum class ExprContext : int8_t
 
 enum class CmpOperator : int8_t
 {
+    None,
     Eq,
     NotEq,
     Lt,
@@ -372,6 +379,8 @@ struct BoolOp: public ExprNode {
     BoolOperator      op;
     Array<ExprNode *> values;
 
+    void print(std::ostream &out, int indent) const;
+
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
 };
 
@@ -387,12 +396,16 @@ struct BinOp: public ExprNode {
     BinaryOperator op;
     ExprNode *     right = nullptr;
 
+    void print(std::ostream &out, int indent) const;
+
     BinOp(): ExprNode(NodeKind::BinOp) {}
 };
 
 struct UnaryOp: public ExprNode {
     UnaryOperator op;
     ExprNode *    operand;
+
+    void print(std::ostream &out, int indent) const;
 
     UnaryOp(): ExprNode(NodeKind::UnaryOp) {}
 };
@@ -501,6 +514,8 @@ struct Compare: public ExprNode {
     ExprNode *         left = nullptr;
     Array<CmpOperator> ops;
     Array<ExprNode *>  comparators;
+
+    void print(std::ostream &out, int indent) const;
 
     Compare(): ExprNode(NodeKind::Compare) {}
 };

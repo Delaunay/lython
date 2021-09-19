@@ -11,6 +11,8 @@ namespace lython {
 namespace device {
 
 void *CPU::malloc(std::size_t n) {
+    return std::malloc(n);
+
     // TODO: seems 64bit alignment might be better (this is what tensorflow is using)
     // but I have not found an official document stating so
     static std::size_t alignment = 16;
@@ -38,6 +40,9 @@ void *CPU::malloc(std::size_t n) {
 }
 
 bool CPU::free(void *ptr, std::size_t) {
+    std::free(ptr);
+    return true;
+
     if (ptr) {
         std::free(*(reinterpret_cast<void **>(ptr) - 1));
     }
