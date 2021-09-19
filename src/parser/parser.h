@@ -216,6 +216,7 @@ class Parser {
         //
         switch (token().type()) {
         // <expr> := <expr>
+        // assign expression instead of the usual assign statement
         case tok_walrus:
             return parse_named_expr(parent, primary, depth);
 
@@ -231,6 +232,7 @@ class Parser {
         case tok_unaryop:
             return parse_suffix_unary(parent, primary, depth);
 
+        case tok_in:
         case tok_operator:
             return parse_operators(parent, primary, min_precedence, depth);
 
@@ -275,63 +277,7 @@ class Parser {
     // but it got issues with some edge cases.
     //
     // https://en.wikipedia.org/wiki/Operator-precedence_parser#:~:text=The%20precedence%20climbing%20method%20is%20a%20compact%2C%20efficient%2C,in%20EBNF%20format%20will%20usually%20look%20like%20this%3A
-    ExprNode *parse_operators(Node *parent, ExprNode *lhs, int min_precedence, int depth) {
-        TRACE_START();
-
-        while (true) {
-            auto lookahead = token();
-            auto op_conf   = get_operator_config(lookahead);
-            auto oppred    = op_conf.precedence;
-
-            // lookahead is a binary operator whose precedence is >= min_precedence
-            if (!(is_binary_operator_family(op_conf) && oppred >= min_precedence)) {
-                break;
-            }
-
-            next_token();
-            auto rhs  = parse_expression(parent, depth);
-            lookahead = token();
-
-            auto lookconf    = get_operator_config(lookahead);
-            auto lookpred    = lookconf.precedence;
-            auto right_assoc = !lookconf.left_associative;
-
-            // lookahead is a binary operator whose precedence is greater
-            // than op's, or a right-associative operator
-            // whose precedence is equal to op's
-            while (is_binary_operator_family(op_conf) &&
-                   (lookpred > oppred || (right_assoc && lookpred == oppred))) {
-                rhs       = parse_expression_1(parent, rhs, oppred + 1, depth + 1);
-                lookahead = token();
-            }
-
-            // the result of applying op with operands lhs and rhs
-            if (op_conf.binarykind != BinaryOperator::None) {
-                auto result   = parent->new_object<BinOp>();
-                result->left  = lhs;
-                result->op    = op_conf.binarykind;
-                result->right = rhs;
-                lhs           = result;
-            } else if (op_conf.cmpkind != CmpOperator::None) {
-                auto result  = parent->new_object<Compare>();
-                result->left = lhs;
-                result->ops.push_back(op_conf.cmpkind);
-                result->comparators.push_back(rhs);
-                lhs = result;
-            } else if (op_conf.boolkind != BoolOperator::None) {
-                // TODO: check why is this not a binary node ?
-                auto result    = parent->new_object<BoolOp>();
-                result->op     = op_conf.boolkind;
-                result->values = {lhs, rhs};
-                lhs            = result;
-            } else {
-                error("unknow operator {}", str(op_conf));
-            }
-        }
-
-        TRACE_END();
-        return lhs;
-    }
+    ExprNode *parse_operators(Node *parent, ExprNode *lhs, int min_precedence, int depth);
 
     // Expression we can guess rightaway from the current token we are seeing
     ExprNode *parse_expression_primary(Node *parent, int depth) {
