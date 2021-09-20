@@ -117,7 +117,7 @@ struct CommonAttributes {
 
 struct Node: public GCObject {
     // I think only statements need the indentaion
-    virtual void print(std::ostream &out, int indent = 0) const {}
+    virtual void print(std::ostream &out, int indent = 0) const { out << "<not-implemented>"; }
 
     String __str__() const;
 
@@ -175,7 +175,7 @@ enum class BinaryOperator : int8_t
     EltDiv
 };
 
-void print_op(std::ostream &out, BinaryOperator op);
+void print_op(std::ostream &out, BinaryOperator op, bool aug = false);
 
 enum class BoolOperator : int8_t
 {
@@ -954,6 +954,8 @@ struct AugAssign: public StmtNode {
         Array<String> _examples = {"a += b", "a -= b"};
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 
     AugAssign(): StmtNode(NodeKind::AugAssign) {}
 };

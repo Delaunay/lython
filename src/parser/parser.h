@@ -162,6 +162,7 @@ class Parser {
 
         auto stmt_expr   = parent->new_object<Expr>();
         stmt_expr->value = expr;
+        TRACE_END();
         return stmt_expr;
     }
 

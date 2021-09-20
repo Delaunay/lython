@@ -45,27 +45,31 @@ void print_op(std::ostream &out, BoolOperator op) {
     // clang-format on
 }
 
-void print_op(std::ostream &out, BinaryOperator op) {
+void print_op(std::ostream &out, BinaryOperator op, bool aug) {
     // clang-format off
     switch (op) {
-    case BinaryOperator::Add:       out << " + "; return;
-    case BinaryOperator::Sub:       out << " - "; return;
-    case BinaryOperator::Mult:      out << " * "; return;
-    case BinaryOperator::MatMult:   out << " @ "; return;
-    case BinaryOperator::Div:       out << " / "; return;
-    case BinaryOperator::Mod:       out << " % "; return;
-    case BinaryOperator::Pow:       out << " ** ";  return;
-    case BinaryOperator::LShift:    out << " << ";  return;
-    case BinaryOperator::RShift:    out << " >> ";  return;
-    case BinaryOperator::BitOr:     out << " | ";   return;
-    case BinaryOperator::BitXor:    out << " ^ ";   return;
-    case BinaryOperator::BitAnd:    out << " & ";   return;
-    case BinaryOperator::FloorDiv:  out << " // ";  return;
-    case BinaryOperator::EltMult:   out << " .* ";  return;
-    case BinaryOperator::EltDiv:    out << " ./ ";  return;
-    case BinaryOperator::None:      out << " <Binary:None> "; return;
+    case BinaryOperator::Add:       out << " +"; break;
+    case BinaryOperator::Sub:       out << " -"; break;
+    case BinaryOperator::Mult:      out << " *"; break;
+    case BinaryOperator::MatMult:   out << " @"; break;
+    case BinaryOperator::Div:       out << " /"; break;
+    case BinaryOperator::Mod:       out << " %"; break;
+    case BinaryOperator::Pow:       out << " **";  break;
+    case BinaryOperator::LShift:    out << " <<";  break;
+    case BinaryOperator::RShift:    out << " >>";  break;
+    case BinaryOperator::BitOr:     out << " |";   break;
+    case BinaryOperator::BitXor:    out << " ^";   break;
+    case BinaryOperator::BitAnd:    out << " &";   break;
+    case BinaryOperator::FloorDiv:  out << " //";  break;
+    case BinaryOperator::EltMult:   out << " .*";  break;
+    case BinaryOperator::EltDiv:    out << " ./";  break;
+    case BinaryOperator::None:      out << " <Binary:None>"; break;
     }
     // clang-format on
+
+    if (!aug) {
+        out << " ";
+    }
 }
 
 void print_op(std::ostream &out, CmpOperator op) {
@@ -128,11 +132,19 @@ void Slice::print(std::ostream &out, int indent) const {
     }
 }
 
-void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body) {
+void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body,
+                bool print_last = false) {
+    int k = 0;
     for (auto &stmt: body) {
+        k += 1;
+
         out << std::string(indent * 4, ' ');
         stmt->print(out, indent);
-        out << "\n";
+
+        //
+        if (k + 1 < body.size() || print_last) {
+            out << "\n";
+        }
     }
 }
 
@@ -486,7 +498,7 @@ void FunctionDef::print(std::ostream &out, int indent) const {
         out << String((indent + 1) * 4, ' ') << "\"\"\"" << docstring << "\"\"\"\n";
     }
 
-    lython::print_body(out, indent + 1, body);
+    lython::print_body(out, indent + 1, body, true);
 }
 
 void For::print(std::ostream &out, int indent) const {
@@ -582,6 +594,8 @@ void Return::print(std::ostream &out, int indent) const {
     if (value.has_value()) {
         value.value()->print(out, indent);
     }
+
+    out << "\n";
 }
 
 void Delete::print(std::ostream &out, int indent) const {
@@ -593,6 +607,13 @@ void Delete::print(std::ostream &out, int indent) const {
         if (i < targets.size() - 1)
             out << ", ";
     }
+}
+
+void AugAssign::print(std::ostream &out, int indent) const {
+    sprint(out, target);
+    print_op(out, op, true);
+    out << "= ";
+    sprint(out, value);
 }
 
 void Assign::print(std::ostream &out, int indent) const {

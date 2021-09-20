@@ -17,14 +17,15 @@ Dict<String, OpConfig> const &default_precedence() {
         {"//", {30, true, tok_operator, BinaryOperator::FloorDiv}},
         {".*", {20, true, tok_operator, BinaryOperator::EltMult}},
         {"./", {20, true, tok_operator, BinaryOperator::EltDiv}},
-        // Shorthand
-        {"+=", {50, true, tok_operator, BinaryOperator::Add}},
-        {"-=", {50, true, tok_operator, BinaryOperator::Sub}},
-        {"*=", {50, true, tok_operator, BinaryOperator::Mult}},
-        {"/=", {50, true, tok_operator, BinaryOperator::Div}},
-        {"%=", {50, true, tok_operator, BinaryOperator::Mod}},
-        {"**=", {50, true, tok_operator, BinaryOperator::Pow}},
-        {"//=", {50, true, tok_operator, BinaryOperator::FloorDiv}},
+        //*/ Shorthand
+        {"+=", {50, true, tok_augassign, BinaryOperator::Add}},
+        {"-=", {50, true, tok_augassign, BinaryOperator::Sub}},
+        {"*=", {50, true, tok_augassign, BinaryOperator::Mult}},
+        {"/=", {50, true, tok_augassign, BinaryOperator::Div}},
+        {"%=", {50, true, tok_augassign, BinaryOperator::Mod}},
+        {"**=", {50, true, tok_augassign, BinaryOperator::Pow}},
+        {"//=", {50, true, tok_augassign, BinaryOperator::FloorDiv}},
+        //*/
         // Assignment
         {"=", {50, true, tok_assign}},
         // Logic

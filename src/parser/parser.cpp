@@ -886,7 +886,9 @@ StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
 
     // FIXME: this is the location of the operator not the start of the full expression
     start_code_loc(stmt, token());
-    // stmt->op = get_binary_operator(token());
+
+    auto conf = get_operator_config(token());
+    stmt->op  = conf.binarykind;
     next_token();
 
     stmt->value = parse_expression(stmt, depth + 1);
@@ -1228,6 +1230,7 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
         }
     } else {
         // This is not a literal nor a list-comprehension
+        // (2 + 1)
         if (kind == ')' && !dictionary) {
             auto p = parser->parse_expression_1(parent, child, 0, depth);
             parser->expect_token(')', true, parent, LOC);
