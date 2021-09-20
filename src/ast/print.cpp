@@ -23,31 +23,66 @@ String Comprehension::__str__() const {
 }
 
 void print_op(std::ostream &out, BoolOperator op) {
+    // clang-format off
     switch (op) {
-    case BoolOperator::And:
-        out << " and ";
+    case BoolOperator::And:   out << " and "; return;
+    case BoolOperator::Or:    out << " or " ; return;
+    case BoolOperator::None:  out << " <Bool:None> " ; return;
     }
+    // clang-format on
 }
 
 void print_op(std::ostream &out, BinaryOperator op) {
+    // clang-format off
     switch (op) {
-    case BinaryOperator::Add:
-        out << " + ";
+    case BinaryOperator::Add:       out << " + "; return;
+    case BinaryOperator::Sub:       out << " - "; return;
+    case BinaryOperator::Mult:      out << " * "; return;
+    case BinaryOperator::MatMult:   out << " @ "; return;
+    case BinaryOperator::Div:       out << " / "; return;
+    case BinaryOperator::Mod:       out << " % "; return;
+    case BinaryOperator::Pow:       out << " ** "; return;
+    case BinaryOperator::LShift:    out << " << "; return;
+    case BinaryOperator::RShift:    out << " >> "; return;
+    case BinaryOperator::BitOr:     out << " | "; return;
+    case BinaryOperator::BitXor:    out << " ^ "; return;
+    case BinaryOperator::BitAnd:    out << " & "; return;
+    case BinaryOperator::FloorDiv:  out << " // "; return;
+    case BinaryOperator::EltMult:   out << " .* "; return;
+    case BinaryOperator::EltDiv:    out << " ./ "; return;
+    case BinaryOperator::None:      out << " <Binary:None> "; return;
     }
+    // clang-format on
 }
 
 void print_op(std::ostream &out, CmpOperator op) {
+    // clang-format off
     switch (op) {
-    case CmpOperator::Lt:
-        out << " < ";
+    case CmpOperator::None:     out << " <Cmp:None> "; return;
+    case CmpOperator::Eq:       out << " == "; return;
+    case CmpOperator::NotEq:    out << " != "; return;
+    case CmpOperator::Lt:       out << " < "; return;
+    case CmpOperator::LtE:      out << " <= "; return;
+    case CmpOperator::Gt:       out << " > "; return;
+    case CmpOperator::GtE:      out << " >= "; return;
+    case CmpOperator::Is:       out << " is "; return;
+    case CmpOperator::IsNot:    out << " is not "; return;
+    case CmpOperator::In:       out << " in "; return;
+    case CmpOperator::NotIn:    out << " not in "; return;
     }
+    // clang-format on
 }
 
 void print_op(std::ostream &out, UnaryOperator op) {
+    // clang-format off
     switch (op) {
-    case UnaryOperator::Not:
-        out << "!";
+    case UnaryOperator::None:   out << "<Unary:None>"; return;
+    case UnaryOperator::Invert: out << "~"; return;
+    case UnaryOperator::Not:    out << "!"; return;
+    case UnaryOperator::UAdd:   out << "+"; return;
+    case UnaryOperator::USub:   out << "-"; return;
     }
+    // clang-format on
 }
 
 void ConstantValue::print(std::ostream &out) const {
