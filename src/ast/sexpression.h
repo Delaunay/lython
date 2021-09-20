@@ -13,6 +13,7 @@ namespace lython {
 
 using Identifier = String;
 
+// Custom RTTI
 enum class NodeKind : int8_t
 {
     Invalid,
@@ -174,12 +175,16 @@ enum class BinaryOperator : int8_t
     EltDiv
 };
 
+void print_op(std::ostream &out, BinaryOperator op);
+
 enum class BoolOperator : int8_t
 {
     None,
     And,
     Or
 };
+
+void print_op(std::ostream &out, BoolOperator op);
 
 enum class UnaryOperator : int8_t
 {
@@ -189,6 +194,8 @@ enum class UnaryOperator : int8_t
     UAdd,   // +
     USub,   // -
 };
+
+void print_op(std::ostream &out, UnaryOperator op);
 
 enum class ExprContext : int8_t
 {
@@ -211,6 +218,8 @@ enum class CmpOperator : int8_t
     In,
     NotIn,
 };
+
+void print_op(std::ostream &out, CmpOperator op);
 
 struct Comprehension {
     ExprNode *        target = nullptr;

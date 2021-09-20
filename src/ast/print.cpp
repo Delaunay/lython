@@ -12,6 +12,9 @@ String Pattern::__str__() const {
 
 String Node::__str__() const {
     StringStream ss;
+    if (kind == NodeKind::Invalid) {
+        error("Node is invalid");
+    }
     print(ss, 0);
     return ss.str();
 }
@@ -20,6 +23,16 @@ String Comprehension::__str__() const {
     StringStream ss;
     print(ss, 0);
     return ss.str();
+}
+
+template <typename T, typename... Args>
+void sprint(std::ostream &out, T *node, Args... args) {
+    if (node == nullptr) {
+        out << "<nullptr>";
+        return;
+    }
+
+    node->print(out, args...);
 }
 
 void print_op(std::ostream &out, BoolOperator op) {
@@ -41,15 +54,15 @@ void print_op(std::ostream &out, BinaryOperator op) {
     case BinaryOperator::MatMult:   out << " @ "; return;
     case BinaryOperator::Div:       out << " / "; return;
     case BinaryOperator::Mod:       out << " % "; return;
-    case BinaryOperator::Pow:       out << " ** "; return;
-    case BinaryOperator::LShift:    out << " << "; return;
-    case BinaryOperator::RShift:    out << " >> "; return;
-    case BinaryOperator::BitOr:     out << " | "; return;
-    case BinaryOperator::BitXor:    out << " ^ "; return;
-    case BinaryOperator::BitAnd:    out << " & "; return;
-    case BinaryOperator::FloorDiv:  out << " // "; return;
-    case BinaryOperator::EltMult:   out << " .* "; return;
-    case BinaryOperator::EltDiv:    out << " ./ "; return;
+    case BinaryOperator::Pow:       out << " ** ";  return;
+    case BinaryOperator::LShift:    out << " << ";  return;
+    case BinaryOperator::RShift:    out << " >> ";  return;
+    case BinaryOperator::BitOr:     out << " | ";   return;
+    case BinaryOperator::BitXor:    out << " ^ ";   return;
+    case BinaryOperator::BitAnd:    out << " & ";   return;
+    case BinaryOperator::FloorDiv:  out << " // ";  return;
+    case BinaryOperator::EltMult:   out << " .* ";  return;
+    case BinaryOperator::EltDiv:    out << " ./ ";  return;
     case BinaryOperator::None:      out << " <Binary:None> "; return;
     }
     // clang-format on
@@ -59,16 +72,16 @@ void print_op(std::ostream &out, CmpOperator op) {
     // clang-format off
     switch (op) {
     case CmpOperator::None:     out << " <Cmp:None> "; return;
-    case CmpOperator::Eq:       out << " == "; return;
-    case CmpOperator::NotEq:    out << " != "; return;
-    case CmpOperator::Lt:       out << " < "; return;
-    case CmpOperator::LtE:      out << " <= "; return;
-    case CmpOperator::Gt:       out << " > "; return;
-    case CmpOperator::GtE:      out << " >= "; return;
-    case CmpOperator::Is:       out << " is "; return;
-    case CmpOperator::IsNot:    out << " is not "; return;
-    case CmpOperator::In:       out << " in "; return;
-    case CmpOperator::NotIn:    out << " not in "; return;
+    case CmpOperator::Eq:       out << " == ";  return;
+    case CmpOperator::NotEq:    out << " != ";  return;
+    case CmpOperator::Lt:       out << " < ";   return;
+    case CmpOperator::LtE:      out << " <= ";  return;
+    case CmpOperator::Gt:       out << " > ";   return;
+    case CmpOperator::GtE:      out << " >= ";  return;
+    case CmpOperator::Is:       out << " is ";  return;
+    case CmpOperator::IsNot:    out << " is not ";  return;
+    case CmpOperator::In:       out << " in ";      return;
+    case CmpOperator::NotIn:    out << " not in ";  return;
     }
     // clang-format on
 }
@@ -480,13 +493,13 @@ void For::print(std::ostream &out, int indent) const {
     out << "for ";
     target->print(out);
     out << " in ";
-    iter->print(out);
+    sprint(out, iter);
     out << ":\n";
     print_body(out, indent + 1, body);
 
     if (orelse.size() > 0) {
         out << String(indent * 4, ' ') << "else:\n";
-        print_body(out, indent + 1, body);
+        print_body(out, indent + 1, orelse);
     }
 }
 
@@ -499,10 +512,45 @@ void Compare::print(std::ostream &out, int indent) const {
     }
 }
 
+int get_precedence(Node const *node) {
+    if (node->kind == NodeKind::BinOp) {
+        BinOp *op = (BinOp *)(node);
+        // clang-format off
+        switch (op->op) {
+            case BinaryOperator::Add: return 1;
+            case BinaryOperator::Sub: return 1;
+            case BinaryOperator::Mult: return 2;
+            case BinaryOperator::Div: return 2;
+            case BinaryOperator::Pow: return 3;
+            case BinaryOperator::BitXor: return 3;
+        }
+        // clang-format on
+    }
+    return 10;
+}
+
 void BinOp::print(std::ostream &out, int indent) const {
+    auto self    = get_precedence(this);
+    auto lhspred = get_precedence(left) <= self;
+    auto rhspred = get_precedence(right) <= self;
+
+    if (lhspred) {
+        out << '(';
+    }
     left->print(out, indent);
+    if (lhspred) {
+        out << ')';
+    }
+
     print_op(out, op);
+
+    if (rhspred) {
+        out << '(';
+    }
     right->print(out, indent);
+    if (rhspred) {
+        out << ')';
+    }
 }
 
 void BoolOp::print(std::ostream &out, int indent) const {
@@ -524,7 +572,7 @@ void While::print(std::ostream &out, int indent) const {
 
     if (orelse.size() > 0) {
         out << String(indent * 4, ' ') << "else:\n";
-        print_body(out, indent + 1, body);
+        print_body(out, indent + 1, orelse);
     }
 }
 

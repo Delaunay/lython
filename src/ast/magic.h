@@ -23,6 +23,9 @@ String str(T const &obj) {
 
 template <typename T>
 String str(T *const &obj) {
+    if (obj == nullptr) {
+        return "<nullptr>";
+    }
     return obj->__str__();
 }
 

@@ -111,6 +111,31 @@ StmtNode *Parser::parse_class_def(Node *parent, int depth) {
     return stmt;
 }
 
+ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
+    // target for for loop
+    // star_targets
+    return parse_name(parent, depth);
+
+    /*
+    star_targets:
+        | star_target !','
+        | star_target (',' star_target )* [',']
+    star_target:
+        | '*' (!'*' star_target)
+        | target_with_star_atom
+    target_with_star_atom:
+        | t_primary '.' NAME !t_lookahead
+        | t_primary '[' slices ']' !t_lookahead
+        | star_atom
+    star_atom:
+        | NAME
+        | '(' target_with_star_atom ')'
+        | '(' [star_targets_tuple_seq] ')'
+        | '[' [star_targets_list_seq] ']'
+    t_lookahead: '(' | '[' | '.'
+    */
+}
+
 StmtNode *Parser::parse_for(Node *parent, int depth) {
     TRACE_START();
 
@@ -125,7 +150,7 @@ StmtNode *Parser::parse_for(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    stmt->target = parse_expression(stmt, depth + 1);
+    stmt->target = parse_star_targets(stmt, depth + 1);
     expect_token(tok_in, true, stmt, LOC);
     stmt->iter = parse_expression(stmt, depth + 1);
 
@@ -1168,13 +1193,13 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
                                          int depth) {
     // Save the start token to set the code loc when we know if this is a tuple or a generator
     auto start_tok = parser->token();
-    auto err       = parser->expect_token(tok, true, nullptr, LOC);
+    auto err       = parser->expect_token(tok, true, nullptr, LOC); // eat (  [  {
 
     // Warning: the parent is wrong but we need to parse the expression right now
     auto      child = parser->parse_expression(parent, depth + 1);
     ExprNode *value = nullptr;
 
-    bool dictionary = true;
+    bool dictionary = false;
 
     // Dictionary
     if (parser->token().type() == ':') {
@@ -1193,12 +1218,23 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
         } else {
             expr = parse_comprehension<Comp>(parser, parent, child, kind, depth);
         }
-    } else {
+    } else if (parser->token().type() == ',') {
+        parser->next_token();
+
         if (dictionary) {
             expr = parse_dictliteral(parser, parent, child, value, kind, depth);
         } else {
             expr = parse_literal<Literal>(parser, parent, child, kind, depth);
         }
+    } else {
+        // This is not a literal nor a list-comprehension
+        if (kind == ')' && !dictionary) {
+            auto p = parser->parse_expression_1(parent, child, 0, depth);
+            parser->expect_token(')', true, parent, LOC);
+            return p;
+        }
+
+        error("Unhandled list-comprehension case");
     }
 
     // fix the things we could not do at the begining

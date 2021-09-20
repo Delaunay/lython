@@ -191,6 +191,7 @@ class Parser {
     Token     parse_call_args(Node *parent, Array<ExprNode *> &args, Array<Keyword> &keywords,
                               int depth);
     void      parse_withitem(Node *parent, Array<WithItem> &out, int depth);
+    ExprNode *parse_star_targets(Node *parent, int depth);
 
     // parse_expression_2
     // TODO: primary has the parent has GC not the expression it belongs to
@@ -208,7 +209,15 @@ class Parser {
         // parse primary
         auto primary = parse_expression_primary(parent, depth);
 
-        return parse_expression_1(parent, primary, 0, depth);
+        switch (token().type()) {
+        // <expr>(args...)
+        case tok_parens:
+            primary = parse_call(parent, primary, depth);
+        }
+
+        primary = parse_expression_1(parent, primary, 0, depth);
+
+        return primary;
     }
 
     // check if this is a composed expression
@@ -236,9 +245,6 @@ class Parser {
         case tok_operator:
             return parse_operators(parent, primary, min_precedence, depth);
 
-        // <expr>(args...)
-        case tok_parens:
-            return parse_call(parent, primary, depth);
         // <expr>.<identifier>
         case tok_dot:
             return parse_attribute(parent, primary, depth);
@@ -326,6 +332,7 @@ class Parser {
 
         // Tuple: (a, b)
         // Generator Comprehension: (a for a in b)
+        // can be (1 + b)
         case tok_parens:
             return parse_tuple_generator(parent, depth);
 
