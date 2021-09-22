@@ -117,7 +117,7 @@ enum class NodeKind : int8_t
 // clang-format off
 
 template<typename T>
-KIWI_INLINE NodeKind nodekind() { return NodeKind::Invalid; }
+NodeKind nodekind() { return NodeKind::Invalid; }
 
 String str(NodeKind k);
 
@@ -511,7 +511,7 @@ struct IfExp: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "if a: b else c",
+            "a := if b: c else d",
         };
         return _examples;
     }
@@ -702,6 +702,11 @@ struct Call: public ExprNode {
 struct JoinedStr: public ExprNode {
     Array<ExprNode *> values;
 
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
+
     JoinedStr(): ExprNode(NodeKind::JoinedStr) {}
 };
 
@@ -710,6 +715,11 @@ struct FormattedValue: public ExprNode {
     Optional<ConversionKind> conversion = ConversionKind::None;
     // defined as ExprNode*
     JoinedStr format_spec;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
@@ -868,6 +878,11 @@ struct Module: public ModNode {
 
     String docstring;
 
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
+
     Module(): ModNode(NodeKind::Module) {}
 
     void print(std::ostream &out, int) const;
@@ -876,11 +891,21 @@ struct Module: public ModNode {
 struct Interactive: public ModNode {
     Array<StmtNode *> body;
 
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
+
     Interactive(): ModNode(NodeKind::Interactive) {}
 };
 
 struct Expression: public ModNode {
     ExprNode *body = nullptr;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 
     Expression(): ModNode(NodeKind::Expression) {}
 };
@@ -888,6 +913,11 @@ struct Expression: public ModNode {
 struct FunctionType: public ModNode {
     Array<ExprNode *> argtypes;
     ExprNode *        returns = nullptr;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 
     FunctionType(): ModNode(NodeKind::FunctionType) {}
 };
@@ -978,7 +1008,10 @@ struct Assign: public StmtNode {
     Optional<String>  type_comment;
 
     static Array<String> examples() {
-        Array<String> _examples = {"a = b", "a, b = c"};
+        Array<String> _examples = {
+            "a = b", 
+            "a, b = c",
+        };
         return _examples;
     }
 
@@ -993,7 +1026,10 @@ struct AugAssign: public StmtNode {
     ExprNode *     value = nullptr;
 
     static Array<String> examples() {
-        Array<String> _examples = {"a += b", "a -= b"};
+        Array<String> _examples = {
+            "a += b", 
+            "a -= b",
+        };
         return _examples;
     }
 
@@ -1221,6 +1257,11 @@ struct Nonlocal: public StmtNode {
 
 struct Expr: public StmtNode {
     ExprNode *value = nullptr;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 
     void print(std::ostream &out, int indent) const;
 

@@ -189,13 +189,13 @@ void DictExpr::print(std::ostream &out, int indent) const {
 }
 
 void Comprehension::print(std::ostream &out, int indent) const {
-    out << "for ";
+    out << " for ";
     target->print(out, indent);
     out << " in ";
     iter->print(out, indent);
 
     for (auto expr: ifs) {
-        out << "if ";
+        out << " if ";
         expr->print(out, indent);
     }
 }

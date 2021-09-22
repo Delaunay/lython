@@ -29,6 +29,34 @@ inline String parse_it(String code) {
     SECTION(#code) { REQUIRE(strip(parse_it(code())) == strip(code())); }
 
 TEST_CASE("Parser") {
-    CODE_SAMPLES(TEST_PARSING)
-    IMPORT_TEST(TEST_PARSING)
+    // CODE_SAMPLES(TEST_PARSING)
+    // IMPORT_TEST(TEST_PARSING)
 }
+
+#define GENTEST(name)                                         \
+    TEMPLATE_TEST_CASE(#name, "", name) {                     \
+        info("Testing {}", str(nodekind<TestType>()));        \
+        Array<String> const &examples = TestType::examples(); \
+                                                              \
+        for (auto &code: examples) {                          \
+            REQUIRE(strip(parse_it(code)) == strip(code));    \
+        }                                                     \
+    }
+
+#define X(name, _)
+#define SSECTION(name)
+#define EXPR(name, _) GENTEST(name)
+#define STMT(name, _) GENTEST(name)
+#define MOD(name, _)
+#define MATCH(name, _)
+
+NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+#undef X
+#undef SSECTION
+#undef EXPR
+#undef STMT
+#undef MOD
+#undef MATCH
+
+#undef GENTEST

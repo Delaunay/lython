@@ -1016,7 +1016,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
         arg.arg = get_identifier();
         expect_token(tok_identifier, true, parent, LOC);
 
-        if (token().type() == ':') {
+        if (token().type() == ':' && kind != ':') {
             next_token();
             arg.annotation = parse_expression(parent, depth + 1);
         }
@@ -1072,15 +1072,14 @@ ExprNode *Parser::parse_ifexp(Node *parent, int depth) {
 
     auto expr = parent->new_object<IfExp>();
     start_code_loc(expr, token());
+    next_token();
 
     expr->test = parse_expression(expr, depth + 1);
     expect_token(':', true, expr, LOC);
-    next_token();
 
     expr->body = parse_expression(expr, depth + 1);
 
     expect_token(tok_else, true, expr, LOC);
-    next_token();
 
     expr->orelse = parse_expression(expr, depth + 1);
 
@@ -1104,7 +1103,7 @@ void Parser::parse_comprehension(Node *parent, Array<Comprehension> &out, char k
         expect_token(tok_for, true, parent, LOC);
         Comprehension cmp;
 
-        cmp.target = parse_expression(parent, depth + 1);
+        cmp.target = parse_star_targets(parent, depth + 1);
         expect_token(tok_in, true, parent, LOC);
         cmp.iter = parse_expression(parent, depth + 1);
 
