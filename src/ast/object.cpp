@@ -1,3 +1,4 @@
+#include "logging/logging.h"
 #include "object.h"
 
 namespace lython {
@@ -24,7 +25,7 @@ void GCObject::remove_child(GCObject *child, bool dofree) {
 void GCObject::dump(std::ostream &out, int depth) {
     out << String(depth * 4, ' ') << meta::type_name(class_id) << std::endl;
 
-    for (auto obj : children) {
+    for (auto obj: children) {
         obj->dump(out, depth + 1);
     }
 }
@@ -45,7 +46,7 @@ GCObject::~GCObject() {
     info("freeing {}: {}", (void *)this, meta::type_name(class_id));
     int ccclass_id = class_id;
 
-    for (auto obj : children) {
+    for (auto obj: children) {
         free(obj);
     }
 

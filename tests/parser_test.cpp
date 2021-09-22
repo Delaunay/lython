@@ -1,13 +1,14 @@
-#include <catch2/catch.hpp>
-
-#include <sstream>
-
 #include "samples.h"
 
 #include "ast/magic.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "utilities/strings.h"
+
+#include <catch2/catch.hpp>
+#include <sstream>
+
+#include "logging/logging.h"
 
 using namespace lython;
 

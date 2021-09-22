@@ -1,3 +1,4 @@
+#include "logging/logging.h"
 #include "magic.h"
 #include "sexpression.h"
 #include "utilities/strings.h"

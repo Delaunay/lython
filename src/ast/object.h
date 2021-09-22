@@ -10,7 +10,7 @@ namespace lython {
 struct GCObject {
     public:
     template <typename T, typename... Args>
-    T *new_object(Args &&... args) {
+    T *new_object(Args &&...args) {
         auto &alloc = get_allocator<T>();
 
         // allocate
@@ -41,7 +41,7 @@ struct GCObject {
 
     void dump(std::ostream &, int depth = 0);
 
-    ~GCObject();
+    virtual ~GCObject();
 
     int class_id;
 

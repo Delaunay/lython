@@ -12,6 +12,12 @@
 
 #include "utilities/allocator.h"
 
+#ifdef __linux__
+#    define KIWI_INLINE __attribute__((always_inline))
+#else
+#    define KIWI_INLINE __forceinline
+#endif
+
 // ---------------
 namespace lython {
 

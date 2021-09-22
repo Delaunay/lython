@@ -9,95 +9,117 @@
 #include "constant.h"
 #include "object.h"
 
+#include "logging/logging.h"
+
 namespace lython {
 
 using Identifier = String;
 
+// To make this more generic, I could have a StringDB that assign a integer to a constant string
+// the string would be the class name and the integer would become the RTTI
 // Custom RTTI
 enum class NodeKind : int8_t
 {
-    Invalid,
 
-    EXPR_START,
+// clang-format off
+// Check X-MACRO trick
+// this is used to code gen a bunch of functions/types
+#define NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)\
+    X(Invalid, invalid)             \
+    SECTION(EXPR_START)             \
+    EXPR(BoolOp, boolop)            \
+    EXPR(NamedExpr, namedexpr)      \
+    EXPR(BinOp, binop)              \
+    EXPR(UnaryOp, unaryop)          \
+    EXPR(Lambda, lambda)            \
+    EXPR(IfExp, ifexp)              \
+    EXPR(DictExpr, dictexpr)        \
+    EXPR(SetExpr, setexpr)          \
+    EXPR(ListComp, listcomp)        \
+    EXPR(GeneratorExp, generateexpr)\
+    EXPR(SetComp, setcomp)          \
+    EXPR(DictComp, dictcomp)        \
+    EXPR(Await, await)              \
+    EXPR(Yield, yield)              \
+    EXPR(YieldFrom, yieldfrom)      \
+    EXPR(Compare, compare)          \
+    EXPR(Call, call)                \
+    EXPR(JoinedStr, joinedstr)      \
+    EXPR(FormattedValue, formattedvalue)\
+    EXPR(Constant, constant)        \
+    EXPR(Attribute, attribute)      \
+    EXPR(Subscript, subscript)      \
+    EXPR(Starred, starred)          \
+    EXPR(Name, name)                \
+    EXPR(ListExpr, listexpr)        \
+    EXPR(TupleExpr, tupleexpr)      \
+    EXPR(Slice, slice)              \
+    SECTION(EXPR_END)               \
+    SECTION(MODULE_START)               \
+    MOD(Module, module)                 \
+    MOD(Interactive, interactive)       \
+    MOD(Expression, expression)         \
+    MOD(FunctionType, functiontype)     \
+    SECTION(MODULE_END)                 \
+    SECTION(STMT_START)                 \
+    STMT(FunctionDef, functiondef)      \
+    STMT(ClassDef, classdef)            \
+    STMT(Return, returnstmt)            \
+    STMT(Delete, deletestmt)            \
+    STMT(Assign, assign)                \
+    STMT(AugAssign, augassign)          \
+    STMT(AnnAssign, annassign)          \
+    STMT(For, forstmt)                  \
+    STMT(While, whilestmt)              \
+    STMT(If, ifstmt)                    \
+    STMT(With, with)                    \
+    STMT(Raise, raise)                  \
+    STMT(Try, trystmt)                  \
+    STMT(Assert, assertstmt)            \
+    STMT(Import, import)                \
+    STMT(ImportFrom, importfrom)        \
+    STMT(Global, global)                \
+    STMT(Nonlocal, nonlocal)            \
+    STMT(Expr, exprstmt)                \
+    STMT(Pass, pass)                    \
+    STMT(Break, breakstmt)              \
+    STMT(Continue, continuestmt)        \
+    STMT(Match, match)                  \
+    SECTION(STMT_END)                   \
+    SECTION(PAT_START)                  \
+    MATCH(MatchValue, matchvalue)       \
+    MATCH(MatchSingleton, matchsingleton)   \
+    MATCH(MatchSequence, matchsequence)     \
+    MATCH(MatchMapping, matchmapping)       \
+    MATCH(MatchClass, matchclass)           \
+    MATCH(MatchStar, matchstar)             \
+    MATCH(MatchAs, matchas)                 \
+    MATCH(MatchOr, matchor)                 \
+    MATCH(MatchCase, matchcase)             \
+    SECTION(PAT_END)
 
-    BoolOp,
-    NamedExpr,
-    BinOp,
-    UnaryOp,
-    Lambda,
-    IfExp,
-    DictExpr,
-    SetExpr,
-    ListComp,
-    GeneratorExp,
-    SetComp,
-    DictComp,
-    Await,
-    Yield,
-    YieldFrom,
-    Compare,
-    Call,
-    JoinedStr,
-    FormattedValue,
-    Constant,
-    Attribute,
-    Subscript,
-    Starred,
-    Name,
-    ListExpr,
-    TupleExpr,
-    Slice,
+    #define X(name, _) name,
+    #define SECTION(name) name,
+    #define EXPR(name, _) name,
+    #define STMT(name, _) name,
+    #define MOD(name, _) name,
+    #define MATCH(name, _) name,
 
-    EXPR_END,
-    MODULE_START = EXPR_END,
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
 
-    Module,
-    Interactive,
-    Expression,
-    FunctionType,
-
-    MODULE_END,
-    STMT_START = MODULE_END,
-
-    FunctionDef,
-    ClassDef,
-    Return,
-    Delete,
-    Assign,
-    AugAssign,
-    AnnAssign,
-    For,
-    While,
-    If,
-    With,
-    Raise,
-    Try,
-    Assert,
-    Import,
-    ImportFrom,
-    Global,
-    Nonlocal,
-    Expr,
-    Pass,
-    Break,
-    Continue,
-    Match,
-
-    STMT_END,
-    PAT_START = STMT_END,
-
-    MatchValue,
-    MatchSingleton,
-    MatchSequence,
-    MatchMapping,
-    MatchClass,
-    MatchStar,
-    MatchAs,
-    MatchOr,
-    MatchCase,
-
-    PAT_END
+    #undef X
+    #undef SECTION
+    #undef EXPR
+    #undef STMT
+    #undef MOD
+    #undef MATCH
 };
+// clang-format off
+
+template<typename T>
+KIWI_INLINE NodeKind nodekind() { return NodeKind::Invalid; }
+
+String str(NodeKind k);
 
 enum class NodeFamily : int8_t
 {
@@ -126,7 +148,27 @@ struct Node: public GCObject {
     virtual NodeFamily family() const = 0;
 
     const NodeKind kind;
+
+    template<typename T>
+    bool is_instance() const {
+        return kind == nodekind<T>();
+    }
 };
+
+// Safe cast
+template<typename T>
+T* cast(Node* obj) {
+    if (obj->is_instance<T>()) {
+        return (T*) obj;
+    }
+    return nullptr;
+}
+
+template<typename T>
+T* checked_cast(Node* obj) {
+    assert(obj->is_instance<T>(), fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
+    return cast<T>(obj);
+}
 
 struct ModNode: public Node {
     ModNode(NodeKind kind): Node(kind) {}

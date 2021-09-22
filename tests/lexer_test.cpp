@@ -1,8 +1,8 @@
-#include <catch2/catch.hpp>
-
 #include "lexer/lexer.h"
 #include "samples.h"
 #include "utilities/strings.h"
+
+#include <catch2/catch.hpp>
 
 using namespace lython;
 
