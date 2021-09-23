@@ -53,6 +53,7 @@ class Parser {
     StmtNode *parse_for(Node *parent, int depth);
     StmtNode *parse_while(Node *parent, int depth);
     StmtNode *parse_if(Node *parent, int depth);
+    StmtNode *parse_if_alt(Node *parent, int depth);
     StmtNode *parse_match(Node *parent, int depth);
     StmtNode *parse_with(Node *parent, int depth);
     StmtNode *parse_raise(Node *parent, int depth);

@@ -397,6 +397,16 @@ void If::print(std::ostream &out, int indent) const {
     out << ":\n";
     print_body(out, indent + 1, body);
 
+    for (int i = 0; i < tests.size(); i++) {
+        auto &eliftest = tests[i];
+        auto &elifbody = bodies[i];
+
+        out << "\n" << idt << "elif ";
+        eliftest->print(out, indent);
+        out << ":\n";
+        print_body(out, indent + 1, elifbody);
+    }
+
     if (orelse.size()) {
         out << "\n" << idt << "else:\n";
         print_body(out, indent + 1, orelse);
@@ -517,12 +527,23 @@ void Constant::print(std::ostream &out, int indent) const { value.print(out); }
 
 void Arguments::print(std::ostream &out, int indent) const {
     int i = 0;
+
     for (auto &arg: args) {
         out << arg.arg;
 
         if (arg.annotation.has_value()) {
             out << ": ";
             arg.annotation.value()->print(out, indent);
+        }
+
+        auto default_offset = args.size() - 1 - i;
+        if (defaults.size() > 0 && default_offset < defaults.size()) {
+            if (arg.annotation.has_value()) {
+                out << " = ";
+            } else {
+                out << "=";
+            }
+            defaults[default_offset]->print(out, -1);
         }
 
         if (i + 1 < args.size()) {
@@ -550,6 +571,16 @@ void Arguments::print(std::ostream &out, int indent) const {
         if (kw.annotation.has_value()) {
             out << ": ";
             kw.annotation.value()->print(out, indent);
+        }
+
+        auto default_offset = kwonlyargs.size() - 1 - i;
+        if (kw_defaults.size() > 0 && default_offset < kw_defaults.size()) {
+            if (kw.annotation.has_value()) {
+                out << " = ";
+            } else {
+                out << "=";
+            }
+            kw_defaults[default_offset]->print(out, -1);
         }
 
         if (i + 1 < kwonlyargs.size()) {

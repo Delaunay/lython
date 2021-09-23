@@ -348,6 +348,56 @@ StmtNode *Parser::parse_while(Node *parent, int depth) {
     return stmt;
 }
 
+StmtNode *Parser::parse_if_alt(Node *parent, int depth) {
+    TRACE_START();
+
+    auto stmt = parent->new_object<If>();
+    start_code_loc(stmt, token());
+    next_token();
+    Token last = dummy();
+
+    // Parse first If
+    {
+        stmt->test = parse_expression(stmt, depth + 1);
+
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
+        expect_token(tok_indent, true, stmt, LOC);
+
+        auto last = parse_body(stmt, stmt->body, depth + 1);
+    }
+
+    while (token().type() == tok_elif) {
+        next_token();
+
+        auto test = parse_expression(stmt, depth + 1);
+
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
+        expect_token(tok_indent, true, stmt, LOC);
+
+        Array<StmtNode *> body;
+        last = parse_body(stmt, body, depth + 1);
+
+        stmt->tests.push_back(test);
+        stmt->bodies.push_back(body);
+    }
+
+    // The else belongs to the last ifexpr if any
+    if (token().type() == tok_else) {
+        next_token();
+
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
+        expect_token(tok_indent, true, stmt, LOC);
+
+        last = parse_body(stmt, stmt->orelse, depth + 1);
+    }
+
+    end_code_loc(stmt, last);
+    return stmt;
+}
+
 StmtNode *Parser::parse_if(Node *parent, int depth) {
     TRACE_START();
 
@@ -1245,12 +1295,13 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
 
         if (token().type() == tok_assign) {
             next_token();
-            keywords = true;
-            value    = parse_expression(parent, depth + 1);
+            value = parse_expression(parent, depth + 1);
         }
 
         if (vararg) {
             args.vararg = arg;
+            // only kwargs from that point onward
+            keywords = true;
         } else if (kwarg) {
             args.kwarg = arg;
         } else if (!keywords) {
@@ -1261,6 +1312,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
             end_code_loc(&arg, token());
         } else {
             args.kwonlyargs.push_back(arg);
+            // NB: value can be null here
             args.kw_defaults.push_back(value);
         }
 
@@ -1744,7 +1796,7 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
     case tok_while:
         return parse_while(parent, depth);
     case tok_if:
-        return parse_if(parent, depth);
+        return parse_if_alt(parent, depth);
 
     case tok_match:
         return parse_match(parent, depth);

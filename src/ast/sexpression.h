@@ -945,6 +945,8 @@ struct FunctionDef: public StmtNode {
         Array<String> _examples = {
             "def a(b, c=d, *e, f=g, **h) -> i:\n"
             "    pass",
+            "def a(b: c, d: e = f):\n"
+            "    pass",
         };
         return _examples;
     }
@@ -1122,6 +1124,11 @@ struct If: public StmtNode {
     ExprNode *        test = nullptr;
     Array<StmtNode *> body;
     Array<StmtNode *> orelse;
+
+    // alternative representation that diverges from
+    // the python ast
+    Array<ExprNode*> tests;
+    Array<Array<StmtNode*>> bodies;
 
     static Array<String> examples() {
         Array<String> _examples = {
