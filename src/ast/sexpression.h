@@ -309,7 +309,8 @@ struct Arguments {
 };
 
 struct Keyword: public CommonAttributes {
-    Optional<Identifier> arg; // why is this optional ?
+    Identifier arg; // why is this optional ?
+                    // it is marked as optional in the python AST
     ExprNode *           value = nullptr;
 
     void print(std::ostream &out, int indent) const;
@@ -451,10 +452,12 @@ struct NamedExpr: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a := b",
+            "a = a := b",
         };
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 };
 
 struct BinOp: public ExprNode {
@@ -511,7 +514,7 @@ struct IfExp: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a := if b: c else d",
+            "a = if b: c else d",
         };
         return _examples;
     }
@@ -639,6 +642,7 @@ struct Yield: public ExprNode {
     static Array<String> examples() {
         Array<String> _examples = {
             "yield a",
+            "yield",
         };
         return _examples;
     }
@@ -1157,6 +1161,8 @@ struct Raise: public StmtNode {
         return _examples;
     }
 
+    void print(std::ostream &out, int indent) const;
+
     Raise(): StmtNode(NodeKind::Raise) {}
 };
 
@@ -1194,6 +1200,8 @@ struct Assert: public StmtNode {
         return _examples;
     }
 
+    void print(std::ostream &out, int indent) const;
+
     Assert(): StmtNode(NodeKind::Assert) {}
 };
 
@@ -1206,6 +1214,8 @@ struct Import: public StmtNode {
         };
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 
     Import(): StmtNode(NodeKind::Import) {}
 };
@@ -1221,6 +1231,8 @@ struct ImportFrom: public StmtNode {
         };
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 
     ImportFrom(): StmtNode(NodeKind::ImportFrom) {}
 };

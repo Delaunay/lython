@@ -642,18 +642,17 @@ StmtNode *Parser::parse_assert(Node *parent, int depth) {
     return stmt;
 }
 
+bool is_dot(Token const &tok) {
+    return (tok.type() == tok_operator && tok.operator_name() == ".") || tok.type() == tok_dot;
+}
+
 String Parser::parse_module_path(Node *parent, int &level, int depth) {
     level = 0;
     Array<String> path;
 
     while (true) {
         // relative path
-        if (token().type() == tok_dot && path.size() <= 0) {
-            level += 1;
-            next_token();
-        }
-
-        if (token().type() == tok_operator && token().operator_name() == "." && path.size() <= 0) {
+        if (is_dot(token()) && path.size() <= 0) {
             level += 1;
             next_token();
         }
@@ -665,20 +664,15 @@ String Parser::parse_module_path(Node *parent, int &level, int depth) {
         }
 
         // separator
-        if (token().type() == tok_dot) {
-            next_token();
-        }
 
-        if (token().type() == tok_operator && token().operator_name() == ".") {
+        if (is_dot(token())) {
             next_token();
         }
 
         if (token().type() == tok_as || token().type() == ',' || token().type() == tok_newline ||
-            token().type() == tok_eof) {
+            token().type() == tok_eof || token().type() == tok_import) {
             break;
         }
-
-        // token().debug_print(std::cout);
     }
 
     return join(".", path);
@@ -975,17 +969,20 @@ ExprNode *Parser::parse_await(Node *parent, int depth) {
 ExprNode *Parser::parse_yield(Node *parent, int depth) {
     TRACE_START();
 
+    if (peek_token().type() == tok_from) {
+        return parse_yield_from(parent, depth);
+    }
+
     auto expr = parent->new_object<Yield>();
     start_code_loc(expr, token());
     next_token();
 
     if (token().type() != tok_newline) {
         expr->value = parse_expression(expr, depth + 1);
-        end_code_loc(expr, token());
     } else {
         next_token();
-        end_code_loc(expr, token());
     }
+    end_code_loc(expr, token());
     return expr;
 }
 
@@ -994,11 +991,18 @@ ExprNode *Parser::parse_yield_from(Node *parent, int depth) {
 
     auto expr = parent->new_object<YieldFrom>();
     start_code_loc(expr, token());
-    next_token();
+    next_token(); // eat yield
 
+    expect_token(tok_from, true, expr, LOC);
     expr->value = parse_expression(expr, depth + 1);
     end_code_loc(expr, token());
     return expr;
+}
+
+bool is_star(Token const &tok) { return tok.type() == tok_operator && tok.operator_name() == "*"; }
+
+bool is_starstar(Token const &tok) {
+    return tok.type() == tok_operator && tok.operator_name() == "**";
 }
 
 Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
@@ -1012,6 +1016,20 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
         ExprNode *value = nullptr;
 
         Arg arg;
+
+        bool vararg = false;
+        bool kwarg  = false;
+
+        if (is_star(token())) {
+            next_token();
+            vararg = true;
+        }
+
+        if (is_starstar(token())) {
+            next_token();
+            kwarg = true;
+        }
+
         start_code_loc(&arg, token());
         arg.arg = get_identifier();
         expect_token(tok_identifier, true, parent, LOC);
@@ -1027,7 +1045,11 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
             value    = parse_expression(parent, depth + 1);
         }
 
-        if (!keywords) {
+        if (vararg) {
+            args.vararg = arg;
+        } else if (kwarg) {
+            args.kwarg = arg;
+        } else if (!keywords) {
             args.args.push_back(arg);
             if (value) {
                 args.defaults.push_back(value);
@@ -1091,7 +1113,8 @@ ExprNode *Parser::parse_starred(Node *parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<Starred>();
-    expect_token(tok_star, true, expr, LOC);
+    next_token();
+
     expr->value = parse_expression(expr, depth + 1);
     return expr;
 }
@@ -1308,9 +1331,15 @@ ExprNode *Parser::parse_prefix_unary(Node *parent, int depth) {
     start_code_loc(expr, token());
 
     auto conf = get_operator_config(token());
+
+    if (token().operator_name() == "*") {
+        return parse_starred(parent, depth);
+    }
+
     if (conf.unarykind == UnaryOperator::None) {
         error("expected an unary operator not {}", str(token()));
     }
+
     next_token();
 
     expr->op      = conf.unarykind;
@@ -1326,6 +1355,7 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
 
     bool keyword = false;
     while (token().type() != ')') {
+
         // if not in keyword mode check if next argument is one
         if (keyword == false) {
             auto lookahead = _lex.peek_token();
@@ -1338,11 +1368,11 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
             auto arg = parse_expression(expr, depth + 1);
             args.push_back(arg);
         } else {
-
             auto kwarg = Keyword();
             kwarg.arg  = get_identifier(); // <= NB: this checks for tok_identifier
                                            // if not returns a dummy identifier
             expect_token(tok_identifier, true, expr, LOC);
+            expect_token(tok_assign, true, expr, LOC);
 
             kwarg.value = parse_expression(expr, depth + 1);
             keywords.push_back(kwarg);
@@ -1444,8 +1474,6 @@ ExprNode *Parser::parse_subscript(Node *parent, ExprNode *primary, int depth) {
     }
 
     end_code_loc(expr, token());
-    expect_token(']', true, expr, LOC);
-
     return expr;
 }
 

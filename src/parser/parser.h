@@ -292,12 +292,13 @@ class Parser {
         // await <expr>
         case tok_await:
             return parse_await(parent, depth);
+
+        // yield from <expr>
         // yield <expr>
+        case tok_yield_from:
         case tok_yield:
             return parse_yield(parent, depth);
-        // yield from <expr>
-        case tok_yield_from:
-            return parse_yield_from(parent, depth);
+
         // <identifier>
         case tok_identifier:
             return parse_name(parent, depth);
@@ -319,10 +320,9 @@ class Parser {
         // if <expr> else <expr>
         case tok_if:
             return parse_ifexp(parent, depth);
+
         // *<expr>
         case tok_star:
-            return parse_starred(parent, depth);
-
         case tok_operator:
             return parse_prefix_unary(parent, depth);
 

@@ -103,6 +103,28 @@ void print_op(std::ostream &out, UnaryOperator op) {
     // clang-format on
 }
 
+void Raise::print(std::ostream &out, int indent) const {
+    out << "raise ";
+    if (exc.has_value()) {
+        exc.value()->print(out, indent);
+    }
+
+    if (cause.has_value()) {
+        out << " cause ";
+        cause.value()->print(out, indent);
+    }
+}
+
+void Assert::print(std::ostream &out, int indent) const {
+    out << "assert ";
+    test->print(out, indent);
+
+    if (msg.has_value()) {
+        out << " cause ";
+        msg.value()->print(out, indent);
+    }
+}
+
 void ConstantValue::print(std::ostream &out) const {
     switch (kind) {
     case TString:
@@ -113,6 +135,48 @@ void ConstantValue::print(std::ostream &out) const {
 
     case TInt:
         out << value.integer;
+    }
+}
+
+void Import::print(std::ostream &out, int indent) const {
+    out << "import ";
+
+    int i = 0;
+    for (auto &alias: names) {
+        out << alias.name;
+
+        if (alias.asname.has_value()) {
+            out << " as ";
+            out << alias.asname.value();
+        }
+
+        if (i + 1 < names.size()) {
+            out << ", ";
+        }
+        i += 1;
+    }
+}
+
+void ImportFrom::print(std::ostream &out, int indent) const {
+    out << "from ";
+    if (module.has_value()) {
+        out << module.value();
+    }
+    out << " import ";
+
+    int i = 0;
+    for (auto &alias: names) {
+        out << alias.name;
+
+        if (alias.asname.has_value()) {
+            out << " as ";
+            out << alias.asname.value();
+        }
+
+        if (i + 1 < names.size()) {
+            out << ", ";
+        }
+        i += 1;
     }
 }
 
@@ -201,9 +265,7 @@ void Comprehension::print(std::ostream &out, int indent) const {
 }
 
 void Keyword::print(std::ostream &out, int indent) const {
-    if (arg.has_value()) {
-        out << arg.value();
-    }
+    out << arg;
 
     if (value != nullptr) {
         out << " = ";
@@ -394,9 +456,11 @@ void Call::print(std::ostream &out, int indent) const {
     }
 
     for (int i = 0; i < keywords.size(); i++) {
-        out << keywords[i].arg.value();
-        out << " = ";
-        keywords[i].value->print(out, indent);
+        auto &key = keywords[i];
+
+        out << keywords[i].arg;
+        out << "=";
+        key.value->print(out, indent);
 
         if (i < keywords.size() - 1)
             out << ", ";
@@ -449,6 +513,12 @@ void Arg::print(std::ostream &out, int indent) const {
         out << ": ";
         annotation.value()->print(out, indent);
     }
+}
+
+void NamedExpr::print(std::ostream &out, int indent) const {
+    target->print(out, indent);
+    out << " := ";
+    value->print(out, indent);
 }
 
 void ClassDef::print(std::ostream &out, int indent) const {
@@ -538,8 +608,9 @@ int get_precedence(Node const *node) {
             case BinaryOperator::BitXor: return 3;
         }
         // clang-format on
+        return 10;
     }
-    return 10;
+    return 1000;
 }
 
 void BinOp::print(std::ostream &out, int indent) const {
@@ -574,6 +645,7 @@ void BoolOp::print(std::ostream &out, int indent) const {
 
 void UnaryOp::print(std::ostream &out, int indent) const {
     print_op(out, op);
+    out << " ";
     operand->print(out, indent);
 }
 

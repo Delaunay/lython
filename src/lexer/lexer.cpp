@@ -70,6 +70,8 @@ Dict<String, OpConfig> const &default_precedence() {
           CmpOperator::Is}},
         // Not an operator but we use same data structure for parsing
         {"->", {10, false, tok_arrow}},
+        {":=", {10, false, tok_walrus}},
+        {":", {10, false, (TokenType)':'}},
         // Self lookup
         {".", {60, true, tok_dot}},
     };
@@ -182,7 +184,6 @@ Token const &Lexer::next_token() {
             auto const &op_config = _operators.precedence_table().at(ident);
             return make_token(op_config.type, ident);
         } catch (std::exception) {
-
             return make_token(tok_incorrect, ident);
         }
     }
@@ -293,6 +294,7 @@ Token const &Lexer::next_token() {
     // get next char
     c = peek();
     consume();
+
     return make_token(c);
 }
 
