@@ -505,7 +505,7 @@ Token Parser::parse_match_case(Node *parent, Array<MatchCase> &out, int depth) {
 
         // Stop if next token is not for another branch
         if (token().type() != tok_case) {
-            expect_token(tok_desindent, false, parent, LOC);
+            expect_tokens({tok_desindent, tok_eof}, false, parent, LOC);
             break;
         }
     }
@@ -736,6 +736,7 @@ void Parser::parse_alias(Node *parent, Array<Alias> &out, int depth) {
         alias.name = parse_module_path(parent, level, depth);
 
         if (token().type() == tok_as) {
+            next_token();
             alias.asname = get_identifier();
             expect_token(tok_identifier, true, parent, LOC);
         }
@@ -771,12 +772,13 @@ StmtNode *Parser::parse_import_from(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    // TOOD:
-    // count the level ..
-    // stmt->level = ;
-    stmt->module = get_identifier();
-    expect_token(tok_identifier, true, parent, LOC);
+    int level    = 0;
+    stmt->module = parse_module_path(parent, level, depth);
+    if (level > 0) {
+        stmt->level = level;
+    }
 
+    expect_token(tok_import, true, stmt, LOC);
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
@@ -991,7 +993,20 @@ ExprNode *Parser::parse_constant(Node *parent, int depth) {
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
 
-    expr->value = get_value();
+    // This does not work too well
+    // expr->value = get_value();
+
+    switch (token().type()) {
+    case tok_string: {
+        expr->value = token().identifier();
+    }
+    case tok_int: {
+        expr->value = token().as_integer();
+    }
+    case tok_float: {
+        expr->value = token().as_float();
+    }
+    }
 
     end_code_loc(expr, token());
     next_token();

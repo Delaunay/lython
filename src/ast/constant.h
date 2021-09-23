@@ -22,9 +22,9 @@ struct ConstantValue {
 
     ConstantValue(double v): kind(TDouble) { value.decimal = v; }
 
-    ConstantValue(String const &v) { set_string(v); }
+    ConstantValue(String const &v): kind(TInvalid) { set_string(v); }
 
-    ConstantValue(ConstantValue const &v) { copy_union(v.kind, v.value); }
+    ConstantValue(ConstantValue const &v): kind(TInvalid) { copy_union(v.kind, v.value); }
 
     ~ConstantValue() {
         if (kind == TString) {
