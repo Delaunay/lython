@@ -25,7 +25,7 @@ struct ParsingError {
 
     static ParsingError syntax_error(String const &message);
 
-    void print(std::ostream &out);
+    void print(std::ostream &out) const;
 };
 
 void add_wip_expr(ParsingError *err, StmtNode *stmt);

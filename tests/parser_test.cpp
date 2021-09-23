@@ -40,6 +40,7 @@ TEST_CASE("Parser") {
                                                               \
         for (auto &code: examples) {                          \
             REQUIRE(strip(parse_it(code)) == strip(code));    \
+            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");            \
         }                                                     \
     }
 

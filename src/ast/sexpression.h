@@ -848,7 +848,8 @@ struct TupleExpr: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "(a, b, c)",
+            "a, b, c",
+            "a, (b, c), d",
         };
         return _examples;
     }
@@ -1076,6 +1077,8 @@ struct For: public StmtNode {
             "    pass\n"
             "else:\n"
             "    pass\n",
+            "for a, (b, c), d in b:\n"
+            "    pass\n"
         };
         return _examples;
     }

@@ -11,12 +11,6 @@
 #include <iostream>
 #include <numeric>
 
-#define TRACE_START()                                                                      \
-    trace_start(depth, "{}: {} - `{}`", to_string(token().type()).c_str(), token().type(), \
-                token().identifier())
-
-#define TRACE_END() trace_end(depth, "{}: {}", to_string(token().type()).c_str(), token().type())
-
 namespace lython {
 
 class Parser {
@@ -40,9 +34,7 @@ class Parser {
     Token  parse_match_case(Node *parent, Array<MatchCase> &out, int depth);
     String parse_module_path(Node *parent, int &level, int depth);
 
-    Pattern *parse_pattern(Node *parent, int depth);
-    Pattern *parse_pattern_1(Node *parent, int depth);
-
+    // Patterns
     Pattern *parse_match_sequence(Node *parent, int depth);
     Pattern *parse_match_star(Node *parent, int depth);
     Pattern *parse_match_mapping(Node *parent, int depth);
@@ -50,6 +42,10 @@ class Parser {
     Pattern *parse_match_or(Node *parent, Pattern *primary, int depth);
     Pattern *parse_match_as(Node *parent, Pattern *primary, int depth);
     Pattern *parse_match_class(Node *parent, ExprNode *cls, int depth);
+
+    // Pattern Dispatch
+    Pattern *parse_pattern(Node *parent, int depth);
+    Pattern *parse_pattern_1(Node *parent, int depth);
 
     // Statement_1
     StmtNode *parse_function_def(Node *parent, bool async, int depth);
@@ -77,100 +73,9 @@ class Parser {
     StmtNode *parse_augassign(Node *parent, ExprNode *epxr, int depth);
     StmtNode *parse_annassign(Node *parent, ExprNode *epxr, int depth);
 
-    Token previous = dummy();
-
-    StmtNode *parse_statement(Node *parent, int depth) {
-        TRACE_START();
-
-        if (previous == token()) {
-            error("Unhandled token {} previous tok was {}", str(token()), str(previous));
-            return nullptr;
-        } else {
-            previous = token();
-        }
-
-        // Statement we can guess rightaway from the current token we are seeing
-        switch (token().type()) {
-        // def <name>(...
-        case tok_def:
-            return parse_function_def(parent, false, depth);
-
-        // async def <name>(...
-        case tok_async:
-            return parse_function_def(parent, true, depth);
-
-        case tok_class:
-            return parse_class_def(parent, depth);
-
-        // Async for: only valid inside async function
-        case tok_for:
-            return parse_for(parent, depth);
-
-        case tok_while:
-            return parse_while(parent, depth);
-        case tok_if:
-            return parse_if(parent, depth);
-
-        case tok_match:
-            return parse_match(parent, depth);
-        case tok_with:
-            return parse_with(parent, depth);
-            // Async with: only valid inside async function
-
-        case tok_raise:
-            return parse_raise(parent, depth);
-        case tok_try:
-            return parse_try(parent, depth);
-        case tok_assert:
-            return parse_assert(parent, depth);
-
-        case tok_import:
-            return parse_import(parent, depth);
-        case tok_from:
-            return parse_import_from(parent, depth);
-
-        case tok_global:
-            return parse_global(parent, depth);
-        case tok_nonlocal:
-            return parse_nonlocal(parent, depth);
-
-        case tok_return:
-            return parse_return(parent, depth);
-        case tok_del:
-            return parse_del(parent, depth);
-        case tok_pass:
-            return parse_pass(parent, depth);
-        case tok_break:
-            return parse_break(parent, depth);
-        case tok_continue:
-            return parse_continue(parent, depth);
-        }
-
-        auto expr = parse_expression(parent, depth);
-
-        switch (token().type()) {
-        // <expr> = <>
-        case tok_assign:
-            return parse_assign(parent, expr, depth);
-        // <expr> += <>
-        case tok_augassign:
-            return parse_augassign(parent, expr, depth);
-        // <expr>: type = <>
-        case ':':
-        case tok_annassign:
-            return parse_annassign(parent, expr, depth);
-        }
-
-        auto stmt_expr   = parent->new_object<Expr>();
-        stmt_expr->value = expr;
-        TRACE_END();
-        return stmt_expr;
-    }
-
-    void start_code_loc(CommonAttributes *target, Token tok);
-    void end_code_loc(CommonAttributes *target, Token tok);
-
-    ConstantValue get_value();
+    // Statement Dispatch
+    // ------------------
+    StmtNode *parse_statement(Node *parent, int depth);
 
     // Primary expression
     // parse_expression_1
@@ -206,210 +111,45 @@ class Parser {
     ExprNode *parse_attribute(Node *parent, ExprNode *primary, int depth);
     ExprNode *parse_subscript(Node *parent, ExprNode *primary, int depth);
     ExprNode *parse_slice(Node *parent, ExprNode *primary, int depth);
+    ExprNode *parse_star_expression(Node *parent, int depth);
 
-    ExprNode *parse_expression(Node *parent, int depth) {
-        // parse primary
-        auto primary = parse_expression_primary(parent, depth);
+    // Expression Dispatcher
+    // ---------------------
+    // using the current token dispatch to the correct parsing routine
+    ExprNode *parse_expression(Node *parent, int depth);
 
-        switch (token().type()) {
-        // <expr>(args...)
-        case tok_parens:
-            primary = parse_call(parent, primary, depth);
-        }
+    ExprNode *parse_expression_primary(Node *parent, int depth);
 
-        primary = parse_expression_1(parent, primary, 0, depth);
+    ExprNode *parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth);
 
-        return primary;
-    }
-
-    // check if this is a composed expression
-    ExprNode *parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth) {
-        //
-        switch (token().type()) {
-        // <expr> := <expr>
-        // assign expression instead of the usual assign statement
-        case tok_walrus:
-            return parse_named_expr(parent, primary, depth);
-
-        // <expr> boolop <expr>
-        /*
-        case tok_boolop:
-            return parse_bool_operator(parent, primary, depth);
-        case tok_binaryop:
-            return parse_binary_operator(parent, primary, depth);
-        case tok_compareop:
-            return parse_compare_operator(parent, primary, depth);
-        */
-        case tok_unaryop:
-            return parse_suffix_unary(parent, primary, depth);
-
-        case tok_in:
-        case tok_operator:
-            return parse_operators(parent, primary, min_precedence, depth);
-
-        // <expr>.<identifier>
-        case tok_dot:
-            return parse_attribute(parent, primary, depth);
-        // <expr>[
-        case tok_square:
-            return parse_subscript(parent, primary, depth);
-
-        // ':' is only valid inside a subscript
-        case ':': {
-            if (allow_slice())
-                return parse_slice(parent, primary, depth);
-        }
-        }
-
-        return primary;
-    }
-
-    OpConfig get_operator_config(Token const &tok) const {
-        Dict<String, OpConfig> const &confs = default_precedence();
-
-        auto result = confs.find(tok.operator_name());
-        if (result == confs.end()) {
-            if (tok.type() != tok_eof) {
-                error("Could not find operator settings for {}", str(tok));
-            }
-            return OpConfig();
-        }
-        return result->second;
-    }
-
-    bool is_binary_operator_family(OpConfig const &conf) {
-        return conf.binarykind != BinaryOperator::None || conf.cmpkind != CmpOperator::None ||
-               conf.boolkind != BoolOperator::None;
-    }
-
-    // Precedence climbing method
-    // I liked shunting yard algorithm better has it was not recursive
-    // but it got issues with some edge cases.
-    //
-    // https://en.wikipedia.org/wiki/Operator-precedence_parser#:~:text=The%20precedence%20climbing%20method%20is%20a%20compact%2C%20efficient%2C,in%20EBNF%20format%20will%20usually%20look%20like%20this%3A
     ExprNode *parse_operators(Node *parent, ExprNode *lhs, int min_precedence, int depth);
 
-    // Expression we can guess rightaway from the current token we are seeing
-    ExprNode *parse_expression_primary(Node *parent, int depth) {
-        switch (token().type()) {
-        // await <expr>
-        case tok_await:
-            return parse_await(parent, depth);
+    // Helpers
+    // -------
+    void start_code_loc(CommonAttributes *target, Token tok);
 
-        // yield from <expr>
-        // yield <expr>
-        case tok_yield_from:
-        case tok_yield:
-            return parse_yield(parent, depth);
+    void end_code_loc(CommonAttributes *target, Token tok);
 
-        // <identifier>
-        case tok_identifier:
-            return parse_name(parent, depth);
-        // lambda <name>:
-        case tok_lambda:
-            return parse_lambda(parent, depth);
+    ConstantValue get_value();
 
-        case tok_float:
-            return parse_constant(parent, depth);
+    OpConfig get_operator_config(Token const &tok) const;
 
-        case tok_int:
-            return parse_constant(parent, depth);
-        // "
-        case tok_string:
-            return parse_constant(parent, depth);
-        // f"
-        case tok_fstring:
-            return parse_joined_string(parent, depth);
-        // if <expr> else <expr>
-        case tok_if:
-            return parse_ifexp(parent, depth);
+    bool is_binary_operator_family(OpConfig const &conf);
 
-        // *<expr>
-        case tok_star:
-        case tok_operator:
-            return parse_prefix_unary(parent, depth);
-
-        // List: [a, b]
-        // Comprehension [a for a in b]
-        case tok_square:
-            return parse_list(parent, depth);
-
-        // Tuple: (a, b)
-        // Generator Comprehension: (a for a in b)
-        // can be (1 + b)
-        case tok_parens:
-            return parse_tuple_generator(parent, depth);
-
-        // Set: {a, b}
-        // Comprehension {a for a in b}
-        //      OR
-        // Dict: {a : b}
-        // Comprehension {a: b for a, b in c}
-        case tok_curly:
-            return parse_set_dict(parent, depth);
-        }
-
-        // Left Unary operator
-        // + <expr> | - <expr> | ! <expr> | ~ <expr>
-
-        // TODO: return a dummy ExprNode
-        return nullptr;
-    }
-
-    ParsingError *expect_token(int expected, bool eat, Node *wip_expression, CodeLocation loc) {
-        return expect_tokens(Array<int>{expected}, eat, wip_expression, loc);
-    }
+    // Error Handling
+    // --------------
+    ParsingError *expect_token(int expected, bool eat, Node *wip_expression, CodeLocation loc);
 
     ParsingError *expect_operator(String const &op, bool eat, Node *wip_expression,
-                                  CodeLocation loc) {
-        Token tok = token();
-
-        auto err = expect_token(tok_operator, eat, wip_expression, LOC);
-        if (err != nullptr) {
-            return err;
-        }
-
-        if (tok.operator_name() == op) {
-            return nullptr;
-        }
-
-        err = &errors.emplace_back(ParsingError::syntax_error("Wrong operator"));
-        StringStream ss;
-        err->print(ss);
-        warn("{}", ss.str());
-        return err;
-    }
+                                  CodeLocation loc);
 
     ParsingError *expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,
-                                CodeLocation loc) {
-        for (auto &tok: expected) {
-            if (token().type() == tok) {
-                if (eat) {
-                    next_token();
-                }
+                                CodeLocation loc);
 
-                return nullptr;
-            }
-        }
-        // ----
-
-        return write_error(expected, wip_expression, loc);
-    }
-
-    ParsingError *write_error(Array<int> const &expected, Node *wip_expression, CodeLocation loc) {
-        // if the token does not match assume we "had it"
-        // and record the error
-        // so we can try to parse as much as possible
-        auto err = &errors.emplace_back(expected, token(), wip_expression, loc);
-
-        StringStream ss;
-        err->print(ss);
-
-        warn("{}", ss.str());
-        return err;
-    }
+    ParsingError *write_error(Array<int> const &expected, Node *wip_expression, CodeLocation loc);
 
     // Shortcuts
+    // ---------
     Token const &next_token() { return _lex.next_token(); }
     Token const &token() const { return _lex.token(); }
     Token const &peek_token() const { return _lex.peek_token(); }
@@ -446,9 +186,11 @@ class Parser {
         return _allow_slice[int(_allow_slice.size()) - 1];
     }
 
-    Array<ParsingError> get_errors() { return errors; }
+    Array<ParsingError> const &get_errors() const { return errors; }
 
     private:
+    Token previous = dummy();
+
     std::vector<bool>        _allow_slice;
     std::vector<ExprContext> _context;
     std::vector<bool>        async_mode;

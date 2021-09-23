@@ -80,7 +80,8 @@
     X(tok_yield_from, -49) \
     X(tok_in, -50)         \
     X(tok_finally, -51)    \
-    X(tok_nonlocal, -52)
+    X(tok_nonlocal, -52)   \
+    X(tok_comma, ',')
 
 #define LYTHON_KEYWORDS(X)      \
     X("def", tok_def)           \
@@ -110,7 +111,6 @@
     X("pass", tok_pass)         \
     X("break", tok_break)       \
     X("continue", tok_continue) \
-    X(":=", tok_walrus)         \
     X("await", tok_await)       \
     X("lambda", tok_lambda)     \
     X("in", tok_in)             \

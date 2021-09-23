@@ -28,7 +28,7 @@ struct CodeLocation {
     int         line;
     std::string function_long;
 
-    std::string repr() { return fmt::format("{}:{} {}", filename, line, function_name); }
+    std::string repr() const { return fmt::format("{}:{} {}", filename, line, function_name); }
 };
 
 #    ifdef __linux__

@@ -5,6 +5,9 @@
 
 namespace lython {
 
+#define GEN_INDENT() auto _C_idt = String(indent * 4, ' ');
+#define INDENT()     _C_idt;
+
 String Pattern::__str__() const {
     StringStream ss;
     print(ss);
@@ -22,7 +25,7 @@ String Node::__str__() const {
 
 String Comprehension::__str__() const {
     StringStream ss;
-    print(ss, 0);
+    print(ss, 1);
     return ss.str();
 }
 
@@ -241,7 +244,11 @@ void Slice::print(std::ostream &out, int indent) const {
 }
 
 void TupleExpr::print(std::ostream &out, int indent) const {
-    out << "(" << join<ExprNode *>(", ", elts) << ")";
+    if (indent == -1) {
+        out << join<ExprNode *>(", ", elts);
+    } else {
+        out << "(" << join<ExprNode *>(", ", elts) << ")";
+    }
 }
 
 void ListExpr::print(std::ostream &out, int indent) const {
@@ -622,9 +629,9 @@ void For::print(std::ostream &out, int indent) const {
     auto idt = String(indent * 4, ' ');
 
     out << idt << "for ";
-    target->print(out);
+    target->print(out, -1);
     out << " in ";
-    sprint(out, iter);
+    sprint(out, iter, -1);
     out << ":\n";
     print_body(out, indent + 1, body);
 
@@ -773,14 +780,14 @@ void Delete::print(std::ostream &out, int indent) const {
 }
 
 void AugAssign::print(std::ostream &out, int indent) const {
-    sprint(out, target);
+    sprint(out, target, -1);
     print_op(out, op, true);
     out << "= ";
-    sprint(out, value);
+    sprint(out, value, -1);
 }
 
 void Assign::print(std::ostream &out, int indent) const {
-    targets[0]->print(out, indent);
+    targets[0]->print(out, -1);
     out << " = ";
     value->print(out, indent);
 }
@@ -803,7 +810,7 @@ void Continue::print(std::ostream &out, int indent) const { out << "continue"; }
 
 void Expr::print(std::ostream &out, int indent) const {
     if (value != nullptr)
-        value->print(out, indent);
+        value->print(out, -1);
 }
 
 void Global::print(std::ostream &out, int indent) const { out << "global " << join(", ", names); }

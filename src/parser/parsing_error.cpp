@@ -4,7 +4,7 @@
 
 namespace lython {
 
-ParsingError::ParsingError(Array<int> expected, Token token, Node *obj, CodeLocation loc) :
+ParsingError::ParsingError(Array<int> expected, Token token, Node *obj, CodeLocation loc):
     ParsingError(expected, token, loc) {
     switch (obj->family()) {
     case NodeFamily::Expression:
@@ -30,7 +30,7 @@ void add_wip_expr(ParsingError *err, ExprNode *expr) {
     err->expr = expr;
 }
 
-void ParsingError::print(std::ostream &out) {
+void ParsingError::print(std::ostream &out) const {
     out << loc.repr() << std::endl;
 
     Array<String> toks;
