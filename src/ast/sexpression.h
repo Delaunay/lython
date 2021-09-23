@@ -737,6 +737,7 @@ struct Constant: public ExprNode {
             "1",
             "2.1",
             "'str'",
+            "\"str\"",
         };
         return _examples;
     }
@@ -1126,6 +1127,8 @@ struct If: public StmtNode {
         return _examples;
     }
 
+    void print(std::ostream &out, int indent) const ;
+
     If(): StmtNode(NodeKind::If) {}
 };
 
@@ -1143,6 +1146,8 @@ struct With: public StmtNode {
         };
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 
     With(): StmtNode(NodeKind::With) {}
 };
@@ -1197,7 +1202,8 @@ struct Assert: public StmtNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "assert a, 'b'",
+            "assert a",
+            "assert a, \"b\"",
         };
         return _examples;
     }

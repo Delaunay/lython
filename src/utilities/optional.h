@@ -10,28 +10,20 @@ class Optional {
 
     Optional(): _has_data(false) {}
 
-    Optional(const Optional &opt): _has_data(opt._has_data) {
+    Optional(const Optional &opt) {
         if (opt._has_data) {
-            new (&holder.data.value) T(opt.holder.data.value);
+            set_data(opt.holder.data.value);
         }
     }
 
     Optional &operator=(const T &data) {
-        if (!_has_data) {
-            new (&holder.data.value) T(data);
-        } else {
-            holder.data.value = data;
-            _has_data         = true;
-        }
-
+        set_data(data);
         return *this;
     }
 
     Optional &operator=(Optional const &opt) {
-        _has_data = opt._has_data;
-
-        if (_has_data) {
-            holder.data.value = opt.holder.data.value;
+        if (opt._has_data) {
+            set_data(opt.holder.data.value);
         }
         return *this;
     }
@@ -49,6 +41,15 @@ class Optional {
     T &value() { return holder.data.value; }
 
     private:
+    void set_data(const T &data) {
+        if (!_has_data) {
+            new (&holder.data.value) T(data);
+        } else {
+            holder.data.value = data;
+        }
+        _has_data = true;
+    }
+
     struct data_t {
         T value;
     };

@@ -26,6 +26,22 @@ String Comprehension::__str__() const {
     return ss.str();
 }
 
+void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body,
+                bool print_last = false) {
+    int k = 0;
+    for (auto &stmt: body) {
+        k += 1;
+
+        out << std::string(indent * 4, ' ');
+        stmt->print(out, indent);
+
+        //
+        if (k + 1 < body.size() || print_last) {
+            out << "\n";
+        }
+    }
+}
+
 template <typename T, typename... Args>
 void sprint(std::ostream &out, T *node, Args... args) {
     if (node == nullptr) {
@@ -110,7 +126,7 @@ void Raise::print(std::ostream &out, int indent) const {
     }
 
     if (cause.has_value()) {
-        out << " cause ";
+        out << " from ";
         cause.value()->print(out, indent);
     }
 }
@@ -120,17 +136,44 @@ void Assert::print(std::ostream &out, int indent) const {
     test->print(out, indent);
 
     if (msg.has_value()) {
-        out << " cause ";
+        out << ", ";
         msg.value()->print(out, indent);
     }
 }
 
+void With::print(std::ostream &out, int indent) const {
+    out << "with ";
+
+    int i = 0;
+    for (auto &item: items) {
+        item.context_expr->print(out, indent);
+
+        if (item.optional_vars.has_value()) {
+            out << " as ";
+            item.optional_vars.value()->print(out);
+        }
+
+        if (i + 1 < items.size()) {
+            out << ", ";
+        }
+        i += 1;
+    }
+    out << ":\n";
+
+    print_body(out, indent + 1, body);
+}
+
 void ConstantValue::print(std::ostream &out) const {
     switch (kind) {
+    case TInvalid:
+        out << "<Constant:Invalid>";
     case TString:
         out << "\"" << value.string << "\"";
 
     case TFloat:
+        out << value.single;
+
+    case TDouble:
         out << value.decimal;
 
     case TInt:
@@ -194,22 +237,6 @@ void Slice::print(std::ostream &out, int indent) const {
     if (step.has_value()) {
         out << ":";
         step.value()->print(out, indent);
-    }
-}
-
-void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body,
-                bool print_last = false) {
-    int k = 0;
-    for (auto &stmt: body) {
-        k += 1;
-
-        out << std::string(indent * 4, ' ');
-        stmt->print(out, indent);
-
-        //
-        if (k + 1 < body.size() || print_last) {
-            out << "\n";
-        }
     }
 }
 
@@ -347,6 +374,20 @@ void MatchCase::print(std::ostream &out, int indent) const {
 
     out << ":\n";
     print_body(out, indent + 1, body);
+}
+
+void If::print(std::ostream &out, int indent) const {
+    auto idt = String(indent * 4, ' ');
+
+    out << "if ";
+    test->print(out, indent);
+    out << ":\n";
+    print_body(out, indent + 1, body);
+
+    if (orelse.size()) {
+        out << "\n" << idt << "else:\n";
+        print_body(out, indent + 1, orelse);
+    }
 }
 
 void Match::print(std::ostream &out, int indent) const {
@@ -508,7 +549,7 @@ void Arguments::print(std::ostream &out, int indent) const {
         if (kwonlyargs.size() > 0) {
             out << ", ";
         }
-        out << "**" << kwarg.value();
+        out << "**" << kwarg.value().arg;
     }
 }
 
@@ -604,6 +645,7 @@ void ExceptHandler::print(std::ostream &out, int indent) const {
     }
 
     if (name.has_value()) {
+        out << " as ";
         out << name.value();
     }
 

@@ -3,6 +3,21 @@
 
 namespace lython {
 
+template <typename T, typename N>
+bool in(T const &e, N const &v) {
+    return e == v;
+}
+
+template <typename T, typename N, typename... Args>
+bool in(T const &e, N const &v, Args... args) {
+    return e == v || in(e, args...);
+}
+
+template <typename T, typename... Args>
+bool in(T const &e, Args... args) {
+    return in(e, args...);
+}
+
 StmtNode *not_implemented_stmt(Node *parent) { return parent->new_object<NotImplementedStmt>(); }
 
 ExprNode *not_implemented_expr(Node *parent) { return parent->new_object<NotImplementedExpr>(); }
@@ -213,6 +228,7 @@ StmtNode *Parser::parse_if(Node *parent, int depth) {
     stmt->test = parse_expression(stmt, depth + 1);
 
     expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -220,7 +236,11 @@ StmtNode *Parser::parse_if(Node *parent, int depth) {
     // The else belongs to the last ifexpr if any
     if (token().type() == tok_else) {
         next_token();
+
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
+
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
 
@@ -519,6 +539,7 @@ void Parser::parse_withitem(Node *parent, Array<WithItem> &out, int depth) {
         ExprNode *var  = nullptr;
 
         if (token().type() == tok_as) {
+            next_token();
             var = parse_expression(parent, depth + 1);
         }
 
@@ -549,6 +570,7 @@ StmtNode *Parser::parse_with(Node *parent, int depth) {
     parse_withitem(stmt, stmt->items, depth + 1);
 
     expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -583,7 +605,7 @@ StmtNode *Parser::parse_raise(Node *parent, int depth) {
 Token Parser::parse_except_handler(Node *parent, Array<ExceptHandler> &out, int depth) {
     TRACE_START();
 
-    do {
+    while (token().type() == tok_except) {
         next_token();
         ExceptHandler handler;
 
@@ -594,7 +616,6 @@ Token Parser::parse_except_handler(Node *parent, Array<ExceptHandler> &out, int 
                 next_token();
                 handler.name = get_identifier();
                 expect_token(tok_identifier, true, parent, LOC);
-                next_token();
             }
         }
 
@@ -605,8 +626,7 @@ Token Parser::parse_except_handler(Node *parent, Array<ExceptHandler> &out, int 
         parse_body(parent, handler.body, depth + 1);
 
         out.push_back(handler);
-
-    } while (token().type() == tok_except);
+    };
 
     return token();
 }
@@ -629,7 +649,6 @@ StmtNode *Parser::parse_try(Node *parent, int depth) {
     SHOW_TOK()
 
     if (token().type() == tok_except) {
-        next_token(); // except
         parse_except_handler(stmt, stmt->handlers, depth + 1);
     }
 
@@ -842,13 +861,11 @@ StmtNode *Parser::parse_del(Node *parent, int depth) {
         if (token().type() == ',') {
             next_token();
         } else {
-            expect_token(tok_newline, true, stmt, LOC);
             break;
         }
     }
 
     end_code_loc(stmt, token());
-    next_token();
     return stmt;
 }
 
@@ -955,13 +972,13 @@ ExprNode *Parser::parse_name(Node *parent, int depth) {
 ConstantValue Parser::get_value() {
     switch (token().type()) {
     case tok_string: {
-        return token().identifier();
+        return ConstantValue(token().identifier());
     }
     case tok_int: {
-        return token().as_integer();
+        return ConstantValue(token().as_integer());
     }
     case tok_float: {
-        return token().as_float();
+        return ConstantValue(token().as_float());
     }
     }
 
@@ -1004,7 +1021,7 @@ ExprNode *Parser::parse_yield(Node *parent, int depth) {
     start_code_loc(expr, token());
     next_token();
 
-    if (token().type() != tok_newline) {
+    if (!in(token().type(), tok_newline, tok_eof)) {
         expr->value = parse_expression(expr, depth + 1);
     } else {
         next_token();

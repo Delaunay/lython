@@ -39,21 +39,19 @@ void GCObject::free(GCObject *child) {
     manual_free(cclass_id, 1);
     device::CPU().free((void *)child, 1);
 
-    // info("freed {}", meta::type_name(cclass_id));
+    info("freed {}", meta::type_name(cclass_id));
 }
 
 GCObject::~GCObject() {
     // logging here generate:
-    // terminate called after throwing an instance of 'std::out_of_range'
-    // what():  basic_string::substr: __pos (which is 28) > this->size() (which is 21)
-    // info("freeing {}: {}", (void *)this, meta::type_name(class_id));
+    info("freeing {}: {}", (void *)this, meta::type_name(class_id));
     int ccclass_id = class_id;
 
     for (auto obj: children) {
         free(obj);
     }
 
-    // info("freed {}", meta::type_name(ccclass_id));
+    info("freed {}", meta::type_name(ccclass_id));
 }
 
 } // namespace lython

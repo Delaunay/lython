@@ -156,6 +156,7 @@ class Parser {
         case tok_augassign:
             return parse_augassign(parent, expr, depth);
         // <expr>: type = <>
+        case ':':
         case tok_annassign:
             return parse_annassign(parent, expr, depth);
         }
@@ -268,7 +269,9 @@ class Parser {
 
         auto result = confs.find(tok.operator_name());
         if (result == confs.end()) {
-            error("Could not find operator settings for {}", str(tok));
+            if (tok.type() != tok_eof) {
+                error("Could not find operator settings for {}", str(tok));
+            }
             return OpConfig();
         }
         return result->second;

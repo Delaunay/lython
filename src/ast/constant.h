@@ -4,42 +4,27 @@
 namespace lython {
 
 struct ConstantValue {
-public:
-    enum Type {
+    public:
+    enum Type
+    {
+        TInvalid,
         TInt,
         TFloat,
+        TDouble,
         TString
     };
 
     ConstantValue() = default;
 
-    ConstantValue(int v):
-        kind(TInt)
-    {
-        value.integer = v;
-    }
+    ConstantValue(int v): kind(TInt) { value.integer = v; }
 
-    ConstantValue(float v):
-        kind(TFloat)
-    {
-        value.decimal = v;
-    }
+    ConstantValue(float v): kind(TFloat) { value.single = v; }
 
-    ConstantValue(double v):
-        kind(TFloat)
-    {
-        value.decimal = v;
-    }
+    ConstantValue(double v): kind(TDouble) { value.decimal = v; }
 
-    ConstantValue(String const& v):
-        kind(TString)
-    {
-        value.string = v;
-    }
+    ConstantValue(String const &v) { set_string(v); }
 
-    ConstantValue(ConstantValue const& v){
-        copy_union(v.kind, v.value);
-    }
+    ConstantValue(ConstantValue const &v) { copy_union(v.kind, v.value); }
 
     ~ConstantValue() {
         if (kind == TString) {
@@ -47,43 +32,58 @@ public:
         }
     }
 
-    ConstantValue& operator= (ConstantValue const& v) {
+    ConstantValue &operator=(ConstantValue const &v) {
         copy_union(v.kind, v.value);
         return *this;
     }
 
-    template<typename T>
-    ConstantValue& operator= (T v) {
+    template <typename T>
+    ConstantValue &operator=(T const &v) {
         *this = ConstantValue(v);
         return *this;
     }
 
-    void print(std::ostream& out) const;
+    void print(std::ostream &out) const;
 
-private:
+    private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {
-        ValueVariant()  {}
+        ValueVariant() {}
         ~ValueVariant() {}
 
-        int integer;
+        int    integer;
         double decimal;
+        float  single;
         String string;
     };
 
     ValueVariant value;
-    Type kind;
+    Type         kind = TInvalid;
 
-    void copy_union(Type k, ValueVariant const& v) {
-        kind = k;
-        switch (kind) {
-        case TString: value.string = v.string;
-        case TFloat: value.decimal = v.decimal;
-        case TInt: value.integer = v.integer;
+    void set_string(const String &data) {
+        if (kind != Type::TString) {
+            new (&value.string) String(data);
+        } else {
+            value.string = data;
         }
+        kind = Type::TString;
+    }
+
+    void copy_union(Type k, ValueVariant const &v) {
+        switch (kind) {
+        case TString:
+            set_string(v.string);
+        case TDouble:
+            value.decimal = v.decimal;
+        case TFloat:
+            value.single = v.single;
+        case TInt:
+            value.integer = v.integer;
+        }
+        kind = k;
     }
 };
 
-} // lython
+} // namespace lython
 
 #endif
