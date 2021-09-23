@@ -170,17 +170,23 @@ void ConstantValue::print(std::ostream &out) const {
     switch (kind) {
     case TInvalid:
         out << "<Constant:Invalid>";
-    case TString:
-        out << "\"" << value.string << "\"";
-
-    case TFloat:
-        out << value.single;
-
-    case TDouble:
-        out << value.decimal;
+        break;
 
     case TInt:
         out << value.integer;
+        break;
+
+    case TFloat:
+        out << value.single;
+        break;
+
+    case TDouble:
+        out << value.decimal;
+        break;
+
+    case TString:
+        out << "\"" << value.string << "\"";
+        break;
     }
 }
 

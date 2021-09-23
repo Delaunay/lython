@@ -736,7 +736,7 @@ struct Constant: public ExprNode {
         Array<String> _examples = {
             "1",
             "2.1",
-            "'str'",
+            // "'str'",
             "\"str\"",
         };
         return _examples;
@@ -1009,6 +1009,11 @@ struct Delete: public StmtNode {
 };
 
 struct Assign: public StmtNode {
+    // The array is useless;
+    // only the first element is ever populated ?
+    // a, b = c
+    // Tuple(a, b) = c
+    //
     Array<ExprNode *> targets;
     ExprNode *        value = nullptr;
     Optional<String>  type_comment;

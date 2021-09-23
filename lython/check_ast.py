@@ -5,8 +5,7 @@ def show(code):
 
 code = \
 """
-for (i, *j) in range(10):
-    pass
+a, b = c
 """
 
 show(code)

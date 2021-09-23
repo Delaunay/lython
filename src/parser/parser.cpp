@@ -561,8 +561,24 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
     case tok_int:
     case tok_string:
     case tok_float: {
-        auto pat   = parent->new_object<MatchSingleton>();
-        pat->value = get_value();
+        // pat->value = get_value();
+        auto pat = parent->new_object<MatchSingleton>();
+
+        switch (token().type()) {
+        case tok_string: {
+            pat->value = token().identifier();
+            break;
+        }
+        case tok_int: {
+            pat->value = token().as_integer();
+            break;
+        }
+        case tok_float: {
+            pat->value = token().as_float();
+            break;
+        }
+        }
+        next_token();
         return pat;
     }
 
@@ -1125,12 +1141,15 @@ ExprNode *Parser::parse_constant(Node *parent, int depth) {
     switch (token().type()) {
     case tok_string: {
         expr->value = token().identifier();
+        break;
     }
     case tok_int: {
         expr->value = token().as_integer();
+        break;
     }
     case tok_float: {
         expr->value = token().as_float();
+        break;
     }
     }
 

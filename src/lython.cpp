@@ -60,10 +60,7 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = "for a in b:\n"
-                      "    pass\n"
-                      "else:\n"
-                      "    pass\n"
+        String code = "assert a, b\n"
 
             ;
         "def simple_function(a: b, c: d) -> e:\n"
