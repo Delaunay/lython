@@ -1180,11 +1180,13 @@ struct Try: public StmtNode {
             "    pass\n"
             "else:\n"
             "    pass\n"
-            "final:\n"
+            "finally:\n"
             "    pass\n",
         };
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 
     Try(): StmtNode(NodeKind::Try) {}
 };

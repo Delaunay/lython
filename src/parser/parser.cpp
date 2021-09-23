@@ -92,8 +92,12 @@ StmtNode *Parser::parse_class_def(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
+    stmt->name = get_identifier();
+    expect_token(tok_identifier, true, stmt, LOC);
+
     // Parse bases
     if (token().type() == tok_parens) {
+        next_token();
         parse_call_args(stmt, stmt->bases, stmt->keywords, depth + 1);
     }
 
@@ -162,7 +166,10 @@ StmtNode *Parser::parse_for(Node *parent, int depth) {
 
     if (token().type() == tok_else) {
         next_token();
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
+
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
 
@@ -183,8 +190,11 @@ StmtNode *Parser::parse_while(Node *parent, int depth) {
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
+
     if (token().type() == tok_else) {
         next_token();
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
@@ -573,26 +583,35 @@ StmtNode *Parser::parse_raise(Node *parent, int depth) {
 Token Parser::parse_except_handler(Node *parent, Array<ExceptHandler> &out, int depth) {
     TRACE_START();
 
-    while (token().type() == tok_except) {
+    do {
         next_token();
         ExceptHandler handler;
 
         if (token().type() != ':') {
             handler.type = parse_expression(parent, depth + 1);
 
-            if (token().type() == tok_identifier) {
+            if (token().type() == tok_as) {
+                next_token();
                 handler.name = get_identifier();
+                expect_token(tok_identifier, true, parent, LOC);
                 next_token();
             }
         }
 
         expect_token(':', true, parent, LOC);
+        expect_token(tok_newline, true, parent, LOC);
+        expect_token(tok_indent, true, parent, LOC);
+
         parse_body(parent, handler.body, depth + 1);
+
         out.push_back(handler);
-    }
+
+    } while (token().type() == tok_except);
 
     return token();
 }
+
+#define SHOW_TOK() error("{}", str(token()));
 
 StmtNode *Parser::parse_try(Node *parent, int depth) {
     TRACE_START();
@@ -602,21 +621,31 @@ StmtNode *Parser::parse_try(Node *parent, int depth) {
     next_token();
 
     expect_token(':', true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
+    SHOW_TOK()
+
     if (token().type() == tok_except) {
+        next_token(); // except
         parse_except_handler(stmt, stmt->handlers, depth + 1);
     }
 
     if (token().type() == tok_else) {
-        next_token();
+        next_token(); // else
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
+        expect_token(tok_indent, true, stmt, LOC);
         parse_body(stmt, stmt->orelse, depth + 1);
     }
 
     if (token().type() == tok_finally) {
-        next_token();
+        next_token(); // finally
+        expect_token(':', true, stmt, LOC);
+        expect_token(tok_newline, true, stmt, LOC);
+        expect_token(tok_indent, true, stmt, LOC);
         parse_body(stmt, stmt->finalbody, depth + 1);
     }
 
@@ -755,7 +784,6 @@ StmtNode *Parser::parse_global(Node *parent, int depth) {
     }
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt, LOC);
     return stmt;
 }
 
@@ -778,7 +806,6 @@ StmtNode *Parser::parse_nonlocal(Node *parent, int depth) {
     }
 
     end_code_loc(stmt, token());
-    expect_token(tok_newline, true, stmt, LOC);
     return stmt;
 }
 

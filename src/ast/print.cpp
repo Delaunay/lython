@@ -213,21 +213,6 @@ void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body,
     }
 }
 
-void ExceptHandler::print(std::ostream &out, int indent) const {
-    out << "except ";
-
-    if (type.has_value()) {
-        type.value()->print(out, indent);
-    }
-
-    if (name.has_value()) {
-        out << name.value();
-    }
-
-    out << ":\n";
-    lython::print_body(out, indent + 1, body);
-}
-
 void TupleExpr::print(std::ostream &out, int indent) const {
     out << "(" << join<ExprNode *>(", ", elts) << ")";
 }
@@ -369,8 +354,13 @@ void Match::print(std::ostream &out, int indent) const {
     subject->print(out, indent);
     out << ":\n";
 
+    int i = 0;
     for (auto &case_: cases) {
         case_.print(out, indent + 1);
+
+        if (i + 1 < cases.size()) {
+            out << '\n';
+        }
     }
 }
 
@@ -487,7 +477,15 @@ void Arguments::print(std::ostream &out, int indent) const {
         i += 1;
     }
 
-    if (args.size() > 0 && kwonlyargs.size() > 0) {
+    if (vararg.has_value()) {
+        if (args.size() > 0) {
+            out << ", ";
+        }
+
+        out << "*" << vararg.value().arg;
+    }
+
+    if ((args.size() > 0 || vararg.has_value()) && kwonlyargs.size() > 0) {
         out << ", ";
     }
 
@@ -504,6 +502,13 @@ void Arguments::print(std::ostream &out, int indent) const {
             out << ", ";
         }
         i += 1;
+    }
+
+    if (kwarg.has_value()) {
+        if (kwonlyargs.size() > 0) {
+            out << ", ";
+        }
+        out << "**" << kwarg.value();
     }
 }
 
@@ -573,7 +578,9 @@ void FunctionDef::print(std::ostream &out, int indent) const {
 }
 
 void For::print(std::ostream &out, int indent) const {
-    out << "for ";
+    auto idt = String(indent * 4, ' ');
+
+    out << idt << "for ";
     target->print(out);
     out << " in ";
     sprint(out, iter);
@@ -581,8 +588,47 @@ void For::print(std::ostream &out, int indent) const {
     print_body(out, indent + 1, body);
 
     if (orelse.size() > 0) {
-        out << String(indent * 4, ' ') << "else:\n";
+        out << '\n';
+        out << idt << "else:\n";
         print_body(out, indent + 1, orelse);
+    }
+}
+
+void ExceptHandler::print(std::ostream &out, int indent) const {
+    auto idt = String(indent * 4, ' ');
+
+    out << '\n' << idt << "except ";
+
+    if (type.has_value()) {
+        type.value()->print(out, indent);
+    }
+
+    if (name.has_value()) {
+        out << name.value();
+    }
+
+    out << ":\n";
+    lython::print_body(out, indent + 1, body);
+}
+
+void Try::print(std::ostream &out, int indent) const {
+    auto idt = String(indent * 4, ' ');
+
+    out << idt << "try:\n";
+    print_body(out, indent + 1, body);
+
+    for (auto &handler: handlers) {
+        handler.print(out, indent);
+    }
+
+    if (orelse.size() > 0) {
+        out << "\n" << idt << "else:\n";
+        print_body(out, indent + 1, orelse);
+    }
+
+    if (finalbody.size() > 0) {
+        out << "\n" << idt << "finally:\n";
+        print_body(out, indent + 1, finalbody);
     }
 }
 
@@ -650,13 +696,15 @@ void UnaryOp::print(std::ostream &out, int indent) const {
 }
 
 void While::print(std::ostream &out, int indent) const {
-    out << "while ";
+    auto idt = String(indent * 4, ' ');
+
+    out << idt << "while ";
     test->print(out);
     out << ":\n";
     print_body(out, indent + 1, body);
 
     if (orelse.size() > 0) {
-        out << String(indent * 4, ' ') << "else:\n";
+        out << '\n' << idt << "else:\n";
         print_body(out, indent + 1, orelse);
     }
 }

@@ -34,7 +34,7 @@ TEST_CASE("Parser") {
 }
 
 #define GENTEST(name)                                         \
-    TEMPLATE_TEST_CASE(#name, "", name) {                     \
+    TEMPLATE_TEST_CASE("Parse_" #name, #name, name) {         \
         info("Testing {}", str(nodekind<TestType>()));        \
         Array<String> const &examples = TestType::examples(); \
                                                               \
