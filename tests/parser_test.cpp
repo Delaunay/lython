@@ -29,8 +29,8 @@ inline String parse_it(String code) {
     SECTION(#code) { REQUIRE(strip(parse_it(code())) == strip(code())); }
 
 TEST_CASE("Parser") {
-    // CODE_SAMPLES(TEST_PARSING)
-    // IMPORT_TEST(TEST_PARSING)
+    CODE_SAMPLES(TEST_PARSING)
+    IMPORT_TEST(TEST_PARSING)
 }
 
 #define GENTEST(name)                                         \

@@ -55,6 +55,7 @@ DEFINE_SAMPLE_CODE(simple_match, "def simple_match(a: bool) -> Float:\n"
                                  "        case false:\n"
                                  "            return true\n"
                                  "\n"
+                                 "\n"
                                  "simple_match(true)\n\n")
 
 DEFINE_SAMPLE_CODE(simple_while_loop, "def simple_while_loop():\n"
@@ -62,11 +63,13 @@ DEFINE_SAMPLE_CODE(simple_while_loop, "def simple_while_loop():\n"
                                       "    while i > 0:\n"
                                       "        i -= 1\n"
                                       "\n"
+                                      "\n"
                                       "simple_while_loop()\n\n")
 
 DEFINE_SAMPLE_CODE(simple_for_loop, "def simple_for_loop():\n"
                                     "    for i in range(10):\n"
                                     "        d = 2\n"
+                                    "\n"
                                     "\n"
                                     "simple_for_loop()\n\n")
 

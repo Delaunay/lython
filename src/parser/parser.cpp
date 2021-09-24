@@ -723,7 +723,9 @@ StmtNode *Parser::parse_match(Node *parent, int depth) {
 
     auto last = parse_match_case(stmt, stmt->cases, depth);
 
+    expect_tokens({tok_desindent, tok_eof}, true, stmt, LOC);
     end_code_loc(stmt, last);
+    TRACE_END();
     return stmt;
 }
 

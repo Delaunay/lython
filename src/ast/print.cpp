@@ -659,13 +659,15 @@ void FunctionDef::print(std::ostream &out, int indent) const {
         out << String((indent + 1) * 4, ' ') << "\"\"\"" << docstring << "\"\"\"\n";
     }
 
-    lython::print_body(out, indent + 1, body, true);
+    print_body(out, indent + 1, body, true);
+
+    out << "\n";
 }
 
 void For::print(std::ostream &out, int indent) const {
     auto idt = String(indent * 4, ' ');
 
-    out << idt << "for ";
+    out << "for ";
     target->print(out, -1);
     out << " in ";
     sprint(out, iter, -1);
@@ -784,7 +786,7 @@ void UnaryOp::print(std::ostream &out, int indent) const {
 void While::print(std::ostream &out, int indent) const {
     auto idt = String(indent * 4, ' ');
 
-    out << idt << "while ";
+    out << "while ";
     test->print(out);
     out << ":\n";
     print_body(out, indent + 1, body);
@@ -801,8 +803,6 @@ void Return::print(std::ostream &out, int indent) const {
     if (value.has_value()) {
         value.value()->print(out, indent);
     }
-
-    out << "\n";
 }
 
 void Delete::print(std::ostream &out, int indent) const {
