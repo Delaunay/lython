@@ -1349,11 +1349,18 @@ struct Match: public StmtNode {
     static Array<String> examples() {
         Array<String> _examples = {
             "match a:\n"
-            "    case b:\n"
+            "    case [1, 3]:\n"
             "        pass\n"
-            "    case c:\n"
-            "        pass\n",
+            "    case p as c:\n"
+            "        pass\n"
+            "    case a | c:\n"
+            "        pass\n"
+            "    case ClassName(a, b, c):\n"
+            "        pass\n"
+            "    case d if b:\n"
+            "        pass\n"
         };
+
         return _examples;
     }
 

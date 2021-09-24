@@ -440,6 +440,7 @@ Pattern *Parser::parse_match_sequence(Node *parent, int depth) {
 
     auto pat = parent->new_object<MatchSequence>();
     start_code_loc(pat, token());
+    next_token();
 
     while (token().type() != ']') {
         auto child = parse_pattern(pat, depth + 1);
@@ -497,13 +498,13 @@ Pattern *Parser::parse_match_class(Node *parent, ExprNode *cls, int depth) {
         }
 
         // keywords
-        if (keyword) {
+        else if (keyword) {
             pat->kwd_attrs.push_back(get_identifier());
             expect_token(tok_identifier, true, pat, LOC);
             pat->kwd_patterns.push_back(parse_pattern(pat, depth + 1));
         }
 
-        if (next_token().type() == ',') {
+        if (token().type() == ',') {
             next_token();
         } else {
             end_code_loc(pat, token());
@@ -555,13 +556,18 @@ Pattern *Parser::parse_match_or(Node *parent, Pattern *child, int depth) {
 
     // TODO: this is the loc of '|' not the start of the expression
     start_code_loc(pat, token());
+
+    if (token().operator_name() != "|") {
+        error("Unexpected operator {}", token().operator_name());
+    }
+
     next_token();
 
     while (token().type() != ':') {
         child = parse_pattern(pat, depth + 1);
         pat->patterns.push_back(child);
 
-        if (token().type() == '|') {
+        if (token().type() == tok_operator && token().operator_name() == "|") {
             next_token();
         } else {
             // could be ":" or "if"
@@ -578,7 +584,8 @@ Pattern *Parser::parse_match_or(Node *parent, Pattern *child, int depth) {
 Pattern *Parser::parse_match_as(Node *parent, Pattern *primary, int depth) {
     TRACE_START();
 
-    auto pat = parent->new_object<MatchAs>();
+    auto pat     = parent->new_object<MatchAs>();
+    pat->pattern = primary;
 
     // TODO: this is the loc of 'as' not the start of the expression
     start_code_loc(pat, token());
@@ -639,7 +646,7 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
 
     // Value
     default: {
-        auto     value = parse_expression(parent, depth + 1);
+        auto     value = parse_expression_primary(parent, depth + 1);
         Pattern *pat   = nullptr;
 
         // <expr> if|:
@@ -647,8 +654,7 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
             pat                        = parent->new_object<MatchValue>();
             ((MatchValue *)pat)->value = value;
         } else {
-            pat = parse_match_class(parent, value, depth);
-            ;
+            pat = parse_match_class(parent, value, depth + 1);
         }
 
         parent->remove_child(value, false);
@@ -664,12 +670,13 @@ Pattern *Parser::parse_pattern(Node *parent, int depth) {
     auto primary = parse_pattern_1(parent, depth);
 
     switch (token().type()) {
+    case tok_operator:
     case '|':
         return parse_match_or(parent, primary, depth);
+
     case tok_as:
         return parse_match_as(parent, primary, depth);
     }
-
     // could be ":" or "if"
     // expect_token(':', false, primary, LOC);
     return primary;
@@ -688,6 +695,7 @@ Token Parser::parse_match_case(Node *parent, Array<MatchCase> &out, int depth) {
 
         // Guard
         if (token().type() == tok_if) {
+            next_token();
             case_.guard = parse_expression(parent, depth + 1);
         }
 

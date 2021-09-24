@@ -318,7 +318,7 @@ void MatchValue::print(std::ostream &out) const { value->print(out); }
 void MatchSingleton::print(std::ostream &out) const { value.print(out); }
 
 void MatchSequence::print(std::ostream &out) const {
-    auto result = join(",", patterns);
+    auto result = join(", ", patterns);
     out << "[" << result << "]";
 }
 
