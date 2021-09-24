@@ -501,6 +501,7 @@ Pattern *Parser::parse_match_class(Node *parent, ExprNode *cls, int depth) {
         else if (keyword) {
             pat->kwd_attrs.push_back(get_identifier());
             expect_token(tok_identifier, true, pat, LOC);
+            expect_token(tok_assign, true, pat, LOC);
             pat->kwd_patterns.push_back(parse_pattern(pat, depth + 1));
         }
 

@@ -339,7 +339,7 @@ void MatchClass::print(std::ostream &out) const {
     out << "(" << join(", ", patterns);
 
     if (patterns.size() > 0 && kwd_attrs.size() > 0) {
-        out << ",";
+        out << ", ";
     }
 
     Array<String> kwdpat;

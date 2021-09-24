@@ -1355,7 +1355,7 @@ struct Match: public StmtNode {
             "        pass\n"
             "    case a | c:\n"
             "        pass\n"
-            "    case ClassName(a, b, c):\n"
+            "    case ClassName(a, b, c=d):\n"
             "        pass\n"
             "    case d if b:\n"
             "        pass\n"
