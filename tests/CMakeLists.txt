@@ -24,7 +24,6 @@ INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
 MACRO(TEST_MACRO NAME) # LIBRARIES
   ADD_EXECUTABLE(${NAME}_test ${NAME}_test.cpp ${TEST_HEADERS})
   TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 liblython liblogging)
-
   ADD_DEPENDENCIES(${NAME}_test liblython liblogging)
 
 	IF(UNIX)
@@ -37,13 +36,13 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
       COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NAME}_test)
 ENDMACRO(TEST_MACRO)
 
+ADD_TEST(
+   NAME lython
+   WORKING_DIRECTORY .
+   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
+
 # add test here
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
 TEST_MACRO(main)
-
-#ADD_TEST(
-#    NAME lythonMain
-#    WORKING_DIRECTORY .
-#    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
 
 
