@@ -211,6 +211,7 @@ StmtNode *Parser::parse_class_def(Node *parent, int depth) {
     if (token().type() == tok_docstring) {
         stmt->docstring = token().identifier();
         next_token();
+        expect_token(tok_newline, true, stmt, LOC);
     }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);

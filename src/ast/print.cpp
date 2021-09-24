@@ -29,16 +29,28 @@ String Comprehension::__str__() const {
     return ss.str();
 }
 
-void print_body(std::ostream &out, int indent, Array<StmtNode *> const &body,
+String const &indent(int level, int scale = 4) {
+    static String l0;
+
+    if (level <= 0)
+        return l0;
+
+    // one time allocation of an empty string
+    static String latest = String(128, ' ');
+    latest.resize(scale * level, ' ');
+    return latest;
+}
+
+void print_body(std::ostream &out, int level, Array<StmtNode *> const &body,
                 bool print_last = false) {
+
     int k = 0;
     for (auto &stmt: body) {
         k += 1;
 
-        out << std::string(indent * 4, ' ');
-        stmt->print(out, indent);
+        out << indent(level);
+        stmt->print(out, level);
 
-        //
         if (k + 1 < body.size() || print_last) {
             out << "\n";
         }
@@ -122,34 +134,34 @@ void print_op(std::ostream &out, UnaryOperator op) {
     // clang-format on
 }
 
-void Raise::print(std::ostream &out, int indent) const {
+void Raise::print(std::ostream &out, int level) const {
     out << "raise ";
     if (exc.has_value()) {
-        exc.value()->print(out, indent);
+        exc.value()->print(out, level);
     }
 
     if (cause.has_value()) {
         out << " from ";
-        cause.value()->print(out, indent);
+        cause.value()->print(out, level);
     }
 }
 
-void Assert::print(std::ostream &out, int indent) const {
+void Assert::print(std::ostream &out, int level) const {
     out << "assert ";
-    test->print(out, indent);
+    test->print(out, level);
 
     if (msg.has_value()) {
         out << ", ";
-        msg.value()->print(out, indent);
+        msg.value()->print(out, level);
     }
 }
 
-void With::print(std::ostream &out, int indent) const {
+void With::print(std::ostream &out, int level) const {
     out << "with ";
 
     int i = 0;
     for (auto &item: items) {
-        item.context_expr->print(out, indent);
+        item.context_expr->print(out, level);
 
         if (item.optional_vars.has_value()) {
             out << " as ";
@@ -163,7 +175,7 @@ void With::print(std::ostream &out, int indent) const {
     }
     out << ":\n";
 
-    print_body(out, indent + 1, body);
+    print_body(out, level + 1, body);
 }
 
 void ConstantValue::print(std::ostream &out) const {
@@ -190,7 +202,7 @@ void ConstantValue::print(std::ostream &out) const {
     }
 }
 
-void Import::print(std::ostream &out, int indent) const {
+void Import::print(std::ostream &out, int level) const {
     out << "import ";
 
     int i = 0;
@@ -209,7 +221,7 @@ void Import::print(std::ostream &out, int indent) const {
     }
 }
 
-void ImportFrom::print(std::ostream &out, int indent) const {
+void ImportFrom::print(std::ostream &out, int level) const {
     out << "from ";
     if (module.has_value()) {
         out << module.value();
@@ -232,40 +244,40 @@ void ImportFrom::print(std::ostream &out, int indent) const {
     }
 }
 
-void Slice::print(std::ostream &out, int indent) const {
+void Slice::print(std::ostream &out, int level) const {
     if (lower.has_value()) {
-        lower.value()->print(out, indent);
+        lower.value()->print(out, level);
     }
 
     out << ":";
 
     if (upper.has_value()) {
-        upper.value()->print(out, indent);
+        upper.value()->print(out, level);
     }
 
     if (step.has_value()) {
         out << ":";
-        step.value()->print(out, indent);
+        step.value()->print(out, level);
     }
 }
 
-void TupleExpr::print(std::ostream &out, int indent) const {
-    if (indent == -1) {
+void TupleExpr::print(std::ostream &out, int level) const {
+    if (level == -1) {
         out << join<ExprNode *>(", ", elts);
     } else {
         out << "(" << join<ExprNode *>(", ", elts) << ")";
     }
 }
 
-void ListExpr::print(std::ostream &out, int indent) const {
+void ListExpr::print(std::ostream &out, int level) const {
     out << "[" << join<ExprNode *>(", ", elts) << "]";
 }
 
-void SetExpr::print(std::ostream &out, int indent) const {
+void SetExpr::print(std::ostream &out, int level) const {
     out << "{" << join<ExprNode *>(", ", elts) << "}";
 }
 
-void DictExpr::print(std::ostream &out, int indent) const {
+void DictExpr::print(std::ostream &out, int level) const {
     Array<String> strs;
     strs.reserve(keys.size());
 
@@ -277,39 +289,39 @@ void DictExpr::print(std::ostream &out, int indent) const {
     out << "{" << join(", ", strs) << "}";
 }
 
-void Comprehension::print(std::ostream &out, int indent) const {
+void Comprehension::print(std::ostream &out, int level) const {
     out << " for ";
-    target->print(out, indent);
+    target->print(out, level);
     out << " in ";
-    iter->print(out, indent);
+    iter->print(out, level);
 
     for (auto expr: ifs) {
         out << " if ";
-        expr->print(out, indent);
+        expr->print(out, level);
     }
 }
 
-void Keyword::print(std::ostream &out, int indent) const {
+void Keyword::print(std::ostream &out, int level) const {
     out << arg;
 
     if (value != nullptr) {
         out << " = ";
-        value->print(out, indent);
+        value->print(out, level);
     }
 }
 
-void Alias::print(std::ostream &out, int indent) const {
+void Alias::print(std::ostream &out, int level) const {
     out << name;
     if (asname.has_value()) {
         out << " as " << asname.value();
     }
 }
 
-void WithItem::print(std::ostream &out, int indent) const {
-    context_expr->print(out, indent);
+void WithItem::print(std::ostream &out, int level) const {
+    context_expr->print(out, level);
     if (optional_vars.has_value()) {
         out << " as ";
-        optional_vars.value()->print(out, indent);
+        optional_vars.value()->print(out, level);
     }
 }
 
@@ -374,10 +386,10 @@ void MatchAs::print(std::ostream &out) const {
 
 void MatchOr::print(std::ostream &out) const { out << join(" | ", patterns); }
 
-void Module::print(std::ostream &out, int indent) const { print_body(out, indent, body); }
+void Module::print(std::ostream &out, int level) const { print_body(out, level, body); }
 
-void MatchCase::print(std::ostream &out, int indent) const {
-    out << String(4 * indent, ' ') << "case ";
+void MatchCase::print(std::ostream &out, int level) const {
+    out << indent(level) << "case ";
     pattern->print(out);
 
     if (guard.has_value()) {
@@ -386,41 +398,39 @@ void MatchCase::print(std::ostream &out, int indent) const {
     }
 
     out << ":\n";
-    print_body(out, indent + 1, body);
+    print_body(out, level + 1, body);
 }
 
-void If::print(std::ostream &out, int indent) const {
-    auto idt = String(indent * 4, ' ');
-
+void If::print(std::ostream &out, int level) const {
     out << "if ";
-    test->print(out, indent);
+    test->print(out, level);
     out << ":\n";
-    print_body(out, indent + 1, body);
+    print_body(out, level + 1, body);
 
     for (int i = 0; i < tests.size(); i++) {
         auto &eliftest = tests[i];
         auto &elifbody = bodies[i];
 
-        out << "\n" << idt << "elif ";
-        eliftest->print(out, indent);
+        out << "\n" << indent(level) << "elif ";
+        eliftest->print(out, level);
         out << ":\n";
-        print_body(out, indent + 1, elifbody);
+        print_body(out, level + 1, elifbody);
     }
 
     if (orelse.size()) {
-        out << "\n" << idt << "else:\n";
-        print_body(out, indent + 1, orelse);
+        out << "\n" << indent(level) << "else:\n";
+        print_body(out, level + 1, orelse);
     }
 }
 
-void Match::print(std::ostream &out, int indent) const {
+void Match::print(std::ostream &out, int level) const {
     out << "match ";
-    subject->print(out, indent);
+    subject->print(out, level);
     out << ":\n";
 
     int i = 0;
     for (auto &case_: cases) {
-        case_.print(out, indent + 1);
+        case_.print(out, level + 1);
 
         if (i + 1 < cases.size()) {
             out << '\n';
@@ -428,23 +438,23 @@ void Match::print(std::ostream &out, int indent) const {
     }
 }
 
-void Lambda::print(std::ostream &out, int indent) const {
+void Lambda::print(std::ostream &out, int level) const {
     out << "lambda ";
     args.print(out, 0);
     out << ": ";
-    body->print(out, indent);
+    body->print(out, level);
 }
 
-void IfExp::print(std::ostream &out, int indent) const {
+void IfExp::print(std::ostream &out, int level) const {
     out << "if ";
     test->print(out);
     out << ": ";
     body->print(out);
     out << " else ";
-    orelse->print(out, indent);
+    orelse->print(out, level);
 }
 
-void ListComp::print(std::ostream &out, int indent) const {
+void ListComp::print(std::ostream &out, int level) const {
     out << "[";
     elt->print(out);
 
@@ -453,7 +463,7 @@ void ListComp::print(std::ostream &out, int indent) const {
     out << "]";
 }
 
-void SetComp::print(std::ostream &out, int indent) const {
+void SetComp::print(std::ostream &out, int level) const {
     out << "{";
     elt->print(out);
 
@@ -462,7 +472,7 @@ void SetComp::print(std::ostream &out, int indent) const {
     out << "}";
 }
 
-void GeneratorExp::print(std::ostream &out, int indent) const {
+void GeneratorExp::print(std::ostream &out, int level) const {
     out << "(";
     elt->print(out);
 
@@ -471,7 +481,7 @@ void GeneratorExp::print(std::ostream &out, int indent) const {
     out << ")";
 }
 
-void DictComp::print(std::ostream &out, int indent) const {
+void DictComp::print(std::ostream &out, int level) const {
     out << "{";
     key->print(out);
     out << ": ";
@@ -481,29 +491,29 @@ void DictComp::print(std::ostream &out, int indent) const {
     out << "}";
 }
 
-void Await::print(std::ostream &out, int indent) const {
+void Await::print(std::ostream &out, int level) const {
     out << "await ";
     value->print(out);
 }
 
-void Yield::print(std::ostream &out, int indent) const {
+void Yield::print(std::ostream &out, int level) const {
     out << "yield ";
     if (value.has_value()) {
         value.value()->print(out);
     }
 }
 
-void YieldFrom::print(std::ostream &out, int indent) const {
+void YieldFrom::print(std::ostream &out, int level) const {
     out << "yield from ";
     value->print(out);
 }
 
-void Call::print(std::ostream &out, int indent) const {
-    func->print(out, indent);
+void Call::print(std::ostream &out, int level) const {
+    func->print(out, level);
     out << "(";
 
     for (int i = 0; i < args.size(); i++) {
-        args[i]->print(out, indent);
+        args[i]->print(out, level);
 
         if (i < args.size() - 1 || keywords.size() > 0)
             out << ", ";
@@ -514,7 +524,7 @@ void Call::print(std::ostream &out, int indent) const {
 
         out << keywords[i].arg;
         out << "=";
-        key.value->print(out, indent);
+        key.value->print(out, level);
 
         if (i < keywords.size() - 1)
             out << ", ";
@@ -523,9 +533,9 @@ void Call::print(std::ostream &out, int indent) const {
     out << ")";
 }
 
-void Constant::print(std::ostream &out, int indent) const { value.print(out); }
+void Constant::print(std::ostream &out, int level) const { value.print(out); }
 
-void Arguments::print(std::ostream &out, int indent) const {
+void Arguments::print(std::ostream &out, int level) const {
     int i = 0;
 
     for (auto &arg: args) {
@@ -533,7 +543,7 @@ void Arguments::print(std::ostream &out, int indent) const {
 
         if (arg.annotation.has_value()) {
             out << ": ";
-            arg.annotation.value()->print(out, indent);
+            arg.annotation.value()->print(out, level);
         }
 
         auto default_offset = args.size() - 1 - i;
@@ -570,7 +580,7 @@ void Arguments::print(std::ostream &out, int indent) const {
 
         if (kw.annotation.has_value()) {
             out << ": ";
-            kw.annotation.value()->print(out, indent);
+            kw.annotation.value()->print(out, level);
         }
 
         auto default_offset = kwonlyargs.size() - 1 - i;
@@ -597,21 +607,21 @@ void Arguments::print(std::ostream &out, int indent) const {
     }
 }
 
-void Arg::print(std::ostream &out, int indent) const {
+void Arg::print(std::ostream &out, int level) const {
     out << arg;
     if (annotation.has_value()) {
         out << ": ";
-        annotation.value()->print(out, indent);
+        annotation.value()->print(out, level);
     }
 }
 
-void NamedExpr::print(std::ostream &out, int indent) const {
-    target->print(out, indent);
+void NamedExpr::print(std::ostream &out, int level) const {
+    target->print(out, level);
     out << " := ";
-    value->print(out, indent);
+    value->print(out, level);
 }
 
-void ClassDef::print(std::ostream &out, int indent) const {
+void ClassDef::print(std::ostream &out, int level) const {
     out << "class " << name;
     if (bases.size() + keywords.size() > 0) {
         out << '(';
@@ -639,55 +649,55 @@ void ClassDef::print(std::ostream &out, int indent) const {
 
     out << ":\n";
 
-    print_body(out, indent + 1, body);
+    if (docstring.has_value()) {
+        out << indent(level + 1) << "\"\"\"" << docstring.value() << "\"\"\"\n";
+    }
+
+    print_body(out, level + 1, body);
 }
 
-void FunctionDef::print(std::ostream &out, int indent) const {
+void FunctionDef::print(std::ostream &out, int level) const {
     out << "def " << name << "(";
 
-    args.print(out, indent);
+    args.print(out, level);
     out << ")";
 
     if (returns.has_value()) {
         out << " -> ";
-        returns.value()->print(out, indent);
+        returns.value()->print(out, level);
     }
 
     out << ":\n";
 
-    if (docstring.size() > 0) {
-        out << String((indent + 1) * 4, ' ') << "\"\"\"" << docstring << "\"\"\"\n";
+    if (docstring.has_value()) {
+        out << indent(level + 1) << "\"\"\"" << docstring.value() << "\"\"\"\n";
     }
 
-    print_body(out, indent + 1, body, true);
+    print_body(out, level + 1, body, true);
 
     out << "\n";
 }
 
-void For::print(std::ostream &out, int indent) const {
-    auto idt = String(indent * 4, ' ');
-
+void For::print(std::ostream &out, int level) const {
     out << "for ";
     target->print(out, -1);
     out << " in ";
     sprint(out, iter, -1);
     out << ":\n";
-    print_body(out, indent + 1, body);
+    print_body(out, level + 1, body);
 
     if (orelse.size() > 0) {
         out << '\n';
-        out << idt << "else:\n";
-        print_body(out, indent + 1, orelse);
+        out << indent(level) << "else:\n";
+        print_body(out, level + 1, orelse);
     }
 }
 
-void ExceptHandler::print(std::ostream &out, int indent) const {
-    auto idt = String(indent * 4, ' ');
-
-    out << '\n' << idt << "except ";
+void ExceptHandler::print(std::ostream &out, int level) const {
+    out << '\n' << indent(level) << "except ";
 
     if (type.has_value()) {
-        type.value()->print(out, indent);
+        type.value()->print(out, level);
     }
 
     if (name.has_value()) {
@@ -696,36 +706,34 @@ void ExceptHandler::print(std::ostream &out, int indent) const {
     }
 
     out << ":\n";
-    lython::print_body(out, indent + 1, body);
+    lython::print_body(out, level + 1, body);
 }
 
-void Try::print(std::ostream &out, int indent) const {
-    auto idt = String(indent * 4, ' ');
-
-    out << idt << "try:\n";
-    print_body(out, indent + 1, body);
+void Try::print(std::ostream &out, int level) const {
+    out << "try:\n";
+    print_body(out, level + 1, body);
 
     for (auto &handler: handlers) {
-        handler.print(out, indent);
+        handler.print(out, level);
     }
 
     if (orelse.size() > 0) {
-        out << "\n" << idt << "else:\n";
-        print_body(out, indent + 1, orelse);
+        out << "\n" << indent(level) << "else:\n";
+        print_body(out, level + 1, orelse);
     }
 
     if (finalbody.size() > 0) {
-        out << "\n" << idt << "finally:\n";
-        print_body(out, indent + 1, finalbody);
+        out << "\n" << indent(level) << "finally:\n";
+        print_body(out, level + 1, finalbody);
     }
 }
 
-void Compare::print(std::ostream &out, int indent) const {
-    left->print(out, indent);
+void Compare::print(std::ostream &out, int level) const {
+    left->print(out, level);
 
     for (int i = 0; i < ops.size(); i++) {
         print_op(out, ops[i]);
-        comparators[i]->print(out, indent);
+        comparators[i]->print(out, level);
     }
 }
 
@@ -747,7 +755,7 @@ int get_precedence(Node const *node) {
     return 1000;
 }
 
-void BinOp::print(std::ostream &out, int indent) const {
+void BinOp::print(std::ostream &out, int level) const {
     auto self    = get_precedence(this);
     auto lhspred = get_precedence(left) <= self;
     auto rhspred = get_precedence(right) <= self;
@@ -755,7 +763,7 @@ void BinOp::print(std::ostream &out, int indent) const {
     if (lhspred) {
         out << '(';
     }
-    left->print(out, indent);
+    left->print(out, level);
     if (lhspred) {
         out << ')';
     }
@@ -765,94 +773,92 @@ void BinOp::print(std::ostream &out, int indent) const {
     if (rhspred) {
         out << '(';
     }
-    right->print(out, indent);
+    right->print(out, level);
     if (rhspred) {
         out << ')';
     }
 }
 
-void BoolOp::print(std::ostream &out, int indent) const {
-    values[0]->print(out, indent);
+void BoolOp::print(std::ostream &out, int level) const {
+    values[0]->print(out, level);
     print_op(out, op);
-    values[1]->print(out, indent);
+    values[1]->print(out, level);
 }
 
-void UnaryOp::print(std::ostream &out, int indent) const {
+void UnaryOp::print(std::ostream &out, int level) const {
     print_op(out, op);
     out << " ";
-    operand->print(out, indent);
+    operand->print(out, level);
 }
 
-void While::print(std::ostream &out, int indent) const {
-    auto idt = String(indent * 4, ' ');
-
+void While::print(std::ostream &out, int level) const {
     out << "while ";
     test->print(out);
     out << ":\n";
-    print_body(out, indent + 1, body);
+    print_body(out, level + 1, body);
 
     if (orelse.size() > 0) {
-        out << '\n' << idt << "else:\n";
-        print_body(out, indent + 1, orelse);
+        out << '\n' << indent(level) << "else:\n";
+        print_body(out, level + 1, orelse);
     }
 }
 
-void Return::print(std::ostream &out, int indent) const {
+void Return::print(std::ostream &out, int level) const {
     out << "return ";
 
     if (value.has_value()) {
-        value.value()->print(out, indent);
+        value.value()->print(out, level);
     }
 }
 
-void Delete::print(std::ostream &out, int indent) const {
+void Delete::print(std::ostream &out, int level) const {
     out << "del ";
 
     for (int i = 0; i < targets.size(); i++) {
-        targets[i]->print(out, indent);
+        targets[i]->print(out, level);
 
         if (i < targets.size() - 1)
             out << ", ";
     }
 }
 
-void AugAssign::print(std::ostream &out, int indent) const {
+void AugAssign::print(std::ostream &out, int level) const {
     sprint(out, target, -1);
     print_op(out, op, true);
     out << "= ";
     sprint(out, value, -1);
 }
 
-void Assign::print(std::ostream &out, int indent) const {
+void Assign::print(std::ostream &out, int level) const {
     targets[0]->print(out, -1);
     out << " = ";
-    value->print(out, indent);
+    value->print(out, level);
 }
 
-void AnnAssign::print(std::ostream &out, int indent) const {
-    target->print(out, indent);
+void AnnAssign::print(std::ostream &out, int level) const {
+    target->print(out, level);
     out << ": ";
-    annotation->print(out, indent);
+    annotation->print(out, level);
     if (value.has_value()) {
         out << " = ";
-        value.value()->print(out, indent);
+        value.value()->print(out, level);
     }
 }
 
-void Pass::print(std::ostream &out, int indent) const { out << "pass"; }
+void Pass::print(std::ostream &out, int level) const { out << "pass"; }
 
-void Break::print(std::ostream &out, int indent) const { out << "break"; }
+void Break::print(std::ostream &out, int level) const { out << "break"; }
 
-void Continue::print(std::ostream &out, int indent) const { out << "continue"; }
+void Continue::print(std::ostream &out, int level) const { out << "continue"; }
 
-void Expr::print(std::ostream &out, int indent) const {
+void Expr::print(std::ostream &out, int level) const {
     if (value != nullptr)
         value->print(out, -1);
 }
 
-void Global::print(std::ostream &out, int indent) const { out << "global " << join(", ", names); }
+void Global::print(std::ostream &out, int level) const { out << "global " << join(", ", names); }
 
-void Nonlocal::print(std::ostream &out, int indent) const {
+void Nonlocal::print(std::ostream &out, int level) const {
     out << "nonlocal " << join(", ", names);
 }
 

@@ -882,7 +882,7 @@ struct Slice: public ExprNode {
 struct Module: public ModNode {
     Array<StmtNode *> body;
 
-    String docstring;
+    Optional<String> docstring;
 
     static Array<String> examples() {
         Array<String> _examples = {};
@@ -938,12 +938,13 @@ struct FunctionDef: public StmtNode {
     Optional<ExprNode *> returns;
     String               type_comment;
 
-    String docstring;
+    Optional<String> docstring;
     bool   async : 1 = false;
 
     static Array<String> examples() {
         Array<String> _examples = {
             "def a(b, c=d, *e, f=g, **h) -> i:\n"
+            "    \"\"\"docstring\"\"\"\n"
             "    pass",
             "def a(b: c, d: e = f):\n"
             "    pass",
@@ -965,11 +966,12 @@ struct ClassDef: public StmtNode {
     Array<StmtNode *> body;
     Array<ExprNode *> decorator_list;
 
-    String docstring;
+    Optional<String> docstring;
 
     static Array<String> examples() {
         Array<String> _examples = {
             "class a(a, b=c):\n"
+            "    \"\"\"docstring\"\"\"\n"
             "    pass",
         };
         return _examples;
