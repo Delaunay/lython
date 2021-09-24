@@ -12,6 +12,8 @@ namespace lython {
 
 namespace meta {
 
+// NOTE: All those should not depend on each other during deinit time
+// https://isocpp.org/wiki/faq/ctors#construct-on-first-use-v2
 struct Stat {
     int allocated   = 0;
     int deallocated = 0;
