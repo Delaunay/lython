@@ -35,14 +35,35 @@ bool _metadata_init_names() {
     meta::register_type<lython::ExprNode *>("ExprNode*");
     meta::register_type<lython::StmtNode *>("StmtNode*");
 
-    meta::register_type<lython::FunctionDef>("FunctionDef");
-    meta::register_type<lython::Name>("Name");
+    meta::register_type<lython::Comprehension>("Comprehension");
+    meta::register_type<lython::Alias>("Alias");
+    meta::register_type<lython::WithItem>("WithItem");
+    meta::register_type<lython::ExceptHandler>("ExceptHandler");
     meta::register_type<lython::Arg>("Arg");
-    meta::register_type<lython::ParsingError>("ParsingError");
-    meta::register_type<lython::Return>("Return");
-    meta::register_type<lython::Call>("Call");
-    meta::register_type<lython::Constant>("Constant");
-    meta::register_type<lython::Expr>("Expr");
+    meta::register_type<lython::CmpOperator>("CmpOperator");
+    meta::register_type<lython::Keyword>("Keyword");
+    meta::register_type<lython::Pattern *>("Pattern*");
+    meta::register_type<Array<StmtNode *>>("Array<StmtNode*>");
+
+#define REGISTER_TYPE(type)                   \
+    meta::register_type<lython::type>(#type); \
+    meta::register_type<lython::type *>(#type "*");
+
+#define X(name, _)
+#define SECTION(name)
+#define EXPR(name, _)  REGISTER_TYPE(name)
+#define STMT(name, _)  REGISTER_TYPE(name)
+#define MOD(name, _)   REGISTER_TYPE(name)
+#define MATCH(name, _) REGISTER_TYPE(name)
+
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+
+#undef X
+#undef SECTION
+#undef EXPR
+#undef STMT
+#undef MOD
+#undef MATCH
 
     meta::register_type<HashNodeInternal<std::pair<const String, lython::OpConfig>, false>>(
         "Pair[String, OpConfig]");

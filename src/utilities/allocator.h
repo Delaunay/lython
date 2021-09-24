@@ -52,7 +52,11 @@ int type_id() {
 // Insert a type name override
 template <typename T>
 const char *register_type(const char *str) {
-    if (typenames()[type_id<T>()].size() <= 0) {
+    auto tid = type_id<T>();
+
+    auto result = typenames().find(tid);
+
+    if (result == typenames().end()) {
         typenames()[type_id<T>()] = str;
     }
     return str;

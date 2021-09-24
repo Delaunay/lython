@@ -22,7 +22,10 @@ inline String parse_it(String code) {
     Module *mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
 
-    return str(mod);
+    auto data = str(mod);
+
+    delete mod;
+    return data;
 }
 
 #define TEST_PARSING(code) \
