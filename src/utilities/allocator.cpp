@@ -7,11 +7,15 @@
 #include "utilities/allocator.h"
 #include "utilities/metadata.h"
 
+#define DISABLE_ALIGNED_ALLOC 0
+
 namespace lython {
 namespace device {
 
 void *CPU::malloc(std::size_t n) {
+#if DISABLE_ALIGNED_ALLOC
     return std::malloc(n);
+#else
 
     // TODO: seems 64bit alignment might be better (this is what tensorflow is using)
     // but I have not found an official document stating so
@@ -37,16 +41,19 @@ void *CPU::malloc(std::size_t n) {
     *(reinterpret_cast<void **>(aligned) - 1) = original;
 
     return aligned;
+#endif
 }
 
 bool CPU::free(void *ptr, std::size_t) {
+#if DISABLE_ALIGNED_ALLOC
     std::free(ptr);
     return true;
-
+#else
     if (ptr) {
         std::free(*(reinterpret_cast<void **>(ptr) - 1));
     }
     return true;
+#endif
 }
 
 } // namespace device
