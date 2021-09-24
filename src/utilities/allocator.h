@@ -33,7 +33,7 @@ inline int &_get_id() {
 inline int _new_id() {
     auto r = _get_id();
     _get_id() += 1;
-    stats().emplace_back();
+    stats().push_back(Stat());
     return r;
 }
 
@@ -52,12 +52,11 @@ int type_id() {
 // Insert a type name override
 template <typename T>
 const char *register_type(const char *str) {
-    auto tid = type_id<T>();
-
+    auto tid    = type_id<T>();
     auto result = typenames().find(tid);
 
     if (result == typenames().end()) {
-        typenames()[type_id<T>()] = str;
+        typenames().insert({type_id<T>(), str});
     }
     return str;
 }
@@ -66,15 +65,15 @@ const char *register_type(const char *str) {
 // You can specialize it to override
 template <typename T>
 const char *type_name() {
-    std::string const &name = typenames()[type_id<T>()];
+    auto result = typenames().find(type_id<T>());
 
-    if (name.size() <= 0) {
+    if (result == typenames().end()) {
         const char *name = typeid(T).name();
         register_type<T>(name);
-        return name;
+        return "<none>";
     }
 
-    return name.c_str();
+    return (result->second).c_str();
 };
 
 inline const char *type_name(int class_id) {

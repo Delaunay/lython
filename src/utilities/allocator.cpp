@@ -16,7 +16,6 @@ void *CPU::malloc(std::size_t n) {
 #if DISABLE_ALIGNED_ALLOC
     return std::malloc(n);
 #else
-
     // TODO: seems 64bit alignment might be better (this is what tensorflow is using)
     // but I have not found an official document stating so
     static std::size_t alignment = 16;
@@ -78,6 +77,7 @@ void show_alloc_stats() {
         try {
             name = names.at(int(i));
         } catch (std::out_of_range &) {
+            name = "";
         }
 
         auto alloc     = stat[i].allocated;

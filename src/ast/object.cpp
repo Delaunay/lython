@@ -17,6 +17,7 @@ void GCObject::remove_child(GCObject *child, bool dofree) {
     children.erase(std::next(elem).base());
     assert(n > children.size(), "Child was not removed");
 
+    child->parent = nullptr;
     if (dofree) {
         free(child);
     }

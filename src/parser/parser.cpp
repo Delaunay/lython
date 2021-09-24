@@ -658,9 +658,7 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
         } else {
             pat = parse_match_class(parent, value, depth + 1);
         }
-
-        parent->remove_child(value, false);
-        pat->add_child(value);
+        value->move(pat);
         return pat;
     }
     }
@@ -1541,8 +1539,7 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     // fix the things we could not do at the begining
     add_wip_expr(err, expr);
     parser->start_code_loc(expr, start_tok);
-    parent->remove_child(child, false);
-    expr->add_child(child);
+    child->move(expr);
     // ----------------------------------------------
     return expr;
 }
