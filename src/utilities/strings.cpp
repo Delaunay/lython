@@ -1,6 +1,5 @@
+#include "utilities/names.h"
 #include "utilities/strings.h"
-// #include "parser/module.h"
-#include "ast/names.h"
 
 #include "ast/magic.h"
 #include "ast/sexpression.h"

@@ -4,16 +4,16 @@
 #include <memory>
 
 #include "../dtypes.h"
-#include "../utilities/optional.h"
-
 #include "constant.h"
-#include "object.h"
 
 #include "logging/logging.h"
+#include "utilities/names.h"
+#include "utilities/object.h"
+#include "utilities/optional.h"
 
 namespace lython {
 
-using Identifier = String;
+using Identifier = StringRef;
 
 // To make this more generic, I could have a StringDB that assign a integer to a constant string
 // the string would be the class name and the integer would become the RTTI
