@@ -738,6 +738,9 @@ struct Constant: public ExprNode {
             "2.1",
             // "'str'",
             "\"str\"",
+            "None",
+            "True",
+            "False",
         };
         return _examples;
     }

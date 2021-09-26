@@ -197,7 +197,11 @@ void ConstantValue::print(std::ostream &out) const {
         break;
 
     case TBool:
-        out << value.boolean;
+        if (value.boolean) {
+            out << "True";
+        } else {
+            out << "False";
+        }
         break;
 
     case TNone:

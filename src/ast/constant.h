@@ -36,12 +36,11 @@ struct ConstantValue {
     #define POD(k, type, name) ConstantValue(type v): kind(T##k) { value.name = v; }
     #define CPX(k, type, name) ConstantValue(type v): kind(TInvalid) { set_##name(v); }
 
-    ConstantType(POD, CPX)
+    ConstantType(POD, CPX);
     
     #undef CPX 
     #undef POD
 
-;
     // clang-format on
 
     ConstantValue() = default;
@@ -65,7 +64,7 @@ struct ConstantValue {
         #define POD(kind, type, name) case T##kind: return true;
         #define CPX(kind, type, name) case T##kind: return false;
 
-        ConstantType(POD, CPX)
+        ConstantType(POD, CPX);
         
         #undef CPX
         #undef POD
@@ -84,7 +83,7 @@ struct ConstantValue {
         #define POD(kind, type, name) ATTR(type, name)
         #define CPX(kind, type, name) ATTR(type, name)
 
-        ConstantType(POD, CPX)
+        ConstantType(POD, CPX);
 
         #undef CPX
         #undef POD
@@ -105,7 +104,16 @@ struct ConstantValue {
         kind = ktype;
     }
 
-    void set_string(const String &data) { set_cpx(TString, value.string, data); }
+    // clang-format off
+    #define POD(kind, type, name)
+    #define CPX(kind, type, name)\
+    void set_##name(const type &data) { set_cpx(T##kind, value.name, data); }
+    
+    ConstantType(POD, CPX);
+
+    #undef CPX
+    #undef POD
+    // clang-format on
 
     void remove_cpx() {
         // clang-format off
@@ -114,7 +122,7 @@ struct ConstantValue {
         #define POD(kind, type, name)
         #define CPX(kind, type, name) case T##kind: value.name.~type(); break;
 
-        ConstantType(POD, CPX)
+        ConstantType(POD, CPX);
         
         #undef CPX
         #undef POD
@@ -141,7 +149,7 @@ struct ConstantValue {
                 break;\
             }
 
-            ConstantType(POD, CPX)
+            ConstantType(POD, CPX);
 
             #undef CPX
             #undef POD

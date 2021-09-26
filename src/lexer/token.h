@@ -81,7 +81,10 @@
     X(tok_in, -50)         \
     X(tok_finally, -51)    \
     X(tok_nonlocal, -52)   \
-    X(tok_comma, ',')
+    X(tok_comma, ',')      \
+    X(tok_none, -53)       \
+    X(tok_true, -54)       \
+    X(tok_false, -55)
 
 #define LYTHON_KEYWORDS(X)      \
     X("def", tok_def)           \
@@ -115,7 +118,10 @@
     X("lambda", tok_lambda)     \
     X("in", tok_in)             \
     X("finally", tok_finally)   \
-    X("nonlocal", tok_nonlocal)
+    X("nonlocal", tok_nonlocal) \
+    X("None", tok_none)         \
+    X("True", tok_true)         \
+    X("False", tok_false)
 
 namespace lython {
 

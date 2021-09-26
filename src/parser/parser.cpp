@@ -620,23 +620,8 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
     case tok_int:
     case tok_string:
     case tok_float: {
-        // pat->value = get_value();
-        auto pat = parent->new_object<MatchSingleton>();
-
-        switch (token().type()) {
-        case tok_string: {
-            pat->value = token().identifier();
-            break;
-        }
-        case tok_int: {
-            pat->value = token().as_integer();
-            break;
-        }
-        case tok_float: {
-            pat->value = token().as_float();
-            break;
-        }
-        }
+        auto pat   = parent->new_object<MatchSingleton>();
+        pat->value = get_value();
         next_token();
         return pat;
     }
@@ -1175,6 +1160,7 @@ ExprNode *Parser::parse_name(Node *parent, int depth) {
 
 ConstantValue Parser::get_value() {
     switch (token().type()) {
+
     case tok_string: {
         return ConstantValue(token().identifier());
     }
@@ -1184,6 +1170,14 @@ ConstantValue Parser::get_value() {
     case tok_float: {
         return ConstantValue(token().as_float());
     }
+    case tok_none:
+        return ConstantValue(ConstantValue::none_t());
+
+    case tok_true:
+        return ConstantValue(true);
+
+    case tok_false:
+        return ConstantValue(false);
     }
 
     return ConstantValue();
@@ -1195,23 +1189,7 @@ ExprNode *Parser::parse_constant(Node *parent, int depth) {
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
 
-    // This does not work too well
-    // expr->value = get_value();
-
-    switch (token().type()) {
-    case tok_string: {
-        expr->value = token().identifier();
-        break;
-    }
-    case tok_int: {
-        expr->value = token().as_integer();
-        break;
-    }
-    case tok_float: {
-        expr->value = token().as_float();
-        break;
-    }
-    }
+    expr->value = get_value();
 
     end_code_loc(expr, token());
     next_token();
@@ -1961,6 +1939,9 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
     case tok_lambda:
         return parse_lambda(parent, depth);
 
+    case tok_none:
+    case tok_true:
+    case tok_false:
     case tok_float:
         return parse_constant(parent, depth);
 
