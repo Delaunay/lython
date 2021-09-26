@@ -2,6 +2,10 @@
 
 namespace lython {
 
+ExprNode *None();
+ExprNode *True();
+ExprNode *False();
+
 // This is essentially compile time lookup
 // no-need for the function to actually exist at runtime
 #define SPECGEN(name)           \

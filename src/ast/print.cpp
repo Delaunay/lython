@@ -189,11 +189,19 @@ void ConstantValue::print(std::ostream &out) const {
         break;
 
     case TFloat:
-        out << value.single;
+        out << value.singlef;
         break;
 
     case TDouble:
-        out << value.decimal;
+        out << value.doublef;
+        break;
+
+    case TBool:
+        out << value.boolean;
+        break;
+
+    case TNone:
+        out << "None";
         break;
 
     case TString:

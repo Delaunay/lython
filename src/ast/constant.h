@@ -7,58 +7,71 @@ namespace lython {
 
 struct ConstantValue {
     public:
-    enum Type
-    {
-        TInvalid,
-        TInt,
-        TFloat,
-        TDouble,
-        TString
+    struct invalid_t {};
+    struct none_t {};
+
+#define ConstantType(POC, CPX)       \
+    POD(Invalid, invalid_t, invalid) \
+    POD(Int, int, integer)           \
+    POD(Float, float32, singlef)     \
+    POD(Double, float64, doublef)    \
+    CPX(String, String, string)      \
+    POD(Bool, bool, boolean)         \
+    POD(None, none_t, none)
+
+    // clang-format off
+    enum Type {
+        #define ENUM(a)      T##a,
+        #define POD(a, b, c) ENUM(a)
+        #define CPX(a, b, c) ENUM(a)
+
+        ConstantType(POD, CPX)
+
+        #undef CPX
+        #undef POD
+        #undef ENUM
+        
     };
+
+    #define POD(k, type, name) ConstantValue(type v): kind(T##k) { value.name = v; }
+    #define CPX(k, type, name) ConstantValue(type v): kind(TInvalid) { set_##name(v); }
+
+    ConstantType(POD, CPX)
+    
+    #undef CPX 
+    #undef POD
+
+;
+    // clang-format on
 
     ConstantValue() = default;
 
-    ConstantValue(int32 v): kind(TInt) { value.integer = v; }
+    ConstantValue(ConstantValue const &vv): kind(TInvalid) { copy_union(vv.kind, vv.value); }
 
-    ConstantValue(float32 v): kind(TFloat) { value.single = v; }
+    ~ConstantValue() { remove_string(); }
 
-    ConstantValue(float64 v): kind(TDouble) { value.decimal = v; }
-
-    ConstantValue(String const &v): kind(TInvalid) { set_string(v); }
-
-    // ConstantValue(ConstantValue const &v): kind(TInvalid) { copy_union(v.kind, v.value); }
-
-    ~ConstantValue() { remove_str(); }
-
-    // ConstantValue &operator=(ConstantValue const &v) {
-    //     copy_union(v.kind, v.value);
-    //     return *this;
-    // }
-
-    ConstantValue &operator=(String const &v) {
-        set_string(v);
-        return *this;
-    }
-
-    ConstantValue &operator=(int32 v) {
-        kind          = TInt;
-        value.integer = v;
-        return *this;
-    }
-
-    ConstantValue &operator=(float32 v) {
-        kind         = TFloat;
-        value.single = v;
-        return *this;
-    }
-
-    ConstantValue &operator=(float64 v) {
-        kind          = TDouble;
-        value.decimal = v;
+    ConstantValue &operator=(ConstantValue const &vv) {
+        copy_union(vv.kind, vv.value);
         return *this;
     }
 
     void print(std::ostream &out) const;
+
+    bool is_none() const { return kind == TNone; }
+
+    // clang-format off
+    bool is_pod() const {
+        switch (kind) {
+        #define POD(kind, type, name) case T##kind: return true;
+        #define CPX(kind, type, name) case T##kind: return false;
+
+        ConstantType(POD, CPX)
+        
+        #undef CPX
+        #undef POD
+        }
+    }
+    // clang-format on
 
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
@@ -66,53 +79,55 @@ struct ConstantValue {
         ValueVariant() {}
         ~ValueVariant() {}
 
-        int32   integer;
-        float64 decimal;
-        float32 single;
-        String  string;
+        // clang-format off
+        #define ATTR(type, name)      type name;
+        #define POD(kind, type, name) ATTR(type, name)
+        #define CPX(kind, type, name) ATTR(type, name)
+
+        ConstantType(POD, CPX)
+
+        #undef CPX
+        #undef POD
+        #undef ATTR
+        // clang-format on
     };
 
     ValueVariant value;
     Type         kind = TInvalid;
 
-    void set_string(const String &data) {
-        if (kind != Type::TString) {
-            new (&value.string) String(data);
+    template <typename T>
+    void set_cpx(Type ktype, T &memory, const T &data) {
+        if (kind != ktype) {
+            new (&memory) T(data);
         } else {
-            value.string = data;
+            memory = data;
         }
-        kind = Type::TString;
+        kind = ktype;
     }
 
-    void remove_str() {
+    void set_string(const String &data) { set_cpx(TString, value.string, data); }
+
+    void remove_string() {
         if (kind == TString) {
             value.string.~String();
         }
     }
 
     void copy_union(Type k, ValueVariant const &v) {
-        switch (kind) {
-        case TInvalid:
-            break;
+        if (k != TString) {
+            remove_string();
+        }
 
-        case TInt:
-            remove_str();
-            value.integer = v.integer;
-            break;
+        switch (k) {
+            // clang-format off
+        #define POD(k, type, name) case T##k: value.name = v.name; break;
+        #define CPX(k, type, name) case T##k: set_##name(v.name); break;
 
-        case TFloat:
-            remove_str();
-            value.single = v.single;
-            break;
+        ConstantType(POD, CPX)
 
-        case TDouble:
-            remove_str();
-            value.decimal = v.decimal;
-            break;
-
-        case TString:
-            set_string(v.string);
-            break;
+        #undef CPX
+        #undef POD
+            // clang-format on
         }
         kind = k;
     }
