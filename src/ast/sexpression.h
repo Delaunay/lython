@@ -747,7 +747,14 @@ struct Constant: public ExprNode {
 
     void print(std::ostream &out, int indent) const override;
 
-    Constant(): ExprNode(NodeKind::Constant) {}
+    template<typename T>
+    Constant(T const& v):
+        ExprNode(NodeKind::Constant), value(v)
+    {}
+
+    Constant(): 
+        Constant(ConstantValue::invalid_t())
+    {}
 };
 
 // the following expression can appear in assignment context

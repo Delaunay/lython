@@ -40,7 +40,6 @@ struct ConstantValue {
     
     #undef CPX 
     #undef POD
-
     // clang-format on
 
     ConstantValue() = default;
@@ -78,7 +77,7 @@ struct ConstantValue {
         ValueVariant() {}
         ~ValueVariant() {}
 
-// clang-format off
+        // clang-format off
         #define ATTR(type, name)      type name;
         #define POD(kind, type, name) ATTR(type, name)
         #define CPX(kind, type, name) ATTR(type, name)

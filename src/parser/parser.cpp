@@ -14,6 +14,10 @@ namespace lython {
 
 #define SHOW_TOK(tok) error("{}", str(tok));
 
+// Reduce the number of dynamic alloc
+// but debug info is not kept for the nodes
+#define AVOID_DUPLICATE_CONST 0
+
 template <typename T, typename N>
 bool in(T const &e, N const &v) {
     return e == v;
@@ -1071,6 +1075,11 @@ StmtNode *Parser::parse_pass(Node *parent, int depth) {
 StmtNode *Parser::parse_break(Node *parent, int depth) {
     TRACE_START();
 
+#if AVOID_DUPLICATE_CONST
+    static Break b;
+    return &b;
+#endif
+
     auto stmt = parent->new_object<Break>();
     start_code_loc(stmt, token());
     end_code_loc(stmt, token());
@@ -1080,6 +1089,11 @@ StmtNode *Parser::parse_break(Node *parent, int depth) {
 
 StmtNode *Parser::parse_continue(Node *parent, int depth) {
     TRACE_START();
+
+#if AVOID_DUPLICATE_CONST
+    static Continue c;
+    return &c;
+#endif
 
     auto stmt = parent->new_object<Continue>();
     start_code_loc(stmt, token());
@@ -1185,6 +1199,25 @@ ConstantValue Parser::get_value() {
 
 ExprNode *Parser::parse_constant(Node *parent, int depth) {
     TRACE_START();
+
+#if AVOID_DUPLICATE_CONST
+    // Shortcut
+    static Constant none   = Constant(ConstantValue::none_t());
+    static Constant truev  = Constant(true);
+    static Constant falsev = Constant(false);
+
+    switch (token().type()) {
+    case tok_none:
+        return none;
+
+    case tok_true:
+        return truev;
+
+    case tok_false:
+        return falsev;
+    }
+//
+#endif
 
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
