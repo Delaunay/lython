@@ -48,7 +48,7 @@ struct ConstantValue {
 
     ConstantValue(ConstantValue const &vv): kind(TInvalid) { copy_union(vv.kind, vv.value); }
 
-    ~ConstantValue() { remove_string(); }
+    ~ConstantValue() { remove_cpx(); }
 
     ConstantValue &operator=(ConstantValue const &vv) {
         copy_union(vv.kind, vv.value);
@@ -79,7 +79,7 @@ struct ConstantValue {
         ValueVariant() {}
         ~ValueVariant() {}
 
-        // clang-format off
+// clang-format off
         #define ATTR(type, name)      type name;
         #define POD(kind, type, name) ATTR(type, name)
         #define CPX(kind, type, name) ATTR(type, name)
@@ -107,26 +107,44 @@ struct ConstantValue {
 
     void set_string(const String &data) { set_cpx(TString, value.string, data); }
 
-    void remove_string() {
-        if (kind == TString) {
-            value.string.~String();
+    void remove_cpx() {
+        // clang-format off
+        switch (kind) {
+
+        #define POD(kind, type, name)
+        #define CPX(kind, type, name) case T##kind: value.name.~type(); break;
+
+        ConstantType(POD, CPX)
+        
+        #undef CPX
+        #undef POD
         }
+        // clang-format on
     }
 
     void copy_union(Type k, ValueVariant const &v) {
-        if (k != TString) {
-            remove_string();
+        if (kind != k) {
+            remove_cpx();
         }
 
         switch (k) {
             // clang-format off
-        #define POD(k, type, name) case T##k: value.name = v.name; break;
-        #define CPX(k, type, name) case T##k: set_##name(v.name); break;
+            #define POD(k, type, name)\
+            case T##k:{\
+                value.name = v.name;\
+                break;\
+            }
+            
+            #define CPX(k, type, name)\
+            case T##k:{\
+                set_##name(v.name);\
+                break;\
+            }
 
-        ConstantType(POD, CPX)
+            ConstantType(POD, CPX)
 
-        #undef CPX
-        #undef POD
+            #undef CPX
+            #undef POD
             // clang-format on
         }
         kind = k;
