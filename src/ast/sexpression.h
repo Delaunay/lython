@@ -85,6 +85,7 @@ enum class NodeKind : int8_t
     STMT(Break, breakstmt)              \
     STMT(Continue, continuestmt)        \
     STMT(Match, match)                  \
+    STMT(Inline, inlinestmt)                  \
     SECTION(STMT_END)                   \
     SECTION(PAT_START)                  \
     MATCH(MatchValue, matchvalue)       \
@@ -940,6 +941,23 @@ struct FunctionType: public ModNode {
 
 // Statements
 // ----------
+struct Inline: public StmtNode {
+    // <stmt>; <stmt>
+    Array<StmtNode *> body;
+
+    void print(std::ostream &out, int indent) const override;
+
+    static Array<String> examples() {
+        Array<String> _examples = {
+            "a = 2; b = c; c = d",
+        };
+        return _examples;
+    }
+
+    Inline(): StmtNode(NodeKind::Inline) {}
+};
+
+
 struct FunctionDef: public StmtNode {
     Identifier           name;
     Arguments            args;

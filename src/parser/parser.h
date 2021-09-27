@@ -23,7 +23,7 @@ class Parser {
         }
 
         // lookup the module
-        Module *module = new Module();
+        Module *module   = new Module();
         module->class_id = meta::type_id<Module>();
         parse_body(module, module->body, 0);
         return module;
@@ -78,6 +78,7 @@ class Parser {
     // Statement Dispatch
     // ------------------
     StmtNode *parse_statement(Node *parent, int depth);
+    StmtNode *parse_statement_primary(Node *parent, int depth);
 
     // Primary expression
     // parse_expression_1
@@ -190,9 +191,21 @@ class Parser {
 
     Array<ParsingError> const &get_errors() const { return errors; }
 
+    enum class Mode
+    {
+        Stmt,
+        Expr,
+        Pattern
+    };
+
     private:
     Token previous = dummy();
 
+    public:
+    bool allow_comma      = false;
+    int  expression_depth = 0;
+
+    private:
     std::vector<bool>        _allow_slice;
     std::vector<ExprContext> _context;
     std::vector<bool>        async_mode;

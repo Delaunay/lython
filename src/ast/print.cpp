@@ -690,6 +690,21 @@ void FunctionDef::print(std::ostream &out, int level) const {
     out << "\n";
 }
 
+void Inline::print(std::ostream &out, int level) const {
+    out << indent(level);
+
+    int k = 0;
+    for (auto &stmt: body) {
+        stmt->print(out, level);
+
+        if (k + 1 < body.size()) {
+            out << "; ";
+        }
+
+        k += 1;
+    }
+}
+
 void For::print(std::ostream &out, int level) const {
     out << "for ";
     target->print(out, -1);
