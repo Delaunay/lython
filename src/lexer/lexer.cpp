@@ -1,6 +1,7 @@
 #include <spdlog/fmt/bundled/core.h>
 
 #include "lexer.h"
+#include "utilities/strings.h"
 
 namespace lython {
 
@@ -64,10 +65,16 @@ Dict<String, OpConfig> const &default_precedence() {
         {"in",
          {40, false, tok_in, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,
           CmpOperator::In}},
+        {"not in",
+         {40, false, tok_in, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,
+          CmpOperator::NotIn}},
         // identity
         {"is",
          {40, false, tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,
           CmpOperator::Is}},
+        {"is not",
+         {40, false, tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,
+          CmpOperator::IsNot}},
         // Not an operator but we use same data structure for parsing
         {"->", {10, false, tok_arrow}},
         {":=", {10, false, tok_walrus}},
@@ -166,23 +173,27 @@ Token const &Lexer::next_token() {
     }
 
     // Operators & Arrow
-    auto *previous = _operators.match(c);
-    auto  next     = previous;
+    auto *previous   = _operators.match(c);
+    auto *last_valid = previous != nullptr && previous->leaf() ? previous : nullptr;
+    auto  next       = previous;
 
     String ident;
     while (next != nullptr) {
         previous = next;
 
         ident.push_back(c);
-        c    = nextc();
-        next = previous->matching(c);
+        c          = nextc();
+        last_valid = next != nullptr && next->leaf() ? next : last_valid;
+        next       = previous->matching(c);
     }
 
     // if valid operator return that
-    if (previous != nullptr && previous->leaf()) {
+    // if (previous != nullptr && previous->leaf()) {
+    if (last_valid != nullptr) {
         try {
-            auto const &op_config = _operators.precedence_table().at(ident);
-            return make_token(op_config.type, ident);
+            auto        op        = strip(ident);
+            auto const &op_config = _operators.precedence_table().at(op);
+            return make_token(op_config.type, op);
         } catch (std::exception) {
             return make_token(tok_incorrect, ident);
         }

@@ -84,7 +84,9 @@
     X(tok_comma, ',')      \
     X(tok_none, -53)       \
     X(tok_true, -54)       \
-    X(tok_false, -55)
+    X(tok_false, -55)      \
+    X(tok_is, -56)         \
+    X(tok_not, -57)
 
 #define LYTHON_KEYWORDS(X)      \
     X("def", tok_def)           \
@@ -121,7 +123,9 @@
     X("nonlocal", tok_nonlocal) \
     X("None", tok_none)         \
     X("True", tok_true)         \
-    X("False", tok_false)
+    X("False", tok_false)       \
+    X("not", tok_not)           \
+    X("is", tok_is)
 
 namespace lython {
 

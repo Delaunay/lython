@@ -468,7 +468,11 @@ struct BinOp: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a + b", "a - b", "a * b", "a << b", "a ^ b",
+            "a + b", 
+            "a - b", 
+            "a * b", 
+            "a << b", 
+            "a ^ b",
         };
         return _examples;
     }
@@ -678,6 +682,10 @@ struct Compare: public ExprNode {
     static Array<String> examples() {
         Array<String> _examples = {
             "a < b > c != d",
+            "a not in b",
+            "a in b",
+            "a is b",
+            "a is not b",
         };
         return _examples;
     }
