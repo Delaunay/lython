@@ -24,6 +24,7 @@ class Parser {
 
         // lookup the module
         Module *module = new Module();
+        module->class_id = meta::type_id<Module>();
         parse_body(module, module->body, 0);
         return module;
     }

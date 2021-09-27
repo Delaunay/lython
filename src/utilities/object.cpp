@@ -1,5 +1,5 @@
-#include "object.h"
 #include "logging/logging.h"
+#include "object.h"
 
 namespace lython {
 
@@ -40,7 +40,7 @@ void GCObject::free(GCObject *child) {
     manual_free(cclass_id, 1);
     device::CPU().free((void *)child, 1);
 
-    info("freed {}", meta::type_name(cclass_id));
+    // info("freed {}", meta::type_name(cclass_id));
 }
 
 GCObject::~GCObject() {

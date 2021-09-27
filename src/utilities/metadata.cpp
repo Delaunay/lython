@@ -30,6 +30,8 @@ using HashNodeInternal = T;
 
 bool _metadata_init_names() {
     meta::register_type<int>("int");
+    meta::register_type<lython::StringRef>("StringRef");
+    meta::register_type<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");
 
     meta::register_type<lython::GCObject *>("GCObject*");
     meta::register_type<lython::ExprNode *>("ExprNode*");

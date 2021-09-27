@@ -100,13 +100,14 @@ class StringDatabase {
 
     std::ostream &report(std::ostream &out) const;
 
-    private:
+    public:
     struct StringEntry {
         String data;
         int    count  = 1;
         int    in_use = 0;
     };
 
+    private:
     Dict<StringView, std::size_t> defined; // Used to check if the string is already stored
     Array<StringEntry>            strings; // String storage
 
