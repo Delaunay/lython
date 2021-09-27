@@ -1808,7 +1808,27 @@ ExprNode *Parser::parse_slice(Node *parent, ExprNode *primary, int depth) {
 StmtNode *Parser::parse_statement(Node *parent, int depth) {
 
     TRACE_START();
+
+    Array<ExprNode *> decorators;
+    while (token().type() == tok_decorator) {
+        next_token();
+        auto fun = parse_expression(parent, depth);
+        decorators.push_back(fun);
+
+        if (token().type() == tok_newline) {
+            next_token();
+        }
+    }
+
     auto stmt = parse_statement_primary(parent, depth + 1);
+
+    if (decorators.size() > 0) {
+        if (stmt->kind == NodeKind::FunctionDef) {
+            cast<FunctionDef>(stmt)->decorator_list = decorators;
+        } else if (stmt->kind == NodeKind::ClassDef) {
+            cast<ClassDef>(stmt)->decorator_list = decorators;
+        }
+    }
 
     if (token().type() != ';') {
         TRACE_END();

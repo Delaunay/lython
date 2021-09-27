@@ -979,9 +979,13 @@ struct FunctionDef: public StmtNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
+            "@decorator\n"
             "def a(b, c=d, *e, f=g, **h) -> i:\n"
             "    \"\"\"docstring\"\"\"\n"
             "    pass",
+
+            "@decorator1(a, b, c=d)\n"
+            "@decorator2\n"
             "def a(b: c, d: e = f):\n"
             "    pass",
         };
@@ -1006,6 +1010,8 @@ struct ClassDef: public StmtNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
+            "@decorator1(a, b, c=d)\n"
+            "@decorator2\n"
             "class a(a, b=c):\n"
             "    \"\"\"docstring\"\"\"\n"
             "    pass",

@@ -634,6 +634,22 @@ void NamedExpr::print(std::ostream &out, int level) const {
 }
 
 void ClassDef::print(std::ostream &out, int level) const {
+    int k = 0;
+    for (auto decorator: decorator_list) {
+        if (k > 0) {
+            out << indent(level);
+        }
+
+        out << "@";
+        decorator->print(out, level);
+        out << "\n";
+        k += 1;
+    }
+
+    if (decorator_list.size() > 0) {
+        out << indent(level);
+    }
+
     out << "class " << name;
     if (bases.size() + keywords.size() > 0) {
         out << '(';
@@ -669,6 +685,22 @@ void ClassDef::print(std::ostream &out, int level) const {
 }
 
 void FunctionDef::print(std::ostream &out, int level) const {
+    int k = 0;
+    for (auto decorator: decorator_list) {
+        if (k > 0) {
+            out << indent(level);
+        }
+
+        out << "@";
+        decorator->print(out, level);
+        out << "\n";
+        k += 1;
+    }
+
+    if (decorator_list.size() > 0) {
+        out << indent(level);
+    }
+
     out << "def " << name << "(";
 
     args.print(out, level);
