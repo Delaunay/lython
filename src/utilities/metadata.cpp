@@ -95,7 +95,7 @@ bool _metadata_init_names() {
     meta::register_type<HashNodeInternal<std::pair<const int, String>, false>>("Pair[int, String]");
 
     // Set Keyword
-    meta::register_type<HashNodeInternal<char, false>>("Set char");
+    meta::register_type<HashNodeInternal<char, false>>("Set[char]");
 
 #define INIT_METADATA(name, typname) meta::type_name<name>();
 
