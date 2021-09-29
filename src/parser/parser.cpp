@@ -1962,6 +1962,13 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
 
     auto expr = parse_expression(parent, depth);
 
+    // allow unpacking
+    // promote to a tuple expression
+    if (token().type() == tok_comma) {
+        next_token();
+        expr = parse_literal<TupleExpr>(this, parent, expr, 0, depth);
+    }
+
     switch (token().type()) {
     // <expr> = <>
     case tok_assign:
@@ -1975,6 +1982,7 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
         return parse_annassign(parent, expr, depth);
     }
 
+    // fallback to standard expression
     auto stmt_expr   = parent->new_object<Expr>();
     stmt_expr->value = expr;
     TRACE_END();
