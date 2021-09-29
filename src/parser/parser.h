@@ -203,8 +203,7 @@ class Parser {
     Token previous = dummy();
 
     public:
-    bool allow_comma      = true;
-    int  expression_depth = 0;
+    int expression_depth = 0;
 
     private:
     std::vector<bool>        _allow_slice;

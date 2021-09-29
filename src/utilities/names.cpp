@@ -34,8 +34,9 @@ std::ostream &StringDatabase::report(std::ostream &out) const {
         saved_up += upper;
     }
 
-    out << fmt::format("Size {}: {} < Saved < {} bytes (x{:6.2f})\n", size, saved, saved_up,
-                       float(size + saved) / float(size));
+    out << fmt::format("Size {}: {} < Saved < {} bytes (x{:6.2f} - {:6.2f})\n", size, saved,
+                       saved_up, float(size + saved) / float(size),
+                       float(size + saved_up) / float(size));
     return out;
 }
 } // namespace lython

@@ -730,7 +730,6 @@ void Parser::parse_withitem(Node *parent, Array<WithItem> &out, int depth) {
     TRACE_START();
 
     while (token().type() != ':') {
-        // allow_comma    = false;
         ExprNode *expr = parse_expression(parent, depth + 1);
         ExprNode *var  = nullptr;
 
@@ -738,7 +737,6 @@ void Parser::parse_withitem(Node *parent, Array<WithItem> &out, int depth) {
             next_token();
             var = parse_expression_primary(parent, depth + 1);
         }
-        // allow_comma = true;
 
         out.push_back(WithItem{expr, var});
 
@@ -872,9 +870,9 @@ StmtNode *Parser::parse_assert(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    // allow_comma = false;
+    //
     stmt->test = parse_expression(stmt, depth + 1);
-    // allow_comma = true;
+    //
 
     if (token().type() == tok_comma) {
         next_token();
@@ -1288,7 +1286,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
     TRACE_START();
 
     Arguments args;
-    // allow_comma = false;
+    //
 
     bool keywords = false;
 
@@ -1347,7 +1345,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
         }
     }
 
-    // allow_comma = true;
+    //
     expect_token(kind, true, parent, LOC);
     return args;
 }
@@ -1489,9 +1487,7 @@ ExprNode *parse_dictliteral(Parser *parser, Node *parent, ExprNode *key, ExprNod
         expr->keys.push_back(parser->parse_expression(parent, depth + 1));
         parser->expect_token(':', true, expr, LOC);
 
-        parser->allow_comma = false;
         expr->values.push_back(parser->parse_expression(parent, depth + 1));
-        parser->allow_comma = true;
 
         if (parser->token().type() == ',') {
             parser->next_token();
@@ -1514,9 +1510,7 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     auto err = parser->expect_token(tok, true, nullptr, LOC); // eat (  [  {
 
     // Warning: the parent is wrong but we need to parse the expression right now
-    parser->allow_comma = false;
-    auto child          = parser->parse_expression(parent, depth + 1);
-    parser->allow_comma = true;
+    auto child = parser->parse_expression(parent, depth + 1);
 
     ExprNode *value = nullptr;
 
@@ -1525,10 +1519,8 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     // Dictionary
     if (parser->token().type() == ':') {
         parser->next_token();
-        parser->allow_comma = false;
-        value               = parser->parse_expression(parent, depth + 1);
-        dictionary          = true;
-        parser->allow_comma = true;
+        value      = parser->parse_expression(parent, depth + 1);
+        dictionary = true;
     }
     // ----
 
@@ -1555,7 +1547,6 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
         if (kind == ')' && !dictionary) {
             auto p = parser->parse_expression_1(parent, child, 0, depth);
             parser->expect_token(')', true, parent, LOC);
-            // parser->allow_comma = true;
             return p;
         }
 
@@ -1567,7 +1558,6 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     parser->start_code_loc(expr, start_tok);
     child->move(expr);
     // ----------------------------------------------
-    // parser->allow_comma = true;
     return expr;
 }
 
@@ -1654,7 +1644,6 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
     TRACE_START();
 
     bool keyword = false;
-    allow_comma  = false;
     while (token().type() != ')') {
 
         // if not in keyword mode check if next argument is one
@@ -1684,12 +1673,11 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
         } else {
             auto last = token();
             expect_token(')', true, expr, LOC);
-            // allow_comma = true;
+            //
             return last;
         }
     }
 
-    allow_comma = true;
     return token();
 }
 
@@ -1857,9 +1845,8 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
 }
 
 StmtNode *Parser::parse_yield_stmt(Node *parent, int depth) {
-    // yield is an expression in the AST but a statement in the grammar
-    // looks like the grammar is used to force the yield to only appear at specifc
-    // spots, not sure what it needed to be an expression
+    // yield is an expression in the AST but it can be parsed
+    // as simple_statement or an expression
     auto stmt   = parent->new_object<Expr>();
     stmt->value = parse_yield(stmt, depth);
     return stmt;
@@ -1877,14 +1864,50 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
 
     // Statement we can guess rightaway from the current token we are seeing
     switch (token().type()) {
+        // clang-format off
+
     // Small Statement
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // assignment
-    //      Name
-    //      star_targets
-    //      single_target
+    // assignment:
+    //     | NAME ':' expression ['=' annotated_rhs ]
+    //     | single_target ':' expression ['=' annotated_rhs ]
+    //     | (star_targets '=' )+ (yield_expr | star_expressions) !'=' [TYPE_COMMENT]
+    //     | single_target augassign ~ (yield_expr | star_expressions)
+    //
+    // single_target:
+    //     | single_subscript_attribute_target
+    //     | NAME 
+    //     | '(' single_target ')' 
+    //
+    // single_subscript_attribute_target:
+    //     | t_primary '.' NAME !t_lookahead 
+    //     | t_primary '[' slices ']' !t_lookahead 
+    //
+    // star_targets:
+    //     | star_target !',' 
+    //     | star_target (',' star_target )* [','] 
+
+    // star_target:
+    //     | '*' (!'*' star_target) 
+    //     | target_with_star_atom
+    // target_with_star_atom:
+    //     | t_primary '.' NAME !t_lookahead 
+    //     | t_primary '[' slices ']' !t_lookahead 
+    //     | star_atom
+    // star_atom:
+    //     | NAME 
+    //     | '(' target_with_star_atom ')' 
+    //     | '(' [star_targets_tuple_seq] ')' 
+    //     | '[' [star_targets_list_seq] ']' 
+    // star_targets_list_seq: ','.star_target+ [','] 
+    // star_targets_tuple_seq:
+    //     | star_target (',' star_target )+ [','] 
+    //     | star_target ',' 
+
     // star_expressions
     //
+
+    // clang-format on
     case tok_return:
         return parse_return(parent, depth);
     case tok_import:
@@ -1937,9 +1960,7 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
         return parse_match(parent, depth);
     }
 
-    allow_comma = true;
-    auto expr   = parse_expression(parent, depth);
-    allow_comma = false;
+    auto expr = parse_expression(parent, depth);
 
     switch (token().type()) {
     // <expr> = <>
@@ -2145,12 +2166,14 @@ ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_pr
     case tok_square:
         return parse_subscript(parent, primary, depth);
 
+    // this causes more issues than it solves
+    // to allow unpacking we will need to move this to somewhere more specific
     case tok_comma: {
         // If we are going deeper we neeed the user to use ( explicitly
-        if (expression_depth == 1 && allow_comma) {
+        if (false) {
             next_token();
-            allow_comma = false;
-            auto expr   = parse_literal<TupleExpr>(this, parent, primary, '\0', depth);
+
+            auto expr = parse_literal<TupleExpr>(this, parent, primary, '\0', depth);
             return expr;
         }
     }
