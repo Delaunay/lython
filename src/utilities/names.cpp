@@ -19,10 +19,12 @@ StringRef::~StringRef() { StringDatabase::instance().strings[ref].in_use += 1; }
 std::ostream &StringDatabase::report(std::ostream &out) const {
     std::size_t saved    = 0;
     std::size_t saved_up = 0;
+    std::size_t size     = 9;
 
     out << fmt::format("| {:30} | {:4} | {:4} | {:4} | {:4} |\n", "str", "#", "use", "low", "upp");
 
     for (auto &entry: strings) {
+        size += entry.data.size();
         auto lower = entry.data.size() * (entry.count - 1);
         auto upper = entry.data.size() * (entry.in_use - 1);
 
@@ -32,7 +34,8 @@ std::ostream &StringDatabase::report(std::ostream &out) const {
         saved_up += upper;
     }
 
-    out << fmt::format("{} < Saved < {} bytes\n", saved, saved_up);
+    out << fmt::format("Size {}: {} < Saved < {} bytes (x{:6.2f})\n", size, saved, saved_up,
+                       float(size + saved) / float(size));
     return out;
 }
 } // namespace lython

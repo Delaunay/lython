@@ -83,6 +83,7 @@ class Parser {
     // Primary expression
     // parse_expression_1
     ExprNode *parse_await(Node *parent, int depth);
+    StmtNode *parse_yield_stmt(Node *parent, int depth);
     ExprNode *parse_yield(Node *parent, int depth);
     ExprNode *parse_yield_from(Node *parent, int depth);
     ExprNode *parse_name(Node *parent, int depth);
@@ -202,7 +203,7 @@ class Parser {
     Token previous = dummy();
 
     public:
-    bool allow_comma      = false;
+    bool allow_comma      = true;
     int  expression_depth = 0;
 
     private:

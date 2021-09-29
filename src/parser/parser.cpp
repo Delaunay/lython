@@ -1856,6 +1856,15 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
     return inlinestmt;
 }
 
+StmtNode *Parser::parse_yield_stmt(Node *parent, int depth) {
+    // yield is an expression in the AST but a statement in the grammar
+    // looks like the grammar is used to force the yield to only appear at specifc
+    // spots, not sure what it needed to be an expression
+    auto stmt   = parent->new_object<Expr>();
+    stmt->value = parse_yield(stmt, depth);
+    return stmt;
+}
+
 StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
     TRACE_START();
 
@@ -1868,59 +1877,64 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
 
     // Statement we can guess rightaway from the current token we are seeing
     switch (token().type()) {
-    // def <name>(...
-    case tok_def:
-        return parse_function_def(parent, false, depth);
-
-    // async def <name>(...
-    case tok_async:
-        return parse_function_def(parent, true, depth);
-
-    case tok_class:
-        return parse_class_def(parent, depth);
-
-    // Async for: only valid inside async function
-    case tok_for:
-        return parse_for(parent, depth);
-
-    case tok_while:
-        return parse_while(parent, depth);
-    case tok_if:
-        return parse_if_alt(parent, depth);
-
-    case tok_match:
-        return parse_match(parent, depth);
-    case tok_with:
-        return parse_with(parent, depth);
-        // Async with: only valid inside async function
-
-    case tok_raise:
-        return parse_raise(parent, depth);
-    case tok_try:
-        return parse_try(parent, depth);
-    case tok_assert:
-        return parse_assert(parent, depth);
-
+    // Small Statement
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // assignment
+    //      Name
+    //      star_targets
+    //      single_target
+    // star_expressions
+    //
+    case tok_return:
+        return parse_return(parent, depth);
     case tok_import:
         return parse_import(parent, depth);
     case tok_from:
         return parse_import_from(parent, depth);
-
-    case tok_global:
-        return parse_global(parent, depth);
-    case tok_nonlocal:
-        return parse_nonlocal(parent, depth);
-
-    case tok_return:
-        return parse_return(parent, depth);
-    case tok_del:
-        return parse_del(parent, depth);
+    case tok_raise:
+        return parse_raise(parent, depth);
     case tok_pass:
         return parse_pass(parent, depth);
+    case tok_del:
+        return parse_del(parent, depth);
+    case tok_yield:
+        return parse_yield_stmt(parent, depth);
+    case tok_assert:
+        return parse_assert(parent, depth);
     case tok_break:
         return parse_break(parent, depth);
     case tok_continue:
         return parse_continue(parent, depth);
+    case tok_global:
+        return parse_global(parent, depth);
+    case tok_nonlocal:
+        return parse_nonlocal(parent, depth);
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    // Compound Statement
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // def <name>(...
+    case tok_def:
+        return parse_function_def(parent, false, depth);
+    // async def <name>(...
+    case tok_async:
+        return parse_function_def(parent, true, depth);
+    case tok_if:
+        return parse_if_alt(parent, depth);
+    case tok_class:
+        return parse_class_def(parent, depth);
+    case tok_with:
+        return parse_with(parent, depth);
+
+    // Async for: only valid inside async function
+    case tok_for:
+        return parse_for(parent, depth);
+    case tok_try:
+        return parse_try(parent, depth);
+    case tok_while:
+        return parse_while(parent, depth);
+    case tok_match:
+        return parse_match(parent, depth);
     }
 
     allow_comma = true;
@@ -2039,35 +2053,19 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
     case tok_yield:
         return parse_yield(parent, depth);
 
-    // <identifier>
+    // atom:
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // Name: <identifier>
     case tok_identifier:
         return parse_name(parent, depth);
-    // lambda <name>:
-    case tok_lambda:
-        return parse_lambda(parent, depth);
 
     case tok_none:
     case tok_true:
     case tok_false:
-    case tok_float:
-        return parse_constant(parent, depth);
-
     case tok_int:
-        return parse_constant(parent, depth);
-    // "
+    case tok_float:
     case tok_string:
         return parse_constant(parent, depth);
-    // f"
-    case tok_fstring:
-        return parse_joined_string(parent, depth);
-    // if <expr> else <expr>
-    case tok_if:
-        return parse_ifexp(parent, depth);
-
-    // *<expr>
-    case tok_star:
-    case tok_operator:
-        return parse_prefix_unary(parent, depth);
 
     // List: [a, b]
     // Comprehension [a for a in b]
@@ -2087,6 +2085,25 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
     // Comprehension {a: b for a, b in c}
     case tok_curly:
         return parse_set_dict(parent, depth);
+
+    // TODO: add elipsis
+
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    // lambda <name>:
+    case tok_lambda:
+        return parse_lambda(parent, depth);
+
+    // f"
+    case tok_fstring:
+        return parse_joined_string(parent, depth);
+    // if <expr> else <expr>
+    case tok_if:
+        return parse_ifexp(parent, depth);
+
+    // *<expr>
+    case tok_star:
+    case tok_operator:
+        return parse_prefix_unary(parent, depth);
     }
 
     // Left Unary operator

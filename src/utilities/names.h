@@ -61,8 +61,7 @@ struct string_ref_hash {
 
 // Should be careful to only use this for name-like strings
 // Since we keep the strings forever
-// At the moment this is global but we should maybe tie this to a Module
-// so the strings can expire
+// Currently this is only used when setting strings inside our AST
 class StringDatabase {
     public:
     static StringDatabase &instance() {
