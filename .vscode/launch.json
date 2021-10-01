@@ -8,7 +8,7 @@
             "name": "Debug Lython",
             "type": "cppdbg",
             "request": "launch",
-            "program": "enter program name, for example ${workspaceFolder}/a.out",
+            "program": "${workspaceFolder}/build/bin/lython",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

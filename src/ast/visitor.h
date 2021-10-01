@@ -2,6 +2,7 @@
 #define LYTHON_AST_VISITOR_HEADER
 
 #include "ast/sexpression.h"
+#include "logging/logging.h"
 
 namespace lython {
 
@@ -132,6 +133,7 @@ struct BaseVisitor {
 
 #define FUNCTION_GEN(name, fun)                                                              \
     name *fun(name *node, int depth, Args... args) {                                         \
+        trace(depth, #name);                                                                 \
         return static_cast<Implementation *>(this)->fun(node, depth, std::forward(args)...); \
     }
 
