@@ -42,6 +42,13 @@ enum class NodeKind : int8_t
     EXPR(ListExpr, listexpr)        \
     EXPR(TupleExpr, tupleexpr)      \
     EXPR(Slice, slice)              \
+    EXPR(DictType, dicttype)        \
+    EXPR(ArrayType, arraytype)      \
+    EXPR(TupleType, tupletype)      \
+    EXPR(Arrow, arrow)              \
+    EXPR(ClassType, classtype)      \
+    EXPR(SetType, settype)          \
+    EXPR(BuiltinType, builtintype)  \
     SECTION(EXPR_END)               \
     SECTION(MODULE_START)               \
     MOD(Module, module)                 \

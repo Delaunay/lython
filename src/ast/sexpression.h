@@ -723,6 +723,9 @@ struct Name: public ExprNode {
     Identifier  id;
     ExprContext ctx;
 
+    // SEMA
+    int varid;
+
     static Array<String> examples() {
         Array<String> _examples = {
             "a",
@@ -1314,6 +1317,49 @@ struct NotAllowedEpxr: public ExprNode {
     String msg;
 
     void print(std::ostream &out, int indent) const { out << "<not allowed: " << msg << ">"; }
+};
+
+struct Arrow: public ExprNode {
+    Arrow(): ExprNode(NodeKind::Arrow) {}
+
+    Array<ExprNode *> args;
+    ExprNode *        returns;
+};
+
+struct DictType: public ExprNode {
+    DictType(): ExprNode(NodeKind::DictType) {}
+
+    ExprNode *key;
+    ExprNode *value;
+};
+
+struct SetType: public ExprNode {
+    SetType(): ExprNode(NodeKind::SetType) {}
+
+    ExprNode *value;
+};
+
+struct ArrayType: public ExprNode {
+    ArrayType(): ExprNode(NodeKind::ArrayType) {}
+
+    ExprNode *value;
+};
+
+struct TupleType: public ExprNode {
+    TupleType(): ExprNode(NodeKind::TupleType) {}
+
+    Array<ExprNode *> types;
+};
+
+struct BuiltinType: public ExprNode {
+    BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
+    StringRef name;
+};
+
+struct ClassType: public ExprNode {
+    ClassType(): ExprNode(NodeKind::ClassType) {}
+    StringRef        name;
+    Array<StringRef> bases;
 };
 
 } // namespace lython
