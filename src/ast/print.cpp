@@ -891,7 +891,7 @@ void AugAssign::print(std::ostream &out, int level) const {
 void Assign::print(std::ostream &out, int level) const {
     targets[0]->print(out, -1);
     out << " = ";
-    value->print(out, level);
+    value->print(out, -1);
 }
 
 void AnnAssign::print(std::ostream &out, int level) const {

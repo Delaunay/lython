@@ -1115,7 +1115,7 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    stmt->value = parse_expression(stmt, depth + 1);
+    stmt->value = parse_expression(stmt, depth + 1, true);
 
     end_code_loc(stmt, token());
     return stmt;
@@ -2052,7 +2052,7 @@ ExprNode *Parser::parse_operators(Node *parent, ExprNode *lhs, int min_precedenc
     return lhs;
 }
 
-ExprNode *Parser::parse_expression(Node *parent, int depth) {
+ExprNode *Parser::parse_expression(Node *parent, int depth, bool comma) {
     expression_depth += 1;
     // parse primary
     auto primary = parse_expression_primary(parent, depth);
@@ -2063,7 +2063,7 @@ ExprNode *Parser::parse_expression(Node *parent, int depth) {
         primary = parse_call(parent, primary, depth);
     }
 
-    primary = parse_expression_1(parent, primary, 0, depth);
+    primary = parse_expression_1(parent, primary, 0, depth, comma);
 
     expression_depth -= 1;
     return primary;
@@ -2142,8 +2142,8 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
     return nullptr;
 }
 
-ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_precedence,
-                                     int depth) {
+ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth,
+                                     bool comma) {
     //
     switch (token().type()) {
     // <expr> := <expr>
@@ -2178,7 +2178,7 @@ ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_pr
     // to allow unpacking we will need to move this to somewhere more specific
     case tok_comma: {
         // If we are going deeper we neeed the user to use ( explicitly
-        if (false) {
+        if (comma) {
             next_token();
 
             auto expr = parse_literal<TupleExpr>(this, parent, primary, '\0', depth);

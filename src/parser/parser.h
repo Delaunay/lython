@@ -120,11 +120,12 @@ class Parser {
     // Expression Dispatcher
     // ---------------------
     // using the current token dispatch to the correct parsing routine
-    ExprNode *parse_expression(Node *parent, int depth);
+    ExprNode *parse_expression(Node *parent, int depth, bool comma = false);
 
     ExprNode *parse_expression_primary(Node *parent, int depth);
 
-    ExprNode *parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth);
+    ExprNode *parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth,
+                                 bool comma = false);
 
     ExprNode *parse_operators(Node *parent, ExprNode *lhs, int min_precedence, int depth);
 
