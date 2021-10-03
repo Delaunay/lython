@@ -22,13 +22,22 @@ NEW_EXCEPTION(NullPointerError)
 template <typename Implementation, typename... Args>
 struct BaseVisitor {
 
-    Array<StmtNode *> exec(Array<StmtNode *> &body, int depth, Args... args) {
+    template <typename T>
+    Array<T> exec(Array<T> &body, int depth, Args... args) {
         int k = 0;
         for (auto &stmt: body) {
             body[k] = exec(stmt, depth, std::forward(args)...);
             k += 1;
         }
         return body;
+    };
+
+    template <typename T>
+    Optional<T> exec(Optional<T> &maybe, int depth, Args... args) {
+        if (maybe.has_value()) {
+            return some<T>(exec(maybe.value(), depth, std::forward(args)...));
+        }
+        return none<T>();
     };
 
     ModNode *exec(ModNode *mod, int depth, Args... args) {

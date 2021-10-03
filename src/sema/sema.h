@@ -12,8 +12,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser> {
         return nullptr;
     };
 
-#define FUNCTION_GEN(name, fun) \
-    name *fun(name *n, int depth) { return n; }
+#define FUNCTION_GEN(name, fun) name *fun(name *n, int depth);
 
 #define X(name, _)
 #define SECTION(name)

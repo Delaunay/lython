@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "../dtypes.h"
+#include "ast/nodekind.h"
 #include "constant.h"
 
 #include "logging/logging.h"
@@ -15,109 +16,10 @@ namespace lython {
 
 using Identifier = StringRef;
 
-// To make this more generic, I could have a StringDB that assign a integer to a constant string
-// the string would be the class name and the integer would become the RTTI
-// Custom RTTI
-enum class NodeKind : int8_t
-{
-
-// clang-format off
-// Check X-MACRO trick
-// this is used to code gen a bunch of functions/types
-#define NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)\
-    X(Invalid, invalid)             \
-    SECTION(EXPR_START)             \
-    EXPR(BoolOp, boolop)            \
-    EXPR(NamedExpr, namedexpr)      \
-    EXPR(BinOp, binop)              \
-    EXPR(UnaryOp, unaryop)          \
-    EXPR(Lambda, lambda)            \
-    EXPR(IfExp, ifexp)              \
-    EXPR(DictExpr, dictexpr)        \
-    EXPR(SetExpr, setexpr)          \
-    EXPR(ListComp, listcomp)        \
-    EXPR(GeneratorExp, generateexpr)\
-    EXPR(SetComp, setcomp)          \
-    EXPR(DictComp, dictcomp)        \
-    EXPR(Await, await)              \
-    EXPR(Yield, yield)              \
-    EXPR(YieldFrom, yieldfrom)      \
-    EXPR(Compare, compare)          \
-    EXPR(Call, call)                \
-    EXPR(JoinedStr, joinedstr)      \
-    EXPR(FormattedValue, formattedvalue)\
-    EXPR(Constant, constant)        \
-    EXPR(Attribute, attribute)      \
-    EXPR(Subscript, subscript)      \
-    EXPR(Starred, starred)          \
-    EXPR(Name, name)                \
-    EXPR(ListExpr, listexpr)        \
-    EXPR(TupleExpr, tupleexpr)      \
-    EXPR(Slice, slice)              \
-    SECTION(EXPR_END)               \
-    SECTION(MODULE_START)               \
-    MOD(Module, module)                 \
-    MOD(Interactive, interactive)       \
-    MOD(Expression, expression)         \
-    MOD(FunctionType, functiontype)     \
-    SECTION(MODULE_END)                 \
-    SECTION(STMT_START)                 \
-    STMT(FunctionDef, functiondef)      \
-    STMT(ClassDef, classdef)            \
-    STMT(Return, returnstmt)            \
-    STMT(Delete, deletestmt)            \
-    STMT(Assign, assign)                \
-    STMT(AugAssign, augassign)          \
-    STMT(AnnAssign, annassign)          \
-    STMT(For, forstmt)                  \
-    STMT(While, whilestmt)              \
-    STMT(If, ifstmt)                    \
-    STMT(With, with)                    \
-    STMT(Raise, raise)                  \
-    STMT(Try, trystmt)                  \
-    STMT(Assert, assertstmt)            \
-    STMT(Import, import)                \
-    STMT(ImportFrom, importfrom)        \
-    STMT(Global, global)                \
-    STMT(Nonlocal, nonlocal)            \
-    STMT(Expr, exprstmt)                \
-    STMT(Pass, pass)                    \
-    STMT(Break, breakstmt)              \
-    STMT(Continue, continuestmt)        \
-    STMT(Match, match)                  \
-    STMT(Inline, inlinestmt)            \
-    SECTION(STMT_END)                   \
-    SECTION(PAT_START)                  \
-    MATCH(MatchValue, matchvalue)       \
-    MATCH(MatchSingleton, matchsingleton)   \
-    MATCH(MatchSequence, matchsequence)     \
-    MATCH(MatchMapping, matchmapping)       \
-    MATCH(MatchClass, matchclass)           \
-    MATCH(MatchStar, matchstar)             \
-    MATCH(MatchAs, matchas)                 \
-    MATCH(MatchOr, matchor)                 \
-    SECTION(PAT_END)
-
-    #define X(name, _) name,
-    #define SECTION(name) name,
-    #define EXPR(name, _) name,
-    #define STMT(name, _) name,
-    #define MOD(name, _) name,
-    #define MATCH(name, _) name,
-
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
-
-    #undef X
-    #undef SECTION
-    #undef EXPR
-    #undef STMT
-    #undef MOD
-    #undef MATCH
-};
-// clang-format off
-
-template<typename T>
-NodeKind nodekind() { return NodeKind::Invalid; }
+template <typename T>
+NodeKind nodekind() {
+    return NodeKind::Invalid;
+}
 
 String str(NodeKind k);
 
@@ -149,24 +51,25 @@ struct Node: public GCObject {
 
     const NodeKind kind;
 
-    template<typename T>
+    template <typename T>
     bool is_instance() const {
         return kind == nodekind<T>();
     }
 };
 
 // Safe cast
-template<typename T>
-T* cast(Node* obj) {
+template <typename T>
+T *cast(Node *obj) {
     if (obj->is_instance<T>()) {
-        return (T*) obj;
+        return (T *)obj;
     }
     return nullptr;
 }
 
-template<typename T>
-T* checked_cast(Node* obj) {
-    assert(obj->is_instance<T>(), fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
+template <typename T>
+T *checked_cast(Node *obj) {
+    assert(obj->is_instance<T>(),
+           fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
     return cast<T>(obj);
 }
 
@@ -311,7 +214,7 @@ struct Arguments {
 struct Keyword: public CommonAttributes {
     Identifier arg; // why is this optional ?
                     // it is marked as optional in the python AST
-    ExprNode *           value = nullptr;
+    ExprNode *value = nullptr;
 
     void print(std::ostream &out, int indent) const;
 };
@@ -467,11 +370,7 @@ struct BinOp: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a + b", 
-            "a - b", 
-            "a * b", 
-            "a << b", 
-            "a ^ b",
+            "a + b", "a - b", "a * b", "a << b", "a ^ b",
         };
         return _examples;
     }
@@ -680,11 +579,7 @@ struct Compare: public ExprNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a < b > c != d",
-            "a not in b",
-            "a in b",
-            "a is b",
-            "a is not b",
+            "a < b > c != d", "a not in b", "a in b", "a is b", "a is not b",
         };
         return _examples;
     }
@@ -755,14 +650,10 @@ struct Constant: public ExprNode {
 
     void print(std::ostream &out, int indent) const override;
 
-    template<typename T>
-    Constant(T const& v):
-        ExprNode(NodeKind::Constant), value(v)
-    {}
+    template <typename T>
+    Constant(T const &v): ExprNode(NodeKind::Constant), value(v) {}
 
-    Constant(): 
-        Constant(ConstantValue::invalid_t())
-    {}
+    Constant(): Constant(ConstantValue::invalid_t()) {}
 };
 
 // the following expression can appear in assignment context
@@ -865,11 +756,7 @@ struct TupleExpr: public ExprNode {
     ExprContext       ctx;
 
     static Array<String> examples() {
-        Array<String> _examples = {
-            "a, b, c",
-            "a, (b, c), d",
-            "a, b, c = d, e, f"
-        };
+        Array<String> _examples = {"a, b, c", "a, (b, c), d", "a, b, c = d, e, f"};
         return _examples;
     }
 
@@ -965,7 +852,6 @@ struct Inline: public StmtNode {
     Inline(): StmtNode(NodeKind::Inline) {}
 };
 
-
 struct FunctionDef: public StmtNode {
     Identifier           name;
     Arguments            args;
@@ -975,7 +861,7 @@ struct FunctionDef: public StmtNode {
     String               type_comment;
 
     Optional<String> docstring;
-    bool   async : 1 = false;
+    bool             async : 1 = false;
 
     static Array<String> examples() {
         Array<String> _examples = {
@@ -1066,7 +952,7 @@ struct Assign: public StmtNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a = b", 
+            "a = b",
             "a, b = c",
         };
         return _examples;
@@ -1084,7 +970,7 @@ struct AugAssign: public StmtNode {
 
     static Array<String> examples() {
         Array<String> _examples = {
-            "a += b", 
+            "a += b",
             "a -= b",
         };
         return _examples;
@@ -1123,14 +1009,12 @@ struct For: public StmtNode {
     Optional<String>  type_comment;
 
     static Array<String> examples() {
-        Array<String> _examples = {
-            "for a in b:\n"
-            "    pass\n"
-            "else:\n"
-            "    pass\n",
-            "for a, (b, c), d in b:\n"
-            "    pass\n"
-        };
+        Array<String> _examples = {"for a in b:\n"
+                                   "    pass\n"
+                                   "else:\n"
+                                   "    pass\n",
+                                   "for a, (b, c), d in b:\n"
+                                   "    pass\n"};
         return _examples;
     }
 
@@ -1171,8 +1055,8 @@ struct If: public StmtNode {
 
     // alternative representation that diverges from
     // the python ast
-    Array<ExprNode*> tests;
-    Array<Array<StmtNode*>> bodies;
+    Array<ExprNode *>        tests;
+    Array<Array<StmtNode *>> bodies;
 
     static Array<String> examples() {
         Array<String> _examples = {
@@ -1186,7 +1070,7 @@ struct If: public StmtNode {
         return _examples;
     }
 
-    void print(std::ostream &out, int indent) const ;
+    void print(std::ostream &out, int indent) const;
 
     If(): StmtNode(NodeKind::If) {}
 };
@@ -1391,19 +1275,17 @@ struct Match: public StmtNode {
     Array<MatchCase> cases;
 
     static Array<String> examples() {
-        Array<String> _examples = {
-            "match a:\n"
-            "    case [1, 3]:\n"
-            "        pass\n"
-            "    case p as c:\n"
-            "        pass\n"
-            "    case a | c:\n"
-            "        pass\n"
-            "    case ClassName(a, b, c=d):\n"
-            "        pass\n"
-            "    case d if b:\n"
-            "        pass\n"
-        };
+        Array<String> _examples = {"match a:\n"
+                                   "    case [1, 3]:\n"
+                                   "        pass\n"
+                                   "    case p as c:\n"
+                                   "        pass\n"
+                                   "    case a | c:\n"
+                                   "        pass\n"
+                                   "    case ClassName(a, b, c=d):\n"
+                                   "        pass\n"
+                                   "    case d if b:\n"
+                                   "        pass\n"};
 
         return _examples;
     }
