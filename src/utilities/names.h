@@ -3,12 +3,14 @@
 
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 
 #include "dtypes.h"
 #include "logging/logging.h"
+#include "utilities/stopwatch.h"
 
 namespace lython {
 // /!\ string a allocated twice
@@ -24,20 +26,67 @@ NEW_EXCEPTION(NameTaken);
 
 class StringRef;
 
-StringRef get_string(String const &str);
+// Should be careful to only use this for name-like strings
+// Since we keep the strings forever
+// At the moment this is global but we should maybe tie this to a Module
+// so the strings can expire
+class StringDatabase {
+    public:
+    static StringDatabase &instance();
 
-std::ostream &operator<<(std::ostream &out, StringRef ref);
+    StringView operator[](std::size_t i) const;
+
+    StringRef string(String const &name);
+
+    StringDatabase();
+
+    std::ostream &report(std::ostream &out) const;
+
+    private:
+    std::size_t inc(std::size_t i);
+
+    std::size_t dec(std::size_t n);
+
+    struct StringEntry {
+        String data;
+        int    count  = 1;
+        int    copy   = 0;
+        int    in_use = 0;
+    };
+
+    Dict<StringView, std::size_t> defined; // Used to check if the string is already stored
+    Array<StringEntry>            strings; // String storage
+    mutable std::recursive_mutex  mu;
+    mutable double                wait_time;
+
+    friend class StringRef;
+    friend bool _metadata_init_names();
+};
 
 // Very Cheap string reference
 class StringRef {
     public:
-    StringRef(std::size_t ref = 0): ref(ref) {}
+    StringRef(std::size_t ref = 0): ref(StringDatabase::instance().inc(ref)) {}
 
-    StringRef(String const &name): ref(get_string(name).ref) {}
+    StringRef(String const &name): ref(StringDatabase::instance().string(name).ref) {}
+
+    StringRef(StringRef const &name): ref(StringDatabase::instance().inc(name.ref)) {}
 
     bool operator==(StringRef const &b) const { return ref == b.ref; }
 
     bool operator!=(StringRef const &b) const { return ref != b.ref; }
+
+    StringRef &operator=(String const &name) {
+        StringDatabase::instance().dec(ref);
+        ref = StringDatabase::instance().string(name).ref;
+        return *this;
+    }
+
+    StringRef operator=(StringRef const &name) {
+        StringDatabase::instance().dec(ref);
+        ref = StringDatabase::instance().inc(name.ref);
+        return *this;
+    }
 
     ~StringRef();
 
@@ -50,6 +99,8 @@ class StringRef {
     operator bool() const { return ref != 0; }
 };
 
+std::ostream &operator<<(std::ostream &out, StringRef ref);
+
 String join(String const &sep, Array<StringRef> const &strs);
 
 // hash the reference instead of the string itself
@@ -57,60 +108,6 @@ String join(String const &sep, Array<StringRef> const &strs);
 struct string_ref_hash {
     std::size_t            operator()(StringRef const &v) const noexcept { return _h(v.ref); }
     std::hash<std::size_t> _h;
-};
-
-// Should be careful to only use this for name-like strings
-// Since we keep the strings forever
-// Currently this is only used when setting strings inside our AST
-class StringDatabase {
-    public:
-    static StringDatabase &instance() {
-        static StringDatabase db;
-        return db;
-    }
-
-    StringView operator[](std::size_t i) { return strings[i].data; }
-
-    StringRef string(String const &name) {
-        auto val = defined.find(name);
-
-        if (val == defined.end()) {
-            std::size_t n = strings.size();
-
-            strings.push_back({name, 1, 0});
-            StringView str = strings[n].data;
-
-            defined[str] = n;
-            return StringRef(n);
-        }
-
-        auto ref = val->second;
-        strings[ref].count += 1;
-        return StringRef(ref);
-    }
-
-    StringDatabase() {
-        strings.reserve(128);
-
-        strings.push_back({"", 0, 0});
-        StringView str = strings[0].data;
-        defined[str]   = 0;
-    }
-
-    std::ostream &report(std::ostream &out) const;
-
-    public:
-    struct StringEntry {
-        String data;
-        int    count  = 1;
-        int    in_use = 0;
-    };
-
-    private:
-    Dict<StringView, std::size_t> defined; // Used to check if the string is already stored
-    Array<StringEntry>            strings; // String storage
-
-    friend class StringRef;
 };
 
 } // namespace lython

@@ -85,7 +85,7 @@ enum class NodeKind : int8_t
     STMT(Break, breakstmt)              \
     STMT(Continue, continuestmt)        \
     STMT(Match, match)                  \
-    STMT(Inline, inlinestmt)                  \
+    STMT(Inline, inlinestmt)            \
     SECTION(STMT_END)                   \
     SECTION(PAT_START)                  \
     MATCH(MatchValue, matchvalue)       \
@@ -96,7 +96,6 @@ enum class NodeKind : int8_t
     MATCH(MatchStar, matchstar)             \
     MATCH(MatchAs, matchas)                 \
     MATCH(MatchOr, matchor)                 \
-    MATCH(MatchCase, matchcase)             \
     SECTION(PAT_END)
 
     #define X(name, _) name,

@@ -8,6 +8,7 @@
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
+#include "sema/sema.h"
 
 // #include "interpreter/interpreter.h"
 #include "logging/logging.h"
@@ -170,6 +171,9 @@ int main() {
                 std::cout << "\n";
             }
             std::cout << std::string(80, '-') << '\n';
+
+            SemanticAnalyser sema;
+            sema.exec(mod, 0);
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;

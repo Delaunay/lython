@@ -44,6 +44,7 @@ bool _metadata_init_names() {
     meta::register_type<lython::Arg>("Arg");
     meta::register_type<lython::CmpOperator>("CmpOperator");
     meta::register_type<lython::Keyword>("Keyword");
+    meta::register_type<lython::MatchCase>("MatchCase");
     meta::register_type<lython::Pattern *>("Pattern*");
     meta::register_type<Array<StmtNode *>>("Array<StmtNode*>");
 
