@@ -7,7 +7,14 @@ namespace lython {
 
 using TypeExpr = ExprNode;
 
-struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, TypeExpr, TypeExpr, TypeExpr, TypeExpr> {
+struct SemaVisitorTrait {
+    using StmtRet = TypeExpr;
+    using ExprRet = TypeExpr;
+    using ModRet  = TypeExpr;
+    using PatRet  = TypeExpr;
+};
+
+struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     public:
     TypeExpr *module(Module *stmt, int depth) {
         exec<TypeExpr>(stmt->body, depth);

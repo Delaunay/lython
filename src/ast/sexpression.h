@@ -385,7 +385,12 @@ struct UnaryOp: public ExprNode {
     ExprNode *    operand;
 
     static Array<String> examples() {
-        Array<String> _examples = {"+ a", "- a", "~ a", "! a"};
+        Array<String> _examples = {
+            "+ a",
+            "- a",
+            "~ a",
+            "! a",
+        };
         return _examples;
     }
 
@@ -759,7 +764,11 @@ struct TupleExpr: public ExprNode {
     ExprContext       ctx;
 
     static Array<String> examples() {
-        Array<String> _examples = {"a, b, c", "a, (b, c), d", "a, b, c = d, e, f"};
+        Array<String> _examples = {
+            "a, b, c",
+            "a, (b, c), d",
+            "a, b, c = d, e, f",
+        };
         return _examples;
     }
 
@@ -1012,12 +1021,14 @@ struct For: public StmtNode {
     Optional<String>  type_comment;
 
     static Array<String> examples() {
-        Array<String> _examples = {"for a in b:\n"
-                                   "    pass\n"
-                                   "else:\n"
-                                   "    pass\n",
-                                   "for a, (b, c), d in b:\n"
-                                   "    pass\n"};
+        Array<String> _examples = {
+            "for a in b:\n"
+            "    pass\n"
+            "else:\n"
+            "    pass\n",
+            "for a, (b, c), d in b:\n"
+            "    pass\n",
+        };
         return _examples;
     }
 

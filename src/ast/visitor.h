@@ -8,6 +8,13 @@ namespace lython {
 
 NEW_EXCEPTION(NullPointerError)
 
+struct DefaultVisitorTrait {
+    using StmtRet = StmtNode;
+    using ExprRet = ExprNode;
+    using ModRet  = ModNode;
+    using PatRet  = Pattern;
+};
+
 /*!
  * Visitor implemented using static polymorphism.
  * This implementation has 2 advantages:
@@ -19,9 +26,13 @@ NEW_EXCEPTION(NullPointerError)
  * The main drawbacks is it uses macros to generate the vtable at compile time
  * and the error messages can be a bit arcane
  */
-template <typename Implementation, typename StmtRet, typename ExprRet, typename ModRet,
-          typename PatRet, typename... Args>
+template <typename Implementation, typename VisitorTrait, typename... Args>
 struct BaseVisitor {
+
+    using StmtRet = typename VisitorTrait::StmtRet;
+    using ExprRet = typename VisitorTrait::ExprRet;
+    using ModRet  = typename VisitorTrait::ModRet;
+    using PatRet  = typename VisitorTrait::PatRet;
 
     template <typename U, typename T>
     Array<U *> exec(Array<T> &body, int depth, Args... args) {
