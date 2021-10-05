@@ -5,14 +5,16 @@
 
 namespace lython {
 
-struct SemanticAnalyser: BaseVisitor<SemanticAnalyser> {
+using TypeExpr = ExprNode;
+
+struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, TypeExpr, TypeExpr, TypeExpr, TypeExpr> {
     public:
     Module *module(Module *stmt, int depth) {
-        exec(stmt->body, depth);
+        exec<TypeExpr>(stmt->body, depth);
         return nullptr;
     };
 
-#define FUNCTION_GEN(name, fun) name *fun(name *n, int depth);
+#define FUNCTION_GEN(name, fun) TypeExpr *fun(name *n, int depth);
 
 #define X(name, _)
 #define SECTION(name)

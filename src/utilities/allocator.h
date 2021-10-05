@@ -122,7 +122,7 @@ struct CPU: public DeviceAllocatorTrait<CPU> {
 
 inline void manual_free(int class_id, std::size_t n) {
     meta::get_stat(class_id).deallocated += 1;
-    meta::get_stat(class_id).size_free += n;
+    meta::get_stat(class_id).size_free += int(n);
 }
 
 template <typename T, typename Device>
@@ -155,7 +155,7 @@ class Allocator {
         meta::register_type<T>(typeid(T).name());
         meta::get_stat<T>().allocated += 1;
         meta::get_stat<T>().size_alloc += n;
-        meta::get_stat<T>().bytes = sizeof(T);
+        meta::get_stat<T>().bytes = int(sizeof(T));
         return static_cast<T *>(allocator.malloc(n * sizeof(T)));
     }
 

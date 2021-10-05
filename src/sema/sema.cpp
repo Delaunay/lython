@@ -2,140 +2,141 @@
 
 namespace lython {
 
-BoolOp *   SemanticAnalyser::boolop(BoolOp *n, int depth) {}
-NamedExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) {}
-BinOp *    SemanticAnalyser::binop(BinOp *n, int depth) {}
-UnaryOp *  SemanticAnalyser::unaryop(UnaryOp *n, int depth) {}
-Lambda *   SemanticAnalyser::lambda(Lambda *n, int depth) {}
-IfExp *    SemanticAnalyser::ifexp(IfExp *n, int depth) {
+TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::unaryop(UnaryOp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::lambda(Lambda *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::ifexp(IfExp *n, int depth) {
     exec(n->test, depth);
     exec(n->body, depth);
     exec(n->orelse, depth);
-    return n;
+    return nullptr;
 }
-DictExpr *    SemanticAnalyser::dictexpr(DictExpr *n, int depth) {}
-SetExpr *     SemanticAnalyser::setexpr(SetExpr *n, int depth) {}
-ListComp *    SemanticAnalyser::listcomp(ListComp *n, int depth) {}
-GeneratorExp *SemanticAnalyser::generateexpr(GeneratorExp *n, int depth) {}
-SetComp *     SemanticAnalyser::setcomp(SetComp *n, int depth) {}
-DictComp *    SemanticAnalyser::dictcomp(DictComp *n, int depth) {}
-Await *       SemanticAnalyser::await(Await *n, int depth) {
+TypeExpr *SemanticAnalyser::dictexpr(DictExpr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::setexpr(SetExpr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::listcomp(ListComp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::generateexpr(GeneratorExp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::setcomp(SetComp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::dictcomp(DictComp *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::await(Await *n, int depth) {
     exec(n->value, depth);
-    return n;
+    return nullptr;
 }
-Yield *SemanticAnalyser::yield(Yield *n, int depth) {
+TypeExpr *SemanticAnalyser::yield(Yield *n, int depth) {
+    exec<TypeExpr>(n->value, depth);
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::yieldfrom(YieldFrom *n, int depth) {
     exec(n->value, depth);
-    return n;
+    return nullptr;
 }
-YieldFrom *SemanticAnalyser::yieldfrom(YieldFrom *n, int depth) {
+TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::call(Call *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::joinedstr(JoinedStr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::subscript(Subscript *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::starred(Starred *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::name(Name *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::listexpr(ListExpr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::tupleexpr(TupleExpr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::returnstmt(Return *n, int depth) {
+    exec<TypeExpr>(n->value, depth);
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::deletestmt(Delete *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::assign(Assign *n, int depth) {
+    exec<TypeExpr>(n->targets, depth);
     exec(n->value, depth);
-    return n;
+    return nullptr;
 }
-Compare *       SemanticAnalyser::compare(Compare *n, int depth) {}
-Call *          SemanticAnalyser::call(Call *n, int depth) {}
-JoinedStr *     SemanticAnalyser::joinedstr(JoinedStr *n, int depth) {}
-FormattedValue *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) {}
-Constant *      SemanticAnalyser::constant(Constant *n, int depth) { return n; }
-Attribute *     SemanticAnalyser::attribute(Attribute *n, int depth) {}
-Subscript *     SemanticAnalyser::subscript(Subscript *n, int depth) {}
-Starred *       SemanticAnalyser::starred(Starred *n, int depth) {}
-Name *          SemanticAnalyser::name(Name *n, int depth) {}
-ListExpr *      SemanticAnalyser::listexpr(ListExpr *n, int depth) {}
-TupleExpr *     SemanticAnalyser::tupleexpr(TupleExpr *n, int depth) {}
-Slice *         SemanticAnalyser::slice(Slice *n, int depth) {}
-FunctionDef *   SemanticAnalyser::functiondef(FunctionDef *n, int depth) {}
-ClassDef *      SemanticAnalyser::classdef(ClassDef *n, int depth) {}
-Return *        SemanticAnalyser::returnstmt(Return *n, int depth) {
-    exec(n->value, depth);
-    return n;
-}
-Delete *SemanticAnalyser::deletestmt(Delete *n, int depth) {}
-Assign *SemanticAnalyser::assign(Assign *n, int depth) {
-    exec(n->targets, depth);
-    exec(n->value, depth);
-    return n;
-}
-AugAssign *SemanticAnalyser::augassign(AugAssign *n, int depth) {
+TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
     exec(n->target, depth);
     exec(n->value, depth);
-    return n;
+    return nullptr;
 }
-AnnAssign *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
+TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     exec(n->target, depth);
     // TODO: type check here
-    exec(n->value, depth);
-    return n;
+    exec<TypeExpr>(n->value, depth);
+    return nullptr;
 }
-For *SemanticAnalyser::forstmt(For *n, int depth) {
+TypeExpr *SemanticAnalyser::forstmt(For *n, int depth) {
     exec(n->target, depth);
     exec(n->iter, depth);
-    exec(n->body, depth);
-    exec(n->orelse, depth);
-    return n;
+    exec<TypeExpr>(n->body, depth);
+    exec<TypeExpr>(n->orelse, depth);
+    return nullptr;
 }
-While *SemanticAnalyser::whilestmt(While *n, int depth) {
+TypeExpr *SemanticAnalyser::whilestmt(While *n, int depth) {
     exec(n->test, depth);
-    exec(n->body, depth);
-    exec(n->orelse, depth);
-    return n;
+    exec<TypeExpr>(n->body, depth);
+    exec<TypeExpr>(n->orelse, depth);
+    return nullptr;
 }
-If *SemanticAnalyser::ifstmt(If *n, int depth) {
+TypeExpr *SemanticAnalyser::ifstmt(If *n, int depth) {
     exec(n->test, depth);
-    exec(n->body, depth);
+    exec<TypeExpr>(n->body, depth);
 
     for (int i = 0; i < n->tests.size(); i++) {
         exec(n->tests[i], depth);
-        exec(n->bodies[i], depth);
+        exec<TypeExpr>(n->bodies[i], depth);
     }
+    return nullptr;
 }
-With * SemanticAnalyser::with(With *n, int depth) {}
-Raise *SemanticAnalyser::raise(Raise *n, int depth) {
-    exec(n->exc, depth);
-    return n;
+TypeExpr *SemanticAnalyser::with(With *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::raise(Raise *n, int depth) {
+    exec<TypeExpr>(n->exc, depth);
+    return nullptr;
 }
-Try *   SemanticAnalyser::trystmt(Try *n, int depth) {}
-Assert *SemanticAnalyser::assertstmt(Assert *n, int depth) {
+TypeExpr *SemanticAnalyser::trystmt(Try *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::assertstmt(Assert *n, int depth) {
     exec(n->test, depth);
-    exec(n->msg, depth + 1);
-    return n;
+    exec<TypeExpr>(n->msg, depth + 1);
+    return nullptr;
 }
-Import *    SemanticAnalyser::import(Import *n, int depth) {}
-ImportFrom *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {}
-Global *    SemanticAnalyser::global(Global *n, int depth) {}
-Nonlocal *  SemanticAnalyser::nonlocal(Nonlocal *n, int depth) {
+TypeExpr *SemanticAnalyser::import(Import *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::global(Global *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::nonlocal(Nonlocal *n, int depth) {
     // n->names
-    return n;
+    return nullptr;
 }
-Expr *SemanticAnalyser::exprstmt(Expr *n, int depth) {
+TypeExpr *SemanticAnalyser::exprstmt(Expr *n, int depth) {
     exec(n->value, depth);
-    return n;
+    return nullptr;
 }
-Pass *    SemanticAnalyser::pass(Pass *n, int depth) { return n; }
-Break *   SemanticAnalyser::breakstmt(Break *n, int depth) { return n; }
-Continue *SemanticAnalyser::continuestmt(Continue *n, int depth) { return n; }
-Match *   SemanticAnalyser::match(Match *n, int depth) {
+TypeExpr *SemanticAnalyser::pass(Pass *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::breakstmt(Break *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::continuestmt(Continue *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::match(Match *n, int depth) {
     exec(n->subject, depth);
 
     for (auto &b: n->cases) {
         exec(b.pattern, depth + 1);
-        exec(b.guard, depth + 1);
-        exec(b.body, depth + 1);
+        exec<TypeExpr>(b.guard, depth + 1);
+        exec<TypeExpr>(b.body, depth + 1);
     }
 
-    return n;
+    return nullptr;
 }
-Inline *SemanticAnalyser::inlinestmt(Inline *n, int depth) {
-    exec(n->body, depth);
-    return n;
+TypeExpr *SemanticAnalyser::inlinestmt(Inline *n, int depth) {
+    exec<TypeExpr>(n->body, depth);
+    return nullptr;
 }
 
-MatchValue *    SemanticAnalyser::matchvalue(MatchValue *n, int depth) { return n; }
-MatchSingleton *SemanticAnalyser::matchsingleton(MatchSingleton *n, int depth) { return n; }
-MatchSequence * SemanticAnalyser::matchsequence(MatchSequence *n, int depth) { return n; }
-MatchMapping *  SemanticAnalyser::matchmapping(MatchMapping *n, int depth) { return n; }
-MatchClass *    SemanticAnalyser::matchclass(MatchClass *n, int depth) { return n; }
-MatchStar *     SemanticAnalyser::matchstar(MatchStar *n, int depth) { return n; }
-MatchAs *       SemanticAnalyser::matchas(MatchAs *n, int depth) { return n; }
-MatchOr *       SemanticAnalyser::matchor(MatchOr *n, int depth) { return n; }
+TypeExpr *SemanticAnalyser::matchvalue(MatchValue *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchsingleton(MatchSingleton *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchsequence(MatchSequence *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchmapping(MatchMapping *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchclass(MatchClass *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchstar(MatchStar *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchas(MatchAs *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchor(MatchOr *n, int depth) { return nullptr; }
 
 } // namespace lython

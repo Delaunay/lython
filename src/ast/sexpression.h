@@ -17,7 +17,7 @@ namespace lython {
 using Identifier = StringRef;
 
 template <typename T>
-NodeKind nodekind() {
+inline NodeKind nodekind() {
     return NodeKind::Invalid;
 }
 
@@ -1275,17 +1275,31 @@ struct Match: public StmtNode {
     Array<MatchCase> cases;
 
     static Array<String> examples() {
-        Array<String> _examples = {"match a:\n"
-                                   "    case [1, 3]:\n"
-                                   "        pass\n"
-                                   "    case p as c:\n"
-                                   "        pass\n"
-                                   "    case a | c:\n"
-                                   "        pass\n"
-                                   "    case ClassName(a, b, c=d):\n"
-                                   "        pass\n"
-                                   "    case d if b:\n"
-                                   "        pass\n"};
+        Array<String> _examples = {
+            "match a:\n"
+            "    case [1, 3]:\n"
+            "        pass\n"
+            "    case p as c:\n"
+            "        pass\n"
+            "    case a | c:\n"
+            "        pass\n"
+            "    case ClassName(a, b, c=d):\n"
+            "        pass\n"
+            "    case d if b:\n"
+            "        pass\n",
+
+            "match lst:\n"
+            "    case []:\n"
+            "        pass\n"
+            "    case [head, *tail]:\n"
+            "        pass\n",
+
+            "match dct:\n"
+            "    case {}:\n"
+            "        pass\n"
+            "    case {1: value, **remainder}:\n"
+            "        pass\n",
+        };
 
         return _examples;
     }
