@@ -355,7 +355,14 @@ void MatchMapping::print(std::ostream &out) const {
         strs.push_back(String(fmt::format("{}: {}", str(keys[i]), str(patterns[i])).c_str()));
     }
 
-    out << "{" << join(", ", strs) << "}";
+    String remains = "";
+    if (rest.has_value()) {
+        StringStream ss;
+        ss << ", **" << rest.value();
+        remains = ss.str();
+    }
+
+    out << "{" << join(", ", strs) << remains << "}";
 }
 
 void MatchClass::print(std::ostream &out) const {

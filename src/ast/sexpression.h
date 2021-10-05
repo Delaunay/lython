@@ -17,7 +17,7 @@ namespace lython {
 using Identifier = StringRef;
 
 template <typename T>
-NodeKind nodekind() {
+inline NodeKind nodekind() {
     return NodeKind::Invalid;
 }
 
@@ -1278,17 +1278,31 @@ struct Match: public StmtNode {
     Array<MatchCase> cases;
 
     static Array<String> examples() {
-        Array<String> _examples = {"match a:\n"
-                                   "    case [1, 3]:\n"
-                                   "        pass\n"
-                                   "    case p as c:\n"
-                                   "        pass\n"
-                                   "    case a | c:\n"
-                                   "        pass\n"
-                                   "    case ClassName(a, b, c=d):\n"
-                                   "        pass\n"
-                                   "    case d if b:\n"
-                                   "        pass\n"};
+        Array<String> _examples = {
+            "match a:\n"
+            "    case [1, 3]:\n"
+            "        pass\n"
+            "    case p as c:\n"
+            "        pass\n"
+            "    case a | c:\n"
+            "        pass\n"
+            "    case ClassName(a, b, c=d):\n"
+            "        pass\n"
+            "    case d if b:\n"
+            "        pass\n",
+
+            "match lst:\n"
+            "    case []:\n"
+            "        pass\n"
+            "    case [head, *tail]:\n"
+            "        pass\n",
+
+            "match dct:\n"
+            "    case {}:\n"
+            "        pass\n"
+            "    case {1: value, **remainder}:\n"
+            "        pass\n",
+        };
 
         return _examples;
     }
@@ -1324,6 +1338,11 @@ struct Arrow: public ExprNode {
 
     Array<ExprNode *> args;
     ExprNode *        returns;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 struct DictType: public ExprNode {
@@ -1331,35 +1350,65 @@ struct DictType: public ExprNode {
 
     ExprNode *key;
     ExprNode *value;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 struct SetType: public ExprNode {
     SetType(): ExprNode(NodeKind::SetType) {}
 
     ExprNode *value;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 struct ArrayType: public ExprNode {
     ArrayType(): ExprNode(NodeKind::ArrayType) {}
 
     ExprNode *value;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 struct TupleType: public ExprNode {
     TupleType(): ExprNode(NodeKind::TupleType) {}
 
     Array<ExprNode *> types;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 struct BuiltinType: public ExprNode {
     BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
     StringRef name;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 struct ClassType: public ExprNode {
     ClassType(): ExprNode(NodeKind::ClassType) {}
     StringRef        name;
     Array<StringRef> bases;
+
+    static Array<String> examples() {
+        Array<String> _examples = {};
+        return _examples;
+    }
 };
 
 } // namespace lython

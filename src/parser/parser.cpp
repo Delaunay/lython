@@ -454,12 +454,13 @@ Pattern *Parser::parse_match_sequence(Node *parent, int depth) {
         if (token().type() == tok_comma) {
             next_token();
         } else {
-            end_code_loc(pat, token());
-            expect_token(']', true, pat, LOC);
             break;
         }
     }
 
+    end_code_loc(pat, token());
+    expect_token(']', true, pat, LOC);
+    TRACE_END();
     return pat;
 }
 
@@ -534,22 +535,31 @@ Pattern *Parser::parse_match_mapping(Node *parent, int depth) {
     next_token();
 
     while (token().type() != '}') {
+
+        if (token().operator_name() == "**") {
+            next_token();
+            pat->rest = token().identifier();
+            expect_token(tok_identifier, true, pat, LOC);
+            break;
+        }
+
         auto key = parse_expression(pat, depth + 1);
+
         expect_token(':', true, pat, LOC);
         auto child = parse_pattern(pat, depth + 1);
 
         pat->keys.push_back(key);
         pat->patterns.push_back(child);
 
-        if (next_token().type() == tok_comma) {
+        if (token().type() == tok_comma) {
             next_token();
         } else {
-            end_code_loc(pat, token());
-            expect_token('}', true, pat, LOC);
             break;
         }
     }
 
+    end_code_loc(pat, token());
+    expect_token('}', true, pat, LOC);
     return pat;
 }
 
@@ -614,8 +624,12 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
     // TODO: make sure those are correct
     case tok_curly:
         return parse_match_mapping(parent, depth);
+
+    case tok_operator:
     case tok_star:
-        return parse_match_star(parent, depth);
+        if (token().operator_name() == "**" || token().operator_name() == "*") {
+            return parse_match_star(parent, depth);
+        }
 
     // Constants
     // The values represented can be simple types such as a number, string or None,
@@ -661,7 +675,9 @@ Pattern *Parser::parse_pattern(Node *parent, int depth) {
     switch (token().type()) {
     case tok_operator:
     case '|':
-        return parse_match_or(parent, primary, depth);
+        if (token().operator_name() == "|") {
+            return parse_match_or(parent, primary, depth);
+        }
 
     case tok_as:
         return parse_match_as(parent, primary, depth);

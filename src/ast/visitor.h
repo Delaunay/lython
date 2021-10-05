@@ -19,28 +19,30 @@ NEW_EXCEPTION(NullPointerError)
  * The main drawbacks is it uses macros to generate the vtable at compile time
  * and the error messages can be a bit arcane
  */
-template <typename Implementation, typename... Args>
+template <typename Implementation, typename StmtRet, typename ExprRet, typename ModRet,
+          typename PatRet, typename... Args>
 struct BaseVisitor {
 
-    template <typename T>
-    Array<T> exec(Array<T> &body, int depth, Args... args) {
-        int k = 0;
+    template <typename U, typename T>
+    Array<U *> exec(Array<T> &body, int depth, Args... args) {
+        int        k = 0;
+        Array<U *> types;
         for (auto &stmt: body) {
-            body[k] = exec(stmt, depth, std::forward(args)...);
+            types.push_back(exec(stmt, depth, std::forward(args)...));
             k += 1;
         }
-        return body;
+        return types;
     };
 
-    template <typename T>
-    Optional<T> exec(Optional<T> &maybe, int depth, Args... args) {
+    template <typename U, typename T>
+    Optional<U *> exec(Optional<T> &maybe, int depth, Args... args) {
         if (maybe.has_value()) {
-            return some<T>(exec(maybe.value(), depth, std::forward(args)...));
+            return some<U *>(exec(maybe.value(), depth, std::forward(args)...));
         }
-        return none<T>();
+        return none<U *>();
     };
 
-    ModNode *exec(ModNode *mod, int depth, Args... args) {
+    ModRet *exec(ModNode *mod, int depth, Args... args) {
         // clang-format off
         switch (mod->kind) {
 
@@ -59,13 +61,13 @@ struct BaseVisitor {
             #undef PASS
             #undef SECTION
             #undef MOD
-        
+
         }
         // clang-format on
         return nullptr;
     }
 
-    Pattern *exec(Pattern *pat, int depth, Args... args) {
+    PatRet *exec(Pattern *pat, int depth, Args... args) {
         // clang-format off
         switch (pat->kind) {
 
@@ -84,13 +86,13 @@ struct BaseVisitor {
             #undef PASS
             #undef SECTION
             #undef MATCH
-        
+
         }
         // clang-format on
         return nullptr;
     }
 
-    ExprNode *exec(ExprNode *expr, int depth, Args... args) {
+    ExprRet *exec(ExprNode *expr, int depth, Args... args) {
         // clang-format off
         switch (expr->kind) {
 
@@ -109,13 +111,13 @@ struct BaseVisitor {
             #undef PASS
             #undef SECTION
             #undef EXPR
-        
+
         }
         // clang-format on
         return nullptr;
     }
 
-    StmtNode *exec(StmtNode *stmt, int depth, Args... args) {
+    StmtRet *exec(StmtNode *stmt, int depth, Args... args) {
         // clang-format off
         switch (stmt->kind) {
 
@@ -134,24 +136,24 @@ struct BaseVisitor {
             #undef PASS
             #undef SECTION
             #undef STMT
-        
+
         }
         // clang-format on
         return nullptr;
     }
 
-#define FUNCTION_GEN(name, fun)                                                              \
-    name *fun(name *node, int depth, Args... args) {                                         \
+#define FUNCTION_GEN(name, fun, rtype)                                                       \
+    rtype *fun(name *node, int depth, Args... args) {                                        \
         trace(depth, #name);                                                                 \
         return static_cast<Implementation *>(this)->fun(node, depth, std::forward(args)...); \
     }
 
 #define X(name, _)
 #define SECTION(name)
-#define EXPR(name, fun)  FUNCTION_GEN(name, fun)
-#define STMT(name, fun)  FUNCTION_GEN(name, fun)
-#define MOD(name, fun)   FUNCTION_GEN(name, fun)
-#define MATCH(name, fun) FUNCTION_GEN(name, fun)
+#define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
+#define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
+#define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
+#define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
 
     NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
 
