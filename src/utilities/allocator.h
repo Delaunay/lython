@@ -100,9 +100,9 @@ namespace device {
 
 template <typename Device>
 class DeviceAllocatorTrait {
-    void *malloc(std::size_t n) { return reinterpret_cast<Device *>(this)->malloc(n); }
+    static void *malloc(std::size_t n) { return Device::malloc(n); }
 
-    bool free(void *ptr, std::size_t n) { return reinterpret_cast<Device *>(this)->free(ptr, n); }
+    static bool free(void *ptr, std::size_t n) { return Device::free(ptr, n); }
 };
 
 #ifdef __CUDACC__
@@ -113,9 +113,9 @@ struct CUDA: public DeviceAllocatorTrait<CUDA> {
 #endif
 
 struct CPU: public DeviceAllocatorTrait<CPU> {
-    void *malloc(std::size_t n);
+    static void *malloc(std::size_t n);
 
-    bool free(void *ptr, std::size_t n);
+    static bool free(void *ptr, std::size_t n);
 };
 
 } // namespace device
@@ -145,18 +145,18 @@ class Allocator {
 
     bool operator!=(Allocator const &alloc) const { return !(*this == alloc); }
 
-    void deallocate(pointer p, std::size_t n) {
+    static void deallocate(pointer p, std::size_t n) {
         manual_free(meta::type_id<T>(), n);
-        allocator.free(static_cast<void *>(p), n * sizeof(T));
+        Device::free(static_cast<void *>(p), n * sizeof(T));
         return;
     }
 
-    T *allocate(std::size_t n, const void * = nullptr) {
+    static T *allocate(std::size_t n, const void * = nullptr) {
         meta::register_type<T>(typeid(T).name());
         meta::get_stat<T>().allocated += 1;
         meta::get_stat<T>().size_alloc += n;
         meta::get_stat<T>().bytes = int(sizeof(T));
-        return static_cast<T *>(allocator.malloc(n * sizeof(T)));
+        return static_cast<T *>(Device::malloc(n * sizeof(T)));
     }
 
     Allocator() noexcept {}
@@ -167,9 +167,6 @@ class Allocator {
     Allocator(const Allocator<U, Device> &a) noexcept {}
 
     ~Allocator() noexcept = default;
-
-    private:
-    Device allocator;
 };
 
 template <typename V>
