@@ -36,6 +36,26 @@ struct SemaVisitorTrait {
     using PatRet  = TypeExpr;
 };
 
+/* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
+ * syntactically correct its job is to detect issues that could prevent a succesful compilation.
+ *
+ * Errors caught in that process are undeclared variables and mistypings.
+ *
+ * In addition, our SEM-A will deduce types (i.e variables inherit the type of the expressions,
+ * this is NOT type inference) and allocate a register to each variables.
+ *
+ * To support type deduction SEM-A returns the type of the analysed expression,
+ * the deduction can then be used for typechecking.
+ *
+ * Type deduction is a weaker form of type inference where the type of the parent parent expression
+ * is deduced from the children. In the future we might add full type inference.
+ * Type deduction will still be useful then as it will reduce the cost of type inference for the
+ * trivial cases.
+ *
+ * Type deduction alone should provide a satisfactory development experience, as the user should
+ * only have to specify the type of the arguments which is good practice anyway as it serves as
+ * documentation.
+ */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     Array<BindingEntry> bindings;
     bool                forwardpass = false;

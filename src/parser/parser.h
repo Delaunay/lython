@@ -13,6 +13,19 @@
 
 namespace lython {
 
+/**
+ * The parser is responsible for transforming the source code into the AST.
+ * notifying the users of any syntax error that could prevent it from completing
+ * the transformation.
+ *
+ * SyntaxError will exclusively come from this object.
+ *
+ * The parser is an handwritten recursive decent parser. It uses the next token
+ * to decide which AST-node it should parse next.
+ * In case of an error (i.e unexpected token) the parser continues as if was token
+ * was defined. This can cause cascading SyntaxError, users should focus on the first one.
+ *
+ */
 class Parser {
     public:
     Parser(AbstractLexer &lexer): _lex(lexer) { metadata_init_names(); }
