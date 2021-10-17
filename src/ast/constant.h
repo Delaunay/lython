@@ -118,7 +118,7 @@ struct ConstantValue {
         // clang-format off
         switch (kind) {
 
-        #define POD(kind, type, name)
+        #define POD(kind, type, name) case T##kind: return;
         #define CPX(kind, type, name) case T##kind: value.name.~type(); break;
 
         ConstantType(POD, CPX);

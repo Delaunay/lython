@@ -164,6 +164,7 @@ StmtNode *Parser::parse_function_def(Node *parent, bool async, int depth) {
     next_token();
 
     stmt->name = get_identifier();
+
     expect_token(tok_identifier, true, stmt, LOC);
     expect_token(tok_parens, true, stmt, LOC);
     stmt->args = parse_arguments(stmt, ')', depth + 1);

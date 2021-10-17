@@ -137,8 +137,8 @@ struct BaseVisitor {
             #define SECTION(_)
             #define STMT(name, fun)\
                 case NodeKind::name: {\
-                    name* stmt = reinterpret_cast<name*>(stmt);\
-                    return fun(stmt, depth + 1, std::forward(args)...);\
+                    name* n = reinterpret_cast<name*>(stmt);\
+                    return fun(n, depth + 1, std::forward(args)...);\
                 }
 
             NODEKIND_ENUM(X, SECTION, PASS, STMT, PASS, PASS)

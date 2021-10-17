@@ -61,12 +61,9 @@ int main() {
 
         // ConsoleBuffer reader;
 
-        String code = "assert a, b\n"
-
-            ;
-        "def simple_function(a: b, c: d) -> e:\n"
-        "    return 1\n"
-        "\n";
+        String code = "def simple_function(a: b, c: d) -> e:\n"
+                      "    return 1\n"
+                      "\n";
 
         "def test1(p: Float, b):\n"
         "    return sin(1)\n\n"

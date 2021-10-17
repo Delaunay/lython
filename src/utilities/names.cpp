@@ -1,9 +1,10 @@
+#include "logging/logging.h"
 #include "names.h"
 
 namespace lython {
 
 std::ostream &operator<<(std::ostream &out, StringRef ref) {
-    return out << StringDatabase::instance()[ref.ref];
+    return out << StringDatabase::instance()[ref.__id__()];
 }
 
 String StringRef::__str__() const {
@@ -84,6 +85,11 @@ std::size_t StringDatabase::inc(std::size_t i) {
         return i;
     }
 
+    if (i >= strings.size()) {
+        debug("Critical error {} < {}", i, strings.size());
+        return 0;
+    }
+
     // we need to lock here in case the array gets reallocated during a parallel insert
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
@@ -113,6 +119,7 @@ StringRef StringDatabase::string(String const &name) {
     auto ref = val->second;
     strings[ref].count += 1;
     strings[ref].in_use += 1;
+    assert(ref < strings.size(), "StringRef should be valid");
     return StringRef(ref);
 }
 

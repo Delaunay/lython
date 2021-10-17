@@ -38,6 +38,7 @@ struct SemaVisitorTrait {
 
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     Array<BindingEntry> bindings;
+    bool                forwardpass = false;
 
     public:
     TypeExpr *module(Module *stmt, int depth) {
@@ -46,7 +47,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     };
 
     // returns the varid it was inserted as
-    int add(StringRef name, Node *value, TypeExpr *type) {
+    int add(StringRef const &name, Node *value, TypeExpr *type) {
         auto size = int(bindings.size());
         bindings.push_back({name, value, type});
         return size;

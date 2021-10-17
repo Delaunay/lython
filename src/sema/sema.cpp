@@ -76,7 +76,13 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
-    auto id = add(n->name, n, nullptr);
+    int id;
+    // I might have to always run the forward pass
+    if (!forwardpass /*|| depth > 1*/) {
+        id = add(n->name, n, nullptr);
+    } else {
+        id = get_varid(n->name);
+    }
 
     Scope scope(bindings);
     exec<TypeExpr>(n->body, depth);

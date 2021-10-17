@@ -66,11 +66,21 @@ class StringDatabase {
 // Very Cheap string reference
 class StringRef {
     public:
-    StringRef(std::size_t ref = 0): ref(StringDatabase::instance().inc(ref)) {}
+    StringRef(std::size_t r = 0): ref(StringDatabase::instance().inc(r)) {
+        assert(ref < StringDatabase::instance().strings.size(), "StringRef is valid");
+    }
 
-    StringRef(String const &name): ref(StringDatabase::instance().string(name).ref) {}
+    StringRef(String const &name): ref(StringDatabase::instance().string(name).ref) {
+        assert(ref < StringDatabase::instance().strings.size(), "StringRef is valid");
+    }
 
-    StringRef(StringRef const &name): ref(StringDatabase::instance().inc(name.ref)) {}
+    StringRef(StringRef const &name): ref(StringDatabase::instance().inc(name.ref)) {
+        // assert(ref < StringDatabase::instance().strings.size(), "StringRef is valid");
+    }
+
+    StringRef(StringRef const &&name): ref(StringDatabase::instance().inc(name.ref)) {
+        assert(ref < StringDatabase::instance().strings.size(), "StringRef is valid");
+    }
 
     bool operator==(StringRef const &b) const { return ref == b.ref; }
 
@@ -94,9 +104,12 @@ class StringRef {
 
     operator StringView() const;
 
-    std::size_t ref = 0;
-
     operator bool() const { return ref != 0; }
+
+    std::size_t __id__() const { return ref; }
+
+    private:
+    std::size_t ref = 0;
 };
 
 std::ostream &operator<<(std::ostream &out, StringRef ref);
@@ -106,7 +119,7 @@ String join(String const &sep, Array<StringRef> const &strs);
 // hash the reference instead of the string itself
 // This could cause issues if we have multiple string databases
 struct string_ref_hash {
-    std::size_t            operator()(StringRef const &v) const noexcept { return _h(v.ref); }
+    std::size_t            operator()(StringRef const &v) const noexcept { return _h(v.__id__()); }
     std::hash<std::size_t> _h;
 };
 
