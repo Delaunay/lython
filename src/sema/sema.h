@@ -39,7 +39,8 @@ struct SemaVisitorTrait {
 /* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
  * syntactically correct its job is to detect issues that could prevent a succesful compilation.
  *
- * Errors caught in that process are undeclared variables and mistypings.
+ * Errors caught in that process are undeclared variables and mistypings,
+ * this includes missing attributes, missing methods
  *
  * In addition, our SEM-A will deduce types (i.e variables inherit the type of the expressions,
  * this is NOT type inference) and allocate a register to each variables.
