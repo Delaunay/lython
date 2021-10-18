@@ -61,6 +61,13 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     bool                forwardpass = false;
 
     public:
+    TypeExpr *oneof(Array<TypeExpr *> types) {
+        if (types.size() > 0) {
+            return types[0];
+        }
+        return nullptr;
+    }
+
     TypeExpr *module(Module *stmt, int depth) {
         exec<TypeExpr>(stmt->body, depth);
         return nullptr;
