@@ -3,6 +3,7 @@
 
 #include "ast/sexpression.h"
 #include "parser/parser.h"
+#include "sema/sema.h"
 
 #include "allocator.h"
 #include "metadata.h"
@@ -46,6 +47,7 @@ bool _metadata_init_names() {
     meta::register_type<lython::Keyword>("Keyword");
     meta::register_type<lython::MatchCase>("MatchCase");
     meta::register_type<lython::Pattern *>("Pattern*");
+    meta::register_type<lython::BindingEntry>("BindingEntry");
     meta::register_type<Array<StmtNode *>>("Array<StmtNode*>");
 
 #define REGISTER_TYPE(type)                   \
@@ -101,7 +103,19 @@ bool _metadata_init_names() {
 #define INIT_METADATA(name, typname) meta::type_name<name>();
 
     TYPES_METADATA(INIT_METADATA)
+
     return true;
+}
+
+void track_static() {
+    // Record the allocation count on startup
+    // so we can try to ignore static variables
+    // this will only work if `metadata_init_names` is called
+    // after the static variables got initialized
+    auto &stat = meta::stats();
+    for (auto &s: stat) {
+        s.startup_count = s.allocated - s.deallocated;
+    }
 }
 
 void metadata_init_names() { static bool _ = _metadata_init_names(); }

@@ -15,11 +15,12 @@ namespace meta {
 // NOTE: All those should not depend on each other during deinit time
 // https://isocpp.org/wiki/faq/ctors#construct-on-first-use-v2
 struct Stat {
-    int allocated   = 0;
-    int deallocated = 0;
-    int bytes       = 0;
-    int size_alloc  = 0;
-    int size_free   = 0;
+    int allocated     = 0;
+    int deallocated   = 0;
+    int bytes         = 0;
+    int size_alloc    = 0;
+    int size_free     = 0;
+    int startup_count = 0;
 };
 
 inline std::vector<Stat> &stats() {

@@ -46,7 +46,14 @@ Expression make_point_check(Module &mod);
 Expression make_import_call_check(Module &mod);
 
 int main() {
-    metadata_init_names();
+    {
+        metadata_init_names();
+        // Static globals
+        auto _ = default_precedence();
+
+        // --
+        track_static();
+    }
 
     {
         info("Enter");

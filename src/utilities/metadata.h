@@ -33,6 +33,8 @@ TYPES_METADATA(DEFINE_METADATA)
 
 void metadata_init_names();
 
+void track_static();
+
 } // namespace lython
 
 #endif
