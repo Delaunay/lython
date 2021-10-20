@@ -1354,6 +1354,8 @@ struct Arrow: public ExprNode {
         Array<String> _examples = {};
         return _examples;
     }
+
+    void print(std::ostream &out, int indent) const;
 };
 
 struct DictType: public ExprNode {

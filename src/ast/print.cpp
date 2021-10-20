@@ -15,6 +15,10 @@ String Pattern::__str__() const {
 }
 
 String Node::__str__() const {
+    if (this == nullptr) {
+        return "<nullptr>";
+    }
+
     StringStream ss;
     if (kind == NodeKind::Invalid) {
         error("Node is invalid");
@@ -926,6 +930,11 @@ void Global::print(std::ostream &out, int level) const { out << "global " << joi
 
 void Nonlocal::print(std::ostream &out, int level) const {
     out << "nonlocal " << join(", ", names);
+}
+
+void Arrow::print(std::ostream &out, int level) const {
+    out << '(' << join<ExprNode *>(", ", args) << ") -> ";
+    out << str(returns);
 }
 
 } // namespace lython

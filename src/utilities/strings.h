@@ -22,6 +22,8 @@ String join(String const &sep, Array<T> const &exprs) {
     return join(sep, strs);
 }
 
+Array<String> split(char sep, String const &text);
+
 // Replace a by b in t
 template <typename T>
 T replace(T const &t, char a, T const &b) {

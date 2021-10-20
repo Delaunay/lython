@@ -81,4 +81,31 @@ String strip(String const &v) {
     return result;
 }
 
+Array<String> split(char sep, String const &text) {
+    int count = 1;
+    for (auto c: text) {
+        if (c == sep) {
+            count += 1;
+        }
+    }
+
+    Array<String> frags;
+    frags.reserve(count);
+    String buffer;
+
+    for (int i = 0; i < text.size(); i++) {
+        char c = text[i];
+
+        if (c == sep) {
+            frags.push_back(buffer);
+            buffer.resize(0);
+        } else {
+            buffer.push_back(c);
+        }
+    }
+
+    frags.push_back(buffer);
+    return frags;
+}
+
 } // namespace lython

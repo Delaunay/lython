@@ -1,7 +1,9 @@
 #ifndef LYTHON_SEMA_HEADER
 #define LYTHON_SEMA_HEADER
 
+#include "ast/magic.h"
 #include "ast/visitor.h"
+#include "utilities/strings.h"
 
 namespace lython {
 
@@ -19,6 +21,8 @@ struct BindingEntry {
     Node *    value;
     TypeExpr *type;
 };
+
+std::ostream &print(std::ostream &out, BindingEntry const &entry);
 
 struct Scope {
     Scope(Array<BindingEntry> &array): array(array), oldsize(array.size()) {}
@@ -62,6 +66,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     bool                forwardpass = false;
 
     public:
+    void dump() const;
+
     TypeExpr *oneof(Array<TypeExpr *> types) {
         if (types.size() > 0) {
             return types[0];
@@ -119,6 +125,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
         }
         return -1;
     }
+
+    void add_arguments(Arguments &args, Arrow *);
 
 #define FUNCTION_GEN(name, fun) TypeExpr *fun(name *n, int depth);
 

@@ -31,7 +31,7 @@ bool compare(String const &a, String const &b) {
     return a.size() == b.size();
 }
 
-String strip(String const &v) {
+String strip2(String const &v) {
     int i = int(v.size()) - 1;
 
     while (i > 0 && v[size_t(i)] == '\n') {
@@ -62,7 +62,7 @@ int main() {
         // ConsoleBuffer reader;
 
         String code = "def simple_function(a: b, c: d) -> e:\n"
-                      "    return 1\n"
+                      "    return a + c\n"
                       "\n";
 
         "def test1(p: Float, b):\n"
@@ -137,7 +137,7 @@ int main() {
             reader.reset();
         }
         std::cout << std::string(80, '-') << '\n';
-        std::cout << strip(lexer_string) << std::endl;
+        std::cout << strip2(lexer_string) << std::endl;
         std::cout << std::string(80, '-') << '\n';
 
         std::cout << std::string(80, '=') << '\n';
@@ -171,6 +171,8 @@ int main() {
 
             SemanticAnalyser sema;
             sema.exec(mod, 0);
+
+            sema.dump();
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;

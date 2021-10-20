@@ -1,6 +1,25 @@
+#include "ast/magic.h"
 #include "sema/sema.h"
+#include "utilities/strings.h"
 
 namespace lython {
+
+inline std::ostream &print(std::ostream &out, BindingEntry const &entry) {
+    String n = str(entry.name);
+    String v = str(entry.value);
+    String t = str(entry.type);
+
+    auto frags = split('\n', v);
+
+    out << fmt::format("{:>40} | {:>20} | {}", n, t, frags[0]) << '\n';
+    for (int i = 1; i < frags.size(); i++) {
+        if (strip(frags[i]) == "") {
+            continue;
+        }
+        out << fmt::format("{:>40} | {:>20} | {}", "", "", frags[i]) << '\n';
+    }
+    return out;
+}
 
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) { return nullptr; }
@@ -149,7 +168,10 @@ TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::subscript(Subscript *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::starred(Starred *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::name(Name *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
+    n->varid = get_varid(n->id);
+    return get_type(n->varid);
+}
 TypeExpr *SemanticAnalyser::listexpr(ListExpr *n, int depth) {
     TypeExpr *val_type = nullptr;
 
@@ -179,19 +201,62 @@ TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
     exec<TypeExpr>(n->step, depth);
     return nullptr;
 }
+
+void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow) {
+    for (auto &arg: args.args) {
+        TypeExpr *type = nullptr;
+        if (arg.annotation.has_value()) {
+            type = arg.annotation.value();
+        }
+        add(arg.arg, nullptr, type);
+
+        if (arrow) {
+            arrow->args.push_back(type);
+        }
+    }
+
+    for (auto &arg: args.kwonlyargs) {
+        TypeExpr *type = nullptr;
+        if (arg.annotation.has_value()) {
+            type = arg.annotation.value();
+        }
+        add(arg.arg, nullptr, type);
+
+        if (arrow) {
+            arrow->args.push_back(type);
+        }
+    }
+}
+
+void SemanticAnalyser::dump() const {
+    auto big   = String(40, '-');
+    auto small = String(20, '-');
+    auto sep   = fmt::format("{:>40}-+-{:>20}-+-{}", big, small, small);
+
+    std::cout << sep << '\n';
+    std::cout << fmt::format("{:40} | {:20} | {}", "name", "type", "value") << "\n";
+    std::cout << sep << '\n';
+    for (auto &e: bindings) {
+        print(std::cout, e);
+    }
+    std::cout << sep << '\n';
+}
+
 TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     auto  id = add(n->name, n, nullptr);
     Scope scope(bindings);
 
+    auto type = n->new_object<Arrow>();
+    add_arguments(n->args, type);
+
     auto return_effective = exec<TypeExpr>(n->body, depth);
 
-    auto type = n->new_object<Arrow>();
     if (n->returns.has_value()) {
         type->returns = n->returns.value();
     }
-    type->args = Array<ExprNode *>();
 
     set_type(id, type);
+    dump();
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {

@@ -12,8 +12,7 @@ def a(b, c=d, *e, f=g, **h) -> i:
 
 code = \
 """
-def a(b, c, *e, k, f=g, **h) -> i:
-    pass
+a + b
 """
 
 show(code)
