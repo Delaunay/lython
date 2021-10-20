@@ -4,6 +4,20 @@
 
 namespace lython {
 
+void Bindings::dump(std::ostream &out) const {
+    auto big   = String(40, '-');
+    auto small = String(20, '-');
+    auto sep   = fmt::format("{:>40}-+-{:>20}-+-{}", big, small, small);
+
+    out << sep << '\n';
+    out << fmt::format("{:40} | {:20} | {}", "name", "type", "value") << "\n";
+    out << sep << '\n';
+    for (auto &e: bindings) {
+        print(out, e);
+    }
+    out << sep << '\n';
+}
+
 inline std::ostream &print(std::ostream &out, BindingEntry const &entry) {
     String n = str(entry.name);
     String v = str(entry.value);
@@ -169,8 +183,11 @@ TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) { return nullptr;
 TypeExpr *SemanticAnalyser::subscript(Subscript *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::starred(Starred *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
-    n->varid = get_varid(n->id);
-    return get_type(n->varid);
+    n->varid = bindings.get_varid(n->id);
+    if (n->varid == -1) {
+        errors.emplace_back(nullptr, n, nullptr, fmt::format("Undefined variable {}", n->id), LOC);
+    }
+    return bindings.get_type(n->varid);
 }
 TypeExpr *SemanticAnalyser::listexpr(ListExpr *n, int depth) {
     TypeExpr *val_type = nullptr;
@@ -208,7 +225,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow) {
         if (arg.annotation.has_value()) {
             type = arg.annotation.value();
         }
-        add(arg.arg, nullptr, type);
+        bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->args.push_back(type);
@@ -220,7 +237,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow) {
         if (arg.annotation.has_value()) {
             type = arg.annotation.value();
         }
-        add(arg.arg, nullptr, type);
+        bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->args.push_back(type);
@@ -228,22 +245,8 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow) {
     }
 }
 
-void SemanticAnalyser::dump() const {
-    auto big   = String(40, '-');
-    auto small = String(20, '-');
-    auto sep   = fmt::format("{:>40}-+-{:>20}-+-{}", big, small, small);
-
-    std::cout << sep << '\n';
-    std::cout << fmt::format("{:40} | {:20} | {}", "name", "type", "value") << "\n";
-    std::cout << sep << '\n';
-    for (auto &e: bindings) {
-        print(std::cout, e);
-    }
-    std::cout << sep << '\n';
-}
-
 TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
-    auto  id = add(n->name, n, nullptr);
+    auto  id = bindings.add(n->name, n, nullptr);
     Scope scope(bindings);
 
     auto type = n->new_object<Arrow>();
@@ -255,17 +258,17 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
         type->returns = n->returns.value();
     }
 
-    set_type(id, type);
-    dump();
+    bindings.set_type(id, type);
+    bindings.dump(std::cout);
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     int id;
     // I might have to always run the forward pass
     if (!forwardpass /*|| depth > 1*/) {
-        id = add(n->name, n, nullptr);
+        id = bindings.add(n->name, n, nullptr);
     } else {
-        id = get_varid(n->name);
+        id = bindings.get_varid(n->name);
     }
 
     Scope scope(bindings);

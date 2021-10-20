@@ -184,7 +184,7 @@ int main() {
             SemanticAnalyser sema;
             sema.exec(mod, 0);
 
-            sema.dump();
+            sema.bindings.dump(std::cout);
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;

@@ -24,13 +24,80 @@ struct BindingEntry {
 
 std::ostream &print(std::ostream &out, BindingEntry const &entry);
 
+struct Bindings {
+    // returns the varid it was inserted as
+    inline int add(StringRef const &name, Node *value, TypeExpr *type) {
+        auto size = int(bindings.size());
+        bindings.push_back({name, value, type});
+        return size;
+    }
+
+    inline void set_type(int varid, TypeExpr *type) {
+        if (varid < 0 && varid > bindings.size())
+            return;
+
+        bindings[varid].type = type;
+    }
+
+    inline TypeExpr *get_type(int varid) {
+        if (varid < 0 && varid > bindings.size())
+            return nullptr;
+        return bindings[varid].type;
+    }
+
+    inline Node *get_value(int varid) {
+        if (varid < 0 && varid > bindings.size())
+            return nullptr;
+        return bindings[varid].value;
+    }
+
+    StringRef get_name(int varid) {
+        if (varid < 0 && varid > bindings.size())
+            return StringRef();
+        return bindings[varid].name;
+    }
+
+    int get_varid(StringRef name) {
+        auto start = std::rbegin(bindings);
+        auto end   = std::rend(bindings);
+
+        int i = 0;
+        while (start != end) {
+            if (start->name == name) {
+                return i;
+            }
+            ++start;
+            i += 1;
+        }
+        return -1;
+    }
+
+    String __str__() const {
+        StringStream ss;
+        dump(ss);
+        return ss.str();
+    }
+
+    void dump(std::ostream &out) const;
+
+    Array<BindingEntry> bindings;
+};
+
 struct Scope {
-    Scope(Array<BindingEntry> &array): array(array), oldsize(array.size()) {}
+    Scope(Bindings &array): bindings(array), oldsize(bindings.bindings.size()) {}
 
-    ~Scope() { array.resize(oldsize); }
+    ~Scope() { bindings.bindings.resize(oldsize); }
 
-    Array<BindingEntry> &array;
-    std::size_t          oldsize;
+    Bindings &  bindings;
+    std::size_t oldsize;
+};
+
+struct SemanticError {
+    StmtNode *   stmt;
+    ExprNode *   expr;
+    Pattern *    pat;
+    String       message;
+    CodeLocation loc;
 };
 
 struct SemaVisitorTrait {
@@ -62,12 +129,11 @@ struct SemaVisitorTrait {
  * documentation.
  */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
-    Array<BindingEntry> bindings;
-    bool                forwardpass = false;
+    Bindings             bindings;
+    bool                 forwardpass = false;
+    Array<SemanticError> errors;
 
     public:
-    void dump() const;
-
     TypeExpr *oneof(Array<TypeExpr *> types) {
         if (types.size() > 0) {
             return types[0];
@@ -79,52 +145,6 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
         exec<TypeExpr>(stmt->body, depth);
         return nullptr;
     };
-
-    // returns the varid it was inserted as
-    int add(StringRef const &name, Node *value, TypeExpr *type) {
-        auto size = int(bindings.size());
-        bindings.push_back({name, value, type});
-        return size;
-    }
-
-    void set_type(int varid, TypeExpr *type) {
-        if (varid < 0 && varid > bindings.size())
-            return;
-        bindings[varid].type = type;
-    }
-
-    TypeExpr *get_type(int varid) {
-        if (varid < 0 && varid > bindings.size())
-            return nullptr;
-        return bindings[varid].type;
-    }
-
-    Node *get_value(int varid) {
-        if (varid < 0 && varid > bindings.size())
-            return nullptr;
-        return bindings[varid].value;
-    }
-
-    StringRef get_name(int varid) {
-        if (varid < 0 && varid > bindings.size())
-            return StringRef();
-        return bindings[varid].name;
-    }
-
-    int get_varid(StringRef name) {
-        auto start = std::rbegin(bindings);
-        auto end   = std::rend(bindings);
-
-        int i = 0;
-        while (start != end) {
-            if (start->name == name) {
-                return i;
-            }
-            ++start;
-            i += 1;
-        }
-        return -1;
-    }
 
     void add_arguments(Arguments &args, Arrow *);
 
