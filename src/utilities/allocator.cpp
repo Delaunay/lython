@@ -80,7 +80,8 @@ void show_alloc_stats() {
             name = "";
         }
 
-        auto alloc     = stat[i].allocated /*- stat[i].startup_count*/;
+        auto init      = stat[i].startup_count;
+        auto alloc     = stat[i].allocated - init;
         auto dealloc   = stat[i].deallocated;
         auto size      = stat[i].size_alloc;
         auto size_free = stat[i].size_free;

@@ -49,8 +49,13 @@ int main() {
     {
         metadata_init_names();
         // Static globals
-        auto _ = default_precedence();
-
+        {
+            StringDatabase::instance();
+            default_precedence();
+            keywords();
+            keyword_as_string();
+            strip_defaults();
+        }
         // --
         track_static();
     }

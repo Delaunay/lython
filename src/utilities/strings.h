@@ -7,6 +7,8 @@ namespace lython {
 
 String join(String const &sep, Array<String> const &strs);
 
+Set<char> const &strip_defaults();
+
 String strip(String const &v);
 
 String join(String const &sep, Array<struct ExprNode *> const &exprs);

@@ -53,8 +53,13 @@ String join(String const &sep, Array<StringRef> const &strs) {
 template String join(String const &sep, Array<ExprNode *> const &exprs);
 template String join(String const &sep, Array<Pattern *> const &exprs);
 
-String strip(String const &v) {
+Set<char> const &strip_defaults() {
     static Set<char> char_set = {'\n', ' ', '\t'};
+    return char_set;
+}
+
+String strip(String const &v) {
+    Set<char> const &char_set = strip_defaults();
 
     // remove trailing from the left
     auto k = 0ul;

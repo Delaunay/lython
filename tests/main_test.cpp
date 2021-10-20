@@ -4,8 +4,26 @@
 #include "utilities/metadata.h"
 #include "utilities/names.h"
 
+#include "lexer/lexer.h"
+#include "lexer/token.h"
+#include "utilities/strings.h"
+
 int main(int argc, char *argv[]) {
-    lython::metadata_init_names();
+    using namespace lython;
+
+    {
+        metadata_init_names();
+        // Static globals
+        {
+            StringDatabase::instance();
+            default_precedence();
+            keywords();
+            keyword_as_string();
+            strip_defaults();
+        }
+        // --
+        track_static();
+    }
 
     int result = Catch::Session().run(argc, argv);
 
