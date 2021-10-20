@@ -24,7 +24,7 @@ void GCObject::remove_child(GCObject *child, bool dofree) {
 }
 
 void GCObject::dump(std::ostream &out, int depth) {
-    out << String(depth * 4, ' ') << meta::type_name(class_id) << std::endl;
+    out << String(depth * 2, ' ') << meta::type_name(class_id) << std::endl;
 
     for (auto obj: children) {
         obj->dump(out, depth + 1);
