@@ -18,8 +18,8 @@ struct BindingEntry {
     }
 
     StringRef name;
-    Node *    value;
-    TypeExpr *type;
+    Node *    value = nullptr;
+    TypeExpr *type  = nullptr;
 };
 
 std::ostream &print(std::ostream &out, BindingEntry const &entry);

@@ -1348,7 +1348,7 @@ struct Arrow: public ExprNode {
     Arrow(): ExprNode(NodeKind::Arrow) {}
 
     Array<ExprNode *> args;
-    ExprNode *        returns;
+    ExprNode *        returns = nullptr;
 
     static Array<String> examples() {
         Array<String> _examples = {};

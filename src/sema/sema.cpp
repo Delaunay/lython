@@ -185,7 +185,8 @@ TypeExpr *SemanticAnalyser::starred(Starred *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
     n->varid = bindings.get_varid(n->id);
     if (n->varid == -1) {
-        errors.emplace_back(nullptr, n, nullptr, fmt::format("Undefined variable {}", n->id), LOC);
+        errors.push_back(SemanticError{
+            nullptr, n, nullptr, String(fmt::format("Undefined variable {}", n->id).c_str()), LOC});
     }
     return bindings.get_type(n->varid);
 }

@@ -55,6 +55,7 @@ struct BaseVisitor {
 
     ModRet *exec(ModNode *mod, int depth, Args... args) {
         // clang-format off
+        // trace(depth, "{}", mod->kind);  
         switch (mod->kind) {
 
             #define X(name, _)
@@ -79,6 +80,10 @@ struct BaseVisitor {
     }
 
     PatRet *exec(Pattern *pat, int depth, Args... args) {
+        if (!pat) {
+            return nullptr;
+        }
+        // trace(depth, "{}", pat->kind);
         // clang-format off
         switch (pat->kind) {
 
@@ -104,6 +109,10 @@ struct BaseVisitor {
     }
 
     ExprRet *exec(ExprNode *expr, int depth, Args... args) {
+        if (!expr) {
+            return nullptr;
+        }
+        // trace(depth, "{}", expr->kind);
         // clang-format off
         switch (expr->kind) {
 
@@ -129,6 +138,11 @@ struct BaseVisitor {
     }
 
     StmtRet *exec(StmtNode *stmt, int depth, Args... args) {
+        if (!stmt) {
+            return nullptr;
+        }
+        // trace(depth, "{}", stmt->kind);
+
         // clang-format off
         switch (stmt->kind) {
 
@@ -138,7 +152,7 @@ struct BaseVisitor {
             #define STMT(name, fun)\
                 case NodeKind::name: {\
                     name* n = reinterpret_cast<name*>(stmt);\
-                    return fun(n, depth + 1, std::forward(args)...);\
+                    return this->fun(n, depth + 1, std::forward(args)...);\
                 }
 
             NODEKIND_ENUM(X, SECTION, PASS, STMT, PASS, PASS)
