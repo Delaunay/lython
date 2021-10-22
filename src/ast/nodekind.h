@@ -108,6 +108,8 @@ enum class NodeKind : int8_t
     #undef STMT
     #undef MOD
     #undef MATCH
+
+    Size
 };
 // clang-format off
 

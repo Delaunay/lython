@@ -11,6 +11,12 @@
 
 using namespace lython;
 
+template <typename T>
+Array<String> const &examples() {
+    static Array<String> ex = {};
+    return ex;
+}
+
 inline Array<String> sema_it(String code) {
     StringBuffer reader(code);
     Module       module;
@@ -35,15 +41,15 @@ inline Array<String> sema_it(String code) {
     return errors;
 }
 
-#define GENTEST(name)                                         \
-    TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {          \
-        info("Testing {}", str(nodekind<TestType>()));        \
-        Array<String> const &examples = TestType::examples(); \
-                                                              \
-        for (auto &code: examples) {                          \
-            REQUIRE(sema_it(code) == Array<String>());        \
-            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");            \
-        }                                                     \
+#define GENTEST(name)                                        \
+    TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {         \
+        info("Testing {}", str(nodekind<TestType>()));       \
+        Array<String> const &samples = examples<TestType>(); \
+                                                             \
+        for (auto &code: samples) {                          \
+            REQUIRE(sema_it(code) == Array<String>());       \
+            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");           \
+        }                                                    \
     }
 
 #define X(name, _)
@@ -63,3 +69,12 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 #undef MATCH
 
 #undef GENTEST
+
+template <>
+Array<String> const &examples<FunctionDef>() {
+    static Array<String> ex = {
+        "def a(b: c, d: e = f):\n"
+        "    return b + d + e",
+    };
+    return ex;
+}

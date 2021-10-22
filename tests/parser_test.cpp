@@ -12,6 +12,12 @@
 
 using namespace lython;
 
+template <typename T>
+Array<String> const &examples() {
+    static Array<String> ex = {};
+    return ex;
+}
+
 inline String parse_it(String code) {
     StringBuffer reader(code);
     Module       module;
