@@ -134,6 +134,12 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     Array<SemanticError> errors;
 
     public:
+    virtual ~SemanticAnalyser() {}
+
+    bool typecheck(TypeExpr *one, TypeExpr *two) { return true; }
+
+    bool add_name(ExprNode *expr, ExprNode *value, ExprNode *type);
+
     TypeExpr *oneof(Array<TypeExpr *> types) {
         if (types.size() > 0) {
             return types[0];
@@ -146,9 +152,9 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
         return nullptr;
     };
 
-    void add_arguments(Arguments &args, Arrow *);
+    void add_arguments(Arguments &args, Arrow *, int);
 
-#define FUNCTION_GEN(name, fun) TypeExpr *fun(name *n, int depth);
+#define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);
 
 #define X(name, _)
 #define SECTION(name)

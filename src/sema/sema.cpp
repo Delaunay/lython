@@ -35,6 +35,18 @@ inline std::ostream &print(std::ostream &out, BindingEntry const &entry) {
     return out;
 }
 
+bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type) {
+    auto name = cast<Name>(expr);
+
+    if (name) {
+        name->ctx = ExprContext::Store;
+        bindings.add(name->id, value, type);
+        return true;
+    }
+
+    return false;
+}
+
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) { return nullptr; }
@@ -220,16 +232,18 @@ TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
     return nullptr;
 }
 
-void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow) {
+void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
     for (auto &arg: args.args) {
         TypeExpr *type = nullptr;
         if (arg.annotation.has_value()) {
             type = arg.annotation.value();
+            exec(type, depth);
         }
         bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->args.push_back(type);
+            exec(type, depth);
         }
     }
 
@@ -251,7 +265,7 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     Scope scope(bindings);
 
     auto type = n->new_object<Arrow>();
-    add_arguments(n->args, type);
+    add_arguments(n->args, type, depth);
 
     auto return_effective = exec<TypeExpr>(n->body, depth);
 
@@ -290,23 +304,57 @@ TypeExpr *SemanticAnalyser::deletestmt(Delete *n, int depth) {
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::assign(Assign *n, int depth) {
-    exec<TypeExpr>(n->targets, depth);
-    return exec(n->value, depth);
-}
-TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
-    exec(n->target, depth);
     auto type = exec(n->value, depth);
+
+    if (n->targets.size() == 1) {
+        add_name(n->targets[0], n->value, type);
+    } else {
+        auto types = cast<TupleType>(type);
+        if (!types) {
+            // TODO: unexpected type
+            return type;
+        }
+
+        if (types->types.size() != n->targets.size()) {
+            // TODO: Add type mismatch
+            return type;
+        }
+
+        for (auto i = 0; i < types->types.size(); i++) {
+            auto target = n->targets[0];
+            auto name   = cast<Name>(target);
+            auto type   = types->types[0];
+
+            add_name(n->targets[0], n->value, type);
+        }
+    }
+
     return type;
 }
+TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
+    auto expected_type = exec(n->target, depth);
+    auto type          = exec(n->value, depth);
+
+    typecheck(type, expected_type);
+    return type;
+}
+
+//! Annotation takes priority over the deduced type
+//! this enbles users to use annotation to debug
 TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
-    exec(n->target, depth);
-    // TODO: type check here
-    auto type = exec<TypeExpr>(n->value, depth);
+
+    auto      constraint = n->annotation;
+    auto      type       = exec<TypeExpr>(n->value, depth);
+    ExprNode *value      = nullptr;
 
     if (type.has_value()) {
+        typecheck(constraint, type.value());
+        value = n->value.value();
         return type.value();
     }
-    return nullptr;
+
+    add_name(n->target, value, constraint);
+    return constraint;
 }
 TypeExpr *SemanticAnalyser::forstmt(For *n, int depth) {
     exec(n->target, depth);
@@ -334,8 +382,17 @@ TypeExpr *SemanticAnalyser::ifstmt(If *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::with(With *n, int depth) {
     for (auto &item: n->items) {
+        auto type = exec(item.context_expr, depth);
+
         if (item.optional_vars.has_value()) {
-            exec(item.optional_vars.value(), depth);
+            auto expr = item.optional_vars.value();
+            if (expr->kind == NodeKind::Name) {
+                auto name = cast<Name>(expr);
+                bindings.add(name->id, expr, type);
+            } else {
+                // FIXME: is this even possible ?
+                exec(item.optional_vars.value(), depth);
+            }
         }
     }
 

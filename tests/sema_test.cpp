@@ -73,8 +73,21 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 template <>
 Array<String> const &examples<FunctionDef>() {
     static Array<String> ex = {
+        "c = 1\n"
+        "e = 2\n"
+        "f = 3\n"
         "def a(b: c, d: e = f):\n"
-        "    return b + d + e",
+        "    return b + d",
+    };
+    return ex;
+}
+
+template <>
+Array<String> const &examples<With>() {
+    static Array<String> ex = {
+        "a = 1\n"
+        "with a as b:\n"
+        "    return b",
     };
     return ex;
 }
