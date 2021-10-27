@@ -334,14 +334,6 @@ struct BoolOp: public ExprNode {
     BoolOperator      op;
     Array<ExprNode *> values;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a and b",
-            "a or b",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
@@ -353,13 +345,6 @@ struct NamedExpr: public ExprNode {
 
     NamedExpr(): ExprNode(NodeKind::NamedExpr) {}
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a = a := b",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 };
 
@@ -367,13 +352,6 @@ struct BinOp: public ExprNode {
     ExprNode *     left = nullptr;
     BinaryOperator op;
     ExprNode *     right = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a + b", "a - b", "a * b", "a << b", "a ^ b",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -383,16 +361,6 @@ struct BinOp: public ExprNode {
 struct UnaryOp: public ExprNode {
     UnaryOperator op;
     ExprNode *    operand;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "+ a",
-            "- a",
-            "~ a",
-            "! a",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -405,13 +373,6 @@ struct Lambda: public ExprNode {
 
     void print(std::ostream &out, int indent) const;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "lambda a: b",
-        };
-        return _examples;
-    }
-
     Lambda(): ExprNode(NodeKind::Lambda) {}
 };
 
@@ -419,13 +380,6 @@ struct IfExp: public ExprNode {
     ExprNode *test   = nullptr;
     ExprNode *body   = nullptr;
     ExprNode *orelse = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a = if b: c else d",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -436,13 +390,6 @@ struct DictExpr: public ExprNode {
     Array<ExprNode *> keys;
     Array<ExprNode *> values;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "{a: b, c: d}",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     DictExpr(): ExprNode(NodeKind::DictExpr) {}
@@ -450,13 +397,6 @@ struct DictExpr: public ExprNode {
 
 struct SetExpr: public ExprNode {
     Array<ExprNode *> elts;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "{a, b}",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -467,13 +407,6 @@ struct ListComp: public ExprNode {
     ExprNode *           elt = nullptr;
     Array<Comprehension> generators;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "[a for a in b if a > c]",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     ListComp(): ExprNode(NodeKind::ListComp) {}
@@ -483,13 +416,6 @@ struct GeneratorExp: public ExprNode {
     ExprNode *           elt = nullptr;
     Array<Comprehension> generators;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "(a for a in b if a > c)",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     GeneratorExp(): ExprNode(NodeKind::GeneratorExp) {}
@@ -498,13 +424,6 @@ struct GeneratorExp: public ExprNode {
 struct SetComp: public ExprNode {
     ExprNode *           elt = nullptr;
     Array<Comprehension> generators;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "{a for a in b if a > c}",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -516,13 +435,6 @@ struct DictComp: public ExprNode {
     ExprNode *           value = nullptr;
     Array<Comprehension> generators;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "{a: c for a in b if a > c}",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     DictComp(): ExprNode(NodeKind::DictComp) {}
@@ -532,13 +444,6 @@ struct DictComp: public ExprNode {
 struct Await: public ExprNode {
     ExprNode *value;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "await a",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Await(): ExprNode(NodeKind::Await) {}
@@ -547,14 +452,6 @@ struct Await: public ExprNode {
 struct Yield: public ExprNode {
     Optional<ExprNode *> value;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "yield a",
-            "yield",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Yield(): ExprNode(NodeKind::Yield) {}
@@ -562,13 +459,6 @@ struct Yield: public ExprNode {
 
 struct YieldFrom: public ExprNode {
     ExprNode *value = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "yield from a",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -582,13 +472,6 @@ struct Compare: public ExprNode {
     Array<CmpOperator> ops;
     Array<ExprNode *>  comparators;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a < b > c != d", "a not in b", "a in b", "a is b", "a is not b",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Compare(): ExprNode(NodeKind::Compare) {}
@@ -599,13 +482,6 @@ struct Call: public ExprNode {
     Array<ExprNode *> args;
     Array<Keyword>    keywords;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "fun(a, b, c=d)",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const override;
 
     Call(): ExprNode(NodeKind::Call) {}
@@ -613,11 +489,6 @@ struct Call: public ExprNode {
 
 struct JoinedStr: public ExprNode {
     Array<ExprNode *> values;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 
     JoinedStr(): ExprNode(NodeKind::JoinedStr) {}
 };
@@ -628,30 +499,12 @@ struct FormattedValue: public ExprNode {
     // defined as ExprNode*
     JoinedStr format_spec;
 
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
-
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
 
 struct Constant: public ExprNode {
     ConstantValue    value;
     Optional<String> kind;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "1",
-            "2.1",
-            // "'str'",
-            "\"str\"",
-            "None",
-            "True",
-            "False",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const override;
 
@@ -667,13 +520,6 @@ struct Attribute: public ExprNode {
     Identifier  attr;
     ExprContext ctx;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a.b",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const override {
         value->print(out, indent);
         out << ".";
@@ -688,13 +534,6 @@ struct Subscript: public ExprNode {
     ExprNode *  slice = nullptr;
     ExprContext ctx;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a[b]",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const override {
         value->print(out, indent);
         out << "[";
@@ -708,13 +547,6 @@ struct Subscript: public ExprNode {
 struct Starred: public ExprNode {
     ExprNode *  value = nullptr;
     ExprContext ctx;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "*a",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const override {
         out << "*";
@@ -731,13 +563,6 @@ struct Name: public ExprNode {
     // SEMA
     int varid;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const override { out << id; }
 
     Name(): ExprNode(NodeKind::Name) {}
@@ -747,13 +572,6 @@ struct ListExpr: public ExprNode {
     Array<ExprNode *> elts;
     ExprContext       ctx;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "[a, b, c]",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     ListExpr(): ExprNode(NodeKind::ListExpr) {}
@@ -762,15 +580,6 @@ struct ListExpr: public ExprNode {
 struct TupleExpr: public ExprNode {
     Array<ExprNode *> elts;
     ExprContext       ctx;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a, b, c",
-            "a, (b, c), d",
-            "a, b, c = d, e, f",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -782,13 +591,6 @@ struct Slice: public ExprNode {
     Optional<ExprNode *> lower;
     Optional<ExprNode *> upper;
     Optional<ExprNode *> step;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a[b:c:d]",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -802,11 +604,6 @@ struct Module: public ModNode {
 
     Optional<String> docstring;
 
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
-
     Module(): ModNode(NodeKind::Module) {}
 
     void print(std::ostream &out, int) const;
@@ -815,21 +612,11 @@ struct Module: public ModNode {
 struct Interactive: public ModNode {
     Array<StmtNode *> body;
 
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
-
     Interactive(): ModNode(NodeKind::Interactive) {}
 };
 
 struct Expression: public ModNode {
     ExprNode *body = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 
     Expression(): ModNode(NodeKind::Expression) {}
 };
@@ -837,11 +624,6 @@ struct Expression: public ModNode {
 struct FunctionType: public ModNode {
     Array<ExprNode *> argtypes;
     ExprNode *        returns = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 
     FunctionType(): ModNode(NodeKind::FunctionType) {}
 };
@@ -853,13 +635,6 @@ struct Inline: public StmtNode {
     Array<StmtNode *> body;
 
     void print(std::ostream &out, int indent) const override;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a = 2; b = c; c = d",
-        };
-        return _examples;
-    }
 
     Inline(): StmtNode(NodeKind::Inline) {}
 };
@@ -874,21 +649,6 @@ struct FunctionDef: public StmtNode {
 
     Optional<String> docstring;
     bool             async : 1 = false;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "@decorator\n"
-            "def a(b, c=d, *e, f=g, **h) -> i:\n"
-            "    \"\"\"docstring\"\"\"\n"
-            "    pass",
-
-            "@decorator1(a, b, c=d)\n"
-            "@decorator2\n"
-            "def a(b: c, d: e = f):\n"
-            "    pass",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const override;
 
@@ -906,17 +666,6 @@ struct ClassDef: public StmtNode {
 
     Optional<String> docstring;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "@decorator1(a, b, c=d)\n"
-            "@decorator2\n"
-            "class a(a, b=c):\n"
-            "    \"\"\"docstring\"\"\"\n"
-            "    pass",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const override;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
@@ -925,13 +674,6 @@ struct ClassDef: public StmtNode {
 struct Return: public StmtNode {
     Optional<ExprNode *> value;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "return a",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Return(): StmtNode(NodeKind::Return) {}
@@ -939,13 +681,6 @@ struct Return: public StmtNode {
 
 struct Delete: public StmtNode {
     Array<ExprNode *> targets;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "del a, b",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -962,14 +697,6 @@ struct Assign: public StmtNode {
     ExprNode *        value = nullptr;
     Optional<String>  type_comment;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a = b",
-            "a, b = c",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Assign(): StmtNode(NodeKind::Assign) {}
@@ -979,14 +706,6 @@ struct AugAssign: public StmtNode {
     ExprNode *     target = nullptr;
     BinaryOperator op;
     ExprNode *     value = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a += b",
-            "a -= b",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -1000,13 +719,6 @@ struct AnnAssign: public StmtNode {
     Optional<ExprNode *> value;
     int                  simple;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "a: b = c",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     AnnAssign(): StmtNode(NodeKind::AnnAssign) {}
@@ -1019,18 +731,6 @@ struct For: public StmtNode {
     Array<StmtNode *> body;
     Array<StmtNode *> orelse;
     Optional<String>  type_comment;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "for a in b:\n"
-            "    pass\n"
-            "else:\n"
-            "    pass\n",
-            "for a, (b, c), d in b:\n"
-            "    pass\n",
-        };
-        return _examples;
-    }
 
     bool async = false;
 
@@ -1047,16 +747,6 @@ struct While: public StmtNode {
     Array<StmtNode *> body;
     Array<StmtNode *> orelse;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "while a:\n"
-            "    pass\n"
-            "else:\n"
-            "    pass\n",
-        };
-        return _examples;
-    }
-
     While(): StmtNode(NodeKind::While) {}
 
     void print(std::ostream &out, int indent) const;
@@ -1072,18 +762,6 @@ struct If: public StmtNode {
     Array<ExprNode *>        tests;
     Array<Array<StmtNode *>> bodies;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "if a:\n"
-            "    pass\n"
-            "elif b:\n"
-            "    pass\n"
-            "else:\n"
-            "    pass\n",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     If(): StmtNode(NodeKind::If) {}
@@ -1095,14 +773,6 @@ struct With: public StmtNode {
     Optional<String>  type_comment;
 
     bool async = false;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "with a as b, c as d:\n"
-            "    pass\n",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -1116,13 +786,6 @@ struct Raise: public StmtNode {
     Optional<ExprNode *> exc;
     Optional<ExprNode *> cause;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "raise a from b",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Raise(): StmtNode(NodeKind::Raise) {}
@@ -1134,20 +797,6 @@ struct Try: public StmtNode {
     Array<StmtNode *>    orelse;
     Array<StmtNode *>    finalbody;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "try:\n"
-            "    pass\n"
-            "except err as b:\n"
-            "    pass\n"
-            "else:\n"
-            "    pass\n"
-            "finally:\n"
-            "    pass\n",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Try(): StmtNode(NodeKind::Try) {}
@@ -1157,14 +806,6 @@ struct Assert: public StmtNode {
     ExprNode *           test = nullptr;
     Optional<ExprNode *> msg;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "assert a",
-            "assert a, \"b\"",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Assert(): StmtNode(NodeKind::Assert) {}
@@ -1172,13 +813,6 @@ struct Assert: public StmtNode {
 
 struct Import: public StmtNode {
     Array<Alias> names;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "import a as b, c as d, e.f as g",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -1190,13 +824,6 @@ struct ImportFrom: public StmtNode {
     Array<Alias>         names;
     Optional<int>        level;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "from a.b import c as d, e.f as g",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     ImportFrom(): StmtNode(NodeKind::ImportFrom) {}
@@ -1204,13 +831,6 @@ struct ImportFrom: public StmtNode {
 
 struct Global: public StmtNode {
     Array<Identifier> names;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "global a",
-        };
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -1220,13 +840,6 @@ struct Global: public StmtNode {
 struct Nonlocal: public StmtNode {
     Array<Identifier> names;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "nonlocal a",
-        };
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 
     Nonlocal(): StmtNode(NodeKind::Nonlocal) {}
@@ -1234,11 +847,6 @@ struct Nonlocal: public StmtNode {
 
 struct Expr: public StmtNode {
     ExprNode *value = nullptr;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -1248,25 +856,11 @@ struct Expr: public StmtNode {
 struct Pass: public StmtNode {
     void print(std::ostream &out, int indent) const;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "pass",
-        };
-        return _examples;
-    }
-
     Pass(): StmtNode(NodeKind::Pass) {}
 };
 
 struct Break: public StmtNode {
     void print(std::ostream &out, int indent) const;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "break",
-        };
-        return _examples;
-    }
 
     Break(): StmtNode(NodeKind::Break) {}
 };
@@ -1274,49 +868,12 @@ struct Break: public StmtNode {
 struct Continue: public StmtNode {
     void print(std::ostream &out, int indent) const;
 
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "continue",
-        };
-        return _examples;
-    }
-
     Continue(): StmtNode(NodeKind::Continue) {}
 };
 
 struct Match: public StmtNode {
     ExprNode *       subject;
     Array<MatchCase> cases;
-
-    static Array<String> examples() {
-        Array<String> _examples = {
-            "match a:\n"
-            "    case [1, 3]:\n"
-            "        pass\n"
-            "    case p as c:\n"
-            "        pass\n"
-            "    case a | c:\n"
-            "        pass\n"
-            "    case ClassName(a, b, c=d):\n"
-            "        pass\n"
-            "    case d if b:\n"
-            "        pass\n",
-
-            "match lst:\n"
-            "    case []:\n"
-            "        pass\n"
-            "    case [head, *tail]:\n"
-            "        pass\n",
-
-            "match dct:\n"
-            "    case {}:\n"
-            "        pass\n"
-            "    case {1: value, **remainder}:\n"
-            "        pass\n",
-        };
-
-        return _examples;
-    }
 
     void print(std::ostream &out, int indent) const;
 
@@ -1350,11 +907,6 @@ struct Arrow: public ExprNode {
     Array<ExprNode *> args;
     ExprNode *        returns = nullptr;
 
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
-
     void print(std::ostream &out, int indent) const;
 };
 
@@ -1363,65 +915,35 @@ struct DictType: public ExprNode {
 
     ExprNode *key;
     ExprNode *value;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 };
 
 struct SetType: public ExprNode {
     SetType(): ExprNode(NodeKind::SetType) {}
 
     ExprNode *value;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 };
 
 struct ArrayType: public ExprNode {
     ArrayType(): ExprNode(NodeKind::ArrayType) {}
 
     ExprNode *value;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 };
 
 struct TupleType: public ExprNode {
     TupleType(): ExprNode(NodeKind::TupleType) {}
 
     Array<ExprNode *> types;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 };
 
 struct BuiltinType: public ExprNode {
     BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
     StringRef name;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 };
 
 struct ClassType: public ExprNode {
     ClassType(): ExprNode(NodeKind::ClassType) {}
     StringRef        name;
     Array<StringRef> bases;
-
-    static Array<String> examples() {
-        Array<String> _examples = {};
-        return _examples;
-    }
 };
 
 } // namespace lython
