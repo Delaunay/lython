@@ -247,6 +247,7 @@ TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::subscript(Subscript *n, int depth) {
     auto class_t = exec(n->value, depth);
+    exec(n->slice, depth);
     // check that __getitem__ is defined in class_t
     return nullptr;
 }
@@ -478,9 +479,26 @@ TypeExpr *SemanticAnalyser::assertstmt(Assert *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::import(Import *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::global(Global *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::global(Global *n, int depth) {
+    for (auto &name: n->names) {
+        auto varid = bindings.get_varid(name);
+        if (varid == -1) {
+            errors.push_back(
+                SemanticError{n, nullptr, nullptr,
+                              String(fmt::format("Undefined variable {}", name).c_str()), LOC});
+        }
+    }
+    return nullptr;
+}
 TypeExpr *SemanticAnalyser::nonlocal(Nonlocal *n, int depth) {
-    // n->names
+    for (auto &name: n->names) {
+        auto varid = bindings.get_varid(name);
+        if (varid == -1) {
+            errors.push_back(
+                SemanticError{n, nullptr, nullptr,
+                              String(fmt::format("Undefined variable {}", name).c_str()), LOC});
+        }
+    }
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::exprstmt(Expr *n, int depth) { return exec(n->value, depth); }

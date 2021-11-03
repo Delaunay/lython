@@ -11,9 +11,16 @@
 
 using namespace lython;
 
+struct TestCase {
+    TestCase(String const &c, Array<String> const &u = Array<String>()): code(c), undefined(u) {}
+
+    String        code;
+    Array<String> undefined;
+};
+
 template <typename T>
-Array<String> const &examples() {
-    static Array<String> ex = {};
+Array<TestCase> const &examples() {
+    static Array<TestCase> ex = {};
     return ex;
 }
 
@@ -41,13 +48,22 @@ inline Array<String> sema_it(String code) {
     return errors;
 }
 
+Array<String> expected_errors(TestCase const &test) {
+    Array<String> r;
+    r.reserve(test.undefined.size());
+    for (auto &undef: test.undefined) {
+        r.push_back("Undefined variable " + undef);
+    }
+
+    return r;
+}
+
 #define GENTEST(name)                                        \
     TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {         \
         info("Testing {}", str(nodekind<TestType>()));       \
-        Array<String> const &samples = examples<TestType>(); \
-                                                             \
-        for (auto &code: samples) {                          \
-            REQUIRE(sema_it(code) == Array<String>());       \
+        Array<TestCase> const &cases = examples<TestType>(); \
+        for (auto &c: cases) {                               \
+            REQUIRE(sema_it(c.code) == expected_errors(c));  \
             info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");           \
         }                                                    \
     }
@@ -71,486 +87,498 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 #undef GENTEST
 
 template <>
-Array<String> const &examples<Match>() {
-    static Array<String> ex = {
-        "match a:\n"
-        "    case [1, 3]:\n"
-        "        pass\n"
-        "    case p as c:\n"
-        "        pass\n"
-        "    case a | c:\n"
-        "        pass\n"
-        "    case ClassName(a, b, c=d):\n"
-        "        pass\n"
-        "    case d if b:\n"
-        "        pass\n",
+Array<TestCase> const &examples<Match>() {
+    static Array<TestCase> ex = {
+        {"match a:\n"
+         "    case [1, 3]:\n"
+         "        pass\n"
+         "    case p as c:\n"
+         "        pass\n"
+         "    case a | c:\n"
+         "        pass\n"
+         "    case ClassName(a, b, c=d):\n"
+         "        pass\n"
+         "    case d if b:\n"
+         "        pass\n"},
 
-        "match lst:\n"
-        "    case []:\n"
-        "        pass\n"
-        "    case [head, *tail]:\n"
-        "        pass\n",
+        {"match lst:\n"
+         "    case []:\n"
+         "        pass\n"
+         "    case [head, *tail]:\n"
+         "        pass\n"},
 
-        "match dct:\n"
-        "    case {}:\n"
-        "        pass\n"
-        "    case {1: value, **remainder}:\n"
-        "        pass\n",
+        {"match dct:\n"
+         "    case {}:\n"
+         "        pass\n"
+         "    case {1: value, **remainder}:\n"
+         "        pass\n"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Continue>() {
-    static Array<String> ex = {
-        "continue",
+Array<TestCase> const &examples<Continue>() {
+    static Array<TestCase> ex = {
+        {"continue"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Break>() {
-    static Array<String> ex = {
-        "break",
+Array<TestCase> const &examples<Break>() {
+    static Array<TestCase> ex = {
+        {"break"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Pass>() {
-    static Array<String> ex = {
-        "pass",
+Array<TestCase> const &examples<Pass>() {
+    static Array<TestCase> ex = {
+        {"pass"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<StmtNode>() {
-    static Array<String> ex = {};
+Array<TestCase> const &examples<StmtNode>() {
+    static Array<TestCase> ex = {};
     return ex;
 }
 
 template <>
-Array<String> const &examples<Nonlocal>() {
-    static Array<String> ex = {
-        "nonlocal a",
+Array<TestCase> const &examples<Nonlocal>() {
+    static Array<TestCase> ex = {
+        {"nonlocal a", {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Global>() {
-    static Array<String> ex = {
-        "global a",
+Array<TestCase> const &examples<Global>() {
+    static Array<TestCase> ex = {
+        {"global a", {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<ImportFrom>() {
-    static Array<String> ex = {
-        "from a.b import c as d, e.f as g",
+Array<TestCase> const &examples<ImportFrom>() {
+    static Array<TestCase> ex = {
+        {"from a.b import c as d, e.f as g"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Import>() {
-    static Array<String> ex = {
-        "import a as b, c as d, e.f as g",
+Array<TestCase> const &examples<Import>() {
+    static Array<TestCase> ex = {
+        {"import a as b, c as d, e.f as g"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Assert>() {
-    static Array<String> ex = {
-        "assert a",
-        "assert a, \"b\"",
+Array<TestCase> const &examples<Assert>() {
+    static Array<TestCase> ex = {
+        {"assert a", {"a"}},
+        {"assert a, \"b\"", {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Try>() {
-    static Array<String> ex = {
-        "try:\n"
-        "    pass\n"
-        "except err as b:\n"
-        "    pass\n"
-        "else:\n"
-        "    pass\n"
-        "finally:\n"
-        "    pass\n",
+Array<TestCase> const &examples<Try>() {
+    static Array<TestCase> ex = {
+        {"try:\n"
+         "    pass\n"
+         "except Exception as b:\n"
+         "    pass\n"
+         "else:\n"
+         "    pass\n"
+         "finally:\n"
+         "    pass\n"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Raise>() {
-    static Array<String> ex = {
-        "raise a from b",
+Array<TestCase> const &examples<Raise>() {
+    static Array<TestCase> ex = {
+        {"raise a from b", {"a", "b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<With>() {
-    static Array<String> ex = {
-        "with a as b, c as d:\n"
-        "    pass\n",
+Array<TestCase> const &examples<With>() {
+    static Array<TestCase> ex = {
+        {"with a as b, c as d:\n"
+         "    pass\n",
+         {"a", "c"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<If>() {
-    static Array<String> ex = {
-        "if a:\n"
-        "    pass\n"
-        "elif b:\n"
-        "    pass\n"
-        "else:\n"
-        "    pass\n",
-    };
-    ;
-    return ex;
-}
-
-template <>
-Array<String> const &examples<While>() {
-    static Array<String> ex = {
-        "while a:\n"
-        "    pass\n"
-        "else:\n"
-        "    pass\n",
+Array<TestCase> const &examples<If>() {
+    static Array<TestCase> ex = {
+        {"if a:\n"
+         "    pass\n"
+         "elif b:\n"
+         "    pass\n"
+         "else:\n"
+         "    pass\n",
+         {"a", "b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<For>() {
-    static Array<String> ex = {
-        "for a in b:\n"
-        "    pass\n"
-        "else:\n"
-        "    pass\n",
-        "for a, (b, c), d in b:\n"
-        "    pass\n",
+Array<TestCase> const &examples<While>() {
+    static Array<TestCase> ex = {
+        {"while a:\n"
+         "    pass\n"
+         "else:\n"
+         "    pass\n",
+         {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<AnnAssign>() {
-    static Array<String> ex = {
-        "a: b = c",
+Array<TestCase> const &examples<For>() {
+    static Array<TestCase> ex = {
+        {"for a in b:\n"
+         "    pass\n"
+         "else:\n"
+         "    pass\n",
+         {"b"}},
+        {"for a, (b, c), d in b:\n"
+         "    pass\n",
+         {"b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<AugAssign>() {
-    static Array<String> ex = {
-        "a += b",
-        "a -= b",
+Array<TestCase> const &examples<AnnAssign>() {
+    static Array<TestCase> ex = {
+        {"a: b = c", {"b", "c"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Assign>() {
-    static Array<String> ex = {
-        "a = b",
-        "a, b = c",
+Array<TestCase> const &examples<AugAssign>() {
+    static Array<TestCase> ex = {
+        {"a += b", {"a", "b"}},
+        {"a -= b", {"a", "b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Delete>() {
-    static Array<String> ex = {
-        "del a, b",
+Array<TestCase> const &examples<Assign>() {
+    static Array<TestCase> ex = {
+        {"a = b", {"b"}},
+        {"a, b = c", {"c"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Return>() {
-    static Array<String> ex = {
-        "return a",
+Array<TestCase> const &examples<Delete>() {
+    static Array<TestCase> ex = {
+        {"del a, b", {"a", "b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<ClassDef>() {
-    static Array<String> ex = {
-        "@decorator1(a, b, c=d)\n"
-        "@decorator2\n"
-        "class a(a, b=c):\n"
-        "    \"\"\"docstring\"\"\"\n"
-        "    pass",
+Array<TestCase> const &examples<Return>() {
+    static Array<TestCase> ex = {
+        {"return a", {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<FunctionDef>() {
-    static Array<String> ex = {
-        "@decorator\n"
-        "def a(b, c=d, *e, f=g, **h) -> i:\n"
-        "    \"\"\"docstring\"\"\"\n"
-        "    pass",
-
-        "@decorator1(a, b, c=d)\n"
-        "@decorator2\n"
-        "def a(b: c, d: e = f):\n"
-        "    pass",
+Array<TestCase> const &examples<ClassDef>() {
+    static Array<TestCase> ex = {
+        {"@e(g, h, i=j)\n"
+         "@f\n"
+         "class a(b, c=d):\n"
+         "    \"\"\"docstring\"\"\"\n"
+         "    pass",
+         {"e", "g", "h", "j", "f", "b", "d"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Inline>() {
-    static Array<String> ex = {
-        "a = 2; b = c; c = d",
+Array<TestCase> const &examples<FunctionDef>() {
+    static Array<TestCase> ex = {
+        {"@j\n"
+         "def a(b, c=d, *e, f=g, **h) -> i:\n"
+         "    \"\"\"docstring\"\"\"\n"
+         "    pass",
+         {"j", "d", "g", "i"}},
+
+        {"@j(l, m, c=n)\n"
+         "@k\n"
+         "def a(b: c, d: e = f):\n"
+         "    pass",
+         {"j", "l", "m", "n", "k", "c", "e", "f"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<FunctionType>() {
-    static Array<String> ex = {};
-    return ex;
-}
-
-template <>
-Array<String> const &examples<Expression>() {
-    static Array<String> ex = {};
-    return ex;
-}
-
-template <>
-Array<String> const &examples<Interactive>() {
-    static Array<String> ex = {};
-    return ex;
-}
-
-template <>
-Array<String> const &examples<Module>() {
-    static Array<String> ex = {};
-    return ex;
-}
-
-template <>
-Array<String> const &examples<Slice>() {
-    static Array<String> ex = {
-        "a[b:c:d]",
+Array<TestCase> const &examples<Inline>() {
+    static Array<TestCase> ex = {
+        {"a = 2; b = c; d = e", {"c", "e"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<TupleExpr>() {
-    static Array<String> ex = {
-        "a, b, c",
-        "a, (b, c), d",
-        "a, b, c = d, e, f",
+Array<TestCase> const &examples<FunctionType>() {
+    static Array<TestCase> ex = {};
+    return ex;
+}
+
+template <>
+Array<TestCase> const &examples<Expression>() {
+    static Array<TestCase> ex = {};
+    return ex;
+}
+
+template <>
+Array<TestCase> const &examples<Interactive>() {
+    static Array<TestCase> ex = {};
+    return ex;
+}
+
+template <>
+Array<TestCase> const &examples<Module>() {
+    static Array<TestCase> ex = {};
+    return ex;
+}
+
+template <>
+Array<TestCase> const &examples<Slice>() {
+    static Array<TestCase> ex = {
+        {"a[b:c:d]", {"a", "b", "c", "d"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<ListExpr>() {
-    static Array<String> ex = {
-        "[a, b, c]",
+Array<TestCase> const &examples<TupleExpr>() {
+    static Array<TestCase> ex = {
+        {"a, b, c", {"a", "b", "c"}},
+        {"a, (b, c), d", {"a", "b", "c", "d"}},
+        {"a, b, c = d, e, f", {"d", "e", "f"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Name>() {
-    static Array<String> ex = {
-        "a",
+Array<TestCase> const &examples<ListExpr>() {
+    static Array<TestCase> ex = {
+        {"[a, b, c]", {"a", "b", "c"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Starred>() {
-    static Array<String> ex = {
-        "*a",
+Array<TestCase> const &examples<Name>() {
+    static Array<TestCase> ex = {
+        {"a", {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Subscript>() {
-    static Array<String> ex = {
-        "a[b];",
+Array<TestCase> const &examples<Starred>() {
+    static Array<TestCase> ex = {
+        {"*a", {"a"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Attribute>() {
-    static Array<String> ex = {
-        "a.b",
+Array<TestCase> const &examples<Subscript>() {
+    static Array<TestCase> ex = {
+        {"a[b]", {"a", "b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<Constant>() {
-    static Array<String> ex = {
-        "1",
-        "2.1",
+Array<TestCase> const &examples<Attribute>() {
+    static Array<TestCase> ex = {
+        {"a.b", {"a"}},
+    };
+    return ex;
+}
+
+template <>
+Array<TestCase> const &examples<Constant>() {
+    static Array<TestCase> ex = {
+        {"1"},
+        {"2.1"},
         // "'str'",
-        "\"str\"",
-        "None",
-        "True",
-        "False",
+        {"\"str\""},
+        {"None"},
+        {"True"},
+        {"False"},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<FormattedValue>() {
-    static Array<String> ex = {};
+Array<TestCase> const &examples<FormattedValue>() {
+    static Array<TestCase> ex = {};
     return ex;
 }
 
 template <>
-Array<String> const &examples<JoinedStr>() {
-    static Array<String> ex = {};
+Array<TestCase> const &examples<JoinedStr>() {
+    static Array<TestCase> ex = {};
     return ex;
 }
 template <>
-Array<String> const &examples<Call>() {
-    static Array<String> ex = {
-        "fun(a, b, c=d)",
+Array<TestCase> const &examples<Call>() {
+    static Array<TestCase> ex = {
+        {"fun(a, b, c=d)", {"fun", "a", "b", "d"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<Compare>() {
-    static Array<String> ex = {
-        "a < b > c != d", "a not in b", "a in b", "a is b", "a is not b",
+Array<TestCase> const &examples<Compare>() {
+    static Array<TestCase> ex = {
+        {"a < b > c != d", {"a", "b", "c", "d"}},
+        {"a not in b", {"a", "b"}},
+        {"a in b", {"a", "b"}},
+        {"a is b", {"a", "b"}},
+        {"a is not b", {"a", "b"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<YieldFrom>() {
-    static Array<String> ex = {
-        "yield from a",
+Array<TestCase> const &examples<YieldFrom>() {
+    static Array<TestCase> ex = {
+        {"yield from a", {"a"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<Yield>() {
-    static Array<String> ex = {
-        "yield a",
-        "yield",
+Array<TestCase> const &examples<Yield>() {
+    static Array<TestCase> ex = {
+        {"yield a", {"a"}},
+        {"yield"},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<Await>() {
-    static Array<String> ex = {
-        "await a",
+Array<TestCase> const &examples<Await>() {
+    static Array<TestCase> ex = {
+        {"await a", {"a"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<DictComp>() {
-    static Array<String> ex = {
-        "{a: c for a in b if a > c}",
+Array<TestCase> const &examples<DictComp>() {
+    static Array<TestCase> ex = {
+        {"{a: c for a in b if a > c}", {"c", "b"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<SetComp>() {
-    static Array<String> ex = {
-        "{a for a in b if a > c}",
+Array<TestCase> const &examples<SetComp>() {
+    static Array<TestCase> ex = {
+        {"{a for a in b if a > c}", {"b", "c"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<GeneratorExp>() {
-    static Array<String> ex = {
-        "(a for a in b if a > c)",
+Array<TestCase> const &examples<GeneratorExp>() {
+    static Array<TestCase> ex = {
+        {"(a for a in b if a > c)", {"b", "c"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<ListComp>() {
-    static Array<String> ex = {
-        "[a for a in b if a > c]",
+Array<TestCase> const &examples<ListComp>() {
+    static Array<TestCase> ex = {
+        {"[a for a in b if a > c]", {"b", "c"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<SetExpr>() {
-    static Array<String> ex = {
-        "{a, b}",
+Array<TestCase> const &examples<SetExpr>() {
+    static Array<TestCase> ex = {
+        {"{a, b}", {"a", "b"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<DictExpr>() {
-    static Array<String> ex = {
-        "{a: b, c: d}",
+Array<TestCase> const &examples<DictExpr>() {
+    static Array<TestCase> ex = {
+        {"{a: b, c: d}", {"a", "b", "c", "d"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<IfExp>() {
-    static Array<String> ex = {
-        "a = if b: c else d",
+Array<TestCase> const &examples<IfExp>() {
+    static Array<TestCase> ex = {
+        {"a = if b: c else d", {"b", "c", "d"}},
         // this is the real python version
         // "a = b if c else d",
     };
     return ex;
 }
 template <>
-Array<String> const &examples<Lambda>() {
-    static Array<String> ex = {
-        "lambda a: b",
+Array<TestCase> const &examples<Lambda>() {
+    static Array<TestCase> ex = {
+        {"lambda a: b", {"b"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<UnaryOp>() {
-    static Array<String> ex = {
-        "+ a",
-        "- a",
-        "~ a",
-        "! a",
+Array<TestCase> const &examples<UnaryOp>() {
+    static Array<TestCase> ex = {
+        {"+ a", {"a"}},
+        {"- a", {"a"}},
+        {"~ a", {"a"}},
+        {"! a", {"a"}},
     };
     return ex;
 }
 template <>
-Array<String> const &examples<BinOp>() {
-    static Array<String> ex = {
-        "a + b", "a - b", "a * b", "a << b", "a ^ b",
-    };
-    return ex;
-}
-
-template <>
-Array<String> const &examples<NamedExpr>() {
-    static Array<String> ex = {
-        "a = a := b",
+Array<TestCase> const &examples<BinOp>() {
+    static Array<TestCase> ex = {
+        {"a + b", {"a", "b"}},  {"a - b", {"a", "b"}}, {"a * b", {"a", "b"}},
+        {"a << b", {"a", "b"}}, {"a ^ b", {"a", "b"}},
     };
     return ex;
 }
 
 template <>
-Array<String> const &examples<BoolOp>() {
-    static Array<String> ex = {
-        "a and b",
-        "a or b",
+Array<TestCase> const &examples<NamedExpr>() {
+    static Array<TestCase> ex = {
+        {"a = b := c", {"c"}},
+    };
+    return ex;
+}
+
+template <>
+Array<TestCase> const &examples<BoolOp>() {
+    static Array<TestCase> ex = {
+        {"a and b", {"a", "b"}},
+        {"a or b", {"a", "b"}},
     };
     return ex;
 }
