@@ -95,29 +95,34 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 template <>
 Array<TestCase> const &examples<Match>() {
     static Array<TestCase> ex = {
+        // TODO: check this test case on python
+        // not sure about i
         {"match a:\n"
          "    case [1, 3]:\n"
          "        pass\n"
-         "    case p as c:\n"
-         "        pass\n"
-         "    case a | c:\n"
-         "        pass\n"
-         "    case ClassName(a, b, c=d):\n"
-         "        pass\n"
-         "    case d if b:\n"
-         "        pass\n"},
+         "    case b as c:\n"
+         "        return c\n"
+         "    case d | e:\n"
+         "        return d\n"
+         "    case ClassName(f, g, h=i):\n"
+         "        return f + g + i\n"
+         "    case j if k:\n"
+         "        return j\n",
+         {"a", "ClassName", "k"}},
 
         {"match lst:\n"
          "    case []:\n"
          "        pass\n"
          "    case [head, *tail]:\n"
-         "        pass\n"},
+         "        pass\n",
+         {"lst"}},
 
         {"match dct:\n"
          "    case {}:\n"
          "        pass\n"
          "    case {1: value, **remainder}:\n"
-         "        pass\n"},
+         "        pass\n",
+         {"dct"}},
     };
     return ex;
 }
@@ -317,7 +322,7 @@ Array<TestCase> const &examples<ClassDef>() {
          "class a(b, c=d):\n"
          "    \"\"\"docstring\"\"\"\n"
          "    pass",
-         {"e", "g", "h", "j", "f", "b", "d"}},
+         {"b", "d", "e", "g", "h", "j", "f"}},
     };
     return ex;
 }
@@ -329,13 +334,13 @@ Array<TestCase> const &examples<FunctionDef>() {
          "def a(b, c=d, *e, f=g, **h) -> i:\n"
          "    \"\"\"docstring\"\"\"\n"
          "    pass",
-         {"j", "d", "g", "i"}},
+         {"d", "g", "i", "j"}},
 
         {"@j(l, m, c=n)\n"
          "@k\n"
          "def a(b: c, d: e = f):\n"
          "    pass",
-         {"j", "l", "m", "n", "k", "c", "e", "f"}},
+         {"c", "f", "e", "j", "l", "m", "n", "k"}},
     };
     return ex;
 }

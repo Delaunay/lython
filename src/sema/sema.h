@@ -183,6 +183,13 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
         return nullptr;
     };
 
+    ExprNode *make_ref(Node *parent, String const &name) {
+        auto ref   = parent->new_object<Name>();
+        ref->id    = name;
+        ref->varid = bindings.get_varid(ref->id);
+        return ref;
+    }
+
     void add_arguments(Arguments &args, Arrow *, int);
 
 #define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);

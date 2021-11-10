@@ -660,13 +660,17 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
 
     // Value
     default: {
-        auto     value = parse_expression_primary(parent, depth + 1);
-        Pattern *pat   = nullptr;
+        // in this context we are storing components inside the pattern
+        //_context.push_back(ExprContext::Store);
+        auto value = parse_expression_primary(parent, depth + 1);
+        //_context.pop_back();
+        Pattern *pat = nullptr;
 
         // <expr> if|:
         if (token().type() != '(') {
             pat                        = parent->new_object<MatchValue>();
             ((MatchValue *)pat)->value = value;
+            set_context(value, ExprContext::Store);
         } else {
             pat = parse_match_class(parent, value, depth + 1);
         }

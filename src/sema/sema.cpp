@@ -211,13 +211,29 @@ TypeExpr *SemanticAnalyser::yield(Yield *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::yieldfrom(YieldFrom *n, int depth) { return exec(n->value, depth); }
 TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
-    for (auto cmp: n->comparators) {
-        exec(cmp, depth);
+
+    auto prev_t = exec(n->left, depth);
+    auto prev   = n->left;
+
+    for (int i = 0; i < n->ops.size(); i++) {
+        auto op    = n->ops[i];
+        auto cmp   = n->comparators[i];
+        auto cmp_t = exec(cmp, depth);
+
+        //
+        // prev <op> cmp
+
+        // TODO: typecheck op
+        // op: (prev_t -> cmp_t -> bool)
+
+        // --
+        prev   = cmp;
+        prev_t = cmp_t;
     }
 
-    // TODO: return bool here
-    return nullptr;
+    return make_ref(n, "bool");
 }
+
 TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     auto type = exec(n->func, depth);
 
@@ -236,25 +252,17 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
 TypeExpr *SemanticAnalyser::joinedstr(JoinedStr *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
-
-    auto make_ref = [&](String const &name) -> TypeExpr * {
-        auto ref   = n->new_object<Name>();
-        ref->id    = name;
-        ref->varid = bindings.get_varid(ref->id);
-        return ref;
-    };
-
     switch (n->value.type()) {
     case ConstantValue::TInt:
-        return make_ref("i32");
+        return make_ref(n, "i32");
     case ConstantValue::TFloat:
-        return make_ref("f32");
+        return make_ref(n, "f32");
     case ConstantValue::TDouble:
-        return make_ref("f64");
+        return make_ref(n, "f64");
     case ConstantValue::TString:
-        return make_ref("str");
+        return make_ref(n, "str");
     case ConstantValue::TBool:
-        return make_ref("bool");
+        return make_ref(n, "bool");
     }
 
     return nullptr;
@@ -329,25 +337,77 @@ TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
 }
 
 void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
-    for (auto &arg: args.args) {
+
+    for (int i = 0, n = args.args.size(); i < n; i++) {
+        auto      arg      = args.args[i];
+        ExprNode *dvalue   = nullptr;
+        TypeExpr *dvalue_t = nullptr;
+
+        int d = int(args.defaults.size()) - (n - i);
+
+        if (d >= 0) {
+            dvalue   = args.defaults[d];
+            dvalue_t = exec(dvalue, depth);
+        }
+
         TypeExpr *type = nullptr;
         if (arg.annotation.has_value()) {
             type = arg.annotation.value();
-            exec(type, depth);
+
+            auto typetype = exec(type, depth);
+            typecheck(typetype, type_Type());
         }
+
+        // if default value & annotation types must match
+        if (type && dvalue_t) {
+            typecheck(type, dvalue_t);
+        }
+
+        // if no annotation use default value type
+        if (type == nullptr) {
+            type = dvalue_t;
+        }
+
+        // we could populate the default value here
+        // but we would not want sema to think this is a constant
         bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->args.push_back(type);
-            exec(type, depth);
         }
     }
 
-    for (auto &arg: args.kwonlyargs) {
+    for (int i = 0, n = args.kwonlyargs.size(); i < n; i++) {
+        auto arg = args.kwonlyargs[i];
+
+        ExprNode *dvalue   = nullptr;
+        TypeExpr *dvalue_t = nullptr;
+
+        int d = int(args.kw_defaults.size()) - (n - i);
+
+        if (d >= 0) {
+            dvalue   = args.kw_defaults[d];
+            dvalue_t = exec(dvalue, depth);
+        }
+
         TypeExpr *type = nullptr;
         if (arg.annotation.has_value()) {
             type = arg.annotation.value();
+
+            auto typetype = exec(type, depth);
+            typecheck(typetype, type_Type());
         }
+
+        // if default value & annotation types must match
+        if (type && dvalue_t) {
+            typecheck(type, dvalue_t);
+        }
+
+        // if no annotation use default value type
+        if (type == nullptr) {
+            type = dvalue_t;
+        }
+
         bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
@@ -357,6 +417,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
 }
 
 TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
+    // Add the function name first to handle recursive calls
     auto  id = bindings.add(n->name, n, nullptr);
     Scope scope(bindings);
 
@@ -366,12 +427,26 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     auto return_effective = exec<TypeExpr *>(n->body, depth);
 
     if (n->returns.has_value()) {
-        type->returns = n->returns.value();
+        // Annotated type takes precedence
+        auto return_t = n->returns.value();
+        auto typetype = exec(return_t, depth);
+        typecheck(typetype, type_Type());
+
+        type->returns = return_t;
+        typecheck(return_t, oneof(return_effective));
     }
 
     bindings.set_type(id, type);
-    bindings.dump(std::cout);
-    return nullptr;
+
+    // do decorator last since we need to know our function signature to
+    // typecheck them
+    for (auto decorator: n->decorator_list) {
+        auto deco_t = exec(decorator, depth);
+        // TODO check the signature here
+    }
+
+    // bindings.dump(std::cout);
+    return type;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     int id;
@@ -382,8 +457,23 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
         id = bindings.get_varid(n->name);
     }
 
+    // TODO: go through bases and add their elements
+    for (auto base: n->bases) {
+        exec(base, depth);
+    }
+
+    //
+    for (auto kw: n->keywords) {
+        exec(kw.value, depth);
+    }
+
     Scope scope(bindings);
     auto  types = exec<TypeExpr *>(n->body, depth);
+
+    for (auto deco: n->decorator_list) {
+        auto deco_t = exec(deco, depth);
+        // TODO: check signature here
+    }
     return oneof(types);
 }
 TypeExpr *SemanticAnalyser::returnstmt(Return *n, int depth) {
@@ -563,14 +653,54 @@ TypeExpr *SemanticAnalyser::inlinestmt(Inline *n, int depth) {
     return oneof(types);
 }
 
-TypeExpr *SemanticAnalyser::matchvalue(MatchValue *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchvalue(MatchValue *n, int depth) {
+    exec(n->value, depth);
+    return nullptr;
+}
 TypeExpr *SemanticAnalyser::matchsingleton(MatchSingleton *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::matchsequence(MatchSequence *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::matchmapping(MatchMapping *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::matchclass(MatchClass *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::matchstar(MatchStar *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::matchas(MatchAs *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::matchor(MatchOr *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::matchsequence(MatchSequence *n, int depth) {
+    for (auto &elt: n->patterns) {
+        exec(elt, depth);
+    }
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::matchmapping(MatchMapping *n, int depth) {
+    for (auto pat: n->patterns) {
+        exec(pat, depth);
+    }
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::matchclass(MatchClass *n, int depth) {
+    exec(n->cls, depth);
+    for (auto pat: n->patterns) {
+        exec(pat, depth);
+    }
+    for (auto pat: n->kwd_patterns) {
+        exec(pat, depth);
+    }
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::matchstar(MatchStar *n, int depth) {
+    // TODO: need to get the type from the target
+    if (n->name.has_value()) {
+        bindings.add(n->name.value(), n, nullptr);
+    }
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::matchas(MatchAs *n, int depth) {
+    // TODO: need to get the type from the target
+    if (n->name.has_value()) {
+        bindings.add(n->name.value(), n, nullptr);
+    }
+    exec<TypeExpr *>(n->pattern, depth);
+    return nullptr;
+}
+TypeExpr *SemanticAnalyser::matchor(MatchOr *n, int depth) {
+    for (auto pat: n->patterns) {
+        exec(pat, depth);
+    }
+    return nullptr;
+}
 
 TypeExpr make_type(String const &name) {
     auto expr = BuiltinType();
