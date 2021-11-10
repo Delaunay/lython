@@ -16,6 +16,7 @@ struct TestCase {
 
     String        code;
     Array<String> undefined;
+    TypeExpr *    expected_type = nullptr;
 };
 
 template <typename T>
@@ -24,7 +25,7 @@ Array<TestCase> const &examples() {
     return ex;
 }
 
-inline Array<String> sema_it(String code) {
+inline Tuple<TypeExpr *, Array<String>> sema_it(String code) {
     StringBuffer reader(code);
     Module       module;
 
@@ -39,13 +40,15 @@ inline Array<String> sema_it(String code) {
     SemanticAnalyser sema;
     sema.exec(mod, 0);
 
+    BindingEntry &entry = *(sema.bindings.bindings.rbegin());
+
     Array<String> errors;
     for (auto &err: sema.errors) {
         errors.push_back(err.message);
     }
 
     delete mod;
-    return errors;
+    return std::make_tuple(entry.type, errors);
 }
 
 Array<String> expected_errors(TestCase const &test) {
@@ -58,14 +61,17 @@ Array<String> expected_errors(TestCase const &test) {
     return r;
 }
 
-#define GENTEST(name)                                        \
-    TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {         \
-        info("Testing {}", str(nodekind<TestType>()));       \
-        Array<TestCase> const &cases = examples<TestType>(); \
-        for (auto &c: cases) {                               \
-            REQUIRE(sema_it(c.code) == expected_errors(c));  \
-            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");           \
-        }                                                    \
+#define GENTEST(name)                                         \
+    TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {          \
+        info("Testing {}", str(nodekind<TestType>()));        \
+        Array<TestCase> const &cases = examples<TestType>();  \
+        Array<String>          errors;                        \
+        TypeExpr *             deduced_type = nullptr;        \
+        for (auto &c: cases) {                                \
+            std::tie(deduced_type, errors) = sema_it(c.code); \
+            REQUIRE(errors == expected_errors(c));            \
+            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");            \
+        }                                                     \
     }
 
 #define X(name, _)
@@ -492,7 +498,7 @@ Array<TestCase> const &examples<Await>() {
 template <>
 Array<TestCase> const &examples<DictComp>() {
     static Array<TestCase> ex = {
-        {"{a: c for a in b if a > c}", {"c", "b"}},
+        {"{a: c for a in b if a > c}", {"b", "c", "c"}},
     };
     return ex;
 }

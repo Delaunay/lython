@@ -1,3 +1,4 @@
+#include "ast/ops.h"
 #include "parser.h"
 #include "utilities/strings.h"
 
@@ -305,7 +306,14 @@ StmtNode *Parser::parse_for(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
+    // Store context i.e the variables are created there
+    _context.push_back(ExprContext::Store);
     stmt->target = parse_star_targets(stmt, depth + 1);
+    _context.pop_back();
+
+    // the right context was already picked up
+    // set_context(stmt->target, ExprContext::Store);
+
     expect_token(tok_in, true, stmt, LOC);
     stmt->iter = parse_expression(stmt, depth + 1);
 
@@ -1126,6 +1134,7 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Assign>();
+    set_context(expr, ExprContext::Store);
     stmt->targets.push_back(expr);
 
     // FIXME: this is the location of '=' not the start of the full expression
@@ -1141,7 +1150,10 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
 StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
     TRACE_START();
 
-    auto stmt    = parent->new_object<AugAssign>();
+    auto stmt = parent->new_object<AugAssign>();
+
+    // this is a load-store
+    // set_context(expr, ExprContext::Load);
     stmt->target = expr;
 
     // FIXME: this is the location of the operator not the start of the full expression
@@ -1159,7 +1171,8 @@ StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
 StmtNode *Parser::parse_annassign(Node *parent, ExprNode *expr, int depth) {
     TRACE_START();
 
-    auto stmt    = parent->new_object<AnnAssign>();
+    auto stmt = parent->new_object<AnnAssign>();
+    set_context(expr, ExprContext::Store);
     stmt->target = expr;
 
     // FIXME: this is the location of :' not the start of the full expression
@@ -1182,9 +1195,9 @@ ExprNode *Parser::parse_name(Node *parent, int depth) {
     auto expr = parent->new_object<Name>();
     start_code_loc(expr, token());
 
-    // expr->ctx = ;
+    expr->id  = get_identifier();
+    expr->ctx = context();
 
-    expr->id = get_identifier();
     end_code_loc(expr, token());
 
     expect_token(tok_identifier, true, expr, LOC);
@@ -1425,6 +1438,8 @@ void Parser::parse_comprehension(Node *parent, Array<Comprehension> &out, char k
         Comprehension cmp;
 
         cmp.target = parse_star_targets(parent, depth + 1);
+        set_context(cmp.target, ExprContext::Store);
+
         expect_token(tok_in, true, parent, LOC);
         cmp.iter = parse_expression(parent, depth + 1);
 

@@ -561,7 +561,7 @@ struct Name: public ExprNode {
     ExprContext ctx;
 
     // SEMA
-    int varid;
+    int varid = -1;
 
     void print(std::ostream &out, int indent) const override { out << id; }
 

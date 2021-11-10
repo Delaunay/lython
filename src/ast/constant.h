@@ -71,6 +71,8 @@ struct ConstantValue {
     }
     // clang-format on
 
+    Type type() const { return kind; }
+
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {

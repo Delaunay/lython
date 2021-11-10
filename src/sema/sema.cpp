@@ -48,7 +48,7 @@ bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type)
 }
 
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
-    auto values_t = exec<ExprNode>(n->values, depth);
+    auto values_t = exec<ExprNode *>(n->values, depth);
     // TODO: check that op is defined for those types
     // use the op return type here
     return values_t[0];
@@ -203,7 +203,7 @@ TypeExpr *SemanticAnalyser::dictcomp(DictComp *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::await(Await *n, int depth) { return exec(n->value, depth); }
 TypeExpr *SemanticAnalyser::yield(Yield *n, int depth) {
-    auto r = exec<TypeExpr>(n->value, depth);
+    auto r = exec<TypeExpr *>(n->value, depth);
     if (r.has_value()) {
         return r.value();
     }
@@ -236,7 +236,27 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
 TypeExpr *SemanticAnalyser::joinedstr(JoinedStr *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
-    // TODO: get type from constant
+
+    auto make_ref = [&](String const &name) -> TypeExpr * {
+        auto ref   = n->new_object<Name>();
+        ref->id    = name;
+        ref->varid = bindings.get_varid(ref->id);
+        return ref;
+    };
+
+    switch (n->value.type()) {
+    case ConstantValue::TInt:
+        return make_ref("i32");
+    case ConstantValue::TFloat:
+        return make_ref("f32");
+    case ConstantValue::TDouble:
+        return make_ref("f64");
+    case ConstantValue::TString:
+        return make_ref("str");
+    case ConstantValue::TBool:
+        return make_ref("bool");
+    }
+
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
@@ -257,10 +277,18 @@ TypeExpr *SemanticAnalyser::starred(Starred *n, int depth) {
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
-    n->varid = bindings.get_varid(n->id);
-    if (n->varid == -1) {
-        errors.push_back(SemanticError{
-            nullptr, n, nullptr, String(fmt::format("Undefined variable {}", n->id).c_str()), LOC});
+    if (n->ctx == ExprContext::Store) {
+        debug("{}", "here storing value");
+        auto id  = bindings.add(n->id, n, nullptr);
+        n->varid = id;
+    } else {
+        // Both delete & Load requires the variable to be defined first
+        n->varid = bindings.get_varid(n->id);
+        if (n->varid == -1) {
+            errors.push_back(
+                SemanticError{nullptr, n, nullptr,
+                              String(fmt::format("Undefined variable {}", n->id).c_str()), LOC});
+        }
     }
     return bindings.get_type(n->varid);
 }
@@ -294,9 +322,9 @@ TypeExpr *SemanticAnalyser::tupleexpr(TupleExpr *n, int depth) {
     return type;
 }
 TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
-    exec<TypeExpr>(n->lower, depth);
-    exec<TypeExpr>(n->upper, depth);
-    exec<TypeExpr>(n->step, depth);
+    exec<TypeExpr *>(n->lower, depth);
+    exec<TypeExpr *>(n->upper, depth);
+    exec<TypeExpr *>(n->step, depth);
     return nullptr;
 }
 
@@ -335,7 +363,7 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     auto type = n->new_object<Arrow>();
     add_arguments(n->args, type, depth);
 
-    auto return_effective = exec<TypeExpr>(n->body, depth);
+    auto return_effective = exec<TypeExpr *>(n->body, depth);
 
     if (n->returns.has_value()) {
         type->returns = n->returns.value();
@@ -355,11 +383,11 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     }
 
     Scope scope(bindings);
-    auto  types = exec<TypeExpr>(n->body, depth);
+    auto  types = exec<TypeExpr *>(n->body, depth);
     return oneof(types);
 }
 TypeExpr *SemanticAnalyser::returnstmt(Return *n, int depth) {
-    auto v = exec<TypeExpr>(n->value, depth);
+    auto v = exec<TypeExpr *>(n->value, depth);
     if (v.has_value()) {
         return v.value();
     }
@@ -410,12 +438,19 @@ TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
 //! Annotation takes priority over the deduced type
 //! this enbles users to use annotation to debug
 TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
+    auto constraint = n->annotation;
+    auto typetype   = exec(n->annotation, depth);
 
-    auto      constraint = n->annotation;
-    auto      type       = exec<TypeExpr>(n->value, depth);
-    ExprNode *value      = nullptr;
+    // Type annotation must be a type
+    typecheck(typetype, type_Type());
+
+    auto type = exec<TypeExpr *>(n->value, depth);
+
+    ExprNode *value = nullptr;
 
     if (type.has_value()) {
+        // if we were able to deduce a type from the expression
+        // make sure it matches the annotation constraint
         typecheck(constraint, type.value());
         value = n->value.value();
         return type.value();
@@ -425,25 +460,30 @@ TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     return constraint;
 }
 TypeExpr *SemanticAnalyser::forstmt(For *n, int depth) {
+    auto iter_t = exec(n->iter, depth);
+
+    // TODO: use iter_t to set target types
     exec(n->target, depth);
-    exec(n->iter, depth);
-    auto types = exec<TypeExpr>(n->body, depth);
-    exec<TypeExpr>(n->orelse, depth);
-    return oneof(types);
+
+    // TODO: check consistency of return types
+    auto return_t1 = exec<TypeExpr *>(n->body, depth);
+    auto return_t2 = exec<TypeExpr *>(n->orelse, depth);
+
+    return oneof(return_t1);
 }
 TypeExpr *SemanticAnalyser::whilestmt(While *n, int depth) {
     exec(n->test, depth);
-    exec<TypeExpr>(n->body, depth);
-    auto types = exec<TypeExpr>(n->orelse, depth);
+    exec<TypeExpr *>(n->body, depth);
+    auto types = exec<TypeExpr *>(n->orelse, depth);
     return oneof(types);
 }
 TypeExpr *SemanticAnalyser::ifstmt(If *n, int depth) {
     exec(n->test, depth);
-    auto types = exec<TypeExpr>(n->body, depth);
+    auto types = exec<TypeExpr *>(n->body, depth);
 
     for (int i = 0; i < n->tests.size(); i++) {
         exec(n->tests[i], depth);
-        exec<TypeExpr>(n->bodies[i], depth);
+        exec<TypeExpr *>(n->bodies[i], depth);
     }
 
     return oneof(types);
@@ -464,17 +504,18 @@ TypeExpr *SemanticAnalyser::with(With *n, int depth) {
         }
     }
 
-    auto types = exec<TypeExpr>(n->body, depth);
+    auto types = exec<TypeExpr *>(n->body, depth);
     return oneof(types);
 }
 TypeExpr *SemanticAnalyser::raise(Raise *n, int depth) {
-    exec<TypeExpr>(n->exc, depth);
+    exec<TypeExpr *>(n->exc, depth);
+    exec<TypeExpr *>(n->cause, depth);
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::trystmt(Try *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::assertstmt(Assert *n, int depth) {
     exec(n->test, depth);
-    exec<TypeExpr>(n->msg, depth + 1);
+    exec<TypeExpr *>(n->msg, depth + 1);
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::import(Import *n, int depth) { return nullptr; }
@@ -511,14 +552,14 @@ TypeExpr *SemanticAnalyser::match(Match *n, int depth) {
     Array<TypeExpr *> types;
     for (auto &b: n->cases) {
         exec(b.pattern, depth + 1);
-        exec<TypeExpr>(b.guard, depth + 1);
-        types = exec<TypeExpr>(b.body, depth + 1);
+        exec<TypeExpr *>(b.guard, depth + 1);
+        types = exec<TypeExpr *>(b.body, depth + 1);
     }
 
     return oneof(types);
 }
 TypeExpr *SemanticAnalyser::inlinestmt(Inline *n, int depth) {
-    auto types = exec<TypeExpr>(n->body, depth);
+    auto types = exec<TypeExpr *>(n->body, depth);
     return oneof(types);
 }
 
@@ -531,25 +572,28 @@ TypeExpr *SemanticAnalyser::matchstar(MatchStar *n, int depth) { return nullptr;
 TypeExpr *SemanticAnalyser::matchas(MatchAs *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::matchor(MatchOr *n, int depth) { return nullptr; }
 
-// typetype is the type of a type
-// i.e
-//  1 is of type int
-//  int si of type Type
-TypeExpr *typetype() {
-    static TypeExpr type = []() {
-        auto expr = BuiltinType();
-        expr.name = "Type";
-        return expr;
-    }();
-    return &type;
+TypeExpr make_type(String const &name) {
+    auto expr = BuiltinType();
+    expr.name = "Type";
+    return expr;
 }
 
-TypeExpr *SemanticAnalyser::dicttype(DictType *n, int depth) { return typetype(); }
-TypeExpr *SemanticAnalyser::arraytype(ArrayType *n, int depth) { return typetype(); }
-TypeExpr *SemanticAnalyser::arrow(Arrow *n, int depth) { return typetype(); }
-TypeExpr *SemanticAnalyser::builtintype(BuiltinType *n, int depth) { return typetype(); }
-TypeExpr *SemanticAnalyser::tupletype(TupleType *n, int depth) { return typetype(); }
-TypeExpr *SemanticAnalyser::settype(SetType *n, int depth) { return typetype(); }
-TypeExpr *SemanticAnalyser::classtype(ClassType *n, int depth) { return typetype(); }
+#define TYPE(name)                               \
+    TypeExpr *type_##name() {                    \
+        static TypeExpr type = make_type(#name); \
+        return &type;                            \
+    }
+
+BUILTIN_TYPES(TYPE)
+
+#undef TYPE
+
+TypeExpr *SemanticAnalyser::dicttype(DictType *n, int depth) { return type_Type(); }
+TypeExpr *SemanticAnalyser::arraytype(ArrayType *n, int depth) { return type_Type(); }
+TypeExpr *SemanticAnalyser::arrow(Arrow *n, int depth) { return type_Type(); }
+TypeExpr *SemanticAnalyser::builtintype(BuiltinType *n, int depth) { return type_Type(); }
+TypeExpr *SemanticAnalyser::tupletype(TupleType *n, int depth) { return type_Type(); }
+TypeExpr *SemanticAnalyser::settype(SetType *n, int depth) { return type_Type(); }
+TypeExpr *SemanticAnalyser::classtype(ClassType *n, int depth) { return type_Type(); }
 
 } // namespace lython

@@ -9,10 +9,10 @@ namespace lython {
 NEW_EXCEPTION(NullPointerError)
 
 struct DefaultVisitorTrait {
-    using StmtRet = StmtNode;
-    using ExprRet = ExprNode;
-    using ModRet  = ModNode;
-    using PatRet  = Pattern;
+    using StmtRet = StmtNode *;
+    using ExprRet = ExprNode *;
+    using ModRet  = ModNode *;
+    using PatRet  = Pattern *;
 };
 
 /*!
@@ -35,9 +35,9 @@ struct BaseVisitor {
     using PatRet  = typename VisitorTrait::PatRet;
 
     template <typename U, typename T>
-    Array<U *> exec(Array<T> &body, int depth, Args... args) {
-        int        k = 0;
-        Array<U *> types;
+    Array<U> exec(Array<T> &body, int depth, Args... args) {
+        int      k = 0;
+        Array<U> types;
         for (auto &stmt: body) {
             types.push_back(exec(stmt, depth, std::forward(args)...));
             k += 1;
@@ -46,14 +46,14 @@ struct BaseVisitor {
     };
 
     template <typename U, typename T>
-    Optional<U *> exec(Optional<T> &maybe, int depth, Args... args) {
+    Optional<U> exec(Optional<T> &maybe, int depth, Args... args) {
         if (maybe.has_value()) {
-            return some<U *>(exec(maybe.value(), depth, std::forward(args)...));
+            return some<U>(exec(maybe.value(), depth, std::forward(args)...));
         }
-        return none<U *>();
+        return none<U>();
     };
 
-    ModRet *exec(ModNode *mod, int depth, Args... args) {
+    ModRet exec(ModNode *mod, int depth, Args... args) {
         // clang-format off
         // trace(depth, "{}", mod->kind);  
         switch (mod->kind) {
@@ -76,12 +76,12 @@ struct BaseVisitor {
 
         }
         // clang-format on
-        return nullptr;
+        return ModRet();
     }
 
-    PatRet *exec(Pattern *pat, int depth, Args... args) {
+    PatRet exec(Pattern *pat, int depth, Args... args) {
         if (!pat) {
-            return nullptr;
+            return PatRet();
         }
         // trace(depth, "{}", pat->kind);
         // clang-format off
@@ -105,12 +105,12 @@ struct BaseVisitor {
 
         }
         // clang-format on
-        return nullptr;
+        return PatRet();
     }
 
-    ExprRet *exec(ExprNode *expr, int depth, Args... args) {
+    ExprRet exec(ExprNode *expr, int depth, Args... args) {
         if (!expr) {
-            return nullptr;
+            return ExprRet();
         }
         // trace(depth, "{}", expr->kind);
         // clang-format off
@@ -134,12 +134,12 @@ struct BaseVisitor {
 
         }
         // clang-format on
-        return nullptr;
+        return ExprRet();
     }
 
-    StmtRet *exec(StmtNode *stmt, int depth, Args... args) {
+    StmtRet exec(StmtNode *stmt, int depth, Args... args) {
         if (!stmt) {
-            return nullptr;
+            return StmtRet();
         }
         // trace(depth, "{}", stmt->kind);
 
@@ -164,11 +164,11 @@ struct BaseVisitor {
 
         }
         // clang-format on
-        return nullptr;
+        return StmtRet();
     }
 
 #define FUNCTION_GEN(name, fun, rtype)                                                       \
-    rtype *fun(name *node, int depth, Args... args) {                                        \
+    rtype fun(name *node, int depth, Args... args) {                                         \
         trace(depth, #name);                                                                 \
         return static_cast<Implementation *>(this)->fun(node, depth, std::forward(args)...); \
     }
