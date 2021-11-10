@@ -1829,6 +1829,19 @@ ExprNode *Parser::parse_slice(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
+void set_decorators(StmtNode *stmt, Array<ExprNode *> &decorators) {
+    if (decorators.size() > 0) {
+        if (stmt->kind == NodeKind::FunctionDef) {
+            auto fun            = cast<FunctionDef>(stmt);
+            fun->decorator_list = decorators;
+
+        } else if (stmt->kind == NodeKind::ClassDef) {
+            auto cls            = cast<ClassDef>(stmt);
+            cls->decorator_list = decorators;
+        }
+    }
+}
+
 StmtNode *Parser::parse_statement(Node *parent, int depth) {
 
     TRACE_START();
@@ -1845,14 +1858,7 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
     }
 
     auto stmt = parse_statement_primary(parent, depth + 1);
-
-    if (decorators.size() > 0) {
-        if (stmt->kind == NodeKind::FunctionDef) {
-            cast<FunctionDef>(stmt)->decorator_list = decorators;
-        } else if (stmt->kind == NodeKind::ClassDef) {
-            cast<ClassDef>(stmt)->decorator_list = decorators;
-        }
-    }
+    set_decorators(stmt, decorators);
 
     if (token().type() != ';') {
         TRACE_END();

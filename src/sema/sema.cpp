@@ -263,6 +263,8 @@ TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
         return make_ref(n, "str");
     case ConstantValue::TBool:
         return make_ref(n, "bool");
+    default:
+        return nullptr;
     }
 
     return nullptr;
@@ -586,7 +588,9 @@ TypeExpr *SemanticAnalyser::with(With *n, int depth) {
             auto expr = item.optional_vars.value();
             if (expr->kind == NodeKind::Name) {
                 auto name = cast<Name>(expr);
-                bindings.add(name->id, expr, type);
+                if (name != nullptr) {
+                    name->varid = bindings.add(name->id, expr, type);
+                }
             } else {
                 // FIXME: is this even possible ?
                 exec(item.optional_vars.value(), depth);
@@ -702,16 +706,16 @@ TypeExpr *SemanticAnalyser::matchor(MatchOr *n, int depth) {
     return nullptr;
 }
 
-TypeExpr make_type(String const &name) {
+BuiltinType make_type(String const &name) {
     auto expr = BuiltinType();
     expr.name = "Type";
     return expr;
 }
 
-#define TYPE(name)                               \
-    TypeExpr *type_##name() {                    \
-        static TypeExpr type = make_type(#name); \
-        return &type;                            \
+#define TYPE(name)                                  \
+    TypeExpr *type_##name() {                       \
+        static BuiltinType type = make_type(#name); \
+        return &type;                               \
     }
 
 BUILTIN_TYPES(TYPE)

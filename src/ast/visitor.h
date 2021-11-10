@@ -74,6 +74,9 @@ struct BaseVisitor {
             #undef SECTION
             #undef MOD
 
+            default:
+                return ModRet();
+
         }
         // clang-format on
         return ModRet();
@@ -103,6 +106,8 @@ struct BaseVisitor {
             #undef SECTION
             #undef MATCH
 
+            default:
+                return PatRet();
         }
         // clang-format on
         return PatRet();
@@ -132,6 +137,8 @@ struct BaseVisitor {
             #undef SECTION
             #undef EXPR
 
+            default:
+                return ExprRet();
         }
         // clang-format on
         return ExprRet();
@@ -162,6 +169,8 @@ struct BaseVisitor {
             #undef SECTION
             #undef STMT
 
+            default:
+                return StmtRet();
         }
         // clang-format on
         return StmtRet();

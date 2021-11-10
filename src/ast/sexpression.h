@@ -16,11 +16,6 @@ namespace lython {
 
 using Identifier = StringRef;
 
-template <typename T>
-inline NodeKind nodekind() {
-    return NodeKind::Invalid;
-}
-
 String str(NodeKind k);
 
 enum class NodeFamily : int8_t
@@ -39,9 +34,20 @@ struct CommonAttributes {
     Optional<int> end_col_offset;
 };
 
+template <typename T>
+struct NodeTrait {
+    enum Constants
+    { kind = int(NodeKind::Invalid) };
+};
+
+template <typename T>
+NodeKind nodekind() {
+    return NodeKind(NodeTrait<T>::kind);
+}
+
 struct Node: public GCObject {
     // I think only statements need the indentaion
-    virtual void print(std::ostream &out, int indent = 0) const { out << "<not-implemented>"; }
+    virtual void print(std::ostream &out, int indent = 0) const = 0;
 
     String __str__() const;
 
@@ -56,22 +62,6 @@ struct Node: public GCObject {
         return kind == nodekind<T>();
     }
 };
-
-// Safe cast
-template <typename T>
-T *cast(Node *obj) {
-    if (obj->is_instance<T>()) {
-        return (T *)obj;
-    }
-    return nullptr;
-}
-
-template <typename T>
-T *checked_cast(Node *obj) {
-    assert(obj->is_instance<T>(),
-           fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
-    return cast<T>(obj);
-}
 
 struct ModNode: public Node {
     ModNode(NodeKind kind): Node(kind) {}
@@ -241,7 +231,9 @@ struct TypeIgnore {
 struct Pattern: public CommonAttributes, public Node {
     Pattern(NodeKind kind): Node(kind) {}
 
-    virtual void print(std::ostream &out) const {}
+    void print(std::ostream &out, int idt) const override final { print(out); }
+
+    virtual void print(std::ostream &out) const = 0;
 
     NodeFamily family() const override { return NodeFamily::Pattern; }
 
@@ -491,6 +483,8 @@ struct JoinedStr: public ExprNode {
     Array<ExprNode *> values;
 
     JoinedStr(): ExprNode(NodeKind::JoinedStr) {}
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct FormattedValue: public ExprNode {
@@ -500,6 +494,8 @@ struct FormattedValue: public ExprNode {
     JoinedStr format_spec;
 
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct Constant: public ExprNode {
@@ -563,7 +559,7 @@ struct Name: public ExprNode {
     // SEMA
     int varid = -1;
 
-    void print(std::ostream &out, int indent) const override { out << id; }
+    void print(std::ostream &out, int indent) const override;
 
     Name(): ExprNode(NodeKind::Name) {}
 };
@@ -643,7 +639,7 @@ struct FunctionDef: public StmtNode {
     Identifier           name;
     Arguments            args;
     Array<StmtNode *>    body;
-    Array<ExprNode *>    decorator_list;
+    Array<ExprNode *>    decorator_list = {};
     Optional<ExprNode *> returns;
     String               type_comment;
 
@@ -662,7 +658,7 @@ struct ClassDef: public StmtNode {
     Array<ExprNode *> bases;
     Array<Keyword>    keywords;
     Array<StmtNode *> body;
-    Array<ExprNode *> decorator_list;
+    Array<ExprNode *> decorator_list = {};
 
     Optional<String> docstring;
 
@@ -907,44 +903,98 @@ struct Arrow: public ExprNode {
     Array<ExprNode *> args;
     ExprNode *        returns = nullptr;
 
-    void print(std::ostream &out, int indent) const;
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct DictType: public ExprNode {
     DictType(): ExprNode(NodeKind::DictType) {}
 
-    ExprNode *key;
-    ExprNode *value;
+    ExprNode *key   = nullptr;
+    ExprNode *value = nullptr;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct SetType: public ExprNode {
     SetType(): ExprNode(NodeKind::SetType) {}
 
-    ExprNode *value;
+    ExprNode *value = nullptr;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct ArrayType: public ExprNode {
     ArrayType(): ExprNode(NodeKind::ArrayType) {}
 
-    ExprNode *value;
+    ExprNode *value = nullptr;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct TupleType: public ExprNode {
     TupleType(): ExprNode(NodeKind::TupleType) {}
 
     Array<ExprNode *> types;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 struct BuiltinType: public ExprNode {
     BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
     StringRef name;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
+// TODO: we probably do not need that
 struct ClassType: public ExprNode {
     ClassType(): ExprNode(NodeKind::ClassType) {}
     StringRef        name;
     Array<StringRef> bases;
 };
+
+// This is essentially compile time lookup
+// no-need for the function to actually exist at runtime
+#define SPECGEN(name)                   \
+    template <>                         \
+    struct NodeTrait<name> {            \
+        enum Constants                  \
+        { kind = int(NodeKind::name) }; \
+    };
+
+#define X(name, _)
+#define SSECTION(name)
+#define EXPR(name, _)  SPECGEN(name)
+#define STMT(name, _)  SPECGEN(name)
+#define MOD(name, _)   SPECGEN(name)
+#define MATCH(name, _) SPECGEN(name)
+
+NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+#undef X
+#undef SSECTION
+#undef EXPR
+#undef STMT
+#undef MOD
+#undef MATCH
+
+#undef SPECGEN
+
+// Safe cast
+template <typename T>
+T *cast(Node *obj) {
+    if (obj->is_instance<T>()) {
+        return (T *)obj;
+    }
+    return nullptr;
+}
+
+template <typename T>
+T *checked_cast(Node *obj) {
+    assert(obj->is_instance<T>(),
+           fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
+    return cast<T>(obj);
+}
 
 } // namespace lython
 #endif

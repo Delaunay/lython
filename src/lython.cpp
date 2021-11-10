@@ -41,9 +41,11 @@ String strip2(String const &v) {
     return String(v.begin(), v.begin() + i + 1);
 }
 
+/*
 Expression make_point(Module &mod);
 Expression make_point_check(Module &mod);
 Expression make_import_call_check(Module &mod);
+*/
 
 int main() {
     {

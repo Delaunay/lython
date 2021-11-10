@@ -12,11 +12,12 @@
 using namespace lython;
 
 struct TestCase {
-    TestCase(String const &c, Array<String> const &u = Array<String>()): code(c), undefined(u) {}
+    TestCase(String const &c, Array<String> const &u = Array<String>(), String const &t = ""):
+        code(c), undefined(u), expected_type(t) {}
 
     String        code;
     Array<String> undefined;
-    TypeExpr *    expected_type = nullptr;
+    String        expected_type;
 };
 
 template <typename T>
@@ -25,29 +26,26 @@ Array<TestCase> const &examples() {
     return ex;
 }
 
-inline Tuple<TypeExpr *, Array<String>> sema_it(String code) {
+inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
     StringBuffer reader(code);
-    Module       module;
-
-    Lexer  lex(reader);
-    Parser parser(lex);
+    Lexer        lex(reader);
+    Parser       parser(lex);
 
     info("{}", "Parse");
-    Module *mod = parser.parse_module();
+    mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
 
     info("{}", "Sema");
     SemanticAnalyser sema;
     sema.exec(mod, 0);
 
-    BindingEntry &entry = *(sema.bindings.bindings.rbegin());
+    BindingEntry &entry = sema.bindings.bindings.back();
 
     Array<String> errors;
     for (auto &err: sema.errors) {
         errors.push_back(err.message);
     }
 
-    delete mod;
     return std::make_tuple(entry.type, errors);
 }
 
@@ -61,17 +59,28 @@ Array<String> expected_errors(TestCase const &test) {
     return r;
 }
 
-#define GENTEST(name)                                         \
-    TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {          \
-        info("Testing {}", str(nodekind<TestType>()));        \
-        Array<TestCase> const &cases = examples<TestType>();  \
-        Array<String>          errors;                        \
-        TypeExpr *             deduced_type = nullptr;        \
-        for (auto &c: cases) {                                \
-            std::tie(deduced_type, errors) = sema_it(c.code); \
-            REQUIRE(errors == expected_errors(c));            \
-            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");            \
-        }                                                     \
+void run_testcase(String const &name, Array<TestCase> cases) {
+    info("Testing {}", name);
+
+    Array<String> errors;
+    TypeExpr *    deduced_type = nullptr;
+    for (auto &c: cases) {
+        Module *mod;
+        std::tie(deduced_type, errors) = sema_it(c.code, mod);
+
+        REQUIRE(errors == expected_errors(c));
+
+        if (c.expected_type != "") {
+            REQUIRE(c.expected_type == str(deduced_type));
+        }
+        delete mod;
+        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+    }
+}
+
+#define GENTEST(name)                                                  \
+    TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {                   \
+        run_testcase(str(nodekind<TestType>()), examples<TestType>()); \
     }
 
 #define X(name, _)
@@ -292,8 +301,28 @@ Array<TestCase> const &examples<AugAssign>() {
 template <>
 Array<TestCase> const &examples<Assign>() {
     static Array<TestCase> ex = {
+        // Undefined variables
         {"a = b", {"b"}},
         {"a, b = c", {"c"}},
+
+        // Type deduction check
+        {"a = 1", {}, "i32"},
+        {"a = 1.0", {}, "f64"},
+        {"a = \"str\"", {}, "str"},
+
+        {"a = [1, 2]", {}, "Array[i32]"},
+        {"a = [1.0, 2.0]", {}, "Array[f64]"},
+        {"a = [\"1\", \"2\"]", {}, "Array[str]"},
+
+        {"a = {1, 2}", {}, "Set[i32]"},
+        {"a = {1.0, 2.0}", {}, "Set[f64]"},
+        {"a = {\"1\", \"2\"}", {}, "Set[str]"},
+
+        {"a = {1: 1, 2: 2}", {}, "Dict[i32, i32]"},
+        {"a = {1: 1.0, 2: 2.0}", {}, "Dict[i32, f64]"},
+        {"a = {\"1\": 1, \"2\": 2}", {}, "Dict[str, i32]"},
+
+        {"a = (1, 2.0, \"str\")", {}, "Tuple[i32, f64, str]"},
     };
     return ex;
 }
@@ -438,13 +467,13 @@ Array<TestCase> const &examples<Attribute>() {
 template <>
 Array<TestCase> const &examples<Constant>() {
     static Array<TestCase> ex = {
-        {"1"},
-        {"2.1"},
+        {"1", {}},
+        {"2.1", {}},
         // "'str'",
-        {"\"str\""},
+        {"\"str\"", {}},
         {"None"},
-        {"True"},
-        {"False"},
+        {"True", {}},
+        {"False", {}},
     };
     return ex;
 }

@@ -6,32 +6,6 @@ ExprNode *None();
 ExprNode *True();
 ExprNode *False();
 
-// This is essentially compile time lookup
-// no-need for the function to actually exist at runtime
-#define SPECGEN(name)           \
-    template <>                 \
-    NodeKind nodekind<name>() { \
-        return NodeKind::name;  \
-    }
-
-#define X(name, _)
-#define SECTION(name)
-#define EXPR(name, _)  SPECGEN(name)
-#define STMT(name, _)  SPECGEN(name)
-#define MOD(name, _)   SPECGEN(name)
-#define MATCH(name, _) SPECGEN(name)
-
-NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
-
-#undef X
-#undef SECTION
-#undef EXPR
-#undef STMT
-#undef MOD
-#undef MATCH
-
-#undef SPECGEN
-
 // --------------------------------------------------------------------
 // to-string
 

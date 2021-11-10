@@ -15,10 +15,6 @@ String Pattern::__str__() const {
 }
 
 String Node::__str__() const {
-    if (this == nullptr) {
-        return "<nullptr>";
-    }
-
     StringStream ss;
     if (kind == NodeKind::Invalid) {
         error("Node is invalid");
@@ -45,6 +41,12 @@ String const &indent(int level, int scale = 4) {
     return latest;
 }
 
+// void Node::print(std::ostream &out, int indent) const {
+//     out << "<not-implemented:";
+//     out << str(kind);
+//     out << ">";
+// }
+
 void print_body(std::ostream &out, int level, Array<StmtNode *> const &body,
                 bool print_last = false) {
 
@@ -64,7 +66,7 @@ void print_body(std::ostream &out, int level, Array<StmtNode *> const &body,
 template <typename T, typename... Args>
 void sprint(std::ostream &out, T *node, Args... args) {
     if (node == nullptr) {
-        out << "<nullptr>";
+        out << "None";
         return;
     }
 
@@ -937,4 +939,33 @@ void Arrow::print(std::ostream &out, int level) const {
     out << str(returns);
 }
 
+void DictType::print(std::ostream &out, int indent) const {
+    out << "Dict[";
+    out << str(key);
+    out << ", ";
+    out << str(value) << "]";
+}
+
+void SetType::print(std::ostream &out, int indent) const {
+    out << "Set[";
+    out << str(value) << "]";
+}
+
+void Name::print(std::ostream &out, int indent) const { out << id; }
+
+void ArrayType::print(std::ostream &out, int indent) const {
+    out << "Array[";
+    out << str(value) << "]";
+}
+
+void TupleType::print(std::ostream &out, int indent) const {
+    out << "Tuple[";
+    out << join<ExprNode *>(", ", types) << "]";
+}
+
+void BuiltinType::print(std::ostream &out, int indent) const { out << name; }
+
+void JoinedStr::print(std::ostream &out, int indent) const { out << "JoinedStr"; }
+
+void FormattedValue::print(std::ostream &out, int indent) const { out << "FormattedValue"; }
 } // namespace lython
