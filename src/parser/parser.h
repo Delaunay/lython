@@ -2,7 +2,7 @@
 #define LYTHON_PARSER_H
 
 #include "ast/magic.h"
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"

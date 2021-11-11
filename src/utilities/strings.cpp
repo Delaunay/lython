@@ -2,7 +2,7 @@
 #include "utilities/strings.h"
 
 #include "ast/magic.h"
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 
 namespace lython {
 

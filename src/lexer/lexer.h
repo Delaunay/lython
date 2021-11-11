@@ -3,7 +3,7 @@
 #include <cctype>
 #include <ostream>
 
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 #include "lexer/buffer.h"
 #include "lexer/token.h"
 #include "utilities/trie.h"

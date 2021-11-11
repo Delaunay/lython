@@ -946,11 +946,13 @@ struct BuiltinType: public ExprNode {
     void print(std::ostream &out, int indent) const override;
 };
 
-// TODO: we probably do not need that
+// we need that to convert ClassDef which is a statement
+// into an expression
 struct ClassType: public ExprNode {
     ClassType(): ExprNode(NodeKind::ClassType) {}
-    StringRef        name;
-    Array<StringRef> bases;
+    ClassDef *def;
+
+    void print(std::ostream &out, int indent) const override;
 };
 
 // This is essentially compile time lookup

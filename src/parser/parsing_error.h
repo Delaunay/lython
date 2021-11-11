@@ -2,7 +2,7 @@
 #define LYTHON_PARSER_ERROR_H
 
 #include "../dtypes.h"
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 #include "lexer/token.h"
 
 namespace lython {

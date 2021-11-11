@@ -1,6 +1,6 @@
 #include "logging/logging.h"
 #include "magic.h"
-#include "sexpression.h"
+#include "nodes.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -968,4 +968,7 @@ void BuiltinType::print(std::ostream &out, int indent) const { out << name; }
 void JoinedStr::print(std::ostream &out, int indent) const { out << "JoinedStr"; }
 
 void FormattedValue::print(std::ostream &out, int indent) const { out << "FormattedValue"; }
+
+void ClassType::print(std::ostream &out, int indent) const { out << def->name; }
+
 } // namespace lython

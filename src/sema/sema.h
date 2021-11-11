@@ -138,6 +138,9 @@ struct SemaVisitorTrait {
     using PatRet  = TypeExpr *;
 };
 
+// TODO: Method lookups
+// TODO: typechecking i.e equality
+
 /* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
  * syntactically correct its job is to detect issues that could prevent a succesful compilation.
  *

@@ -271,7 +271,7 @@ TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
     auto class_t = exec(n->value, depth);
-    // check that attr is defined in class_t
+    // TODO: check that attr is defined in class_t
     // n->attr
     return nullptr;
 }
@@ -454,7 +454,10 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     int id;
     // I might have to always run the forward pass
     if (!forwardpass /*|| depth > 1*/) {
-        id = bindings.add(n->name, n, nullptr);
+        auto class_t = n->new_object<ClassType>();
+        class_t->def = n;
+
+        id = bindings.add(n->name, n, class_t);
     } else {
         id = bindings.get_varid(n->name);
     }

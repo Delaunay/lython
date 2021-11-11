@@ -1,7 +1,7 @@
 #ifndef LYTHON_AST_VISITOR_HEADER
 #define LYTHON_AST_VISITOR_HEADER
 
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 #include "logging/logging.h"
 
 namespace lython {

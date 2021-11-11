@@ -1,7 +1,7 @@
 #ifndef LYTHON_OPS_HEADER
 #define LYTHON_OPS_HEADER
 
-#include "sexpression.h"
+#include "nodes.h"
 
 namespace lython {
 
