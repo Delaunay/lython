@@ -15,37 +15,35 @@
  *
  *  FileBuffer is the usual reader
  */
-namespace lython{
-class AbstractBuffer
-{
-public:
+namespace lython {
+class AbstractBuffer {
+    public:
+    virtual char          getc()      = 0;
+    virtual const String &file_name() = 0;
 
-    virtual char getc() = 0;
-    virtual const String& file_name() = 0;
-
-    AbstractBuffer(){}
+    AbstractBuffer() {}
 
     virtual ~AbstractBuffer();
 
     void init() { _next_char = getc(); }
-    
-    void consume(){
+
+    void consume() {
         if (_next_char == EOF)
             return;
 
         _col += 1;
 
-        if (_next_char == '\n'){
+        if (_next_char == '\n') {
             _line += 1;
             _col = 0;
 
-            _indent = 0;
+            _indent     = 0;
             _empty_line = true;
-            _next_char = getc();
+            _next_char  = getc();
             return;
         }
 
-        if (_next_char  == ' '){
+        if (_next_char == ' ') {
             if (_empty_line)
                 _indent += 1;
             _next_char = getc();
@@ -53,70 +51,63 @@ public:
         }
 
         _empty_line = false;
-        _next_char = getc();
+        _next_char  = getc();
     }
 
-    char  peek()        {   return _next_char;   }
-    int32 line()        {   return _line;        }
-    int32 col()         {   return _col;         }
-    int32 indent()      {	return _indent;      }
-    bool  empty_line()  {	return _empty_line;  }
+    char  peek() { return _next_char; }
+    int32 line() { return _line; }
+    int32 col() { return _col; }
+    int32 indent() { return _indent; }
+    bool  empty_line() { return _empty_line; }
 
-    virtual void reset(){
-        _next_char = ' ';
-        _line = 1;
-        _col = 0;
-        _indent = 0;
+    virtual void reset() {
+        _next_char  = ' ';
+        _line       = 1;
+        _col        = 0;
+        _indent     = 0;
         _empty_line = true;
         init();
     }
 
-private:
+    private:
     char  _next_char{' '};
-    int32 _line=1;
-    int32 _col=0;
+    int32 _line = 1;
+    int32 _col  = 0;
     int32 _indent{0};
     bool  _empty_line{true};
 };
 
 class FileError: public Exception {
-public:
-    template<typename ... Args>
-    FileError(const char* fmt, const Args& ... args) :
-        Exception(fmt, "FileError", args...)
-    {}
+    public:
+    template <typename... Args>
+    FileError(const char *fmt, const Args &...args): Exception(fmt, "FileError", args...) {}
 };
 
-String read_file(String const& name);
+String read_file(String const &name);
 
-class FileBuffer : public AbstractBuffer
-{
-public:
-    FileBuffer(String const& name);
+class FileBuffer: public AbstractBuffer {
+    public:
+    FileBuffer(String const &name);
 
     ~FileBuffer() override;
 
-    char getc() override {
-        return char(::getc(_file));
-    }
+    char getc() override { return char(::getc(_file)); }
 
-    const String& file_name() override { return _file_name;  }
+    const String &file_name() override { return _file_name; }
 
-private:
+    private:
     String _file_name;
-    FILE*  _file{nullptr};
+    FILE * _file{nullptr};
 };
 
-class StringBuffer: public AbstractBuffer
-{
-public:
-    StringBuffer(String code, String const& file = "c++ string"):
-        _code(std::move(code)), _file_name(file)
-    {
+class StringBuffer: public AbstractBuffer {
+    public:
+    StringBuffer(String code, String const &file = "c++ string"):
+        _code(std::move(code)), _file_name(file) {
         init();
     }
 
-    char getc() override{
+    char getc() override {
         if (_pos >= _code.size())
             return EOF;
 
@@ -126,50 +117,47 @@ public:
 
     ~StringBuffer() override;
 
-    const String& file_name() override { return _file_name;  }
+    const String &file_name() override { return _file_name; }
 
-private:
-    uint32  _pos{0};
-    String _code;
+    private:
+    uint32       _pos{0};
+    String       _code;
     const String _file_name;
 
-public:
+    public:
     void reset() override {
         _pos = 0;
         AbstractBuffer::reset();
     }
 
     // helper for testing
-    void read_all(){
+    void read_all() {
         char c;
-        do{ c = peek(); consume();    }
-        while(c);
+        do {
+            c = peek();
+            consume();
+        } while (c);
     }
 
-    void load_code(const std::string& code){
+    void load_code(const std::string &code) {
         _code = code;
-        _pos = 0;
+        _pos  = 0;
     }
 };
 
 // Quick solution but not satisfactory
-class ConsoleBuffer: public AbstractBuffer
-{
-public:
-    ConsoleBuffer():
-        _file_name("console")
-    {
-        init();
-    }
+class ConsoleBuffer: public AbstractBuffer {
+    public:
+    ConsoleBuffer(): _file_name("console") { init(); }
 
-    char getc() override {  return char(std::getchar()); }
+    char getc() override { return char(std::getchar()); }
 
-    const String& file_name() override { return _file_name;  }
+    const String &file_name() override { return _file_name; }
 
     ~ConsoleBuffer() override;
 
-private:
+    private:
     const String _file_name;
 };
 
-}
+} // namespace lython

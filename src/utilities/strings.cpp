@@ -1,5 +1,5 @@
-#include "utilities/names.h"
 #include "utilities/strings.h"
+#include "utilities/names.h"
 
 #include "ast/magic.h"
 #include "ast/nodes.h"

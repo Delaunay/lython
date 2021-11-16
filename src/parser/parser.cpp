@@ -1,5 +1,5 @@
-#include "ast/ops.h"
 #include "parser.h"
+#include "ast/ops.h"
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
@@ -237,14 +237,14 @@ ExprNode *Parser::parse_star_expression(Node *parent, int depth) {
 }
 
 ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
-    auto kind      = 0;
     auto start_tok = token();
 
-    bool has_parens = false;
+    // auto kind      = 0;
+    // bool has_parens = false;
     if (token().type() == tok_parens) {
-        kind = tok_parens;
         next_token();
-        has_parens = true;
+        // kind = tok_parens;
+        // has_parens = true;
     }
 
     Array<ExprNode *> elts;
