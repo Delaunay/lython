@@ -14,7 +14,7 @@ struct Event{
 
     operator cudaEvent_t& (){
         return event;
-    }
+    } 
 
     static float time(cudaEvent_t& start, cudaEvent_t& end){
         float f = 0;
