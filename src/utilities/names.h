@@ -125,4 +125,11 @@ struct string_ref_hash {
 
 } // namespace lython
 
+template <>
+struct std::hash<lython::StringRef> {
+    std::size_t operator()(lython::StringRef const &s) const noexcept {
+        return std::hash<std::size_t>{}(s.__id__());
+    }
+};
+
 #endif

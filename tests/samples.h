@@ -8,8 +8,6 @@ using namespace lython;
 #define DEFINE_SAMPLE_CODE(name, code) \
     inline String name() { return code; }
 
-#define DEFINE_SAMPLE_CODE2(name, code) DEFINE_SAMPLE_CODE(name, #code)
-
 // Functions
 // ---------
 DEFINE_SAMPLE_CODE(simple_function, "def simple_function(a: b, c: d) -> e:\n"

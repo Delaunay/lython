@@ -182,6 +182,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     }
 
     TypeExpr *module(Module *stmt, int depth) {
+        // TODO: Add a forward pass that simply add functions & variables
+        // to the context so the SEMA can look everything up
         exec<TypeExpr *>(stmt->body, depth);
         return nullptr;
     };

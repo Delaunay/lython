@@ -665,6 +665,36 @@ struct ClassDef: public StmtNode {
     void print(std::ostream &out, int indent) const override;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
+
+    // To match python AST the body of the class is a simple Array of statement
+    // but this is not very convenient for semantic analysis
+    //
+
+    struct Attr {
+        StringRef name;
+        int       offset = -1;
+        StmtNode *stmt   = nullptr;
+        ExprNode *type   = nullptr;
+
+        operator bool() { return name != StringRef(); }
+    };
+    Dict<StringRef, Attr> attributes;
+
+    Attr &get_attribute(StringRef name) { return attributes[name]; }
+
+    bool insert_attribute(StringRef name, StmtNode *stmt, ExprNode *type = nullptr) {
+        auto v = attributes[name];
+
+        if (v.name == StringRef()) {
+            attributes[name] = Attr{name, int(attributes.size()), stmt, type};
+            return true;
+        }
+
+        if (!v.type && type) {
+            v.type = type;
+        }
+        return false;
+    }
 };
 
 struct Return: public StmtNode {
@@ -948,6 +978,9 @@ struct BuiltinType: public ExprNode {
 
 // we need that to convert ClassDef which is a statement
 // into an expression
+//
+// Actually: I can use a Name for that
+//
 struct ClassType: public ExprNode {
     ClassType(): ExprNode(NodeKind::ClassType) {}
     ClassDef *def;

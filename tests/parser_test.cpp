@@ -1,14 +1,14 @@
+#include "cases.h"
 #include "samples.h"
-
-#include "ast/magic.h"
-#include "lexer/buffer.h"
-#include "parser/parser.h"
-#include "utilities/strings.h"
 
 #include <catch2/catch.hpp>
 #include <sstream>
 
+#include "lexer/buffer.h"
+#include "lexer/lexer.h"
 #include "logging/logging.h"
+#include "parser/parser.h"
+#include "utilities/strings.cpp"
 
 using namespace lython;
 
@@ -42,15 +42,17 @@ TEST_CASE("Parser") {
     IMPORT_TEST(TEST_PARSING)
 }
 
-#define GENTEST(name)                                      \
-    TEMPLATE_TEST_CASE("Parse_" #name, #name, name) {      \
-        info("Testing {}", str(nodekind<TestType>()));     \
-        Array<String> const &ex = examples<TestType>();    \
-                                                           \
-        for (auto &code: ex) {                             \
-            REQUIRE(strip(parse_it(code)) == strip(code)); \
-            info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");         \
-        }                                                  \
+void run_testcase(String const &name, Array<TestCase> cases) {
+    info("Testing {}", name);
+    for (auto &c: cases) {
+        REQUIRE(strip(parse_it(c.code)) == strip(c.code));
+        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+    }
+}
+
+#define GENTEST(name)                                               \
+    TEMPLATE_TEST_CASE("PARSE_" #name, #name, name) {               \
+        run_testcase(str(nodekind<TestType>()), name##_examples()); \
     }
 
 #define X(name, _)
