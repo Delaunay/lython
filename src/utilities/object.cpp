@@ -1,5 +1,5 @@
-#include "logging/logging.h"
 #include "object.h"
+#include "logging/logging.h"
 
 namespace lython {
 

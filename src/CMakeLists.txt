@@ -16,7 +16,8 @@ AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 
 # Source
 SET(ADD_HEADERS
-    ast/sexpression.h
+    ast/nodes.h
+    ast/ops.h
     utilities/names.h
     utilities/object.h
     ast/magic.h 
@@ -42,8 +43,9 @@ SET(ADD_HEADERS
 )
 
 SET(ADD_SOURCE
-    ast/sexpression.cpp
-    ast/print.cpp
+    ast/nodes.cpp
+    ast/ops/context.cpp
+    ast/ops/print.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp
@@ -73,9 +75,22 @@ SET(ADD_SOURCE
 #  stdc++fs
 # endif
 
+# FUNCTION(CLANG_STATIC_ANALYSIS target)
+#     GET_TARGET_PROPERTY(SRCs ${target} SOURCES)
+#     ADD_LIBRARY(${target}_analyze OBJECT EXCLUDE_FROM_ALL ${SRCs})
+#     TARGET_INCLUDE_DIRECTORIES(
+#         ${target}_analyze PUBLIC
+#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+#     )
+#     SET_TARGET_PROPERTIES(${target}_analyze PROPERTIES
+#                           COMPILE_OPTIONS "--analyze"
+#                           EXCLUDE_FROM_DEFAULT_BUILD true)
+# ENDFUNCTION()
+
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
 TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
+
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})

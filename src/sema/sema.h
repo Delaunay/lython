@@ -24,7 +24,38 @@ struct BindingEntry {
 
 std::ostream &print(std::ostream &out, BindingEntry const &entry);
 
+#define BUILTIN_TYPES(TYPE) \
+    TYPE(Type)              \
+    TYPE(i8)                \
+    TYPE(i16)               \
+    TYPE(i32)               \
+    TYPE(i64)               \
+    TYPE(f32)               \
+    TYPE(f64)               \
+    TYPE(u8)                \
+    TYPE(u16)               \
+    TYPE(u32)               \
+    TYPE(u64)               \
+    TYPE(str)               \
+    TYPE(bool)
+
+#define TYPE(name) TypeExpr *type_##name();
+
+BUILTIN_TYPES(TYPE)
+
+#undef TYPE
+
 struct Bindings {
+    Bindings() {
+        bindings.reserve(128);
+
+#define TYPE(name) add(String(#name), type_##name(), type_Type());
+
+        BUILTIN_TYPES(TYPE)
+
+#undef TYPE
+    }
+
     // returns the varid it was inserted as
     inline int add(StringRef const &name, Node *value, TypeExpr *type) {
         auto size = int(bindings.size());
@@ -101,11 +132,15 @@ struct SemanticError {
 };
 
 struct SemaVisitorTrait {
-    using StmtRet = TypeExpr;
-    using ExprRet = TypeExpr;
-    using ModRet  = TypeExpr;
-    using PatRet  = TypeExpr;
+    using StmtRet = TypeExpr *;
+    using ExprRet = TypeExpr *;
+    using ModRet  = TypeExpr *;
+    using PatRet  = TypeExpr *;
+    using IsConst = std::false_type;
 };
+
+// TODO: Method lookups
+// TODO: typechecking i.e equality
 
 /* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
  * syntactically correct its job is to detect issues that could prevent a succesful compilation.
@@ -119,16 +154,16 @@ struct SemaVisitorTrait {
  * To support type deduction SEM-A returns the type of the analysed expression,
  * the deduction can then be used for typechecking.
  *
- * Type deduction is a weaker form of type inference where the type of the parent parent expression
- * is deduced from the children. In the future we might add full type inference.
- * Type deduction will still be useful then as it will reduce the cost of type inference for the
+ * Type deduction is a weaker form of type inference where the type of the parent parent
+ * expression is deduced from the children. In the future we might add full type inference. Type
+ * deduction will still be useful then as it will reduce the cost of type inference for the
  * trivial cases.
  *
  * Type deduction alone should provide a satisfactory development experience, as the user should
  * only have to specify the type of the arguments which is good practice anyway as it serves as
  * documentation.
  */
-struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
+struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
     Bindings             bindings;
     bool                 forwardpass = false;
     Array<SemanticError> errors;
@@ -148,9 +183,18 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
     }
 
     TypeExpr *module(Module *stmt, int depth) {
-        exec<TypeExpr>(stmt->body, depth);
+        // TODO: Add a forward pass that simply add functions & variables
+        // to the context so the SEMA can look everything up
+        exec<TypeExpr *>(stmt->body, depth);
         return nullptr;
     };
+
+    ExprNode *make_ref(Node *parent, String const &name) {
+        auto ref   = parent->new_object<Name>();
+        ref->id    = name;
+        ref->varid = bindings.get_varid(ref->id);
+        return ref;
+    }
 
     void add_arguments(Arguments &args, Arrow *, int);
 

@@ -1,7 +1,7 @@
 #include "lexer/lexer.h"
 // #include "parser/module.h"
 
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 #include "parser/parser.h"
 #include "sema/sema.h"
 

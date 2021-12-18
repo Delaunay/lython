@@ -2,8 +2,7 @@
 #include "gemm_cuda.h"
 #include "logging/logging.h"
 
-
-int main(){
+int main() {
     int size = 256;
 
     info("{}", size);

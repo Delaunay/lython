@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "ast/ops.h"
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
@@ -236,14 +237,14 @@ ExprNode *Parser::parse_star_expression(Node *parent, int depth) {
 }
 
 ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
-    auto kind      = 0;
     auto start_tok = token();
 
-    bool has_parens = false;
+    // auto kind      = 0;
+    // bool has_parens = false;
     if (token().type() == tok_parens) {
-        kind = tok_parens;
         next_token();
-        has_parens = true;
+        // kind = tok_parens;
+        // has_parens = true;
     }
 
     Array<ExprNode *> elts;
@@ -305,7 +306,14 @@ StmtNode *Parser::parse_for(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
+    // Store context i.e the variables are created there
+    _context.push_back(ExprContext::Store);
     stmt->target = parse_star_targets(stmt, depth + 1);
+    _context.pop_back();
+
+    // the right context was already picked up
+    // set_context(stmt->target, ExprContext::Store);
+
     expect_token(tok_in, true, stmt, LOC);
     stmt->iter = parse_expression(stmt, depth + 1);
 
@@ -652,13 +660,17 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
 
     // Value
     default: {
-        auto     value = parse_expression_primary(parent, depth + 1);
-        Pattern *pat   = nullptr;
+        // in this context we are storing components inside the pattern
+        //_context.push_back(ExprContext::Store);
+        auto value = parse_expression_primary(parent, depth + 1);
+        //_context.pop_back();
+        Pattern *pat = nullptr;
 
         // <expr> if|:
         if (token().type() != '(') {
             pat                        = parent->new_object<MatchValue>();
             ((MatchValue *)pat)->value = value;
+            set_context(value, ExprContext::Store);
         } else {
             pat = parse_match_class(parent, value, depth + 1);
         }
@@ -1126,6 +1138,7 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Assign>();
+    set_context(expr, ExprContext::Store);
     stmt->targets.push_back(expr);
 
     // FIXME: this is the location of '=' not the start of the full expression
@@ -1141,7 +1154,10 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
 StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
     TRACE_START();
 
-    auto stmt    = parent->new_object<AugAssign>();
+    auto stmt = parent->new_object<AugAssign>();
+
+    // this is a load-store
+    // set_context(expr, ExprContext::Load);
     stmt->target = expr;
 
     // FIXME: this is the location of the operator not the start of the full expression
@@ -1159,7 +1175,8 @@ StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
 StmtNode *Parser::parse_annassign(Node *parent, ExprNode *expr, int depth) {
     TRACE_START();
 
-    auto stmt    = parent->new_object<AnnAssign>();
+    auto stmt = parent->new_object<AnnAssign>();
+    set_context(expr, ExprContext::Store);
     stmt->target = expr;
 
     // FIXME: this is the location of :' not the start of the full expression
@@ -1182,9 +1199,9 @@ ExprNode *Parser::parse_name(Node *parent, int depth) {
     auto expr = parent->new_object<Name>();
     start_code_loc(expr, token());
 
-    // expr->ctx = ;
+    expr->id  = get_identifier();
+    expr->ctx = context();
 
-    expr->id = get_identifier();
     end_code_loc(expr, token());
 
     expect_token(tok_identifier, true, expr, LOC);
@@ -1425,6 +1442,8 @@ void Parser::parse_comprehension(Node *parent, Array<Comprehension> &out, char k
         Comprehension cmp;
 
         cmp.target = parse_star_targets(parent, depth + 1);
+        set_context(cmp.target, ExprContext::Store);
+
         expect_token(tok_in, true, parent, LOC);
         cmp.iter = parse_expression(parent, depth + 1);
 
@@ -1810,6 +1829,19 @@ ExprNode *Parser::parse_slice(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
+void set_decorators(StmtNode *stmt, Array<ExprNode *> &decorators) {
+    if (decorators.size() > 0) {
+        if (stmt->kind == NodeKind::FunctionDef) {
+            auto fun            = cast<FunctionDef>(stmt);
+            fun->decorator_list = decorators;
+
+        } else if (stmt->kind == NodeKind::ClassDef) {
+            auto cls            = cast<ClassDef>(stmt);
+            cls->decorator_list = decorators;
+        }
+    }
+}
+
 StmtNode *Parser::parse_statement(Node *parent, int depth) {
 
     TRACE_START();
@@ -1826,14 +1858,7 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
     }
 
     auto stmt = parse_statement_primary(parent, depth + 1);
-
-    if (decorators.size() > 0) {
-        if (stmt->kind == NodeKind::FunctionDef) {
-            cast<FunctionDef>(stmt)->decorator_list = decorators;
-        } else if (stmt->kind == NodeKind::ClassDef) {
-            cast<ClassDef>(stmt)->decorator_list = decorators;
-        }
-    }
+    set_decorators(stmt, decorators);
 
     if (token().type() != ';') {
         TRACE_END();

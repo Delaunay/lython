@@ -4,7 +4,8 @@
 #include "utilities/metadata.h"
 
 // #include "ast/expressions.h"
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
+#include "ast/ops.h"
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
@@ -41,9 +42,11 @@ String strip2(String const &v) {
     return String(v.begin(), v.begin() + i + 1);
 }
 
+/*
 Expression make_point(Module &mod);
 Expression make_point_check(Module &mod);
 Expression make_import_call_check(Module &mod);
+*/
 
 int main() {
     {
@@ -176,7 +179,7 @@ int main() {
             std::cout << "Parsed Module dump\n";
             std::cout << std::string(80, '-') << '\n';
             for (auto stmt: mod->body) {
-                stmt->print(std::cout, 0);
+                print(str(stmt), std::cout);
                 std::cout << "\n";
             }
             std::cout << std::string(80, '-') << '\n';

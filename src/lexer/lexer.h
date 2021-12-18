@@ -3,7 +3,7 @@
 #include <cctype>
 #include <ostream>
 
-#include "ast/sexpression.h"
+#include "ast/nodes.h"
 #include "lexer/buffer.h"
 #include "lexer/token.h"
 #include "utilities/trie.h"
@@ -29,15 +29,12 @@ struct OpConfig {
     BoolOperator   boolkind   = BoolOperator::None;
     CmpOperator    cmpkind    = CmpOperator::None;
 
-    String __str__() const {
-        StringStream ss;
-        ss << to_string(type) << "(pred: " << precedence << ") "
-           << "(binary: " << int(binarykind) << ") "
-           << "(unary: " << int(unarykind) << ") "
-           << "(bool: " << int(boolkind) << ") "
-           << "(cmp: " << int(cmpkind) << ") ";
-
-        return ss.str();
+    void print(std::ostream &out) const {
+        out << to_string(type) << "(pred: " << precedence << ") "
+            << "(binary: " << int(binarykind) << ") "
+            << "(unary: " << int(unarykind) << ") "
+            << "(bool: " << int(boolkind) << ") "
+            << "(cmp: " << int(cmpkind) << ") ";
     }
 };
 

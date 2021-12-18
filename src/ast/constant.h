@@ -10,23 +10,23 @@ struct ConstantValue {
     struct invalid_t {};
     struct none_t {};
 
-#define ConstantType(POC, CPX)       \
-    POD(Invalid, invalid_t, invalid) \
-    POD(Int, int, integer)           \
-    POD(Float, float32, singlef)     \
-    POD(Double, float64, doublef)    \
-    CPX(String, String, string)      \
-    POD(Bool, bool, boolean)         \
-    POD(None, none_t, none)
+    ; // clang-format off
+    #define ConstantType(POC, CPX)       \
+        POD(Invalid, invalid_t, invalid) \
+        POD(Int, int, integer)           \
+        POD(Float, float32, singlef)     \
+        POD(Double, float64, doublef)    \
+        CPX(String, String, string)      \
+        POD(Bool, bool, boolean)         \
+        POD(None, none_t, none)
 
-    // clang-format off
     enum Type {
         #define ENUM(a)      T##a,
         #define POD(a, b, c) ENUM(a)
         #define CPX(a, b, c) ENUM(a)
 
         ConstantType(POD, CPX)
-
+ 
         #undef CPX
         #undef POD
         #undef ENUM
@@ -71,13 +71,15 @@ struct ConstantValue {
     }
     // clang-format on
 
+    Type type() const { return kind; }
+
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {
         ValueVariant() {}
-        ~ValueVariant() {}
+        ~ValueVariant(){}
 
-        // clang-format off
+        ; // clang-format off
         #define ATTR(type, name)      type name;
         #define POD(kind, type, name) ATTR(type, name)
         #define CPX(kind, type, name) ATTR(type, name)
@@ -103,7 +105,7 @@ struct ConstantValue {
         kind = ktype;
     }
 
-    // clang-format off
+    ; // clang-format off
     #define POD(kind, type, name)
     #define CPX(kind, type, name)\
     void set_##name(const type &data) { set_cpx(T##kind, value.name, data); }
@@ -135,7 +137,7 @@ struct ConstantValue {
         }
 
         switch (k) {
-            // clang-format off
+            ; // clang-format off
             #define POD(k, type, name)\
             case T##k:{\
                 value.name = v.name;\

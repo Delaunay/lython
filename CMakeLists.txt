@@ -37,6 +37,7 @@ OPTION(BUILD_BENCHMARK      "Build Benchmarks"   ON)
 OPTION(BUILD_DOCUMENTATION  "Build docs"         OFF)
 OPTION(BUILD_DOXYGEN        "Build Doxygen docs" ON)
 OPTION(BUILD_SPHINX         "Build Sphinx docs"  ON)
+option(CLANG_TIDY           "Run clang-tidy"     OFF)
 
 # Binary/pre-compiled Dependencies
 # ====================================
@@ -57,6 +58,17 @@ IF(UNIX)
     append_coverage_compiler_flags()
     SET(COVERAGE_EXCLUDES "${PROJECT_SOURCE_DIR}/dependencies/*")
 ENDIF (UNIX)
+
+
+IF(CLANG_TIDY)
+    FILE(SHA1 ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy clang_tidy_sha1)
+    SET(CLANG_TIDY_DEFINITIONS "CLANG_TIDY_SHA1=${clang_tidy_sha1}")
+    SET(CLANG_TIDY_CHECKS "-*,clang-analyzer-*,-clang-analyzer-cplusplus*")
+    UNSET(clang_tidy_sha1)
+    SET(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=${CLANG_TIDY_CHECKS};-header-filter='${CMAKE_SOURCE_DIR}/src/*'")
+ENDIF(CLANG_TIDY)
+
+
 # Subdirectories
 # ====================================
 
@@ -72,6 +84,7 @@ IF(BUILD_TESTING)
     MESSAGE(STATUS "Building tests")
     ADD_SUBDIRECTORY(tests)
 ENDIF(BUILD_TESTING)
+
 
 #IF (BUILD_BENCHMARK)
 #    MESSAGE(STATUS "Building Benchmarks")
@@ -92,6 +105,12 @@ ENDIF(BUILD_TESTING)
 
 ADD_CUSTOM_TARGET(enable-examples
     cmake -DBUILD_EXAMPLES=ON ${CMAKE_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(enable-tidy
+    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCLANG_TIDY=ON ${CMAKE_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(enable-compiledb
+    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ${CMAKE_SOURCE_DIR})
 
 ADD_CUSTOM_TARGET(disable-examples
     cmake -DBUILD_EXAMPLES=OFF ${CMAKE_SOURCE_DIR})
@@ -114,8 +133,5 @@ ADD_CUSTOM_TARGET(zothers ALL SOURCES
     .travis.yml
     .gitignore
     .gitmodules
-    .github/workflows/kiwi-tests.yml
+    .github/workflows/tests.yml
 )
-
-
-
