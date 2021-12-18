@@ -94,16 +94,16 @@ enum class NodeKind : int8_t
     SECTION(PAT_END)
 
     #define X(name, _) name,
-    #define SECTION(name) name,
+    #define SSECTION(name) name,
     #define EXPR(name, _) name,
     #define STMT(name, _) name,
     #define MOD(name, _) name,
     #define MATCH(name, _) name,
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
     #undef X
-    #undef SECTION
+    #undef SSECTION
     #undef EXPR
     #undef STMT
     #undef MOD

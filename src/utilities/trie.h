@@ -11,7 +11,7 @@ template <size_t size>
 class Trie {
     public:
     Trie() {
-        for (auto &child : children) {
+        for (auto &child: children) {
             child = nullptr;
         }
     }
@@ -22,7 +22,7 @@ class Trie {
 
             if (child != nullptr) {
                 // call copy constructor recursively
-                children[i] = std::make_unique<Trie>(*child.get());
+                children[i] = ::std::make_unique<Trie>(*child.get());
             }
         }
     }
@@ -43,7 +43,7 @@ class Trie {
     //! Returns if the the value was inserted of not
     bool insert(std::string_view const &name) {
         Trie *ptr = this;
-        for (auto c : name) {
+        for (auto c: name) {
             if (ptr->children[c] == nullptr) {
                 ptr->children[c] = std::make_unique<Trie>();
             }
@@ -66,7 +66,7 @@ class Trie {
     Trie const *matching(std::string_view const &name) const {
         Trie const *ptr = this;
 
-        for (auto c : name) {
+        for (auto c: name) {
             ptr = matching(int(c));
 
             if (ptr == nullptr) {
@@ -91,7 +91,7 @@ class Trie {
 
     int has_children() const {
         int count = 0;
-        for (auto child : children) {
+        for (auto child: children) {
             count += child != nullptr;
         }
         return count;
@@ -111,10 +111,10 @@ class Trie {
 template <size_t size>
 class CoWTrie {
     public:
-    CoWTrie(Trie<size> const *original) : original(original) {}
+    CoWTrie(Trie<size> const *original): original(original) {}
 
     // if no original is provided just use the copy
-    CoWTrie() : was_copied(true), original(nullptr) {}
+    CoWTrie(): was_copied(true), original(nullptr) {}
 
     bool insert(std::string_view const &name) { return trie().insert(name); }
 

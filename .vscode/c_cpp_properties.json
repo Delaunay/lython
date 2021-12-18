@@ -11,8 +11,7 @@
             "intelliSenseMode": "linux-gcc-x64",
             "compilerArgs": [
                 "-Wall",
-                "-Wextra",
-                "-Wpedantic"
+                "-Wextra"
             ],
             "configurationProvider": "ms-vscode.cmake-tools"
         }
