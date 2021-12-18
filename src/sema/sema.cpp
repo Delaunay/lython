@@ -1,5 +1,5 @@
-#include "ast/magic.h"
 #include "sema/sema.h"
+#include "ast/magic.h"
 #include "utilities/strings.h"
 
 namespace lython {
