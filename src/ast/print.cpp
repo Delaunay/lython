@@ -199,7 +199,8 @@ void ConstantValue::print(std::ostream &out) const {
         break;
 
     case TDouble:
-        out << value.doublef;
+        // always print a float even without decimal point
+        out << fmt::format("{:#}", value.doublef);
         break;
 
     case TBool:
@@ -829,8 +830,8 @@ int get_precedence(Node const *node) {
 
 void BinOp::print(std::ostream &out, int level) const {
     auto self    = get_precedence(this);
-    auto lhspred = get_precedence(left) <= self;
-    auto rhspred = get_precedence(right) <= self;
+    auto lhspred = get_precedence(left) < self;
+    auto rhspred = get_precedence(right) < self;
 
     if (lhspred) {
         out << '(';

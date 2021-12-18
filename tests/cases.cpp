@@ -202,7 +202,7 @@ Array<TestCase> const &Assign_examples() {
         {"a = {1: 1.0, 2: 2.0}", {}, "Dict[i32, f64]"},
         {"a = {\"1\": 1, \"2\": 2}", {}, "Dict[str, i32]"},
 
-        {"a = (1, 2.0, \"str\")", {}, "Tuple[i32, f64, str]"},
+        {"a = 1, 2.0, \"str\"", {}, "Tuple[i32, f64, str]"},
     };
     return ex;
 }

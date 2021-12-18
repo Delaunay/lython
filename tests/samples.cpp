@@ -21,7 +21,7 @@ DEFINE_SAMPLE_CODE(simple_function_docstring, "def simple_function_docstring(a: 
                                               "    return 1\n"
                                               "\n")
 DEFINE_SAMPLE_CODE(simple_function_rpe, "def simple_function_rpe() -> e:\n"
-                                        "    return sin(3) + (x * 2) / (1 - 5) ^ (2 ^ 3)\n"
+                                        "    return sin(3) + x * 2 / (1 - 5) ^ 2 ^ 3\n"
                                         "\n")
 DEFINE_SAMPLE_CODE(simple_function_return_args, "def simple_function_return_args(a) -> e:\n"
                                                 "    return a\n"
