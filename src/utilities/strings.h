@@ -2,6 +2,7 @@
 #define LYTHON_UTILITIES_STRINGS_HEADER
 
 #include "dtypes.h"
+#include <algorithm>
 
 namespace lython {
 

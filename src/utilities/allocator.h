@@ -155,7 +155,7 @@ class Allocator {
     static T *allocate(std::size_t n, const void * = nullptr) {
         meta::register_type<T>(typeid(T).name());
         meta::get_stat<T>().allocated += 1;
-        meta::get_stat<T>().size_alloc += n;
+        meta::get_stat<T>().size_alloc += int(n);
         meta::get_stat<T>().bytes = int(sizeof(T));
         return static_cast<T *>(Device::malloc(n * sizeof(T)));
     }

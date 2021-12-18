@@ -26,7 +26,11 @@ template <typename T>
 using SharedPtrInternal = std::shared_ptr<T>;
 
 template <typename T, bool cache>
-using HashNodeInternal = T;
+using HashNodeInternal = std::_List_node<T, void *__ptr64>;
+
+template <typename T, bool cache>
+using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<T>>>;
+
 #endif
 
 bool _metadata_init_names() {

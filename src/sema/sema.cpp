@@ -340,7 +340,7 @@ TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
 
 void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
 
-    for (int i = 0, n = args.args.size(); i < n; i++) {
+    for (int i = 0, n = int(args.args.size()); i < n; i++) {
         auto      arg      = args.args[i];
         ExprNode *dvalue   = nullptr;
         TypeExpr *dvalue_t = nullptr;

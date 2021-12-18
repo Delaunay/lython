@@ -129,11 +129,11 @@ struct SetContext: public Traverse {
     }
 };
 
-void_t set_context(Node *n, ExprContext ctx) {
+void set_context(Node *n, ExprContext ctx) {
     SetContext t;
     t.ctx = ctx;
-
-    return t.exec<void_t>(n);
+    t.exec<void_t>(n);
+    return;
 }
 
 } // namespace lython

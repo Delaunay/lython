@@ -30,7 +30,7 @@ class ThreadPool {
         typename std::decay<Args>::type...)>::type;
 #else
     template <typename Fun, typename... Args>
-    using Return_t = typename std::invoke_result<Fun(Args...)>::type;
+    using Return_t = typename std::invoke_result<Fun, Args...>::type;
 #endif
 
     //! Queue a new Task

@@ -34,7 +34,7 @@ struct BaseVisitor {
     using ModRet  = typename VisitorTrait::ModRet;
     using PatRet  = typename VisitorTrait::PatRet;
 
-#define SELECT_TYPE(T) std::conditional<isConst, T const, T>::type;
+#define SELECT_TYPE(T) typename std::conditional<isConst, T const, T>::type;
 
     using Node_t     = SELECT_TYPE(Node);
     using ModNode_t  = SELECT_TYPE(ModNode);
@@ -44,7 +44,8 @@ struct BaseVisitor {
 
 #undef SELECT_TYPE
 
-#define TYPE_GEN(rtype) using rtype##_t = std::conditional<isConst, rtype const, rtype>::type;
+#define TYPE_GEN(rtype) \
+    using rtype##_t = typename std::conditional<isConst, rtype const, rtype>::type;
 
 #define X(name, _)
 #define SECTION(name)

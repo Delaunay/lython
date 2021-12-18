@@ -362,6 +362,7 @@ struct Await: public ExprNode {
     Await(): ExprNode(NodeKind::Await) {}
 };
 
+#undef Yield
 struct Yield: public ExprNode {
     Optional<ExprNode *> value;
 
