@@ -1,5 +1,5 @@
-#include "names.h"
 #include "logging/logging.h"
+#include "names.h"
 
 namespace lython {
 
@@ -7,9 +7,9 @@ std::ostream &operator<<(std::ostream &out, StringRef ref) {
     return out << StringDatabase::instance()[ref.__id__()];
 }
 
-String StringRef::__str__() const {
+void StringRef::print(std::ostream &out) const {
     auto view = StringDatabase::instance()[ref];
-    return String(view);
+    out << String(view);
 }
 
 StringRef::operator StringView() const { return StringDatabase::instance()[ref]; }

@@ -11,6 +11,11 @@ void print(T const &obj, std::ostream &out = std::cout) {
     obj.print(out);
 }
 
+template <>
+inline void print(String const &obj, std::ostream &out) {
+    out << obj;
+}
+
 template <typename T>
 void print(T *const &obj, std::ostream &out = std::cout) {
     obj->print(out);
@@ -18,7 +23,9 @@ void print(T *const &obj, std::ostream &out = std::cout) {
 
 template <typename T>
 String str(T const &obj) {
-    return obj.__str__();
+    StringStream ss;
+    print(obj, ss);
+    return ss.str();
 }
 
 template <typename T>

@@ -1,5 +1,5 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -487,7 +487,7 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
         if (fun) {
             n->insert_attribute(fun->name, fun);
 
-            if (fun->name.__str__() == "__init__") {
+            if (str(fun->name) == "__init__") {
                 ctor = fun;
             } else {
                 secondpass.push_back(stmt);

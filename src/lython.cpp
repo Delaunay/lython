@@ -5,6 +5,7 @@
 
 // #include "ast/expressions.h"
 #include "ast/nodes.h"
+#include "ast/ops.h"
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
@@ -178,7 +179,7 @@ int main() {
             std::cout << "Parsed Module dump\n";
             std::cout << std::string(80, '-') << '\n';
             for (auto stmt: mod->body) {
-                stmt->print(std::cout, 0);
+                print(str(stmt), std::cout);
                 std::cout << "\n";
             }
             std::cout << std::string(80, '-') << '\n';

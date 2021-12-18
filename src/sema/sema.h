@@ -136,6 +136,7 @@ struct SemaVisitorTrait {
     using ExprRet = TypeExpr *;
     using ModRet  = TypeExpr *;
     using PatRet  = TypeExpr *;
+    using IsConst = std::false_type;
 };
 
 // TODO: Method lookups
@@ -162,7 +163,7 @@ struct SemaVisitorTrait {
  * only have to specify the type of the arguments which is good practice anyway as it serves as
  * documentation.
  */
-struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, SemaVisitorTrait> {
+struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
     Bindings             bindings;
     bool                 forwardpass = false;
     Array<SemanticError> errors;

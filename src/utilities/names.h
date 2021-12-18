@@ -100,7 +100,7 @@ class StringRef {
 
     ~StringRef();
 
-    String __str__() const;
+    void print(std::ostream &out) const;
 
     operator StringView() const;
 
