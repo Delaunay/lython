@@ -7,7 +7,7 @@ Functional
 * declarative
 * expression based
 * tail recursion optimization
-
+* pattern matching
 
 Base
 ----
