@@ -43,8 +43,14 @@ ExprNode *not_implemented_expr(Node *parent) { return parent->new_object<NotImpl
 
 ExprNode *not_allowed_expr(Node *parent) { return parent->new_object<NotAllowedEpxr>(); }
 
-void Parser::start_code_loc(CommonAttributes *target, Token tok) {}
-void Parser::end_code_loc(CommonAttributes *target, Token tok) {}
+void Parser::start_code_loc(CommonAttributes *target, Token tok) {
+    target->col_offset = tok.begin_col();
+    target->lineno     = tok.line();
+}
+void Parser::end_code_loc(CommonAttributes *target, Token tok) {
+    target->col_offset = tok.end_col();
+    target->end_lineno = tok.line();
+}
 
 // Helpers
 // ---------------------------------------------
