@@ -103,7 +103,7 @@ class FileBuffer: public AbstractBuffer {
         AbstractBuffer::reset();
     }
 
-    String getline(int start_line, int end_line = -1) {
+    String getline(int start_line, int end_line = -1) override {
         fpos_t pos;
         fgetpos(_file, &pos);
         //--
@@ -159,7 +159,7 @@ class StringBuffer: public AbstractBuffer {
         AbstractBuffer::reset();
     }
 
-    String getline(int start_line, int end_line = -1) {
+    String getline(int start_line, int end_line = -1) override {
         uint32 old_pos = _pos;
         //--
 

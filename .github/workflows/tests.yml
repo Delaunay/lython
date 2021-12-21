@@ -64,3 +64,13 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           files: build/coverage/coverage.xml
+
+      - name: Deploy
+        if: always()
+        run: |
+          cd build/coverage
+          git init
+          git add *.html *.css
+          git commit -m "deploy"
+          git checkout -b gh-pages
+          git push -f git@github.com:Delaunay/lython.git master:gh-pages
