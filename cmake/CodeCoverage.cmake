@@ -406,7 +406,11 @@ function(setup_target_for_coverage_gcovr_html)
         COMMAND ${GCOVR_PATH} --html --html-details
             -s -r ${BASEDIR} ${GCOVR_EXCLUDE_ARGS}
             --object-directory=${PROJECT_BINARY_DIR}
+            --xml-pretty
             -x ${Coverage_NAME}/coverage.xml
+            --csv ${Coverage_NAME}/coverage.csv
+            --json-pretty
+            --json ${Coverage_NAME}/coverage.json
             -o ${Coverage_NAME}/index.html
             -j 4
             --exclude-directories /usr/
