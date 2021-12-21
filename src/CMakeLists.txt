@@ -109,11 +109,4 @@ IF(UNIX)
         BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src"
         DEPENDS test
     )
-
-    setup_target_for_coverage_gcovr_xml(
-        NAME coverage-xml
-        EXECUTABLE ctest -j 4 --output-on-failure
-        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src"
-        DEPENDS test
-    )
 ENDIF(UNIX)

@@ -406,7 +406,11 @@ function(setup_target_for_coverage_gcovr_html)
         COMMAND ${GCOVR_PATH} --html --html-details
             -s -r ${BASEDIR} ${GCOVR_EXCLUDE_ARGS}
             --object-directory=${PROJECT_BINARY_DIR}
+            -x ${Coverage_NAME}/coverage.xml
             -o ${Coverage_NAME}/index.html
+            -j 4
+            --exclude-directories /usr/
+            --exclude-directories "${PROJECT_SOURCE_DIR}/tests"
 
         BYPRODUCTS ${PROJECT_BINARY_DIR}/${Coverage_NAME}  # report directory
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}

@@ -25,7 +25,9 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
   ADD_DEPENDENCIES(${NAME}_test liblython liblogging liblythontest)
 
 	IF(UNIX)
-		ADD_DEPENDENCIES(coverage ${NAME}_test)
+    ADD_DEPENDENCIES(coverage ${NAME}_test)
+    ADD_DEPENDENCIES(coverage ${NAME}_test)
+    ADD_DEPENDENCIES(coverage ${NAME}_test)
 	ENDIF(UNIX)
 	 
   ADD_TEST(

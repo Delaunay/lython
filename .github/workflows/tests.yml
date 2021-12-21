@@ -57,7 +57,7 @@ jobs:
       - name: Test
         run: |
           cd build
-          make coverage-xml
+          make coverage
 
       - name: Upload coverage to Codecov
         if: always()
