@@ -51,10 +51,12 @@ jobs:
         
       - name: compile
         run: |
-          make -j 4
+          cd build
+          make -j $(nproc)
 
       - name: test
         run: |
+          cd build
           make coverage
 
       - name: Upload coverage to Codecov
