@@ -63,4 +63,4 @@ jobs:
         if: always()
         uses: codecov/codecov-action@v2
         with:
-          files: build/coverage/coverage.json
+          files: build/coverage/coverage.xml
