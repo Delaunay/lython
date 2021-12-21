@@ -351,8 +351,9 @@ struct Equality {
                exec(a->format_spec, b->format_spec, depth);
     }
     bool attribute(Attribute *a, Attribute *b, int depth) {
-        return exec(a->value, b->value, depth) && exec(a->attr, b->attr, depth) &&
-               exec(a->ctx, b->ctx, depth);
+        return exec(a->value, b->value, depth) && exec(a->attr, b->attr, depth) /* &&
+               exec(a->ctx, b->ctx, depth) */
+            ;
     }
     bool subscript(Subscript *a, Subscript *b, int depth) {
 

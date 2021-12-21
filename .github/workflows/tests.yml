@@ -41,14 +41,20 @@ jobs:
           pip install gcovr
           mkdir -p build
 
-      - name: compile
+      - name: configure
         run: |
           git submodule update --init
           cd build
           GCOV=gcov-9 CC=gcc-9 CXX=g++-9 cmake  ..
           make enable-debug
           make enable-test
+        
+      - name: compile
+        run: |
           make -j 4
+
+      - name: test
+        run: |
           make coverage
 
       - name: Upload coverage to Codecov
