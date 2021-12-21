@@ -41,7 +41,7 @@ jobs:
           pip install gcovr
           mkdir -p build
 
-      - name: configure
+      - name: Configure
         run: |
           git submodule update --init
           cd build
@@ -49,15 +49,18 @@ jobs:
           make enable-debug
           make enable-test
         
-      - name: compile
+      - name: Compile
         run: |
           cd build
           make -j $(nproc)
 
-      - name: test
+      - name: Test
         run: |
           cd build
-          make coverage
+          # make coverage
+          make test
+          gcovr --exclude-directories ../tests --exclude-unreachable-branches -r ../ -x ../coverage.xml 
 
       - name: Upload coverage to Codecov
+        if: always()
         uses: codecov/codecov-action@v2
