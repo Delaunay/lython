@@ -29,15 +29,12 @@ struct OpConfig {
     BoolOperator   boolkind   = BoolOperator::None;
     CmpOperator    cmpkind    = CmpOperator::None;
 
-    String __str__() const {
-        StringStream ss;
-        ss << to_string(type) << "(pred: " << precedence << ") "
-           << "(binary: " << int(binarykind) << ") "
-           << "(unary: " << int(unarykind) << ") "
-           << "(bool: " << int(boolkind) << ") "
-           << "(cmp: " << int(cmpkind) << ") ";
-
-        return ss.str();
+    void print(std::ostream &out) const {
+        out << to_string(type) << "(pred: " << precedence << ") "
+            << "(binary: " << int(binarykind) << ") "
+            << "(unary: " << int(unarykind) << ") "
+            << "(bool: " << int(boolkind) << ") "
+            << "(cmp: " << int(cmpkind) << ") ";
     }
 };
 
@@ -73,10 +70,10 @@ class AbstractLexer {
     virtual Token const &token() = 0;
 
     // print tokens with their info
-    std::ostream &debug_print(std::ostream &out);
+    ::std::ostream &debug_print(::std::ostream &out);
 
     // print out tokens as they were inputed
-    std::ostream &print(std::ostream &out);
+    ::std::ostream &print(::std::ostream &out);
 
     // extract a token stream into a token vector
     Array<Token> extract_token() {
@@ -117,13 +114,14 @@ class ReplayLexer: public AbstractLexer {
     ~ReplayLexer() {}
 
     private:
-    std::size_t   i = 0;
+    ::std::size_t i = 0;
     Array<Token> &tokens;
 };
 
 class Lexer: public AbstractLexer {
     public:
-    Lexer(AbstractBuffer &reader): _reader(reader), _cindent(indent()), _oindent(indent()) {}
+    Lexer(AbstractBuffer &reader):
+        AbstractLexer(), _reader(reader), _cindent(indent()), _oindent(indent()) {}
 
     ~Lexer() {}
 
@@ -178,7 +176,7 @@ class Lexer: public AbstractLexer {
 
     // what characters are allowed in identifiers
     bool is_identifier(char c) {
-        if (std::isalnum(c) || c == '_' || c == '?' || c == '!' || c == '-')
+        if (::std::isalnum(c) || c == '_' || c == '?' || c == '!' || c == '-')
             return true;
         return false;
     }

@@ -340,7 +340,7 @@ TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
 
 void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
 
-    for (int i = 0, n = args.args.size(); i < n; i++) {
+    for (int i = 0, n = int(args.args.size()); i < n; i++) {
         auto      arg      = args.args[i];
         ExprNode *dvalue   = nullptr;
         TypeExpr *dvalue_t = nullptr;
@@ -451,15 +451,20 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     return type;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
-    int id;
+    int       id;
+    TypeExpr *class_t = nullptr;
+
     // I might have to always run the forward pass
     if (!forwardpass /*|| depth > 1*/) {
-        auto class_t = n->new_object<ClassType>();
-        class_t->def = n;
+        auto t   = n->new_object<Name>();
+        id       = bindings.add(n->name, n, t);
+        t->id    = n->name;
+        t->varid = id;
+        class_t  = t;
 
-        id = bindings.add(n->name, n, class_t);
     } else {
-        id = bindings.get_varid(n->name);
+        id      = bindings.get_varid(n->name);
+        class_t = bindings.get_type(id);
     }
 
     // TODO: go through bases and add their elements
@@ -472,14 +477,71 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
         exec(kw.value, depth);
     }
 
-    Scope scope(bindings);
-    auto  types = exec<TypeExpr *>(n->body, depth);
+    Array<StmtNode *> secondpass;
+    FunctionDef *     ctor;
+
+    for (auto &stmt: n->body) {
+        Scope scope(bindings);
+
+        auto fun = cast<FunctionDef>(stmt);
+        if (fun) {
+            n->insert_attribute(fun->name, fun);
+
+            if (str(fun->name) == "__init__") {
+                ctor = fun;
+            } else {
+                secondpass.push_back(stmt);
+            }
+            continue;
+        }
+
+        auto attr = cast<Assign>(stmt);
+        if (attr) {
+            auto targets_t = exec(attr->value, depth);
+
+            for (auto target: attr->targets) {
+                auto name = cast<Name>(target);
+                if (name) {
+                    n->insert_attribute(name->id, stmt);
+                }
+            }
+
+            continue;
+        }
+
+        auto attras = cast<AnnAssign>(stmt);
+        if (attras) {
+            auto type     = exec<TypeExpr *>(attras->value, depth);
+            auto target_t = exec(attras->annotation, depth);
+
+            if (type.has_value()) {
+                typecheck(type.value(), target_t);
+            }
+
+            auto name = cast<Name>(attras->target);
+            if (name) {
+                n->insert_attribute(name->id, stmt, target_t);
+            }
+            continue;
+        }
+
+        debug("Unhandled statement {}", str(stmt->kind));
+    }
+
+    // get __init__ and do a pass to insert its attribute to the class
+
+    Array<StmtNode *> secondpass2;
+    for (auto &stmt: secondpass2) {
+        Scope scope(bindings);
+
+        auto fun_t = exec(stmt, depth);
+    }
 
     for (auto deco: n->decorator_list) {
         auto deco_t = exec(deco, depth);
         // TODO: check signature here
     }
-    return oneof(types);
+    return class_t;
 }
 TypeExpr *SemanticAnalyser::returnstmt(Return *n, int depth) {
     auto v = exec<TypeExpr *>(n->value, depth);

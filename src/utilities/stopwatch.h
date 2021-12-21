@@ -22,7 +22,7 @@ class StopWatch {
     static double diff(TimePoint start, TimePoint end) {
         Duration time_delta = end - start;
         auto     delta      = std::chrono::duration_cast<Unit>(time_delta);
-        return delta.count();
+        return double(delta.count());
     }
 
     StopWatch operator=(StopWatch p) { return StopWatch(p); }

@@ -12,22 +12,8 @@ struct TraverseTrait {
 };
 
 // Generic visitor for simple tree operation
-struct Traverse: public BaseVisitor<Traverse, TraverseTrait> {
-    using Super = BaseVisitor<Traverse, TraverseTrait>;
-
-    void_t exec(Node *n) {
-        switch (n->family()) {
-        case NodeFamily::Module:
-            return Super::exec(reinterpret_cast<ModNode *>(n), 0);
-        case NodeFamily::Statement:
-            return Super::exec(reinterpret_cast<StmtNode *>(n), 0);
-        case NodeFamily::Expression:
-            return Super::exec(reinterpret_cast<ExprNode *>(n), 0);
-        case NodeFamily::Pattern:
-            return Super::exec(reinterpret_cast<Pattern *>(n), 0);
-        }
-        return void_t();
-    }
+struct Traverse: public BaseVisitor<Traverse, false, TraverseTrait> {
+    using Super = BaseVisitor<Traverse, false, TraverseTrait>;
 
     virtual void_t boolop(BoolOp *n, int depth) { return void_t(); }
     virtual void_t namedexpr(NamedExpr *n, int depth) { return void_t(); }
@@ -143,11 +129,11 @@ struct SetContext: public Traverse {
     }
 };
 
-void_t set_context(Node *n, ExprContext ctx) {
+void set_context(Node *n, ExprContext ctx) {
     SetContext t;
     t.ctx = ctx;
-
-    return t.exec(n);
+    t.exec<void_t>(n);
+    return;
 }
 
 } // namespace lython

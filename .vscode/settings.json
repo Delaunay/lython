@@ -4,8 +4,7 @@
   "C_Cpp_Runner.makePath": "/bin/make",
   "C_Cpp_Runner.warnings": [
     "-Wall",
-    "-Wextra",
-    "-Wpedantic"
+    "-Wextra"
   ],
   "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.includePaths": [],
@@ -78,6 +77,31 @@
     "list": "cpp",
     "bit": "cpp",
     "unordered_set": "cpp",
-    "cstdarg": "cpp"
-  }
+    "cstdarg": "cpp",
+    "charconv": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "format": "cpp",
+    "forward_list": "cpp",
+    "ios": "cpp",
+    "locale": "cpp",
+    "stop_token": "cpp",
+    "xfacet": "cpp",
+    "xhash": "cpp",
+    "xiosbase": "cpp",
+    "xlocale": "cpp",
+    "xlocbuf": "cpp",
+    "xlocinfo": "cpp",
+    "xlocmes": "cpp",
+    "xlocmon": "cpp",
+    "xlocnum": "cpp",
+    "xloctime": "cpp",
+    "xmemory": "cpp",
+    "xstddef": "cpp",
+    "xstring": "cpp",
+    "xtr1common": "cpp",
+    "xtree": "cpp",
+    "xutility": "cpp"
+  },
+  "python.formatting.provider": "black"
 }

@@ -154,6 +154,9 @@ class Token {
 
     int8  type() const { return _type; }
     int32 line() const { return _line; }
+
+    int32 begin_col() const { return _col - int32(identifier().size()); }
+    int32 end_col() const { return _col; }
     int32 col() const { return _col; }
 
     int32 end_line() const { return col(); }

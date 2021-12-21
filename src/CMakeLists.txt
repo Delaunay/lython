@@ -46,7 +46,7 @@ SET(ADD_SOURCE
     ast/nodes.cpp
     ast/ops/context.cpp
     ast/ops/equality.cpp
-    ast/print.cpp
+    ast/ops/print.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp

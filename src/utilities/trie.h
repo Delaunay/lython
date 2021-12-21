@@ -22,7 +22,7 @@ class Trie {
 
             if (child != nullptr) {
                 // call copy constructor recursively
-                children[i] = std::make_unique<Trie>(*child.get());
+                children[i] = ::std::make_unique<Trie>(*child.get());
             }
         }
     }

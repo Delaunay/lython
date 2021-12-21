@@ -38,7 +38,7 @@ Array<Array<TestCase>> const &Not_Equal_examples() {
     return ex;
 }
 
-inline String equal_it(String code_a, String code_b) {
+inline bool equal_it(String code_a, String code_b) {
 
     StringBuffer reader1(code_a);
     Lexer        lex1(reader1);
@@ -61,7 +61,7 @@ inline String equal_it(String code_a, String code_b) {
     return is_equal;
 }
 
-inline String equal_it(String code_a, String code_b) { return equal_it(code_a, code_a); }
+inline bool equal_it(String code_a) { return equal_it(code_a, code_a); }
 
 void run_testcase_notequal() {
     auto &cases = Not_Equal_examples();

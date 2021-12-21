@@ -82,7 +82,7 @@ std::ostream &Token::print(std::ostream &out, int32 indent) const {
     }
 
     if (type() == tok_operator || type() == tok_dot || type() == tok_in || type() == tok_assign) {
-        if (operator_name() == ".") {
+        if (operator_name() == "." || operator_name() == "@") {
             out << operator_name();
         } else {
             out << " " << operator_name() << " ";

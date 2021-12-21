@@ -100,7 +100,7 @@ class StringRef {
 
     ~StringRef();
 
-    String __str__() const;
+    void print(std::ostream &out) const;
 
     operator StringView() const;
 
@@ -124,5 +124,12 @@ struct string_ref_hash {
 };
 
 } // namespace lython
+
+template <>
+struct std::hash<lython::StringRef> {
+    std::size_t operator()(lython::StringRef const &s) const noexcept {
+        return std::hash<std::size_t>{}(s.__id__());
+    }
+};
 
 #endif

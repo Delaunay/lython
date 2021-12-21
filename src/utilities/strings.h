@@ -2,6 +2,7 @@
 #define LYTHON_UTILITIES_STRINGS_HEADER
 
 #include "dtypes.h"
+#include <algorithm>
 
 namespace lython {
 
@@ -18,8 +19,8 @@ String join(String const &sep, Array<T> const &exprs) {
     Array<String> strs;
     strs.reserve(exprs.size());
 
-    std::transform(std::begin(exprs), std::end(exprs), std::back_inserter(strs),
-                   [](T const &e) -> String { return str(e); });
+    ::std::transform(::std::begin(exprs), ::std::end(exprs), std::back_inserter(strs),
+                     [](T const &e) -> String { return str(e); });
 
     return join(sep, strs);
 }
