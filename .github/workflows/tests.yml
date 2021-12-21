@@ -57,10 +57,10 @@ jobs:
       - name: Test
         run: |
           cd build
-          # make coverage
-          make test
-          gcovr --exclude-directories ../tests --exclude-unreachable-branches -r ../ -x ../coverage.xml 
+          make coverage-xml
 
       - name: Upload coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v2
+        with:
+          files: build/coverage.xml
