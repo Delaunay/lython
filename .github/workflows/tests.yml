@@ -62,5 +62,3 @@ jobs:
       - name: Upload coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v2
-        with:
-          files: build/coverage.xml
