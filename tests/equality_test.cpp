@@ -71,7 +71,7 @@ void run_testcase_notequal() {
         auto a = c[0];
         auto b = c[1];
 
-        REQUIRE(equal_it(a.code, b.code) == true);
+        REQUIRE(equal_it(a.code, b.code) == false);
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }

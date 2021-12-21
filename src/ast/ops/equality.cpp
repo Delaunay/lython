@@ -1,5 +1,6 @@
 #include "ast/ops.h"
 #include "ast/visitor.h"
+#include "logging/logging.h"
 
 namespace lython {
 
@@ -10,6 +11,50 @@ struct Equality {
     template <typename T>
     bool exec(T const &a, T const &b, int depth) {
         return a == b;
+    }
+
+    bool exec(MatchCase const &a, MatchCase const &b, int depth) {
+        trace(depth, "MatchCase");
+        return exec(a.pattern, b.pattern, depth) && exec(a.guard, b.guard, depth) &&
+               exec(a.body, b.body, depth);
+    }
+
+    bool exec(ExceptHandler const &a, ExceptHandler const &b, int depth) {
+        return exec(a.type, b.type, depth) && exec(a.name, b.name, depth) &&
+               exec(a.body, b.body, depth);
+    }
+
+    bool exec(JoinedStr const &a, JoinedStr const &b, int depth) {
+        return exec(a.values, b.values, depth);
+    }
+
+    bool exec(WithItem const &a, WithItem const &b, int depth) {
+        return exec(a.context_expr, b.context_expr, depth) &&
+               exec(a.optional_vars, b.optional_vars, depth);
+    }
+
+    bool exec(Comprehension const &a, Comprehension const &b, int depth) {
+        return exec(a.target, b.target, depth) && exec(a.iter, b.iter, depth) &&
+               exec(a.ifs, b.ifs, depth);
+    }
+
+    bool exec(Alias const &a, Alias const &b, int depth) {
+        return a.asname == b.asname && a.name == b.name;
+    }
+
+    bool exec(Arg const &a, Arg const &b, int depth) {
+        return a.arg == b.arg && exec(a.annotation, b.annotation, depth);
+    }
+
+    bool exec(Keyword const &a, Keyword const &b, int depth) {
+        return a.arg == b.arg && exec(a.value, b.value, depth);
+    }
+
+    bool exec(Arguments const &a, Arguments const &b, int depth) {
+        return exec(a.posonlyargs, b.posonlyargs, depth) && exec(a.args, b.args, depth) &&
+               exec(a.vararg, b.vararg, depth) && exec(a.kwonlyargs, b.kwonlyargs, depth) &&
+               exec(a.kw_defaults, b.kw_defaults, depth) && exec(a.kwarg, b.kwarg, depth) &&
+               exec(a.defaults, b.defaults, depth);
     }
 
     template <typename T>
@@ -57,6 +102,8 @@ struct Equality {
     }
 
     bool exec(ModNode *a, ModNode *b, int depth) {
+        trace(depth, "{}", str(a->kind));
+
         if (a->kind != b->kind) {
             return false;
         }
@@ -88,6 +135,8 @@ struct Equality {
     }
 
     bool exec(Pattern *a, Pattern *b, int depth) {
+        trace(depth, "{}", str(a->kind));
+
         if (a->kind != b->kind) {
             return false;
         }
@@ -118,6 +167,8 @@ struct Equality {
     }
 
     bool exec(ExprNode *a, ExprNode *b, int depth) {
+        trace(depth, "{}", str(a->kind));
+
         if (a->kind != b->kind) {
             return false;
         }
@@ -128,8 +179,8 @@ struct Equality {
             #define SECTION(_)
             #define EXPR(name, fun)\
                 case NodeKind::name: {\
-                    name* aa = reinterpret_cast<name*>(aa);\
-                    name* bb = reinterpret_cast<name*>(bb);\
+                    name* aa = reinterpret_cast<name*>(a);\
+                    name* bb = reinterpret_cast<name*>(b);\
                     return fun(aa, bb, depth + 1);\
                 }
 
@@ -148,6 +199,8 @@ struct Equality {
     }
 
     bool exec(StmtNode *a, StmtNode *b, int depth) {
+        trace(depth, "{}", str(a->kind));
+
         if (a->kind != b->kind) {
             return false;
         }
@@ -209,21 +262,25 @@ struct Equality {
         return exec(a->args, a->args, depth) && exec(a->returns, b->returns, depth);
     }
 
-    bool builtintype(BuiltinType *a, BuiltinType *b, int depth) { return a->name == b->name; }
+    bool builtintype(BuiltinType *a, BuiltinType *b, int depth) {
+        return exec(a->name, b->name, depth);
+    }
     bool functiondef(FunctionDef *a, FunctionDef *b, int depth) {
         // TODO check full module path
-        return a->name == b->name;
+        return exec(a->name, b->name, depth);
     }
     bool classdef(ClassDef *a, ClassDef *b, int depth) {
         // TODO check full module path
-        return a->name == b->name;
+        return exec(a->name, b->name, depth);
     }
 
     bool classtype(ClassType *a, ClassType *b, int depth) { return bool(); }
     // Types <<<<<<<<<<<<<<<<<<<<
 
-    bool module(Module *a, Module *b, int depth) { return true; }
-    bool interactive(Interactive *a, Interactive *b, int depth) { return true; }
+    bool module(Module *a, Module *b, int depth) { return exec(a->body, b->body, depth); }
+    bool interactive(Interactive *a, Interactive *b, int depth) {
+        return exec(a->body, b->body, depth);
+    }
     bool expression(Expression *a, Expression *b, int depth) {
         return exec(a->body, b->body, depth);
     }
@@ -241,44 +298,121 @@ struct Equality {
         return exec(a->value, b->value, depth);
     }
 
-    bool boolop(BoolOp *a, BoolOp *b, int depth) { return bool(); }
-    bool namedexpr(NamedExpr *a, NamedExpr *b, int depth) { return bool(); }
-    bool binop(BinOp *a, BinOp *b, int depth) { return bool(); }
-    bool unaryop(UnaryOp *a, UnaryOp *b, int depth) { return bool(); }
-    bool lambda(Lambda *a, Lambda *b, int depth) { return bool(); }
-    bool ifexp(IfExp *a, IfExp *b, int depth) { return bool(); }
-    bool dictexpr(DictExpr *a, DictExpr *b, int depth) { return bool(); }
-    bool setexpr(SetExpr *a, SetExpr *b, int depth) { return bool(); }
-    bool listcomp(ListComp *a, ListComp *b, int depth) { return bool(); }
-    bool generateexpr(GeneratorExp *a, GeneratorExp *b, int depth) { return bool(); }
-    bool setcomp(SetComp *a, SetComp *b, int depth) { return bool(); }
-    bool dictcomp(DictComp *a, DictComp *b, int depth) { return bool(); }
-    bool compare(Compare *a, Compare *b, int depth) { return bool(); }
-    bool call(Call *a, Call *b, int depth) { return bool(); }
-    bool joinedstr(JoinedStr *a, JoinedStr *b, int depth) { return bool(); }
-    bool formattedvalue(FormattedValue *a, FormattedValue *b, int depth) { return bool(); }
-    bool attribute(Attribute *a, Attribute *b, int depth) { return bool(); }
-    bool subscript(Subscript *a, Subscript *b, int depth) { return bool(); }
-    bool starred(Starred *a, Starred *b, int depth) { return bool(); }
-    bool name(Name *a, Name *b, int depth) { return bool(); }
-    bool listexpr(ListExpr *a, ListExpr *b, int depth) { return bool(); }
-    bool tupleexpr(TupleExpr *a, TupleExpr *b, int depth) { return bool(); }
-    bool slice(Slice *a, Slice *b, int depth) { return bool(); }
-    bool deletestmt(Delete *a, Delete *b, int depth) { return bool(); }
-    bool assign(Assign *a, Assign *b, int depth) { return bool(); }
-    bool augassign(AugAssign *a, AugAssign *b, int depth) { return bool(); }
-    bool annassign(AnnAssign *a, AnnAssign *b, int depth) { return bool(); }
-    bool forstmt(For *a, For *b, int depth) { return bool(); }
-    bool whilestmt(While *a, While *b, int depth) { return bool(); }
-    bool ifstmt(If *a, If *b, int depth) { return bool(); }
-    bool with(With *a, With *b, int depth) { return bool(); }
-    bool raise(Raise *a, Raise *b, int depth) { return bool(); }
-    bool trystmt(Try *a, Try *b, int depth) { return bool(); }
+    bool boolop(BoolOp *a, BoolOp *b, int depth) {
+        return a->op == b->op && exec(a->values, b->values, depth);
+    }
+    bool namedexpr(NamedExpr *a, NamedExpr *b, int depth) {
+        return exec(a->target, b->target, depth) && exec(a->value, b->value, depth);
+    }
+    bool binop(BinOp *a, BinOp *b, int depth) {
+        return a->op == b->op && exec(a->left, b->left, depth) && exec(a->right, b->right, depth);
+    }
+    bool unaryop(UnaryOp *a, UnaryOp *b, int depth) {
+        return a->op == b->op && exec(a->operand, b->operand, depth);
+    }
+    bool lambda(Lambda *a, Lambda *b, int depth) {
+        return exec(a->args, b->args, depth) && exec(a->body, b->body, depth);
+    }
+    bool ifexp(IfExp *a, IfExp *b, int depth) {
+        return exec(a->test, b->test, depth) && exec(a->body, b->body, depth) &&
+               exec(a->orelse, b->orelse, depth);
+    }
+    bool dictexpr(DictExpr *a, DictExpr *b, int depth) {
+        return exec(a->keys, b->keys, depth) && exec(a->values, b->values, depth);
+    }
+    bool setexpr(SetExpr *a, SetExpr *b, int depth) { return exec(a->elts, b->elts, depth); }
+    bool listcomp(ListComp *a, ListComp *b, int depth) {
+        return exec(a->elt, b->elt, depth) && exec(a->generators, b->generators, depth);
+    }
+    bool generateexpr(GeneratorExp *a, GeneratorExp *b, int depth) {
+        return exec(a->elt, b->elt, depth) && exec(a->generators, b->generators, depth);
+    }
+    bool setcomp(SetComp *a, SetComp *b, int depth) {
+        return exec(a->elt, b->elt, depth) && exec(a->generators, b->generators, depth);
+    }
+    bool dictcomp(DictComp *a, DictComp *b, int depth) {
+        return exec(a->key, b->key, depth) && exec(a->value, b->value, depth) &&
+               exec(a->generators, b->generators, depth);
+    }
+
+    bool compare(Compare *a, Compare *b, int depth) {
+        return exec(a->left, b->left, depth) && exec(a->ops, b->ops, depth) &&
+               exec(a->comparators, b->comparators, depth);
+    }
+    bool call(Call *a, Call *b, int depth) {
+        return exec(a->func, b->func, depth) && exec(a->args, b->args, depth) &&
+               exec(a->keywords, b->keywords, depth);
+    }
+    bool joinedstr(JoinedStr *a, JoinedStr *b, int depth) {
+        return exec(a->values, b->values, depth);
+    }
+    bool formattedvalue(FormattedValue *a, FormattedValue *b, int depth) {
+        return exec(a->value, b->value, depth) && exec(a->conversion, b->conversion, depth) &&
+               exec(a->format_spec, b->format_spec, depth);
+    }
+    bool attribute(Attribute *a, Attribute *b, int depth) {
+        return exec(a->value, b->value, depth) && exec(a->attr, b->attr, depth) &&
+               exec(a->ctx, b->ctx, depth);
+    }
+    bool subscript(Subscript *a, Subscript *b, int depth) {
+
+        return exec(a->value, b->value, depth) && exec(a->slice, b->slice, depth); /*&&
+               exec(a->ctx, b->ctx, depth) */
+        ;
+    }
+    bool starred(Starred *a, Starred *b, int depth) {
+        return exec(a->value, b->value, depth) && exec(a->ctx, b->ctx, depth);
+    }
+    bool name(Name *a, Name *b, int depth) { return exec(a->id, b->id, depth); }
+    bool listexpr(ListExpr *a, ListExpr *b, int depth) { return exec(a->elts, b->elts, depth); }
+    bool tupleexpr(TupleExpr *a, TupleExpr *b, int depth) { return exec(a->elts, b->elts, depth); }
+    bool slice(Slice *a, Slice *b, int depth) {
+        return exec(a->lower, b->lower, depth) && exec(a->upper, b->upper, depth) &&
+               exec(a->step, b->step, depth);
+    }
+    bool deletestmt(Delete *a, Delete *b, int depth) { return exec(a->targets, b->targets, depth); }
+    bool assign(Assign *a, Assign *b, int depth) {
+        return exec(a->targets, b->targets, depth) && exec(a->value, b->value, depth);
+    }
+    bool augassign(AugAssign *a, AugAssign *b, int depth) {
+        return exec(a->target, b->target, depth) && exec(a->value, b->value, depth);
+    }
+    bool annassign(AnnAssign *a, AnnAssign *b, int depth) {
+        return exec(a->target, b->target, depth) && exec(a->value, b->value, depth) &&
+               exec(a->annotation, b->annotation, depth);
+    }
+    bool forstmt(For *a, For *b, int depth) {
+        return exec(a->target, b->target, depth) && exec(a->iter, b->iter, depth) &&
+               exec(a->body, b->body, depth) && exec(a->orelse, b->orelse, depth);
+    }
+    bool whilestmt(While *a, While *b, int depth) {
+        return exec(a->test, b->test, depth) && exec(a->body, b->body, depth) &&
+               exec(a->orelse, b->orelse, depth);
+    }
+    bool ifstmt(If *a, If *b, int depth) {
+        return exec(a->test, b->test, depth) && exec(a->body, b->body, depth) &&
+               exec(a->orelse, b->orelse, depth) && exec(a->tests, b->tests, depth) &&
+               exec(a->bodies, b->bodies, depth);
+    }
+    bool with(With *a, With *b, int depth) {
+        return exec(a->items, b->items, depth) && exec(a->body, b->body, depth) &&
+               exec(a->async, b->async, depth);
+    }
+    bool raise(Raise *a, Raise *b, int depth) {
+        return exec(a->exc, b->exc, depth) && exec(a->cause, b->cause, depth);
+    }
+    bool trystmt(Try *a, Try *b, int depth) {
+        return exec(a->body, b->body, depth) && exec(a->handlers, b->handlers, depth) &&
+               exec(a->orelse, b->orelse, depth) && exec(a->finalbody, b->finalbody, depth);
+    }
     bool assertstmt(Assert *a, Assert *b, int depth) {
         return exec(a->test, b->test, depth) && exec(a->msg, b->msg, depth);
     }
-    bool import(Import *a, Import *b, int depth) { return bool(); }
-    bool importfrom(ImportFrom *a, ImportFrom *b, int depth) { return bool(); }
+    bool import(Import *a, Import *b, int depth) { return exec(a->names, b->names, depth); }
+    bool importfrom(ImportFrom *a, ImportFrom *b, int depth) {
+        return exec(a->module, b->module, depth) && exec(a->names, b->names, depth) &&
+               exec(a->level, b->level, depth);
+    }
 
     bool global(Global *a, Global *b, int depth) { return exec(a->names, b->names, depth); }
     bool nonlocal(Nonlocal *a, Nonlocal *b, int depth) { return exec(a->names, b->names, depth); }
@@ -286,38 +420,13 @@ struct Equality {
 
     // Patterns
     bool match(Match *a, Match *b, int depth) {
-        if (!exec(a->subject, b->subject, depth)) {
-            return false;
-        }
-
-        if (a->cases.size() != b->cases.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < a->cases.size(); i++) {
-            auto a_case = a->cases[i];
-            auto b_case = b->cases[i];
-
-            if (!exec(a_case.pattern, b_case.pattern, depth)) {
-                return false;
-            }
-
-            if (!exec(a_case.guard, b_case.guard, depth)) {
-                return false;
-            }
-
-            if (!exec(a_case.body, b_case.body, depth)) {
-                return false;
-            }
-        }
-
-        return true;
+        return exec(a->subject, b->subject, depth) && exec(a->cases, b->cases, depth);
     }
     bool matchvalue(MatchValue *a, MatchValue *b, int depth) {
         return exec(a->value, b->value, depth);
     }
     bool matchsingleton(MatchSingleton *a, MatchSingleton *b, int depth) {
-        return a->value == b->value;
+        return exec(a->value, b->value, depth);
     }
     bool matchsequence(MatchSequence *a, MatchSequence *b, int depth) {
         return exec(a->patterns, b->patterns, depth);
@@ -334,7 +443,7 @@ struct Equality {
                 return false;
             }
         }
-        return a->rest == b->rest;
+        return exec(a->rest, b->rest, depth);
     }
     bool matchclass(MatchClass *a, MatchClass *b, int depth) {
         if (!exec(a->cls, b->cls, depth)) {
@@ -350,19 +459,19 @@ struct Equality {
             return false;
         }
         for (int i = 0; i < a->kwd_attrs.size(); i++) {
-            if (a->kwd_attrs[i] == b->kwd_attrs[i]) {
+            if (!exec(a->kwd_attrs[i], b->kwd_attrs[i], depth)) {
                 return false;
             }
-            if (a->kwd_patterns[i] == b->kwd_patterns[i]) {
+            if (!exec(a->kwd_patterns[i], b->kwd_patterns[i], depth)) {
                 return false;
             }
         }
 
         return true;
     }
-    bool matchstar(MatchStar *a, MatchStar *b, int depth) { return a->name == b->name; }
+    bool matchstar(MatchStar *a, MatchStar *b, int depth) { return exec(a->name, b->name, depth); }
     bool matchas(MatchAs *a, MatchAs *b, int depth) {
-        return exec(a->pattern, b->pattern, depth) && a->name == b->name;
+        return exec(a->pattern, b->pattern, depth) && exec(a->name, b->name, depth);
     }
     bool matchor(MatchOr *a, MatchOr *b, int depth) {
         return exec(a->patterns, b->patterns, depth);

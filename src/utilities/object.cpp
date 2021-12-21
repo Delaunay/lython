@@ -45,14 +45,14 @@ void GCObject::free(GCObject *child) {
 
 GCObject::~GCObject() {
     // logging here generate:
-    info("freeing {}: {}", (void *)this, meta::type_name(class_id));
+    // info("freeing {}: {}", (void *)this, meta::type_name(class_id));
     int ccclass_id = class_id;
 
     for (auto obj: children) {
         free(obj);
     }
 
-    info("freed {}", meta::type_name(ccclass_id));
+    // info("freed {}", meta::type_name(ccclass_id));
 }
 
 } // namespace lython

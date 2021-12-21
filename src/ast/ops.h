@@ -14,8 +14,14 @@ bool equal(ExprNode *a, ExprNode *b);
 bool equal(Pattern *a, Pattern *b);
 bool equal(StmtNode *a, StmtNode *b);
 bool equal(ModNode *a, ModNode *b);
-// template <>
-void print(Node *const &obj, std::ostream &out);
+
+void print(Node const *&obj, std::ostream &out);
+void print(ExprNode const *&obj, std::ostream &out);
+void print(Pattern const *&obj, std::ostream &out);
+void print(StmtNode const *&obj, std::ostream &out);
+void print(ModNode const *&obj, std::ostream &out);
+
+String str(ExprNode const *obj);
 
 } // namespace lython
 

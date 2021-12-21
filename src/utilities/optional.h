@@ -16,6 +16,15 @@ class Optional {
         }
     }
 
+    // void print(std::ostream &out) {
+    //     if (has_value()) {
+    //         out << str(value());
+    //         return;
+    //     }
+    //     out << "none";
+    //     return;
+    // }
+
     Optional &operator=(const T &data) {
         set_data(data);
         return *this;

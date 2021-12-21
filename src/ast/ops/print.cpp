@@ -36,21 +36,6 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream &, int> {
         return latest;
     }
 
-    // ModRet exec(ModNode_t *stmt, int depth, std::ostream &out) {
-    //     return Super::exec(stmt, depth - 1, out);
-    // }
-
-    // PatRet exec(Pattern_t *stmt, int depth, std::ostream &out) {
-    //     return Super::exec(stmt, depth - 1, out);
-    // }
-
-    // ExprRet exec(ExprNode_t *stmt, int depth, std::ostream &out) {
-    //     return Super::exec(stmt, depth - 1, out);
-    // }
-
-    // StmtRet exec(StmtNode_t *stmt, int depth, std::ostream &out) {
-    //     return Super::exec(stmt, depth - 1, out);
-    // }
     ReturnType print_body(Array<StmtNode *> const &body, int depth, std::ostream &out, int level,
                           bool print_last = false) {
 
@@ -138,11 +123,6 @@ void comprehension(Printer &p, Comprehension const &self, int depth, std::ostrea
 void print(Comprehension const &self, std::ostream &out) {
     Printer p;
     comprehension(p, self, 0, out, 0);
-}
-
-void print(Node const *n, std::ostream &out) {
-    auto p = Printer();
-    p.Super::exec<bool>(n, out, 0);
 }
 
 ReturnType Printer::attribute(Attribute const *self, int depth, std::ostream &out, int level) {
@@ -1169,6 +1149,33 @@ int get_precedence(Node const *node) {
         return 10;
     }
     return 1000;
+}
+
+void print(Node const *obj, std::ostream &out) {
+    Printer p;
+    p.exec<bool>(obj, out, 0);
+}
+void print(ExprNode const *obj, std::ostream &out) {
+    Printer p;
+    p.exec(obj, 0, out, 0);
+}
+void print(Pattern const *obj, std::ostream &out) {
+    Printer p;
+    p.exec(obj, 0, out, 0);
+}
+void print(StmtNode const *obj, std::ostream &out) {
+    Printer p;
+    p.exec(obj, 0, out, 0);
+}
+void print(ModNode const *obj, std::ostream &out) {
+    Printer p;
+    p.exec(obj, 0, out, 0);
+}
+
+String str(ExprNode const *obj) {
+    StringStream ss;
+    print(obj, ss);
+    return ss.str();
 }
 
 } // namespace lython
