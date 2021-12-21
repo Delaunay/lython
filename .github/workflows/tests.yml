@@ -3,6 +3,23 @@ name: tests
 on: [push, pull_request]
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install
+        run: |
+          sudo apt-get update
+          sudo apt-get install clang-format-12
+          sudo ln -f /usr/bin/clang-format-12 /usr/bin/clang-format
+
+      - name: Format
+        run: |
+          find src -name '*.cpp'|xargs clang-format --dry-run --Werror --style=file
+          find src -name '*.h'|xargs clang-format --dry-run --Werror --style=file
+
   tests:
     runs-on: ubuntu-latest
 

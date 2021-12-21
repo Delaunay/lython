@@ -361,7 +361,7 @@ struct Equality {
         ;
     }
     bool starred(Starred *a, Starred *b, int depth) {
-        return exec(a->value, b->value, depth) && exec(a->ctx, b->ctx, depth);
+        return exec(a->value, b->value, depth) /*&& exec(a->ctx, b->ctx, depth) */;
     }
     bool name(Name *a, Name *b, int depth) { return exec(a->id, b->id, depth); }
     bool listexpr(ListExpr *a, ListExpr *b, int depth) { return exec(a->elts, b->elts, depth); }

@@ -105,7 +105,7 @@ SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 IF(UNIX)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
-        EXECUTABLE ctest -j 4
+        EXECUTABLE ctest -j 4 --output-on-failure
         BASE_DIRECTORY "${PROJECT_SOURCE_DIR}/src"
         DEPENDS test)
 ENDIF(UNIX)
