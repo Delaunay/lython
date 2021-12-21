@@ -28,6 +28,15 @@ class Optional {
         return *this;
     }
 
+    bool operator==(Optional const &opt) const {
+        if (opt.has_value() == has_value()) {
+            if (opt.has_value()) {
+                return opt.value() == value();
+            }
+        }
+        return false;
+    }
+
     ~Optional() {
         if (_has_data) {
             holder.data.value.~T();

@@ -45,6 +45,7 @@ SET(ADD_HEADERS
 SET(ADD_SOURCE
     ast/nodes.cpp
     ast/ops/context.cpp
+    ast/ops/equality.cpp
     ast/print.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
@@ -53,7 +54,7 @@ SET(ADD_SOURCE
     parser/parsing_error.cpp
     lowering/lowering.cpp
     sema/sema.cpp
-    utilities/allocator.cpp
+    utilities/allocator.cpp 
     utilities/metadata.cpp
     utilities/pool.cpp
     utilities/object.cpp

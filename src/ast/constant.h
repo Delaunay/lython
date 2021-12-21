@@ -7,8 +7,12 @@ namespace lython {
 
 struct ConstantValue {
     public:
-    struct invalid_t {};
-    struct none_t {};
+    struct invalid_t {
+        bool operator==(invalid_t const &t) const { return true; }
+    };
+    struct none_t {
+        bool operator==(none_t const &t) const { return true; }
+    };
 
     ; // clang-format off
     #define ConstantType(POC, CPX)       \
@@ -51,6 +55,28 @@ struct ConstantValue {
     ConstantValue &operator=(ConstantValue const &vv) {
         copy_union(vv.kind, vv.value);
         return *this;
+    }
+
+    bool operator==(ConstantValue const &v) const {
+        if (v.kind != kind) {
+            return false;
+        }
+
+        // clang-format off
+        switch (kind) {
+        #define CMP(kind, type, name) case T##kind: return value.name == v.value.name;
+
+        #define POD(kind, type, name) CMP(kind, type, name) 
+        #define CPX(kind, type, name) CMP(kind, type, name) 
+
+        ConstantType(POD, CPX);
+        
+        #undef CPX
+        #undef POD
+        }
+        // clang-format on
+
+        return false;
     }
 
     void print(std::ostream &out) const;

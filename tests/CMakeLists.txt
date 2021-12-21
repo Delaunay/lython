@@ -41,7 +41,9 @@ ADD_TEST(
 TEST_MACRO(sema)
 TEST_MACRO(lexer)
 TEST_MACRO(parser)
+TEST_MACRO(equality)
 TEST_MACRO(pool)
 TEST_MACRO(utilities)
+
 
 

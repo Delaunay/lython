@@ -54,6 +54,9 @@ class AbstractBuffer {
         _next_char  = getc();
     }
 
+    // Used to fetch a given line for error reporting
+    virtual String getline(int start_line, int end_line = -1) { return ""; }
+
     char  peek() { return _next_char; }
     int32 line() { return _line; }
     int32 col() { return _col; }
@@ -95,6 +98,32 @@ class FileBuffer: public AbstractBuffer {
 
     const String &file_name() override { return _file_name; }
 
+    void reset() override {
+        fseek(_file, 0, SEEK_SET);
+        AbstractBuffer::reset();
+    }
+
+    String getline(int start_line, int end_line = -1) {
+        fpos_t pos;
+        fgetpos(_file, &pos);
+        //--
+
+        String result;
+        result.reserve(128);
+        fseek(_file, start_line, SEEK_SET);
+
+        char c = fgetc(_file);
+
+        while (c != '\n') {
+            result.push_back(c);
+            c = fgetc(_file);
+        }
+
+        // --
+        fsetpos(_file, &pos);
+        return result;
+    }
+
     private:
     String _file_name;
     FILE * _file{nullptr};
@@ -128,6 +157,26 @@ class StringBuffer: public AbstractBuffer {
     void reset() override {
         _pos = 0;
         AbstractBuffer::reset();
+    }
+
+    String getline(int start_line, int end_line = -1) {
+        uint32 old_pos = _pos;
+        //--
+
+        String result;
+        result.reserve(128);
+        _pos = start_line;
+
+        char c = getc();
+
+        while (c != '\n') {
+            result.push_back(c);
+            c = getc();
+        }
+
+        // --
+        _pos = old_pos;
+        return result;
     }
 
     // helper for testing
