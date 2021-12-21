@@ -130,38 +130,34 @@ inline void assert_true(bool cond, char const *message, char const *assert_expr,
 }
 } // namespace lython
 
-#else
-// Make a simple exception
-#    define NEW_EXCEPTION(name)                                \
-        class name: public Exception {                         \
-            public:                                            \
-            template <typename... Args>                        \
-            name(const char *fmt, const Args &...args):        \
-                Exception(fmt, std::string(#name), args...) {} \
-        };
-
-#    define SYM_LOG_HELPER(level, ...) lython::log(level, LOC, __VA_ARGS__)
-#    define info(...)                  SYM_LOG_HELPER(lython::LogLevel::Info, __VA_ARGS__)
-#    define warn(...)                  SYM_LOG_HELPER(lython::LogLevel::Warn, __VA_ARGS__)
-#    define debug(...)                 SYM_LOG_HELPER(lython::LogLevel::Debug, __VA_ARGS__)
-#    define error(...)                 SYM_LOG_HELPER(lython::LogLevel::Error, __VA_ARGS__)
-#    define fatal(...)                 SYM_LOG_HELPER(lython::LogLevel::Fatal, __VA_ARGS__)
-
-#    define SYM_LOG_TRACE_HELPER(level, depth, end, ...) \
-        lython::log_trace(level, depth, end, LOC, __VA_ARGS__)
-
-#    define trace(depth, ...) \
-        SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
-#    define trace_start(depth, ...) \
-        SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
-#    define trace_end(depth, ...) \
-        SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, true, __VA_ARGS__)
-
-#    ifdef assert
-#        undef assert
-#    endif
-
-// clang-format off
-#    define assert(expr, message) assert_true((bool)(expr), message, #expr, LOC)
-// clang-format on
 #endif
+
+// Make a simple exception
+#define NEW_EXCEPTION(name)                                                                        \
+    class name: public Exception {                                                                 \
+        public:                                                                                    \
+        template <typename... Args>                                                                \
+        name(const char *fmt, const Args &...args): Exception(fmt, std::string(#name), args...) {} \
+    };
+
+#define SYM_LOG_HELPER(level, ...) lython::log(level, LOC, __VA_ARGS__)
+#define info(...)                  SYM_LOG_HELPER(lython::LogLevel::Info, __VA_ARGS__)
+#define warn(...)                  SYM_LOG_HELPER(lython::LogLevel::Warn, __VA_ARGS__)
+#define debug(...)                 SYM_LOG_HELPER(lython::LogLevel::Debug, __VA_ARGS__)
+#define error(...)                 SYM_LOG_HELPER(lython::LogLevel::Error, __VA_ARGS__)
+#define fatal(...)                 SYM_LOG_HELPER(lython::LogLevel::Fatal, __VA_ARGS__)
+
+#define SYM_LOG_TRACE_HELPER(level, depth, end, ...) \
+    lython::log_trace(level, depth, end, LOC, __VA_ARGS__)
+
+#define trace(depth, ...) SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
+#define trace_start(depth, ...) \
+    SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
+#define trace_end(depth, ...) \
+    SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, true, __VA_ARGS__)
+
+#ifdef assert
+#    undef assert
+#endif
+
+#define assert(expr, message) assert_true((bool)(expr), message, #expr, LOC)

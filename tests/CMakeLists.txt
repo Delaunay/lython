@@ -38,6 +38,7 @@ ADD_TEST(
 
 # add test here
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
+TEST_MACRO(logging)
 TEST_MACRO(sema)
 TEST_MACRO(lexer)
 TEST_MACRO(parser)

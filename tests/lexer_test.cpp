@@ -25,6 +25,7 @@ TEST_CASE("Lexer") {
     IMPORT_TEST(TEST_LEXING)
 }
 
+/*
 void run_testcase(String const &name, Array<TestCase> cases) {
     info("Testing {}", name);
     for (auto &c: cases) {
@@ -55,3 +56,4 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 #undef MATCH
 
 #undef GENTEST
+*/
