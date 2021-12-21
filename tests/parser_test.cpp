@@ -32,8 +32,24 @@ inline String parse_it(String code) {
     SECTION(#code) { REQUIRE(strip(parse_it(code())) == strip(code())); }
 
 TEST_CASE("Parser") {
-    CODE_SAMPLES(TEST_PARSING)
-    IMPORT_TEST(TEST_PARSING)
+    CODE_SAMPLES(TEST_PARSING);
+    IMPORT_TEST(TEST_PARSING);
+}
+
+TEST_CASE("Parser_ErrorHandling") {
+    String code = "def"
+                  ""
+                  ""
+                  "";
+
+    StringBuffer reader(code);
+    Module       module;
+
+    Lexer  lex(reader);
+    Parser parser(lex);
+    auto   expr = [&]() { Module *mod = parser.parse_module(); };
+
+    CHECK_THROWS_AS(expr(), EndOfFileError);
 }
 
 void run_testcase(String const &name, Array<TestCase> cases) {
@@ -45,7 +61,7 @@ void run_testcase(String const &name, Array<TestCase> cases) {
 }
 
 #define GENTEST(name)                                               \
-    TEMPLATE_TEST_CASE("PARSE_" #name, #name, name) {               \
+    TEMPLATE_TEST_CASE("Parser_" #name, #name, name) {              \
         run_testcase(str(nodekind<TestType>()), name##_examples()); \
     }
 

@@ -23,21 +23,31 @@ TEST_CASE("Equality_notequal") { run_testcase_notequal(); }
 Array<Array<TestCase>> const &Not_Equal_examples() {
     static Array<Array<TestCase>> ex = {
         {
+            // node kind is different
             {"continue"},
             {"pass"},
         },
         {
+            // value is different
             {"1"},
             {"2"},
         },
         {
+            /// type is different
             {"1"},
             {"1.2"},
+        },
+        {
+            // variable name is different
+            {"a"},
+            {"b"},
         },
     };
     return ex;
 }
 
+// Equality is longest when checking for code that are equals
+// Unequal code will fail very fast as node kind will be different
 inline bool equal_it(String code_a, String code_b) {
 
     StringBuffer reader1(code_a);

@@ -113,6 +113,7 @@ Array<TestCase> const &Try_examples() {
 Array<TestCase> const &Raise_examples() {
     static Array<TestCase> ex = {
         {"raise a from b", {"a", "b"}},
+        {"raise a", {"a"}},
     };
     return ex;
 }

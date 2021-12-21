@@ -3,26 +3,13 @@
 
 #include "ast/nodes.h"
 #include "dtypes.h"
-#include "parser/parsing_error.h"
 
 #include <catch2/catch.hpp>
 #include <sstream>
 
 using namespace lython;
 
-struct TestCase {
-    TestCase(String const &c, Array<String> const &u = Array<String>(), String const &t = "",
-             LythonException *ptr = nullptr):
-        code(c),
-        undefined(u), expected_type(t), exception(ptr) {}
-
-    String           code;
-    Array<String>    undefined;
-    String           expected_type;
-    LythonException *exception;
-};
-
-#define GENCASES(name) Array<TestCase> const &name##_examples();
+#define GENCASES(name) Array<TestCase> const &name##_error_examples();
 
 #define X(name, _)
 #define SSECTION(name)

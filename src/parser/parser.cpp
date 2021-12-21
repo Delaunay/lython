@@ -122,6 +122,9 @@ ParsingError *Parser::write_error(Array<int> const &expected, Node *wip_expressi
     StringStream ss;
     err->print(ss);
 
+    if (token().type() == tok_eof) {
+        throw EndOfFileError();
+    }
     warn("{}", ss.str());
     return err;
 }
@@ -1330,7 +1333,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
 
     bool keywords = false;
 
-    while (token().type() != kind) {
+    while (token().type() != kind && token().type() != tok_eof) {
         ExprNode *value = nullptr;
 
         Arg arg;

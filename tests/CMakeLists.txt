@@ -17,7 +17,7 @@ INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
 # Add your test to CMAKE
 # to run all tests run 'make test'
 MACRO(TEST_MACRO NAME) # LIBRARIES
-  ADD_EXECUTABLE(${NAME}_test main.cpp ${NAME}_test.cpp cases.cpp samples.cpp ${TEST_HEADERS})
+  ADD_EXECUTABLE(${NAME}_test main.cpp ${NAME}_test.cpp cases_errors.cpp cases.cpp samples.cpp ${TEST_HEADERS})
   TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 liblython liblogging)
   ADD_DEPENDENCIES(${NAME}_test liblython liblogging)
 
