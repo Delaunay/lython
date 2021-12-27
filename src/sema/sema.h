@@ -190,7 +190,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     public:
     virtual ~SemanticAnalyser() {}
 
-    bool typecheck(TypeExpr *one, TypeExpr *two);
+    bool typecheck(TypeExpr *one, TypeExpr *two, CodeLocation const &loc);
 
     bool add_name(ExprNode *expr, ExprNode *value, ExprNode *type);
 

@@ -167,7 +167,7 @@ Array<TestCase> const &For_examples() {
 
 Array<TestCase> const &AnnAssign_examples() {
     static Array<TestCase> ex = {
-        {"a: b = c", {"b", "c"}},
+        {"a: bool = c", {"c"}},
     };
     return ex;
 }
@@ -237,16 +237,16 @@ Array<TestCase> const &ClassDef_examples() {
 Array<TestCase> const &FunctionDef_examples() {
     static Array<TestCase> ex = {
         {"@j\n"
-         "def a(b, c=d, *e, f=g, **h) -> i:\n"
+         "def a(b, c=d, *e, f=g, **h) -> bool:\n"
          "    \"\"\"docstring\"\"\"\n"
-         "    pass",
-         {"d", "g", "i", "j"}},
+         "    return True",
+         {"d", "g", "j"}},
 
         {"@j(l, m, c=n)\n"
          "@k\n"
-         "def a(b: c, d: e = f):\n"
+         "def a(b: bool, d: bool = True):\n"
          "    pass",
-         {"c", "f", "e", "j", "l", "m", "n", "k"}},
+         {"j", "l", "m", "n", "k"}},
     };
     return ex;
 }
