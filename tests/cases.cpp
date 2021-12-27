@@ -167,7 +167,7 @@ Array<TestCase> const &For_examples() {
 
 Array<TestCase> const &AnnAssign_examples() {
     static Array<TestCase> ex = {
-        {"a: bool = c", {"c"}},
+        {"a: bool = True", {}},
     };
     return ex;
 }
