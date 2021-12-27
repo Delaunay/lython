@@ -94,6 +94,8 @@ using Dict = std::unordered_map<K, V, H, std::equal_to<K>, AllocatorCPU<std::pai
 template <typename V>
 using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, AllocatorCPU<V>>;
 
+class LythonException: public std::exception {};
+
 } // namespace lython
 
 #endif

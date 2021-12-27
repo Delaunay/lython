@@ -48,16 +48,16 @@ struct BaseVisitor {
     using rtype##_t = typename std::conditional<isConst, rtype const, rtype>::type;
 
 #define X(name, _)
-#define SECTION(name)
+#define SSECTION(name)
 #define EXPR(name, fun)  TYPE_GEN(name)
 #define STMT(name, fun)  TYPE_GEN(name)
 #define MOD(name, fun)   TYPE_GEN(name)
 #define MATCH(name, fun) TYPE_GEN(name)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 #undef X
-#undef SECTION
+#undef SSECTION
 #undef EXPR
 #undef STMT
 #undef MOD
@@ -105,18 +105,18 @@ struct BaseVisitor {
 
             #define X(name, _)
             #define PASS(a, b)
-            #define SECTION(_)
+            #define SSECTION(_)
             #define MOD(name, fun)\
                 case NodeKind::name: {\
                     name##_t* m = reinterpret_cast<name##_t*>(mod);\
                     return fun(m, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, PASS, PASS, MOD, PASS)
+            NODEKIND_ENUM(X, SSECTION, PASS, PASS, MOD, PASS)
 
             #undef X
             #undef PASS
-            #undef SECTION
+            #undef SSECTION
             #undef MOD
 
             default:
@@ -137,18 +137,18 @@ struct BaseVisitor {
 
             #define X(name, _)
             #define PASS(a, b)
-            #define SECTION(_)
+            #define SSECTION(_)
             #define MATCH(name, fun)\
                 case NodeKind::name: {\
                     name##_t* p = reinterpret_cast<name##_t*>(pat);\
                     return fun(p, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, PASS, PASS, PASS, MATCH)
+            NODEKIND_ENUM(X, SSECTION, PASS, PASS, PASS, MATCH)
 
             #undef X
             #undef PASS
-            #undef SECTION
+            #undef SSECTION
             #undef MATCH
 
             default:
@@ -168,18 +168,18 @@ struct BaseVisitor {
 
             #define X(name, _)
             #define PASS(a, b)
-            #define SECTION(_) 
+            #define SSECTION(_) 
             #define EXPR(name, fun)\
                 case NodeKind::name: {\
                     name##_t* node = reinterpret_cast<name##_t*>(expr);\
                     return fun(node, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, EXPR, PASS, PASS, PASS)
+            NODEKIND_ENUM(X, SSECTION, EXPR, PASS, PASS, PASS)
 
             #undef X
             #undef PASS
-            #undef SECTION
+            #undef SSECTION
             #undef EXPR
 
             default:
@@ -200,18 +200,18 @@ struct BaseVisitor {
 
             #define X(name, _)
             #define PASS(a, b)
-            #define SECTION(_)
+            #define SSECTION(_)
             #define STMT(name, fun)\
                 case NodeKind::name: {\
                     name##_t* n = reinterpret_cast<name##_t*>(stmt);\
                     return this->fun(n, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, PASS, STMT, PASS, PASS)
+            NODEKIND_ENUM(X, SSECTION, PASS, STMT, PASS, PASS)
 
             #undef X
             #undef PASS
-            #undef SECTION
+            #undef SSECTION
             #undef STMT
 
             default:
@@ -228,16 +228,16 @@ struct BaseVisitor {
     }
 
 #define X(name, _)
-#define SECTION(name)
+#define SSECTION(name)
 #define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 #undef X
-#undef SECTION
+#undef SSECTION
 #undef EXPR
 #undef STMT
 #undef MOD

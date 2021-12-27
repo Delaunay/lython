@@ -47,10 +47,20 @@ bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type)
     return false;
 }
 
+bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
+                                 CodeLocation const &loc) {
+    auto match = equal(lhs_t, rhs_t);
+    if (!match) {
+        throw TypeError(
+            fmt::format("Expected {}: {} got {}: {}", str(lhs), str(lhs_t), str(rhs), str(rhs_t)),
+            loc.repr());
+    }
+    return match;
+}
 bool SemanticAnalyser::typecheck(TypeExpr *one, TypeExpr *two, CodeLocation const &loc) {
     auto match = equal(one, two);
     if (!match) {
-        throw TypeError(fmt::format("{}: {} != {}", loc.repr(), str(one), str(two)));
+        throw TypeError(fmt::format("{} != {}", str(one), str(two)), loc.repr());
     }
     return match;
 }
@@ -190,6 +200,7 @@ TypeExpr *SemanticAnalyser::setcomp(SetComp *n, int depth) {
     type->value = val_type;
     return type;
 }
+
 TypeExpr *SemanticAnalyser::dictcomp(DictComp *n, int depth) {
     Scope scope(bindings);
     for (auto &gen: n->generators) {
@@ -616,7 +627,8 @@ TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     if (type.has_value()) {
         // if we were able to deduce a type from the expression
         // make sure it matches the annotation constraint
-        typecheck(constraint, type.value(), LOC);
+        typecheck(n->target, constraint, n->value.value(), type.value(), LOC);
+
         value = n->value.value();
         return type.value();
     }

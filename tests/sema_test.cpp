@@ -53,14 +53,19 @@ void run_testcase(String const &name, Array<TestCase> cases) {
     TypeExpr *    deduced_type = nullptr;
     for (auto &c: cases) {
         Module *mod;
-        std::tie(deduced_type, errors) = sema_it(c.code, mod);
 
-        REQUIRE(errors == expected_errors(c));
+        if (c.exception == nullptr) {
+            std::tie(deduced_type, errors) = sema_it(c.code, mod);
 
-        if (c.expected_type != "") {
-            REQUIRE(c.expected_type == str(deduced_type));
+            REQUIRE(errors == expected_errors(c));
+
+            if (c.expected_type != "") {
+                REQUIRE(c.expected_type == str(deduced_type));
+            }
+            delete mod;
+        } else {
+            REQUIRE_THROWS_WITH(sema_it(c.code, mod), c.exception->what());
         }
-        delete mod;
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }

@@ -7,8 +7,6 @@
 
 namespace lython {
 
-class LythonException: public std::exception {};
-
 class ParsingException: public LythonException {};
 
 class EndOfFileError: public ParsingException {};

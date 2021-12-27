@@ -1,5 +1,7 @@
 #include "cases.h"
 
+#include "sema/sema.h"
+
 Array<TestCase> const &Match_examples() {
     static Array<TestCase> ex = {
         // TODO: check this test case on python
@@ -168,6 +170,7 @@ Array<TestCase> const &For_examples() {
 Array<TestCase> const &AnnAssign_examples() {
     static Array<TestCase> ex = {
         {"a: bool = True", {}},
+        {"a: f32 = 2.0", {}, "", new TypeError("Expected a: f32 got 2.0: f64", "")},
     };
     return ex;
 }

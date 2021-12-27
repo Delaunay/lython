@@ -14,12 +14,15 @@ ExprNode *False();
 ExprNode *True();
 ExprNode *none();
 
-struct TypeError: public std::exception {
-    TypeError(std::string const &msg): msg(msg) {}
+struct SemaException: LythonException {};
+
+struct TypeError: public SemaException {
+    TypeError(std::string const &msg, std::string const &loc): msg(msg), loc(loc) {}
 
     virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { return msg.c_str(); }
 
     std::string msg;
+    std::string loc;
 };
 
 struct BindingEntry {
@@ -192,6 +195,9 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     bool typecheck(TypeExpr *one, TypeExpr *two, CodeLocation const &loc);
 
+    bool typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
+                   CodeLocation const &loc);
+
     bool add_name(ExprNode *expr, ExprNode *value, ExprNode *type);
 
     TypeExpr *oneof(Array<TypeExpr *> types) {
@@ -220,16 +226,16 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 #define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);
 
 #define X(name, _)
-#define SECTION(name)
+#define SSECTION(name)
 #define MOD(name, fun)
 #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
 #define STMT(name, fun)  FUNCTION_GEN(name, fun)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 #undef X
-#undef SECTION
+#undef SSECTION
 #undef EXPR
 #undef STMT
 #undef MOD
