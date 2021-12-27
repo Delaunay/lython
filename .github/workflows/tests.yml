@@ -75,4 +75,4 @@ jobs:
           git add *.html *.css
           git commit -m "deploy"
           git checkout -b gh-pages
-          git push -f git@github.com:Delaunay/lython.git master:gh-pages
+          # git push -f git@github.com:Delaunay/lython.git master:gh-pages
