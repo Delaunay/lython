@@ -1,5 +1,5 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -45,6 +45,14 @@ bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type)
     }
 
     return false;
+}
+
+bool SemanticAnalyser::typecheck(TypeExpr *one, TypeExpr *two) {
+    auto match = equal(one, two);
+    if (!match) {
+        throw TypeError(fmt::format("{} != {}", str(one), str(two)));
+    }
+    return match;
 }
 
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
@@ -432,7 +440,7 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
         // Annotated type takes precedence
         auto return_t = n->returns.value();
         auto typetype = exec(return_t, depth);
-        typecheck(typetype, type_Type());
+        // typecheck(typetype, type_Type());
 
         type->returns = return_t;
         typecheck(return_t, oneof(return_effective));

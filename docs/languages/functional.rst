@@ -15,5 +15,3 @@ Base
 * Sum type: Tagged Union, Variant
 * Product type: Record, Struct, 
 * Closure: State full function
-
-

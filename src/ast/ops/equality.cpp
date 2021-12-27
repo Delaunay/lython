@@ -480,26 +480,46 @@ struct Equality {
 };
 
 bool equal(Node *a, Node *b) {
+    int n = (a == nullptr) + (b == nullptr);
+    if (n > 0) {
+        return n == 2;
+    }
     Equality eq;
     return eq.exec(a, b);
 }
 
 bool equal(ExprNode *a, ExprNode *b) {
+    int n = (a == nullptr) + (b == nullptr);
+    if (n > 0) {
+        return n == 2;
+    }
     Equality eq;
     return eq.exec(a, b);
 }
 
 bool equal(Pattern *a, Pattern *b) {
+    int n = (a == nullptr) + (b == nullptr);
+    if (n > 0) {
+        return n == 2;
+    }
     Equality eq;
     return eq.exec(a, b);
 }
 
 bool equal(StmtNode *a, StmtNode *b) {
+    int n = (a == nullptr) + (b == nullptr);
+    if (n > 0) {
+        return n == 2;
+    }
     Equality eq;
     return eq.exec(a, b);
 }
 
 bool equal(ModNode *a, ModNode *b) {
+    int n = (a == nullptr) + (b == nullptr);
+    if (n > 0) {
+        return n == 2;
+    }
     Equality eq;
     return eq.exec(a, b);
 }

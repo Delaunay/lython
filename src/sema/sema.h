@@ -2,12 +2,21 @@
 #define LYTHON_SEMA_HEADER
 
 #include "ast/magic.h"
+#include "ast/ops.h"
 #include "ast/visitor.h"
 #include "utilities/strings.h"
 
 namespace lython {
 
 using TypeExpr = ExprNode;
+
+struct TypeError: public std::exception {
+    TypeError(std::string const &msg): msg(msg) {}
+
+    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { return msg.c_str(); }
+
+    std::string msg;
+};
 
 struct BindingEntry {
     BindingEntry(StringRef a = StringRef(), Node *b = nullptr, TypeExpr *c = nullptr):
@@ -171,7 +180,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     public:
     virtual ~SemanticAnalyser() {}
 
-    bool typecheck(TypeExpr *one, TypeExpr *two) { return true; }
+    bool typecheck(TypeExpr *one, TypeExpr *two);
 
     bool add_name(ExprNode *expr, ExprNode *value, ExprNode *type);
 
