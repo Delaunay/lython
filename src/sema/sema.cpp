@@ -365,7 +365,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
             type = arg.annotation.value();
 
             auto typetype = exec(type, depth);
-            typecheck(typetype, type_Type());
+            typecheck(typetype, Type_t());
         }
 
         // if default value & annotation types must match
@@ -405,7 +405,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
             type = arg.annotation.value();
 
             auto typetype = exec(type, depth);
-            typecheck(typetype, type_Type());
+            typecheck(typetype, Type_t());
         }
 
         // if default value & annotation types must match
@@ -607,7 +607,7 @@ TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     auto typetype   = exec(n->annotation, depth);
 
     // Type annotation must be a type
-    typecheck(typetype, type_Type());
+    typecheck(typetype, Type_t());
 
     auto type = exec<TypeExpr *>(n->value, depth);
 
@@ -786,7 +786,7 @@ BuiltinType make_type(String const &name) {
 }
 
 #define TYPE(name)                                  \
-    TypeExpr *type_##name() {                       \
+    TypeExpr *name##_t() {                          \
         static BuiltinType type = make_type(#name); \
         return &type;                               \
     }
@@ -795,12 +795,27 @@ BUILTIN_TYPES(TYPE)
 
 #undef TYPE
 
-TypeExpr *SemanticAnalyser::dicttype(DictType *n, int depth) { return type_Type(); }
-TypeExpr *SemanticAnalyser::arraytype(ArrayType *n, int depth) { return type_Type(); }
-TypeExpr *SemanticAnalyser::arrow(Arrow *n, int depth) { return type_Type(); }
-TypeExpr *SemanticAnalyser::builtintype(BuiltinType *n, int depth) { return type_Type(); }
-TypeExpr *SemanticAnalyser::tupletype(TupleType *n, int depth) { return type_Type(); }
-TypeExpr *SemanticAnalyser::settype(SetType *n, int depth) { return type_Type(); }
-TypeExpr *SemanticAnalyser::classtype(ClassType *n, int depth) { return type_Type(); }
+ExprNode *none() {
+    static Constant constant(ConstantValue::none());
+    return &constant;
+}
+
+ExprNode *True() {
+    static Constant constant(true);
+    return &constant;
+}
+
+ExprNode *False() {
+    static Constant constant(false);
+    return &constant;
+}
+
+TypeExpr *SemanticAnalyser::dicttype(DictType *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::arraytype(ArrayType *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::arrow(Arrow *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::builtintype(BuiltinType *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::tupletype(TupleType *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::settype(SetType *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::classtype(ClassType *n, int depth) { return Type_t(); }
 
 } // namespace lython

@@ -14,6 +14,11 @@ struct ConstantValue {
         bool operator==(none_t const &t) const { return true; }
     };
 
+    static ConstantValue const &none() {
+        static ConstantValue n{none_t()};
+        return n;
+    }
+
     ; // clang-format off
     #define ConstantType(POC, CPX)       \
         POD(Invalid, invalid_t, invalid) \

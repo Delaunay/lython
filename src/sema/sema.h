@@ -10,6 +10,10 @@ namespace lython {
 
 using TypeExpr = ExprNode;
 
+ExprNode *False();
+ExprNode *True();
+ExprNode *none();
+
 struct TypeError: public std::exception {
     TypeError(std::string const &msg): msg(msg) {}
 
@@ -35,6 +39,7 @@ std::ostream &print(std::ostream &out, BindingEntry const &entry);
 
 #define BUILTIN_TYPES(TYPE) \
     TYPE(Type)              \
+    TYPE(None)              \
     TYPE(i8)                \
     TYPE(i16)               \
     TYPE(i32)               \
@@ -48,7 +53,7 @@ std::ostream &print(std::ostream &out, BindingEntry const &entry);
     TYPE(str)               \
     TYPE(bool)
 
-#define TYPE(name) TypeExpr *type_##name();
+#define TYPE(name) TypeExpr *name##_t();
 
 BUILTIN_TYPES(TYPE)
 
@@ -58,11 +63,16 @@ struct Bindings {
     Bindings() {
         bindings.reserve(128);
 
-#define TYPE(name) add(String(#name), type_##name(), type_Type());
+#define TYPE(name) add(String(#name), name##_t(), Type_t());
 
         BUILTIN_TYPES(TYPE)
 
 #undef TYPE
+
+        // Builtin constant
+        add(String("None"), none(), None_t());
+        add(String("True"), True(), bool_t());
+        add(String("False"), False(), bool_t());
     }
 
     // returns the varid it was inserted as
