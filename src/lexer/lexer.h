@@ -91,7 +91,12 @@ class AbstractLexer {
 
 class ReplayLexer: public AbstractLexer {
     public:
-    ReplayLexer(Array<Token> &tokens): tokens(tokens) {}
+    ReplayLexer(Array<Token> &tokens): tokens(tokens) {
+        Token &last = tokens[tokens.size() - 1];
+        if (last.type() != tok_eof) {
+            tokens.emplace_back(tok_eof, 0, 0);
+        }
+    }
 
     Token const &next_token() override final {
         if (i + 1 < tokens.size())

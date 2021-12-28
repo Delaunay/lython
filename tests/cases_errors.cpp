@@ -113,7 +113,22 @@ Array<TestCase> const &ClassDef_error_examples() {
 }
 
 Array<TestCase> const &FunctionDef_error_examples() {
-    static Array<TestCase> ex = {};
+    static Array<TestCase> ex = {
+        {"def "},
+        {"def name"},
+        {"def name("},
+        {"def name(arg"},
+        {"def name(arg, "},
+        {"def name(arg, a"},
+        {"def name(arg, a="},
+        {"def name(arg, a=b"},
+        {"def name(arg, a=b)"},
+        {"def name(arg, a=b) ->"},
+        {"def name(arg, a=b):"},
+        {"def name(arg, a=2):\n"},
+        {"def name(arg, a=2):\n"
+         "    "},
+    };
     return ex;
 }
 

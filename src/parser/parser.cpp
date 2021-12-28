@@ -1,5 +1,5 @@
-#include "parser.h"
 #include "ast/ops.h"
+#include "parser.h"
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
@@ -89,6 +89,8 @@ ParsingError *Parser::expect_operator(String const &op, bool eat, Node *wip_expr
         return nullptr;
     }
 
+    throw SyntaxError();
+
     err = &errors.emplace_back(ParsingError::syntax_error("Wrong operator"));
     StringStream ss;
     err->print(ss);
@@ -108,6 +110,8 @@ ParsingError *Parser::expect_tokens(Array<int> const &expected, bool eat, Node *
         }
     }
     // ----
+
+    throw SyntaxError();
 
     return write_error(expected, wip_expression, loc);
 }
@@ -148,6 +152,10 @@ Token Parser::parse_body(Node *parent, Array<StmtNode *> &out, int depth) {
         while (token().type() == tok_newline) {
             next_token();
         }
+    }
+
+    if (out.size() <= 0) {
+        throw SyntaxError();
     }
 
     auto last = token();
@@ -257,7 +265,11 @@ ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
     }
 
     Array<ExprNode *> elts;
-    elts.push_back(parse_expression_primary(parent, depth + 1));
+    auto              r = parse_expression_primary(parent, depth + 1);
+    if (r == nullptr) {
+        throw SyntaxError();
+    }
+    elts.push_back(r);
 
     while (token().type() == tok_comma) {
         next_token();
@@ -672,6 +684,9 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
         // in this context we are storing components inside the pattern
         //_context.push_back(ExprContext::Store);
         auto value = parse_expression_primary(parent, depth + 1);
+        if (value == nullptr) {
+            throw SyntaxError();
+        }
         //_context.pop_back();
         Pattern *pat = nullptr;
 
@@ -1155,6 +1170,9 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
     next_token();
 
     stmt->value = parse_expression(stmt, depth + 1, true);
+    if (stmt->value == nullptr) {
+        throw SyntaxError();
+    }
 
     end_code_loc(stmt, token());
     return stmt;
@@ -1212,7 +1230,6 @@ ExprNode *Parser::parse_name(Node *parent, int depth) {
     expr->ctx = context();
 
     end_code_loc(expr, token());
-
     expect_token(tok_identifier, true, expr, LOC);
     return expr;
 }
@@ -1333,7 +1350,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
 
     bool keywords = false;
 
-    while (token().type() != kind && token().type() != tok_eof) {
+    while (true) {
         ExprNode *value = nullptr;
 
         Arg arg;
@@ -1385,6 +1402,10 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
 
         if (token().type() == ',') {
             next_token();
+        } else if (token().type() == kind) {
+            break;
+        } else {
+            break;
         }
     }
 
@@ -1596,6 +1617,10 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
         }
 
         error("Unhandled list-comprehension case");
+    }
+
+    if (expr == nullptr) {
+        throw SyntaxError();
     }
 
     // fix the things we could not do at the begining
@@ -1907,7 +1932,8 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
     TRACE_START();
 
     if (previous == token()) {
-        error("Unhandled token {} previous tok was {}", str(token()), str(previous));
+        error("Unhandled token {} `{}` previous tok was `{}`", token().type(), str(token()),
+              str(previous));
         return nullptr;
     } else {
         previous = token();
@@ -2012,6 +2038,7 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
     }
 
     auto expr = parse_expression(parent, depth);
+    TRACE_START();
 
     // allow unpacking
     // promote to a tuple expression
@@ -2082,18 +2109,30 @@ ExprNode *Parser::parse_operators(Node *parent, ExprNode *lhs, int min_precedenc
             result->op    = op_conf.binarykind;
             result->right = rhs;
             lhs           = result;
+
+            if (rhs == nullptr) {
+                throw SyntaxError();
+            }
         } else if (op_conf.cmpkind != CmpOperator::None) {
             auto result  = parent->new_object<Compare>();
             result->left = lhs;
             result->ops.push_back(op_conf.cmpkind);
             result->comparators.push_back(rhs);
             lhs = result;
+
+            if (rhs == nullptr) {
+                throw SyntaxError();
+            }
         } else if (op_conf.boolkind != BoolOperator::None) {
             // TODO: check why is this not a binary node ?
             auto result    = parent->new_object<BoolOp>();
             result->op     = op_conf.boolkind;
             result->values = {lhs, rhs};
             lhs            = result;
+
+            if (rhs == nullptr) {
+                throw SyntaxError();
+            }
         } else {
             error("unknow operator {}", str(op_conf));
         }
@@ -2190,6 +2229,8 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
     // + <expr> | - <expr> | ! <expr> | ~ <expr>
 
     // TODO: return a dummy ExprNode
+    // cannot throw syntax error here, it breaks comprehension parsing
+    // throw SyntaxError();
     return nullptr;
 }
 

@@ -146,6 +146,11 @@ class Allocator {
 
     bool operator!=(Allocator const &alloc) const { return !(*this == alloc); }
 
+    // template <typename... Args>
+    // static void construct(T *value, Args &&...args) {
+    //     new ((void *)value) T(std::forward<Args>(args)...);
+    // }
+
     static void deallocate(pointer p, std::size_t n) {
         manual_free(meta::type_id<T>(), n);
         Device::free(static_cast<void *>(p), n * sizeof(T));

@@ -11,6 +11,8 @@ class ParsingException: public LythonException {};
 
 class EndOfFileError: public ParsingException {};
 
+class SyntaxError: ParsingException {};
+
 struct ParsingError {
     Array<int>   expected_tokens;
     Token        received_token;
