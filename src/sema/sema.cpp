@@ -4,6 +4,41 @@
 
 namespace lython {
 
+std::string const &TypeError::message() const {
+    if (cached_message != "") {
+        return cached_message;
+    }
+
+    Array<String> msg = {"Type "};
+    if (rhs_v) {
+        msg.push_back(str(rhs_v));
+    }
+    if (rhs_v) {
+        msg.push_back(": ");
+    }
+    if (rhs_t) {
+        msg.push_back(str(rhs_t));
+    } else {
+        msg.push_back("None");
+    }
+
+    msg.push_back(" is not compatible with ");
+    if (lhs_v) {
+        msg.push_back(str(lhs_v));
+    }
+    if (lhs_v) {
+        msg.push_back(": ");
+    }
+    if (lhs_t) {
+        msg.push_back(str(lhs_t));
+    } else {
+        msg.push_back("None");
+    }
+
+    cached_message = std::string(join("", msg));
+    return cached_message;
+}
+
 void Bindings::dump(std::ostream &out) const {
     auto big   = String(40, '-');
     auto small = String(20, '-');
@@ -47,20 +82,26 @@ bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type)
     return false;
 }
 
+TypeExpr *lookup(Bindings &binds, TypeExpr *lhs_t) {
+    if (lhs_t == nullptr) {
+        return lhs_t;
+    }
+    if (lhs_t->kind == NodeKind::Name) {
+        Name *nm = cast<Name>(lhs_t);
+        return binds.get_type(nm->varid);
+    }
+    return lhs_t;
+}
+
 bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
                                  CodeLocation const &loc) {
-    auto match = equal(lhs_t, rhs_t);
+
+    if (lhs_t && rhs_t)
+        debug("{} {} {} {}", str(lhs_t), lhs_t->kind, str(rhs_t), rhs_t->kind);
+
+    auto match = equal(lookup(bindings, lhs_t), lookup(bindings, rhs_t));
     if (!match) {
-        throw TypeError(
-            fmt::format("Expected {}: {} got {}: {}", str(lhs), str(lhs_t), str(rhs), str(rhs_t)),
-            loc.repr());
-    }
-    return match;
-}
-bool SemanticAnalyser::typecheck(TypeExpr *one, TypeExpr *two, CodeLocation const &loc) {
-    auto match = equal(one, two);
-    if (!match) {
-        throw TypeError(fmt::format("{} != {}", str(one), str(two)), loc.repr());
+        throw TypeError(lhs, lhs_t, rhs, rhs_t, loc);
     }
     return match;
 }
@@ -69,7 +110,7 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
     auto values_t = exec<ExprNode *>(n->values, depth);
     // TODO: check that op is defined for those types
     // use the op return type here
-    return bool_t();
+    return make_ref(n, "bool");
 }
 TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) {
     auto value_t = exec(n->value, depth);
@@ -80,7 +121,8 @@ TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 
     auto lhs_t = exec(n->left, depth);
     auto rhs_t = exec(n->right, depth);
-    typecheck(lhs_t, rhs_t, LOC);
+
+    typecheck(n->left, lhs_t, n->right, rhs_t, LOC);
 
     // TODO: check that op is defined for those types
     // use the op return type here
@@ -103,11 +145,12 @@ TypeExpr *SemanticAnalyser::lambda(Lambda *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::ifexp(IfExp *n, int depth) {
     auto test_t = exec(n->test, depth);
-    // typecheck(test_t, bool_t);
+
+    typecheck(n->test, test_t, nullptr, make_ref(n, "bool"), LOC);
     auto body_t   = exec(n->body, depth);
     auto orelse_t = exec(n->orelse, depth);
 
-    typecheck(body_t, orelse_t, LOC);
+    typecheck(nullptr, body_t, nullptr, orelse_t, LOC);
     return body_t;
 }
 TypeExpr *SemanticAnalyser::dictexpr(DictExpr *n, int depth) {
@@ -119,8 +162,8 @@ TypeExpr *SemanticAnalyser::dictexpr(DictExpr *n, int depth) {
         auto val_type = exec(n->values[i], depth);
 
         if (key_t != nullptr && val_t != nullptr) {
-            typecheck(key_type, key_t, LOC);
-            typecheck(val_type, val_t, LOC);
+            typecheck(n->keys[i], key_type, nullptr, key_t, LOC);
+            typecheck(n->values[i], val_type, nullptr, val_t, LOC);
         } else {
             key_t = key_type;
             val_t = val_type;
@@ -139,7 +182,7 @@ TypeExpr *SemanticAnalyser::setexpr(SetExpr *n, int depth) {
         auto val_type = exec(n->elts[i], depth);
 
         if (val_t != nullptr) {
-            typecheck(val_type, val_t, LOC);
+            typecheck(n->elts[i], val_type, nullptr, val_t, LOC);
         } else {
             val_t = val_type;
         }
@@ -273,13 +316,13 @@ TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { retur
 TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
     switch (n->value.type()) {
     case ConstantValue::TInt:
-        return make_ref(n, "i32");
+        return i32_t();
     case ConstantValue::TFloat:
-        return make_ref(n, "f32");
+        return f32_t();
     case ConstantValue::TDouble:
-        return make_ref(n, "f64");
+        return f64_t();
     case ConstantValue::TString:
-        return make_ref(n, "str");
+        return str_t();
     case ConstantValue::TBool:
         return make_ref(n, "bool");
     default:
@@ -328,7 +371,7 @@ TypeExpr *SemanticAnalyser::listexpr(ListExpr *n, int depth) {
         auto val_type = exec(n->elts[i], depth);
 
         if (val_t != nullptr) {
-            typecheck(val_type, val_t, LOC);
+            typecheck(n->elts[i], val_type, nullptr, val_t, LOC);
         } else {
             val_t = val_type;
         }
@@ -376,12 +419,12 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
             type = arg.annotation.value();
 
             auto typetype = exec(type, depth);
-            typecheck(typetype, Type_t(), LOC);
+            typecheck(type, typetype, nullptr, Type_t(), LOC);
         }
 
         // if default value & annotation types must match
         if (type && dvalue_t) {
-            typecheck(type, dvalue_t, LOC);
+            typecheck(arg.annotation.value(), type, dvalue, dvalue_t, LOC);
         }
 
         // if no annotation use default value type
@@ -416,12 +459,12 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
             type = arg.annotation.value();
 
             auto typetype = exec(type, depth);
-            typecheck(typetype, Type_t(), LOC);
+            typecheck(type, typetype, nullptr, Type_t(), LOC);
         }
 
         // if default value & annotation types must match
         if (type && dvalue_t) {
-            typecheck(type, dvalue_t, LOC);
+            typecheck(arg.annotation.value(), type, dvalue, dvalue_t, LOC);
         }
 
         // if no annotation use default value type
@@ -451,10 +494,10 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
         // Annotated type takes precedence
         auto return_t = n->returns.value();
         auto typetype = exec(return_t, depth);
-        typecheck(typetype, Type_t(), LOC);
+        typecheck(return_t, typetype, nullptr, Type_t(), LOC);
 
         type->returns = return_t;
-        typecheck(return_t, oneof(return_effective), LOC);
+        typecheck(n->returns.value(), return_t, nullptr, oneof(return_effective), LOC);
     }
 
     bindings.set_type(id, type);
@@ -534,7 +577,7 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
             auto target_t = exec(attras->annotation, depth);
 
             if (type.has_value()) {
-                typecheck(type.value(), target_t, LOC);
+                typecheck(attras->value.value(), type.value(), attras->annotation, target_t, LOC);
             }
 
             auto name = cast<Name>(attras->target);
@@ -607,7 +650,7 @@ TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
     auto expected_type = exec(n->target, depth);
     auto type          = exec(n->value, depth);
 
-    typecheck(type, expected_type, LOC);
+    typecheck(n->value, type, n->target, expected_type, LOC);
     return type;
 }
 
@@ -618,7 +661,7 @@ TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     auto typetype   = exec(n->annotation, depth);
 
     // Type annotation must be a type
-    typecheck(typetype, Type_t(), LOC);
+    typecheck(n->annotation, typetype, nullptr, Type_t(), LOC);
 
     auto type = exec<TypeExpr *>(n->value, depth);
 

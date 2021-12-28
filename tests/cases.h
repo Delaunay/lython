@@ -12,14 +12,14 @@ using namespace lython;
 
 struct TestCase {
     TestCase(String const &c, Array<String> const &u = Array<String>(), String const &t = "",
-             LythonException *ptr = nullptr):
+             String const &ptr = ""):
         code(c),
         undefined(u), expected_type(t), exception(ptr) {}
 
-    String           code;
-    Array<String>    undefined;
-    String           expected_type;
-    LythonException *exception;
+    String        code;
+    Array<String> undefined;
+    String        expected_type;
+    String        exception;
 };
 
 #define GENCASES(name) Array<TestCase> const &name##_examples();

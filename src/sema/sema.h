@@ -17,12 +17,28 @@ ExprNode *none();
 struct SemaException: LythonException {};
 
 struct TypeError: public SemaException {
-    TypeError(std::string const &msg, std::string const &loc): msg(msg), loc(loc) {}
+    TypeError(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
+              CodeLocation const &loc):
+        lhs_v(lhs),
+        lhs_t(lhs_t), rhs_v(rhs), rhs_t(rhs_t), loc(loc) {}
 
-    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { return msg.c_str(); }
+    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {
+        message();
+        return cached_message.c_str();
+    }
 
-    std::string msg;
-    std::string loc;
+    std::string const &message() const;
+
+    // Source code info
+    ExprNode *lhs_v = nullptr;
+    TypeExpr *lhs_t = nullptr;
+    ExprNode *rhs_v = nullptr;
+    TypeExpr *rhs_t = nullptr;
+
+    // Compiler Debug location
+    CodeLocation loc;
+
+    mutable std::string cached_message;
 };
 
 struct BindingEntry {
@@ -192,8 +208,6 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     public:
     virtual ~SemanticAnalyser() {}
-
-    bool typecheck(TypeExpr *one, TypeExpr *two, CodeLocation const &loc);
 
     bool typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
                    CodeLocation const &loc);

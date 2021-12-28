@@ -54,7 +54,7 @@ void run_testcase(String const &name, Array<TestCase> cases) {
     for (auto &c: cases) {
         Module *mod;
 
-        if (c.exception == nullptr) {
+        if (c.exception == "") {
             std::tie(deduced_type, errors) = sema_it(c.code, mod);
 
             REQUIRE(errors == expected_errors(c));
@@ -64,7 +64,7 @@ void run_testcase(String const &name, Array<TestCase> cases) {
             }
             delete mod;
         } else {
-            REQUIRE_THROWS_WITH(sema_it(c.code, mod), c.exception->what());
+            REQUIRE_THROWS_WITH(sema_it(c.code, mod), std::string(c.exception.c_str()));
         }
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }

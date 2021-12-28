@@ -170,7 +170,7 @@ Array<TestCase> const &For_examples() {
 Array<TestCase> const &AnnAssign_examples() {
     static Array<TestCase> ex = {
         {"a: bool = True", {}},
-        {"a: f32 = 2.0", {}, "", new TypeError("Expected a: f32 got 2.0: f64", "")},
+        {"a: f32 = 2.0", {}, "", "Type 2.0: f64 is not compatible with a: f32"},
     };
     return ex;
 }
@@ -439,7 +439,7 @@ Array<TestCase> const &DictExpr_examples() {
 
 Array<TestCase> const &IfExp_examples() {
     static Array<TestCase> ex = {
-        {"a = if b: c else d", {"b", "c", "d"}},
+        {"a = if True: c else d", {"c", "d"}},
         // this is the real python version
         // "a = b if c else d",
     };
