@@ -34,10 +34,10 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install gcc-9 g++-9 clang-tidy-12 llvm-12
+          sudo apt-get install gcc-10 g++-10 clang-tidy-12 llvm-12
           sudo ln -f /usr/bin/clang-tidy-12 /usr/bin/clang-tidy
           sudo ln -f /usr/bin/llvm-symbolizer-12 /usr/bin/llvm-symbolizer
-          sudo ln -f /usr/bin/gcov-9 /usr/bin/gcov
+          sudo ln -f /usr/bin/gcov-10 /usr/bin/gcov
           pip install gcovr
           mkdir -p build
 
@@ -45,7 +45,7 @@ jobs:
         run: |
           git submodule update --init
           cd build
-          GCOV=gcov-9 CC=gcc-9 CXX=g++-9 cmake  ..
+          GCOV=gcov-10 CC=gcc-10 CXX=g++-10 cmake  ..
           make enable-debug
           make enable-test
         
