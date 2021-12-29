@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <!-- Create a div where the graph will take place -->
+    <div id="coverage-evol"></div>
+
+    <script>
+        legend = function (x, y, name, color) {
+            svg.append("circle")
+                .attr("cx", x)
+                .attr("cy", y)
+                .attr("r", 6)
+                .style("fill", color)
+
+            svg.append("text")
+                .attr("x", x + 10)
+                .attr("y", y + 6)
+                .text(name)
+                .style("font-size", "15px")
+                .attr("alignment-baseline", "middle")
+        };
+
+        // set the dimensions and margins of the graph
+        var margin = { top: 10, right: 30, bottom: 30, left: 60 },
+            width = 1200 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        var format = d3.timeFormat("%Y-%m-%d");
+        // format(new Date(1075611600000))
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#coverage-evol")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        //Read the data
+        d3.csv("https://raw.githubusercontent.com/Delaunay/lython/gh-pages/coverage.csv", function (data) {
+
+            var x = d3.scaleTime()
+                .domain(d3.extent(data, function (d) { return new Date(+d.timestamp); }))
+                .range([0, width]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).ticks(5));
+
+            // Add Y axis
+            var y_percent = d3.scaleLinear()
+                .domain([0.33, 1])
+                .range([height, 0]);
+
+            var y_lines = d3.scaleLinear()
+                .domain(d3.extent(data, function (d) { return +d['lines-valid']; }))
+                .range([height, 0]);
+
+            var y_branches = d3.scaleLinear()
+                .domain(d3.extent(data, function (d) { return +d['branches-valid']; }))
+                .range([height, 0]);
+
+            svg.append("g")
+                .call(d3.axisLeft(y_percent));
+
+            svg.append("g")
+                .call(d3.axisRight(y_branches));
+
+            var lines_rate = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_percent(+d['line-rate']); });
+
+            var branch_rate = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_percent(+d['branch-rate']); });
+
+            var lines_valid = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_lines(+d['lines-valid']); });
+
+            var lines_covered = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_lines(+d['lines-covered']); });
+
+            var branches_valid = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_branches(+d['branches-valid']); });
+
+            var branches_covered = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_branches(+d['branches-covered']); });
+
+            lines = [
+                ["line-rate", "#ff0000", lines_rate],
+                ["branch-rate", "#00ff00", branch_rate],
+                ["lines-covered", "#ffff00", lines_covered],
+                ["lines-valid", "#ff00ff", lines_valid],
+                ["branches-covered", "#00ffff", branches_covered],
+                ["branches-valid", "#0000ff", branches_valid]
+            ]
+
+            legend_x = width - 150;
+            legend_y = height - 110;
+
+            for (let i = 0; i < lines.length; i++) {
+                [n, color, line] = lines[i];
+
+                legend(legend_x, legend_y + i * 20, n, color);
+                svg.append("path")
+                    .attr("fill", "none")
+                    .attr("stroke", color)
+                    .attr("stroke-width", 1.5)
+                    .attr("d", line(data));
+
+            }
+        })
+
+    </script>
+</body>
+
+</html>
