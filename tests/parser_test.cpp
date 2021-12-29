@@ -45,39 +45,39 @@ struct AllowEntry {
 };
 
 Array<AllowEntry> allow_list = {
-    {"Inline", 0, 9},      {"Inline", 0, 8},       {"Inline", 0, 7},     {"Inline", 0, 5},
-    {"Inline", 0, 4},      {"Inline", 0, 3},       {"Inline", 0, 1},     {"Match", 2, 27},
-    {"Match", 2, 14},      {"Match", 2, 13},       {"Match", 2, 12},     {"Match", 1, 25},
-    {"BoolOp", 0, 1},      {"BoolOp", 1, 1},       {"NamedExpr", 0, 1},  {"NamedExpr", 0, 3},
-    {"BinOp", 0, 1},       {"BinOp", 1, 1},        {"BinOp", 2, 1},      {"BinOp", 3, 1},
-    {"BinOp", 4, 1},       {"IfExp", 0, 1},        {"Await", 0, 1},      {"Yield", 0, 1},
-    {"YieldFrom", 0, 1},   {"Compare", 0, 1},      {"Compare", 0, 3},    {"Compare", 0, 5},
-    {"Compare", 1, 1},     {"Compare", 2, 1},      {"Compare", 3, 1},    {"Compare", 4, 1},
-    {"Call", 0, 1},        {"Attribute", 0, 1},    {"Subscript", 0, 1},  {"TupleExpr", 0, 1},
-    {"TupleExpr", 0, 3},   {"TupleExpr", 1, 1},    {"TupleExpr", 0, 7},  {"TupleExpr", 2, 1},
-    {"TupleExpr", 2, 3},   {"TupleExpr", 2, 5},    {"TupleExpr", 2, 7},  {"TupleExpr", 2, 9},
-    {"Slice", 0, 1},       {"FunctionDef", 0, 30}, {"Return", 0, 1},     {"Delete", 0, 2},
-    {"Assign", 0, 1},      {"Assign", 1, 1},       {"Assign", 1, 3},     {"Assign", 2, 1},
-    {"Assign", 3, 1},      {"Assign", 4, 1},       {"Assign", 5, 1},     {"Assign", 6, 1},
-    {"Assign", 7, 1},      {"Assign", 8, 1},       {"Assign", 9, 1},     {"Assign", 10, 1},
-    {"Assign", 11, 1},     {"Assign", 12, 1},      {"Assign", 13, 1},    {"Assign", 14, 1},
-    {"Assign", 14, 3},     {"Assign", 14, 5},      {"AugAssign", 0, 1},  {"AugAssign", 1, 1},
-    {"AnnAssign", 0, 1},   {"AnnAssign", 0, 4},    {"AnnAssign", 1, 1},  {"For", 0, 8},
-    {"For", 0, 9},         {"For", 0, 10},         {"For", 0, 15},       {"For", 1, 16},
-    {"While", 0, 6},       {"While", 0, 7},        {"While", 0, 8},      {"While", 0, 13},
-    {"If", 0, 6},          {"If", 0, 7},           {"If", 0, 8},         {"If", 0, 14},
-    {"If", 0, 15},         {"If", 0, 16},          {"If", 0, 21},        {"With", 0, 12},
-    {"Raise", 0, 1},       {"Raise", 0, 2},        {"Raise", 1, 1},      {"Try", 0, 15},
-    {"Try", 0, 16},        {"Try", 0, 17},         {"Try", 0, 22},       {"Try", 0, 23},
-    {"Try", 0, 24},        {"Try", 0, 29},         {"Assert", 1, 2},     {"Import", 0, 2},
-    {"Import", 0, 4},      {"Import", 0, 6},       {"Import", 0, 8},     {"Import", 0, 10},
-    {"Import", 0, 12},     {"ImportFrom", 0, 6},   {"ImportFrom", 0, 8}, {"ImportFrom", 0, 10},
-    {"ImportFrom", 0, 12}, {"Match", 0, 15},       {"Match", 0, 16},     {"Match", 0, 17},
-    {"Match", 0, 25},      {"Match", 0, 26},       {"Match", 0, 27},     {"Match", 0, 28},
-    {"Match", 0, 36},      {"Match", 0, 37},       {"Match", 0, 38},     {"Match", 0, 39},
-    {"Match", 0, 54},      {"Match", 0, 55},       {"Match", 0, 57},     {"Match", 0, 59},
-    {"Match", 0, 60},      {"Match", 0, 61},       {"Match", 0, 69},     {"Match", 0, 70},
-    {"Match", 1, 12},      {"Match", 1, 13},       {"Match", 1, 14},
+    {"Inline", 0, 9},     {"Inline", 0, 8},       {"Inline", 0, 7},      {"Inline", 0, 5},
+    {"Inline", 0, 4},     {"Inline", 0, 3},       {"Inline", 0, 1},      {"Match", 2, 27},
+    {"Match", 2, 14},     {"Match", 2, 13},       {"Match", 2, 12},      {"Match", 1, 25},
+    {"BoolOp", 0, 1},     {"BoolOp", 1, 1},       {"NamedExpr", 0, 1},   {"NamedExpr", 0, 3},
+    {"BinOp", 0, 1},      {"BinOp", 1, 1},        {"BinOp", 2, 1},       {"BinOp", 3, 1},
+    {"BinOp", 4, 1},      {"IfExp", 0, 1},        {"Yield", 0, 1},       {"YieldFrom", 0, 1},
+    {"Compare", 0, 1},    {"Compare", 0, 3},      {"Compare", 0, 5},     {"Compare", 1, 1},
+    {"Compare", 2, 1},    {"Compare", 3, 1},      {"Compare", 4, 1},     {"Call", 0, 1},
+    {"Attribute", 0, 1},  {"Subscript", 0, 1},    {"TupleExpr", 0, 1},   {"TupleExpr", 0, 3},
+    {"TupleExpr", 1, 1},  {"TupleExpr", 0, 7},    {"TupleExpr", 1, 7},   {"TupleExpr", 2, 1},
+    {"TupleExpr", 2, 3},  {"TupleExpr", 2, 5},    {"TupleExpr", 2, 7},   {"TupleExpr", 2, 9},
+    {"Slice", 0, 1},      {"FunctionDef", 0, 30}, {"Return", 0, 1},      {"Delete", 0, 2},
+    {"Assign", 0, 1},     {"Assign", 1, 1},       {"Assign", 1, 3},      {"Assign", 2, 1},
+    {"Assign", 3, 1},     {"Assign", 4, 1},       {"Assign", 5, 1},      {"Assign", 6, 1},
+    {"Assign", 7, 1},     {"Assign", 8, 1},       {"Assign", 9, 1},      {"Assign", 10, 1},
+    {"Assign", 11, 1},    {"Assign", 12, 1},      {"Assign", 13, 1},     {"Assign", 14, 1},
+    {"Assign", 14, 3},    {"Assign", 14, 5},      {"AugAssign", 0, 1},   {"AugAssign", 1, 1},
+    {"AnnAssign", 0, 1},  {"AnnAssign", 1, 1},    {"For", 0, 8},         {"For", 0, 9},
+    {"For", 0, 10},       {"For", 0, 15},         {"For", 1, 16},        {"While", 0, 6},
+    {"While", 0, 7},      {"While", 0, 8},        {"While", 0, 13},      {"If", 0, 6},
+    {"If", 0, 7},         {"If", 0, 8},           {"If", 0, 14},         {"If", 0, 15},
+    {"If", 0, 16},        {"If", 0, 21},          {"With", 0, 12},       {"Raise", 0, 1},
+    {"Raise", 0, 2},      {"Raise", 1, 1},        {"Try", 0, 15},        {"Try", 0, 16},
+    {"Try", 0, 17},       {"Try", 0, 22},         {"Try", 0, 23},        {"Try", 0, 24},
+    {"Try", 0, 29},       {"Assert", 1, 2},       {"Import", 0, 2},      {"Import", 0, 4},
+    {"Import", 0, 6},     {"Import", 0, 8},       {"Import", 0, 10},     {"Import", 0, 12},
+    {"ImportFrom", 0, 6}, {"ImportFrom", 0, 8},   {"ImportFrom", 0, 10}, {"ImportFrom", 0, 12},
+    {"Match", 0, 15},     {"Match", 0, 16},       {"Match", 0, 17},      {"Match", 0, 25},
+    {"Match", 0, 26},     {"Match", 0, 27},       {"Match", 0, 28},      {"Match", 0, 36},
+    {"Match", 0, 37},     {"Match", 0, 38},       {"Match", 0, 39},      {"Match", 0, 54},
+    {"Match", 0, 55},     {"Match", 0, 57},       {"Match", 0, 59},      {"Match", 0, 60},
+    {"Match", 0, 61},     {"Match", 0, 69},       {"Match", 0, 70},      {"Match", 1, 12},
+    {"Match", 1, 13},     {"Match", 1, 14},
 
 };
 
@@ -89,6 +89,23 @@ bool allowed(AllowEntry const &v) {
     }
 
     return false;
+}
+
+void show_debug(String const &name, int j, int i, String const &code, Array<Token> const &tokens,
+                Module *mod) {
+    std::cout << "\n=========Module: " << name << " x " << j << " x " << i << "\n";
+    std::cout << code;
+    std::cout << "\n=======\n";
+    for (auto &tok: tokens) {
+        tok.print(std::cout);
+    }
+    std::cout << "\n=======\n";
+    if (mod) {
+        auto dumps = str(mod);
+        std::cout << "\n=======\n";
+        std::cout << dumps;
+        std::cout << "\n==========\n";
+    }
 }
 
 // Runs code through the parser but remove some tokens
@@ -106,24 +123,18 @@ void run_partial(String const &name, int j, TestCase const &test) {
         Parser parser(lexer);
         auto   expr = [&]() {
             Module *mod = parser.parse_module();
-
-            std::cout << "\n=========Module: " << name << " x " << j << " x " << i << "\n";
-            std::cout << test.code;
-            std::cout << "\n=======\n";
-            for (auto &tok: tokens) {
-                tok.print(std::cout);
-            }
-            std::cout << "\n=======\n";
-            auto dumps = str(mod);
-            std::cout << "\n=======\n";
-            std::cout << dumps;
-            std::cout << "\n==========\n";
+            show_debug(name, j, i, test.code, tokens, mod);
         };
 
         if (!allowed({name, j, i})) {
             CHECK_THROWS_AS(expr(), SyntaxError);
         } else {
-            Module *mod = parser.parse_module();
+            try {
+                Module *mod = parser.parse_module();
+            } catch (SyntaxError const &err) {
+                show_debug(name, j, i, test.code, tokens, nullptr);
+                throw err;
+            }
         }
     }
 }

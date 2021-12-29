@@ -86,6 +86,7 @@ ParsingError *Parser::expect_operator(String const &op, bool eat, Node *wip_expr
         return nullptr;
     }
 
+    error("Expected an operator");
     throw SyntaxError();
 
     err = &errors.emplace_back(ParsingError::syntax_error("Wrong operator"));
@@ -109,6 +110,7 @@ ParsingError *Parser::expect_tokens(Array<int> const &expected, bool eat, Node *
     }
     // ----
 
+    error("{}, Expected {} got {}", loc.repr(), join(", ", expected), toktype);
     throw SyntaxError(fmt::format("Expected {} got {}", join(", ", expected), toktype));
     // return write_error(expected, wip_expression, loc);
 }
@@ -152,6 +154,7 @@ Token Parser::parse_body(Node *parent, Array<StmtNode *> &out, int depth) {
     }
 
     if (out.size() <= 0) {
+        error("Expected body");
         throw SyntaxError();
     }
 
@@ -824,7 +827,7 @@ StmtNode *Parser::parse_raise(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    if (token().type() != tok_newline) {
+    if (token().type() != tok_newline && token().type() != tok_eof) {
         stmt->exc = parse_expression(stmt, depth + 1);
 
         if (token().type() == tok_from) {
@@ -883,9 +886,8 @@ StmtNode *Parser::parse_try(Node *parent, int depth) {
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
-    if (token().type() == tok_except) {
-        parse_except_handler(stmt, stmt->handlers, depth + 1);
-    }
+    expect_token(tok_except, false, stmt, LOC);
+    parse_except_handler(stmt, stmt->handlers, depth + 1);
 
     if (token().type() == tok_else) {
         next_token(); // else
@@ -934,6 +936,7 @@ bool is_dot(Token const &tok) {
 String Parser::parse_module_path(Node *parent, int &level, int depth) {
     level = 0;
     Array<String> path;
+    bool          last_was_dot = false;
 
     while (true) {
         // relative path
@@ -952,6 +955,12 @@ String Parser::parse_module_path(Node *parent, int &level, int depth) {
 
         if (is_dot(token())) {
             next_token();
+
+            // need an identifier after a `.`
+            if (token().type() != tok_identifier) {
+                error("expect name after .");
+                throw SyntaxError();
+            }
         }
 
         if (token().type() == tok_as || token().type() == ',' || token().type() == tok_newline ||
@@ -982,9 +991,18 @@ void Parser::parse_alias(Node *parent, Array<Alias> &out, int depth) {
 
         if (token().type() == ',') {
             next_token();
+            if (token().type() != tok_identifier) {
+                error("Expect identifier after ,");
+                throw SyntaxError();
+            }
         } else {
             break;
         }
+    }
+
+    if (out.size() <= 0) {
+        error("Expect packages");
+        throw SyntaxError();
     }
 }
 
@@ -1074,7 +1092,7 @@ StmtNode *Parser::parse_return(Node *parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    if (token().type() != tok_newline) {
+    if (token().type() != tok_newline && token().type() != tok_eof) {
         stmt->value = parse_expression(stmt, depth + 1);
         end_code_loc(stmt, token());
     } else {
@@ -1337,13 +1355,17 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
 
     bool keywords = false;
 
-    while (true) {
+    while (token().type() != kind) {
         ExprNode *value = nullptr;
 
         Arg arg;
 
         bool vararg = false;
         bool kwarg  = false;
+
+        if (token().type() == tok_comma) {
+            next_token();
+        }
 
         if (is_star(token())) {
             next_token();
@@ -1385,14 +1407,6 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
             args.kwonlyargs.push_back(arg);
             // NB: value can be null here
             args.kw_defaults.push_back(value);
-        }
-
-        if (token().type() == ',') {
-            next_token();
-        } else if (token().type() == kind) {
-            break;
-        } else {
-            break;
         }
     }
 
@@ -1732,14 +1746,13 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
         if (token().type() == ',') {
             next_token();
         } else {
-            auto last = token();
-            expect_token(')', true, expr, LOC);
-            //
-            return last;
+            break;
         }
     }
 
-    return token();
+    auto last = token();
+    expect_token(')', true, expr, LOC);
+    return last;
 }
 
 ExprNode *Parser::parse_call(Node *parent, ExprNode *primary, int depth) {
@@ -1895,6 +1908,10 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
 
     while (token().type() == ';') {
         next_token();
+
+        if (token().type() == tok_newline || token().type() == tok_eof) {
+            break;
+        }
 
         stmt = parse_statement_primary(parent, depth + 1);
         body.push_back(stmt);
@@ -2211,6 +2228,7 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
 
     // Left Unary operator
     // + <expr> | - <expr> | ! <expr> | ~ <expr>
+    error("Could not deduce the expression {}", token().type());
     throw SyntaxError();
 }
 
