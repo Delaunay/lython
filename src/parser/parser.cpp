@@ -63,9 +63,6 @@ OpConfig Parser::get_operator_config(Token const &tok) const {
 
     auto result = confs.find(tok.operator_name());
     if (result == confs.end()) {
-        if (tok.type() != tok_eof) {
-            error("Could not find operator settings for {}", str(tok));
-        }
         return OpConfig();
     }
     return result->second;
@@ -100,20 +97,20 @@ ParsingError *Parser::expect_operator(String const &op, bool eat, Node *wip_expr
 
 ParsingError *Parser::expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,
                                     CodeLocation loc) {
+    auto toktype = token().type();
+
     for (auto &tok: expected) {
-        if (token().type() == tok) {
+        if (toktype == tok) {
             if (eat) {
                 next_token();
             }
-
             return nullptr;
         }
     }
     // ----
 
-    throw SyntaxError();
-
-    return write_error(expected, wip_expression, loc);
+    throw SyntaxError(fmt::format("Expected {} got {}", join(", ", expected), toktype));
+    // return write_error(expected, wip_expression, loc);
 }
 
 ParsingError *Parser::write_error(Array<int> const &expected, Node *wip_expression,
@@ -266,9 +263,6 @@ ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
 
     Array<ExprNode *> elts;
     auto              r = parse_expression_primary(parent, depth + 1);
-    if (r == nullptr) {
-        throw SyntaxError();
-    }
     elts.push_back(r);
 
     while (token().type() == tok_comma) {
@@ -684,9 +678,6 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
         // in this context we are storing components inside the pattern
         //_context.push_back(ExprContext::Store);
         auto value = parse_expression_primary(parent, depth + 1);
-        if (value == nullptr) {
-            throw SyntaxError();
-        }
         //_context.pop_back();
         Pattern *pat = nullptr;
 
@@ -1170,10 +1161,6 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
     next_token();
 
     stmt->value = parse_expression(stmt, depth + 1, true);
-    if (stmt->value == nullptr) {
-        throw SyntaxError();
-    }
-
     end_code_loc(stmt, token());
     return stmt;
 }
@@ -1493,8 +1480,9 @@ ExprNode *parse_comprehension(Parser *parser, Node *parent, ExprNode *child, cha
 
     expr->elt = child;
     parser->parse_comprehension(expr, expr->generators, kind, depth);
-
     parser->end_code_loc(expr, parser->token());
+
+    parser->expect_token(kind, true, parent, LOC);
     return expr;
 }
 
@@ -1505,8 +1493,9 @@ ExprNode *parse_dictcomprehension(Parser *parser, Node *parent, ExprNode *key, E
     expr->key   = key;
     expr->value = value;
     parser->parse_comprehension(expr, expr->generators, kind, depth);
-
     parser->end_code_loc(expr, parser->token());
+
+    parser->expect_token(kind, true, parent, LOC);
     return expr;
 }
 
@@ -1576,11 +1565,9 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     auto err = parser->expect_token(tok, true, nullptr, LOC); // eat (  [  {
 
     // Warning: the parent is wrong but we need to parse the expression right now
-    auto child = parser->parse_expression(parent, depth + 1);
-
-    ExprNode *value = nullptr;
-
-    bool dictionary = false;
+    auto      child      = parser->parse_expression(parent, depth + 1);
+    ExprNode *value      = nullptr;
+    bool      dictionary = false;
 
     // Dictionary
     if (parser->token().type() == ':') {
@@ -1598,6 +1585,7 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
             expr = parse_dictcomprehension(parser, parent, child, value, kind, depth);
         } else {
             expr = parse_comprehension<Comp>(parser, parent, child, kind, depth);
+            error("Done {}", str(expr));
         }
     } else if (parser->token().type() == ',') {
         parser->next_token();
@@ -1620,6 +1608,7 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     }
 
     if (expr == nullptr) {
+        error("Comprehension is nill");
         throw SyntaxError();
     }
 
@@ -1628,6 +1617,8 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     parser->start_code_loc(expr, start_tok);
     child->move(expr);
     // ----------------------------------------------
+
+    SHOW_TOK(parser->token());
     return expr;
 }
 
@@ -1934,7 +1925,8 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
     if (previous == token()) {
         error("Unhandled token {} `{}` previous tok was `{}`", token().type(), str(token()),
               str(previous));
-        return nullptr;
+
+        throw SyntaxError();
     } else {
         previous = token();
     }
@@ -2080,6 +2072,10 @@ ExprNode *Parser::parse_operators(Node *parent, ExprNode *lhs, int min_precedenc
         auto op_conf   = get_operator_config(lookahead);
         auto oppred    = op_conf.precedence;
 
+        if (op_conf.type == tok_eof) {
+            return lhs;
+        }
+
         // lookahead is a binary operator whose precedence is >= min_precedence
         if (!(is_binary_operator_family(op_conf) && oppred >= min_precedence)) {
             break;
@@ -2109,30 +2105,18 @@ ExprNode *Parser::parse_operators(Node *parent, ExprNode *lhs, int min_precedenc
             result->op    = op_conf.binarykind;
             result->right = rhs;
             lhs           = result;
-
-            if (rhs == nullptr) {
-                throw SyntaxError();
-            }
         } else if (op_conf.cmpkind != CmpOperator::None) {
             auto result  = parent->new_object<Compare>();
             result->left = lhs;
             result->ops.push_back(op_conf.cmpkind);
             result->comparators.push_back(rhs);
             lhs = result;
-
-            if (rhs == nullptr) {
-                throw SyntaxError();
-            }
         } else if (op_conf.boolkind != BoolOperator::None) {
             // TODO: check why is this not a binary node ?
             auto result    = parent->new_object<BoolOp>();
             result->op     = op_conf.boolkind;
             result->values = {lhs, rhs};
             lhs            = result;
-
-            if (rhs == nullptr) {
-                throw SyntaxError();
-            }
         } else {
             error("unknow operator {}", str(op_conf));
         }
@@ -2227,11 +2211,7 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
 
     // Left Unary operator
     // + <expr> | - <expr> | ! <expr> | ~ <expr>
-
-    // TODO: return a dummy ExprNode
-    // cannot throw syntax error here, it breaks comprehension parsing
-    // throw SyntaxError();
-    return nullptr;
+    throw SyntaxError();
 }
 
 ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth,

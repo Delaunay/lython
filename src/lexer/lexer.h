@@ -23,11 +23,11 @@ namespace lython {
 struct OpConfig {
     int            precedence       = -1;
     bool           left_associative = true;
-    TokenType      type;
-    BinaryOperator binarykind = BinaryOperator::None;
-    UnaryOperator  unarykind  = UnaryOperator::None;
-    BoolOperator   boolkind   = BoolOperator::None;
-    CmpOperator    cmpkind    = CmpOperator::None;
+    TokenType      type             = TokenType::tok_eof;
+    BinaryOperator binarykind       = BinaryOperator::None;
+    UnaryOperator  unarykind        = UnaryOperator::None;
+    BoolOperator   boolkind         = BoolOperator::None;
+    CmpOperator    cmpkind          = CmpOperator::None;
 
     void print(std::ostream &out) const {
         out << to_string(type) << "(pred: " << precedence << ") "

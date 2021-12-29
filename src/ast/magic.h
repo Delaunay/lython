@@ -16,6 +16,11 @@ inline void print(String const &obj, std::ostream &out) {
     out << obj;
 }
 
+template <>
+inline void print(int const &obj, std::ostream &out) {
+    out << obj;
+}
+
 template <typename T>
 void print(T *const &obj, std::ostream &out = std::cout) {
     obj->print(out);

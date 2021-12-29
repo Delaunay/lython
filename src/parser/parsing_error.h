@@ -11,7 +11,14 @@ class ParsingException: public LythonException {};
 
 class EndOfFileError: public ParsingException {};
 
-class SyntaxError: ParsingException {};
+class SyntaxError: ParsingException {
+    public:
+    SyntaxError(std::string const &message = ""): msg(message) {}
+
+    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { return msg.c_str(); }
+
+    std::string msg;
+};
 
 struct ParsingError {
     Array<int>   expected_tokens;
