@@ -106,7 +106,7 @@ IF(UNIX)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
         EXECUTABLE ctest --output-on-failure
-        BASE_DIRECTORY "${PROJECT_SOURCE_DIR}"
+        BASE_DIRECTORY "."
         DEPENDS test
     )
 ENDIF(UNIX)

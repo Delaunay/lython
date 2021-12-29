@@ -74,6 +74,7 @@ jobs:
       - name: Deploy
         if: always()
         run: |
+          bash ./scripts/extract_coverage.bash ./build/coverage/coverage.xml ./build/coverage/coverage.csv
           cd build/coverage
           git add *.html *.css
           git commit -m "deploy"
