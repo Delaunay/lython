@@ -74,8 +74,9 @@ jobs:
       - name: Deploy
         if: always()
         run: |
-          bash ./scripts/extract_coverage.bash ./build/coverage/coverage.xml ./build/coverage/coverage.csv
           cd build/coverage
+          bash ../../scripts/extract_coverage.bash coverage.xml coverage.csv template/badge.svg badge.svg
+
           git add *.html *.css
           git commit -m "deploy"
-          git push https://${GH_TOKEN}@github.com/Delaunay/lython.git gh-pages
+          git push https://Delaunay:${GH_TOKEN}@github.com/Delaunay/lython.git gh-pages

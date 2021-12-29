@@ -1,3 +1,4 @@
+set -v
 
 SEARCH='<coverage line-rate="\([0-9.]*\)" branch-rate="\([0-9.]*\)" lines-covered="\([0-9.]*\)" lines-valid="\([0-9.]*\)" branches-covered="\([0-9.]*\)" branches-valid="\([0-9.]*\)" complexity="\([0-9.]*\)" timestamp="\([0-9.]*\)" version="\([a-zA-Z 0-9.]*\)">'
 
@@ -9,7 +10,8 @@ RESULT=$(cat $1 | sed -n "s/$SEARCH/$REPLACE/p")
 # Append the row to the coverage database
 echo $RESULT >> $2
 
-# REPLACE='\1'
-# COVERAGE=$(cat $1 | sed -n "s/$SEARCH/$REPLACE/p")
-# sed -i "s//$REPLACE/" > badge.svg
+REPLACE='\1'
+COVERAGE=$(cat $1 | sed -n "s/$SEARCH/$REPLACE/p")
+
+sed "s/COVERAGE_VALUE/$COVERAGE/p" $3 > $4
 
