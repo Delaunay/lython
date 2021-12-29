@@ -56,7 +56,7 @@ jobs:
 
       - name: Git Clone
         run: |
-          git clone --single-branch --branch gh-pages https://${{ secrets.GITHUB_TOKEN }}@github.com/Delaunay/lython.git build/coverage/
+          git clone --single-branch --branch gh-pages https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git build/coverage/
           git config --global user.email "Coverage"
           git config --global user.name "Coverage Bot"
 
@@ -79,4 +79,4 @@ jobs:
 
           git add *.html *.css
           git commit -m "deploy"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+          git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
