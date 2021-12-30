@@ -83,7 +83,10 @@ jobs:
           # invalid username & password
           # git push origin gh-pages
 
-          git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+          # git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+
 
           # Invalid username of password
           # Authentication failed 
