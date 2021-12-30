@@ -22,10 +22,43 @@
     <!-- Load d3.js -->
     <script src="https://d3js.org/d3.v4.js"></script>
 
-    <!-- Create a div where the graph will take place -->
-    <div id="coverage-evol"></div>
+    <div class="container">
+
+        <h1>Lython Coverage Evolution</h1>
+        <a href='http://delaunay.github.io/lython/'>
+            <img src='https://raw.githubusercontent.com/Delaunay/lython/gh-pages/badge.svg' alt='Coverage' />
+        </a>
+
+        <h2>Evolution</h2>
+        <!-- Create a div where the graph will take place -->
+        <div id="coverage-evol"></div>
+
+        <h2>Summary</h2>
+        <table class="table">
+            <tr>
+                <td></td>
+                <td>Valid</td>
+                <td>Covered</td>
+                <td>%</td>
+            </tr>
+            <tr>
+                <td>Line</td>
+                <td id="lines-valid"></td>
+                <td id="lines-covered"></td>
+                <td id="line-rate"></td>
+            </tr>
+            <tr>
+                <td>Branch</td>
+                <td id="branches-valid"></td>
+                <td id="branches-covered"></td>
+                <td id="branch-rate"></td>
+            </tr>
+        </table>
+    </div>
 
     <script>
+        var lastline = 0
+
         legend = function (x, y, name, color) {
             svg.append("circle")
                 .attr("cx", x)
@@ -154,8 +187,26 @@
                     .attr("d", line(data));
 
             }
-        })
 
+            lastline = data[data.length - 1];
+
+            stats = [
+                ["branches-valid", 1],
+                ["lines-valid", 1],
+                ["line-rate", 100],
+                ["lines-covered", 1],
+                ["branch-rate", 100],
+                ["branches-covered", 1]
+            ]
+            stats.forEach(function (d) {
+                [name, scale] = d;
+                value = (lastline[name] * scale);
+                if (scale > 1) {
+                    value = value.toFixed(2);
+                }
+                d3.select("#" + name).text(value)
+            })
+        })
     </script>
 </body>
 
