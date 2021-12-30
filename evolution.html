@@ -17,6 +17,10 @@
         crossorigin="anonymous"></script>
 
     <style>
+        .table {
+            width: 50%;
+        }
+
         .axis line {
             stroke: white;
         }
@@ -47,26 +51,30 @@
         <div id="coverage-evol"></div>
 
         <h2>Summary</h2>
-        <table class="table">
-            <tr>
-                <td></td>
-                <td>Valid</td>
-                <td>Covered</td>
-                <td>%</td>
-            </tr>
-            <tr>
-                <td>Line</td>
-                <td id="lines-valid"></td>
-                <td id="lines-covered"></td>
-                <td id="line-rate"></td>
-            </tr>
-            <tr>
-                <td>Branch</td>
-                <td id="branches-valid"></td>
-                <td id="branches-covered"></td>
-                <td id="branch-rate"></td>
-            </tr>
-        </table>
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <table class="table">
+                    <tr>
+                        <td></td>
+                        <td>Valid</td>
+                        <td>Covered</td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>Line</td>
+                        <td id="lines-valid"></td>
+                        <td id="lines-covered"></td>
+                        <td id="line-rate"></td>
+                    </tr>
+                    <tr>
+                        <td>Branch</td>
+                        <td id="branches-valid"></td>
+                        <td id="branches-covered"></td>
+                        <td id="branch-rate"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
