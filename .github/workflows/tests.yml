@@ -72,24 +72,8 @@ jobs:
           files: build/coverage/coverage.xml
 
       - name: Deploy
-        continue-on-error: true
-        if: always()
-        run: |
-          cd build/coverage
-          bash ../../scripts/extract_coverage.bash coverage.xml coverage.csv template/badge.svg badge.svg
-
-          git add *.html *.css
-          git commit -m "deploy"
-
-          # invalid username & password
-          # git push origin gh-pages
-
-          # could not read Pwassword for ***: No such device or address
-          # git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
-
-          # could not read Pwassword for ***: No such device or address
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/Delaunay/lython.git gh-pages
-
-          # Invalid username of password
-          # Authentication failed 
-          git push https://Delaunay:${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/coverage
