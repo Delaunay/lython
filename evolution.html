@@ -8,14 +8,27 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
         integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
 
-    <!-- Optional theme -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css"
-        integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@forevolve/bootstrap-dark@1.0.0/dist/css/bootstrap-dark.min.css" />
 
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
         integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
         crossorigin="anonymous"></script>
+
+    <style>
+        .axis line {
+            stroke: white;
+        }
+
+        .axis path {
+            stroke: white;
+        }
+
+        .axis text {
+            fill: white;
+        }
+    </style>
 </head>
 
 <body>
@@ -69,14 +82,16 @@
             svg.append("text")
                 .attr("x", x + 10)
                 .attr("y", y + 6)
+                .attr("class", "legend")
                 .text(name)
                 .style("font-size", "15px")
+                .style("fill", "#ffffff")
                 .attr("alignment-baseline", "middle")
         };
 
         // set the dimensions and margins of the graph
         var margin = { top: 10, right: 60, bottom: 30, left: 60 },
-            width = 1200 - margin.left - margin.right,
+            width = 1100 - margin.left - margin.right,
             height = 400 - margin.top - margin.bottom;
 
         var format = d3.timeFormat("%Y-%m-%d");
@@ -120,18 +135,24 @@
 
             svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
-                .call(d3.axisBottom(x)); // .ticks(d3.timeDay, 1).tickFormat(d3.timeFormat('%b')));
+                .attr("class", "axis")
+                .call(d3.axisBottom(x)) // .ticks(d3.timeDay, 1).tickFormat(d3.timeFormat('%b')));
+                ;
 
             svg.append("g")
+                .attr("class", "axis")
                 .call(d3.axisLeft(y_percent));
 
             svg.append("g")
+                .attr("class", "axis")
                 .attr("transform", "translate(" + width + " ,0)")
                 .call(d3.axisRight(y_branches).ticks(3));
 
             svg.append("g")
+                .attr("class", "axis")
                 .attr("transform", "translate(" + width + " ,0)")
-                .call(d3.axisLeft(y_lines).ticks(3));
+                .call(d3.axisLeft(y_lines).ticks(3))
+
 
             var lines_rate = d3.line()
                 .x(function (d) { return x(new Date(+d.timestamp)); })
