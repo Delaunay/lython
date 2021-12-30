@@ -143,9 +143,9 @@
                 .call(d3.axisBottom(x)) // .ticks(d3.timeDay, 1).tickFormat(d3.timeFormat('%b')));
                 ;
 
-            svg.append("g")
-                .attr("class", "axis")
-                .call(d3.axisLeft(y_percent));
+            // svg.append("g")
+            //     .attr("class", "axis")
+            //     .call(d3.axisLeft(y_percent));
 
             svg.append("g")
                 .attr("class", "axis")
@@ -154,7 +154,7 @@
 
             svg.append("g")
                 .attr("class", "axis")
-                .attr("transform", "translate(" + width + " ,0)")
+                // .attr("transform", "translate(" + width + " ,0)")
                 .call(d3.axisLeft(y_lines).ticks(3))
 
 
@@ -184,33 +184,67 @@
 
             // ordered by apparition
             lines = [
-                ["branches-valid", "#0000ff", branches_valid],
-                ["lines-valid", "#ff00ff", lines_valid],
+                ["branches-valid", "#0000ff", branches_valid, y_branches],
+                ["lines-valid", "#ff00ff", lines_valid, y_lines],
 
-                ["line-rate", "#ff0000", lines_rate],
+                // Same as branch-covered
+                // ["line-rate", "#ff0000", lines_rate, y_percent],
 
-                // Same as branch-rate
-                // ["lines-covered", "#ffff00", lines_covered],
 
-                ["branch-rate", "#00ff00", branch_rate]
+                ["lines-covered", "#ffff00", lines_covered, y_lines],
 
-                // Same as branch-rate
-                // ["branches-covered", "#00ffff", branches_covered],
+                // Same as branch-covered
+                // ["branch-rate", "#00ff00", branch_rate, y_percent]
+
+                ["branches-covered", "#00ffff", branches_covered, y_branches],
             ]
 
-            legend_x = 25; // width - 150;
-            legend_y = height - 17 * lines.length;
+            var circles = svg.selectAll('circle')
+                .data(data).enter();
 
             for (let i = 0; i < lines.length; i++) {
-                [n, color, line] = lines[i];
+                [n, color, line, yscale] = lines[i];
 
-                legend(legend_x, legend_y + i * 20, n, color);
                 svg.append("path")
                     .attr("fill", "none")
                     .attr("stroke", color)
                     .attr("stroke-width", 1.5)
                     .attr("d", line(data));
 
+                circles
+                    .append('circle')
+                    .attr("r", 6)
+                    .attr("cx", function (d) { return x(new Date(+d.timestamp)); })
+                    .attr("cy", function (d) {
+                        console.log(n, d[n]);
+                        return yscale(+d[n]);
+                    })
+                    .style("fill", color);
+            }
+
+            // Draw legend after to control the z-order
+            // legend is on top of everything
+            legend_x = 25; // width - 150;
+            legend_y = height - 17 * lines.length;
+            legend_height = (lines.length) * 17;
+
+            font_size = 8
+            circle_r = 6
+            margin = 10
+            rect = svg.append("rect")
+                .attr("x", legend_x - margin)
+                .attr("y", legend_y - margin)
+                .attr("fill", "#ffffff")
+                .attr("opacity", 0.5)
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("height", legend_height + margin)
+                .attr("width", 16 * font_size + circle_r * 2 + margin);
+
+            for (let i = 0; i < lines.length; i++) {
+                [n, color, line, yscale] = lines[i];
+
+                legend(legend_x, legend_y + i * 20, n, color);
             }
 
             lastline = data[data.length - 1];
