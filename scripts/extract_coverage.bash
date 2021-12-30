@@ -11,6 +11,8 @@ echo $RESULT >> $2
 
 REPLACE='\1'
 COVERAGE=$(cat $1 | sed -n "s/$SEARCH/$REPLACE/p")
+COVERAGE=$(($COVERAGE * 100))
+COVERAGE=$(printf "%.0f\n" "$COVERAGE")
 
 sed "s/COVERAGE_VALUE/$COVERAGE/p" $3 > $4
 
