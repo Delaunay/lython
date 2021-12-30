@@ -79,4 +79,7 @@ jobs:
 
           git add *.html *.css
           git commit -m "deploy"
-          git push https://Delaunay:${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+          git push origin gh-pages
+          
+          # this does not work :/
+          # git push https://Delaunay:${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
