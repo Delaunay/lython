@@ -65,10 +65,6 @@
                 .domain(d3.extent(data, function (d) { return new Date(+d.timestamp); }))
                 .range([0, width]);
 
-            svg.append("g")
-                .attr("transform", "translate(0," + height + ")")
-                .call(d3.axisBottom(x).ticks(5));
-
             // Add Y axis
             var y_percent = d3.scaleLinear()
                 .domain([0.33, 1])
@@ -87,6 +83,11 @@
             var y_branches = d3.scaleLinear()
                 .domain(branch_val_extend)
                 .range([height, 0]);
+
+
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x)); // .ticks(d3.timeDay, 1).tickFormat(d3.timeFormat('%b')));
 
             svg.append("g")
                 .call(d3.axisLeft(y_percent));
