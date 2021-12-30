@@ -64,6 +64,8 @@ jobs:
         run: |
           cd build
           make coverage
+          cd coverage
+          bash ../../scripts/extract_coverage.bash coverage.xml coverage.csv template/badge.svg badge.svg
 
       - name: Upload coverage to Codecov
         if: always()
