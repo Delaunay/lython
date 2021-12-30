@@ -72,6 +72,7 @@ jobs:
           files: build/coverage/coverage.xml
 
       - name: Deploy
+        continue-on-error: true
         if: always()
         run: |
           cd build/coverage
@@ -83,11 +84,12 @@ jobs:
           # invalid username & password
           # git push origin gh-pages
 
+          # could not read Pwassword for ***: No such device or address
           # git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
 
+          # could not read Pwassword for ***: No such device or address
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/Delaunay/lython.git gh-pages
-
 
           # Invalid username of password
           # Authentication failed 
-          # git push https://Delaunay:${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+          git push https://Delaunay:${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
