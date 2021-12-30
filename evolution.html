@@ -28,6 +28,11 @@
         .axis text {
             fill: white;
         }
+
+        .label text {
+            fill: white;
+            font-size: 15px;
+        }
     </style>
 </head>
 
@@ -113,6 +118,7 @@
         //Read the data
         d3.csv("https://raw.githubusercontent.com/Delaunay/lython/gh-pages/coverage.csv", function (data) {
 
+            var label_size = "2em";
             var x = d3.scaleTime()
                 .domain(d3.extent(data, function (d) { return new Date(+d.timestamp); }))
                 .range([0, width]);
@@ -143,6 +149,18 @@
                 .call(d3.axisBottom(x)) // .ticks(d3.timeDay, 1).tickFormat(d3.timeFormat('%b')));
                 ;
 
+            // x axis label
+            svg.append("text")
+                .attr("transform",
+                    "translate(" + (width / 2) + " ," +
+                    (height + margin.top + 20) + ")")
+                .style("text-anchor", "middle")
+                .style("fill", "white")
+                .style("font-size", "15px")
+                .attr("class", "label")
+                .text("Time");
+
+
             // svg.append("g")
             //     .attr("class", "axis")
             //     .call(d3.axisLeft(y_percent));
@@ -152,10 +170,31 @@
                 .attr("transform", "translate(" + width + " ,0)")
                 .call(d3.axisRight(y_branches).ticks(3));
 
+            svg.append("text")
+                .attr("transform", "rotate(90)")
+                .attr("y", - width - margin.right)
+                .attr("x", height / 2)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("fill", "white")
+                .attr("class", "label")
+                .style("font-size", "15px")
+                .text("Branches");
+
             svg.append("g")
                 .attr("class", "axis")
-                // .attr("transform", "translate(" + width + " ,0)")
                 .call(d3.axisLeft(y_lines).ticks(3))
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "15px")
+                .style("fill", "white")
+                .attr("class", "label")
+                .text("Lines");
 
 
             var lines_rate = d3.line()
@@ -182,21 +221,36 @@
                 .x(function (d) { return x(new Date(+d.timestamp)); })
                 .y(function (d) { return y_branches(+d['branches-covered']); });
 
+            colors = [
+                "#75CFB8",
+                "#BBDFC8",
+                "#d8f0e5",
+                "#FFC478",
+                "#F0E5D8"
+            ];
+
+            orange = "#FFC478"
+            beige = "#F0E5D8"
+            green = "#75CFB8"
+            lgreen = "#BBDFC8"
+            pink = "#FFd8e5"
+            red = "#FFA0A0"
+
             // ordered by apparition
             lines = [
-                ["branches-valid", "#0000ff", branches_valid, y_branches],
-                ["lines-valid", "#ff00ff", lines_valid, y_lines],
+                ["branches-valid", red, branches_valid, y_branches],
+                ["lines-valid", green, lines_valid, y_lines],
 
                 // Same as branch-covered
                 // ["line-rate", "#ff0000", lines_rate, y_percent],
 
 
-                ["lines-covered", "#ffff00", lines_covered, y_lines],
+                ["lines-covered", lgreen, lines_covered, y_lines],
 
                 // Same as branch-covered
                 // ["branch-rate", "#00ff00", branch_rate, y_percent]
 
-                ["branches-covered", "#00ffff", branches_covered, y_branches],
+                ["branches-covered", pink, branches_covered, y_branches],
             ]
 
             var circles = svg.selectAll('circle')
@@ -208,7 +262,7 @@
                 svg.append("path")
                     .attr("fill", "none")
                     .attr("stroke", color)
-                    .attr("stroke-width", 1.5)
+                    .attr("stroke-width", 3)
                     .attr("d", line(data));
 
                 circles
@@ -225,7 +279,7 @@
             // Draw legend after to control the z-order
             // legend is on top of everything
             legend_x = 25; // width - 150;
-            legend_y = height - 17 * lines.length;
+            legend_y = height - 17 * lines.length - 10;
             legend_height = (lines.length) * 17;
 
             font_size = 8
@@ -234,8 +288,8 @@
             rect = svg.append("rect")
                 .attr("x", legend_x - margin)
                 .attr("y", legend_y - margin)
-                .attr("fill", "#ffffff")
-                .attr("opacity", 0.5)
+                .attr("fill", "#7d7d7d")
+                .attr("opacity", 1)
                 .attr("rx", 5)
                 .attr("ry", 5)
                 .attr("height", legend_height + margin)
