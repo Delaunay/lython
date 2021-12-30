@@ -79,9 +79,12 @@ jobs:
 
           git add *.html *.css
           git commit -m "deploy"
+
           # invalid username & password
           # git push origin gh-pages
 
+          git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+
           # Invalid username of password
           # Authentication failed 
-          # git push https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
+          # git push https://Delaunay:${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git gh-pages
