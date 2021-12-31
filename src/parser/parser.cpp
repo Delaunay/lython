@@ -1,5 +1,5 @@
-#include "ast/ops.h"
 #include "parser.h"
+#include "ast/ops.h"
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
