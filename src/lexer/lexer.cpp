@@ -114,7 +114,6 @@ std::ostream &AbstractLexer::print(std::ostream &out) {
 
     return out;
 }
-
 Token const &Lexer::next_token() {
     // if we peeked ahead return that one
     if (_buffered_token) {
@@ -139,7 +138,8 @@ Token const &Lexer::next_token() {
     if (c == EOF)
         return make_token(tok_eof);
 
-    // indent
+    // Indentation
+    // --------------------------------
     if (c == ' ' && empty_line()) {
         int k = 1;
         do {
@@ -172,67 +172,92 @@ Token const &Lexer::next_token() {
         c = nextc();
     }
 
-    // Operators & Arrow
-    Trie<128UL> const *prev = nullptr;
-    Trie<128UL> const *next = nullptr;
-
-    // Generate a single token for `not in`
-    // should return `int`
-    String ident;
-    while (c != ' ' && c != '\n' && c != '.' && c != EOF) {
-        if (next == nullptr) {
-            next = _operators.match(c);
-        } else {
-            prev = next;
-            next = next->matching(c);
-        }
-
-        // not part of an operator stop looking
-        if (next == nullptr) {
-            break;
-        }
-
-        // add the char
-        ident.push_back(c);
-        c = nextc();
-    }
-
-    debug("`{}` `{}`", ident, c);
-
-    // if valid operator return that
-    // if (previous != nullptr && previous->leaf()) {
-    if (next != nullptr && next->leaf()) {
-        try {
-            auto        op        = strip(ident);
-            auto const &op_config = _operators.precedence_table().at(op);
-            return make_token(op_config.type, op);
-        } catch (std::exception) {
-            return make_token(tok_incorrect, ident);
-        }
-    }
-    // else it might be an identifier
-
     // Identifiers
-    if (ident.size() > 0 || isalpha(c)) {
+    // -----------
+    if (isalpha(c) && peek() != '"') {
+        String identifier;
 
         // FIXME: check that ident can be an identifier
-        if (isalpha(c)) {
-            ident.push_back(c);
+        identifier.push_back(c);
 
-            while (is_identifier(c = nextc())) {
-                ident.push_back(c);
+        while (is_identifier(c = nextc())) {
+            identifier.push_back(c);
+        }
+
+        if (c == 'f') {
+            goto strings;
+        }
+
+        // is it a string operator (is, not, in, and, or) ?
+        {
+            auto result = default_precedence().find(identifier);
+            if (result != default_precedence().end()) {
+                OpConfig const &conf = result->second;
+                Token           tok  = dummy();
+
+                // combine is not & not in right now
+                if (identifier == "is" || identifier == "not") {
+                    tok = next_token();
+                } else {
+                    return make_token(conf.type, identifier);
+                }
+
+                if (identifier == "is" && tok.operator_name() == "not") {
+                    return make_token(conf.type, "is not");
+                }
+
+                if (identifier == "not" && tok.operator_name() == "int") {
+                    return make_token(conf.type, "not int");
+                }
+
+                _buffered_token = true;
+                _buffer         = tok;
+                return make_token(conf.type, identifier);
             }
         }
 
-        auto result = keywords().find(ident);
-        if (result != keywords().end()) {
-            return make_token(result->second);
+        // is it a keyword ?
+        {
+            auto result = keywords().find(identifier);
+            if (result != keywords().end()) {
+                return make_token(result->second);
+            }
         }
 
-        return make_token(tok_identifier, ident);
+        // then it must be an identifier
+        return make_token(tok_identifier, identifier);
+    }
+
+    // Operators
+    // -----------------------------------------------
+    // c is not alpha num
+    {
+        auto next = _operators.match(c);
+        if (next != nullptr) {
+            String op;
+            op.reserve(6);
+            auto prev = next;
+
+            while (next != nullptr) {
+                op.push_back(c);
+                c    = nextc();
+                prev = next;
+                next = prev->matching(c);
+            }
+
+            if (prev->leaf()) {
+                op          = strip(op);
+                auto result = default_precedence().find(op);
+                if (result != default_precedence().end()) {
+                    OpConfig const &conf = result->second;
+                    return make_token(conf.type, op);
+                }
+            }
+        }
     }
 
     // Numbers
+    // -----------------------------------------------
     if (std::isdigit(c)) {
         String    num;
         TokenType ntype = tok_int;
@@ -264,7 +289,27 @@ Token const &Lexer::next_token() {
         return make_token(ntype, num);
     }
 
-    // strings
+// Strings
+// --------------------------------------------------
+strings:
+
+    // Formated string
+    // ---------------
+    // upper/lower and combinaison are available
+    // fr & rf & br & rb
+    if (c == 'f' && peek() == '"') {
+    }
+
+    // Raw string
+    if (c == 'r' && peek() == '"') {
+    }
+
+    // byte string
+    if (c == 'b' && peek() == '"') {
+    }
+
+    // Regular string
+    // --------------
     if (c == '"') {
         String    str;
         TokenType tok = tok_string;
