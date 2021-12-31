@@ -87,6 +87,8 @@
     X(tok_false, -55)      \
     X(tok_is, -56)         \
     X(tok_not, -57)        \
+    X(tok_and, -58)        \
+    X(tok_or, -59)         \
     X(tok_decorator, '@')
 
 #define LYTHON_KEYWORDS(X)      \
@@ -126,7 +128,9 @@
     X("True", tok_true)         \
     X("False", tok_false)       \
     X("not", tok_not)           \
-    X("is", tok_is)
+    X("is", tok_is)             \
+    X("or", tok_or)             \
+    X("and", tok_and)
 
 namespace lython {
 

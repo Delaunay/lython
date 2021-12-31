@@ -97,7 +97,7 @@ bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, 
                                  CodeLocation const &loc) {
 
     if (lhs_t && rhs_t)
-        debug("{} {} {} {}", str(lhs_t), lhs_t->kind, str(rhs_t), rhs_t->kind);
+        debug("{} {} {} {} {}", str(lhs_t), lhs_t->kind, str(rhs_t), rhs_t->kind, loc.repr());
 
     auto match = equal(lookup(bindings, lhs_t), lookup(bindings, rhs_t));
     if (!match) {
@@ -107,10 +107,27 @@ bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, 
 }
 
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
-    auto values_t = exec<ExprNode *>(n->values, depth);
-    // TODO: check that op is defined for those types
-    // use the op return type here
-    return make_ref(n, "bool");
+    auto bool_type        = make_ref(n, "bool");
+    bool and_implemented  = false;
+    bool rand_implemented = false;
+    auto return_t         = bool_type;
+
+    for (int i = 0; i < n->values.size(); i++) {
+        auto value_t = exec(n->values[i], depth);
+
+        //
+        //  TODO: we could create a builtin file that define
+        //  bool as a class that has the __and__ attribute
+        //  that would harmonize this code
+        //
+        // if not a bool we need to check for
+        //  * __and__ inside the lhs
+        //  * __rand__ inside the rhs
+        if (!equal(value_t, bool_type)) {
+        }
+    }
+
+    return return_t;
 }
 TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) {
     auto value_t = exec(n->value, depth);
@@ -316,13 +333,14 @@ TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { retur
 TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
     switch (n->value.type()) {
     case ConstantValue::TInt:
-        return i32_t();
+        return make_ref(n, "i32");
     case ConstantValue::TFloat:
-        return f32_t();
+        return make_ref(n, "f32");
     case ConstantValue::TDouble:
+        // FIXME
         return f64_t();
     case ConstantValue::TString:
-        return str_t();
+        return make_ref(n, "str");
     case ConstantValue::TBool:
         return make_ref(n, "bool");
     default:
@@ -559,6 +577,7 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
 
         auto attr = cast<Assign>(stmt);
         if (attr) {
+            // TODO:  get the target type
             auto targets_t = exec(attr->value, depth);
 
             for (auto target: attr->targets) {
@@ -573,16 +592,19 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
 
         auto attras = cast<AnnAssign>(stmt);
         if (attras) {
-            auto type     = exec<TypeExpr *>(attras->value, depth);
-            auto target_t = exec(attras->annotation, depth);
+            auto type = exec<TypeExpr *>(attras->value, depth);
+
+            auto typetype = exec(attras->annotation, depth);
+            typecheck(attras->annotation, typetype, nullptr, Type_t(), LOC);
 
             if (type.has_value()) {
-                typecheck(attras->value.value(), type.value(), attras->annotation, target_t, LOC);
+                typecheck(attras->target, attras->annotation, attras->value.value(), type.value(),
+                          LOC);
             }
 
             auto name = cast<Name>(attras->target);
             if (name) {
-                n->insert_attribute(name->id, stmt, target_t);
+                n->insert_attribute(name->id, stmt, attras->annotation);
             }
             continue;
         }

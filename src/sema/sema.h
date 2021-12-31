@@ -200,6 +200,17 @@ struct SemaVisitorTrait {
  * Type deduction alone should provide a satisfactory development experience, as the user should
  * only have to specify the type of the arguments which is good practice anyway as it serves as
  * documentation.
+ *
+ * Raises
+ * ------
+ *
+ * TypeError
+ *      when types between expression mismatch
+ *
+ * AttributeError
+ *      When using an object attribute that does not exist
+ *
+ *
  */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
     Bindings             bindings;

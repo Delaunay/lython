@@ -77,8 +77,10 @@ Array<AllowEntry> allow_list = {
     {"Match", 0, 37},     {"Match", 0, 38},       {"Match", 0, 39},      {"Match", 0, 54},
     {"Match", 0, 55},     {"Match", 0, 57},       {"Match", 0, 59},      {"Match", 0, 60},
     {"Match", 0, 61},     {"Match", 0, 69},       {"Match", 0, 70},      {"Match", 1, 12},
-    {"Match", 1, 13},     {"Match", 1, 14},
-
+    {"Match", 1, 13},     {"Match", 1, 14},       {"ClassDef", 1, 10},   {"ClassDef", 1, 11},
+    {"ClassDef", 1, 16},  {"ClassDef", 1, 17},    {"ClassDef", 1, 20},   {"ClassDef", 1, 21},
+    {"ClassDef", 1, 22},  {"ClassDef", 1, 31},    {"ClassDef", 1, 33},   {"ClassDef", 1, 35},
+    {"ClassDef", 1, 36},
 };
 
 bool allowed(AllowEntry const &v) {

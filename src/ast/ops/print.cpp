@@ -586,7 +586,23 @@ ReturnType Printer::classdef(ClassDef const *self, int depth, std::ostream &out,
         out << indent(level + 1) << "\"\"\"" << self->docstring.value() << "\"\"\"\n";
     }
 
-    print_body(self->body, depth, out, level + 1);
+    int assign = 1;
+    k          = 0;
+    for (auto &stmt: self->body) {
+
+        assign = stmt->kind == NodeKind::Assign || stmt->kind == NodeKind::AnnAssign ||
+                 stmt->kind == NodeKind::Pass;
+
+        if (k > 0 && assign == 0) {
+            out << "\n";
+        }
+
+        out << indent(level + 1);
+        exec(stmt, depth, out, level + 1);
+
+        out << "\n";
+        k += 1;
+    }
     return false;
 }
 

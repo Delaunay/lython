@@ -233,6 +233,17 @@ Array<TestCase> const &ClassDef_examples() {
          "    \"\"\"docstring\"\"\"\n"
          "    pass",
          {"b", "d", "e", "g", "h", "j", "f"}},
+
+        {"class Name:\n"
+         "    x: i32 = 0\n"
+         "    y: i32 = 1\n"
+         "    z = 1.2\n"
+         "\n"
+         "    def __init__(self):\n"
+         "        self.a = 2\n"
+         "\n"
+
+        },
     };
     return ex;
 }
