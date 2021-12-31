@@ -235,8 +235,8 @@ Array<TestCase> const &ClassDef_examples() {
          {"b", "d", "e", "g", "h", "j", "f"}},
 
         {"class Name:\n"
-         "    x: int = 0\n"
-         "    y: int = 1\n"
+         "    x: i32 = 0\n"
+         "    y: i32 = 1\n"
          "    z = 1.2\n"
          "\n"
          "    def __init__(self):\n"
