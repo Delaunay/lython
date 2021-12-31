@@ -210,6 +210,8 @@ struct SemaVisitorTrait {
  * AttributeError
  *      When using an object attribute that does not exist
  *
+ * NameError
+ *      When using an undefined variable
  *
  */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {

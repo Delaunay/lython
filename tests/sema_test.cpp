@@ -13,15 +13,82 @@
 
 using namespace lython;
 
+// TypeError
+// NameError
+// AttributeError
+//
+// Add Inheritance lookup
 Array<TestCase> sema_cases() {
     static Array<TestCase> ex = {
         {
-            "class CustomAnd:\n"
+            "def fun():\n"
+            "    return x\n" // Name error
+        },
+        {
+            "def fun(a: i32) -> i32:\n"
+            "    return a\n"
+            "x = fun(1)\n" // Works
+        },
+        {
+            "def fun(a: i32) -> i32:\n"
+            "    return a\n"
+            "x = fun(1.0)\n" // Type Error
+        },
+        {
+            "def fun(a: i32) -> i32:\n"
+            "    return a\n"
+            "x: f32 = fun(1)\n" // Type Error
+        },
+        {
+            "a" // Name Error a is not defined
+        },
+        {
+            "class CustomAnd:\n" // Bool op
             "    def __and__(self, a) -> int:\n"
             "        retrun 1\n"
             "\n"
             "a = CustomAnd()\n"
             "a and True\n" // <= lookup of __and__ to call __and__(a, b)
+        },
+        {
+            "class Custom:\n" // Compare op
+            "    def __gt__(self, a) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "a = Custom()\n"
+            "a > True\n" //
+        },
+        {
+            "class Custom:\n" // Bin Operator
+            "    def __add__(self, a: int) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "a = Custom()\n"
+            "a + 1\n" // Works
+        },
+        {
+            "class Custom:\n" // Aug Operator
+            "    def __iadd__(self, a: int) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "a = Custom()\n"
+            "a += 1\n" // Works
+        },
+        {
+            "class Custom:\n" // Unary Operator
+            "    def __pos__(self) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "a = Custom()\n"
+            "+a\n" // Works
+        },
+        {
+            "class Custom:\n"
+            "    def __add__(self, a: int) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "a = Custom()\n"
+            "a + 2.0\n" // TypeError
         },
         {
             "class CustomRAnd:\n"

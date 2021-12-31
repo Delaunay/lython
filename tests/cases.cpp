@@ -170,6 +170,9 @@ Array<TestCase> const &For_examples() {
 Array<TestCase> const &AnnAssign_examples() {
     static Array<TestCase> ex = {
         {"a: bool = True", {}},
+        // TODO: those a lexer tests!
+        {"a: int = 1", {}, "", ""},  // make sure "int" is not read as "in t"
+        {"a: isnt = 1", {}, "", ""}, // make sure "isnt" is not read as "is nt"
         {"a: f32 = 2.0", {}, "", "Type 2.0: f64 is not compatible with a: f32"},
     };
     return ex;
