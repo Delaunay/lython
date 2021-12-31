@@ -1,5 +1,5 @@
-#include "parser.h"
 #include "ast/ops.h"
+#include "parser.h"
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
@@ -238,6 +238,13 @@ StmtNode *Parser::parse_class_def(Node *parent, int depth) {
     }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
+
+    for (auto child: stmt->body) {
+        if (child->kind == NodeKind::Expr) {
+            throw SyntaxError();
+        }
+    }
+
     end_code_loc(stmt, last);
     return stmt;
 }
