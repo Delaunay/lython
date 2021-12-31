@@ -13,6 +13,50 @@
 
 using namespace lython;
 
+Array<TestCase> sema_cases() {
+    static Array<TestCase> ex = {
+        {
+            "class CustomAnd:\n"
+            "    def __and__(self, a) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "a = CustomAnd()\n"
+            "a and True\n" // <= lookup of __and__ to call __and__(a, b)
+        },
+        {
+            "class CustomRAnd:\n"
+            "    def __rand__(self, a) -> int:\n"
+            "        retrun 1\n"
+            "\n"
+            "class Name:\n"
+            "    pass\n"
+            "\n"
+            "a = CustomRAnd()\n"
+            "b and a\n" // <= lookup if __rand__ to call __rand__(a, b)
+        },
+        {
+            "class Name:\n"
+            "    x: i32 = 1\n"
+            "\n"
+            "a = Name()\n"
+            "a.x\n"
+            "a.x = 2\n"
+            "print(a.x)\n" //
+        },
+        {
+            "class Name:\n"
+            "    def __init__(self, x: i32):\n" // Resolve an attribute defined inside the ctor
+            "        self.x = x\n"
+            "\n"
+            "a = Name(2)\n"
+            "a.x\n"
+            "a.x = 4\n"
+            "print(a.x)\n" //
+        },
+    };
+    return ex;
+}
+
 inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
     StringBuffer reader(code);
     Lexer        lex(reader);
@@ -68,6 +112,11 @@ void run_testcase(String const &name, Array<TestCase> cases) {
         }
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
+}
+
+TEST_CASE("Class Attribute Lookup") {
+    // Futures tests cases
+    // run_testcase("ClassDef", sema_cases());
 }
 
 #define GENTEST(name)                                               \
