@@ -206,8 +206,8 @@ Token const &Lexer::next_token() {
                     return make_token(conf.type, "is not");
                 }
 
-                if (identifier == "not" && tok.operator_name() == "int") {
-                    return make_token(conf.type, "not int");
+                if (identifier == "not" && tok.operator_name() == "in") {
+                    return make_token(conf.type, "not in");
                 }
 
                 _buffered_token = true;
