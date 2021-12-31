@@ -22,13 +22,20 @@ Array<TestCase> sema_cases() {
     static Array<TestCase> ex = {
         {
             "def fun():\n"
-            "    return x\n" // Name error
+            "    return x\n", // Name error
+            {"x"},
         },
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
             "x = fun(1)\n" // Works
         },
+        {
+            "def fun(a: i32) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun(1)\n" // Works
+        },
+        /*
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
@@ -120,6 +127,7 @@ Array<TestCase> sema_cases() {
             "a.x = 4\n"
             "print(a.x)\n" //
         },
+        // */
     };
     return ex;
 }
@@ -183,7 +191,7 @@ void run_testcase(String const &name, Array<TestCase> cases) {
 
 TEST_CASE("Class Attribute Lookup") {
     // Futures tests cases
-    // run_testcase("ClassDef", sema_cases());
+    run_testcase("ClassDef", sema_cases());
 }
 
 #define GENTEST(name)                                               \

@@ -524,6 +524,7 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
         // Annotated type takes precedence
         auto return_t = n->returns.value();
         auto typetype = exec(return_t, depth);
+
         typecheck(return_t, typetype, nullptr, Type_t(), LOC);
 
         type->returns = return_t;
