@@ -174,7 +174,7 @@ Token const &Lexer::next_token() {
 
     // Identifiers
     // -----------
-    if (isalpha(c) && peek() != '"') {
+    if ((isalpha(c) || c == '_') && peek() != '"') {
         String identifier;
 
         // FIXME: check that ident can be an identifier
