@@ -1,5 +1,5 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -107,10 +107,27 @@ bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, 
 }
 
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
-    auto values_t = exec<ExprNode *>(n->values, depth);
-    // TODO: check that op is defined for those types
-    // use the op return type here
-    return make_ref(n, "bool");
+    auto bool_type        = make_ref(n, "bool");
+    bool and_implemented  = false;
+    bool rand_implemented = false;
+    auto return_t         = bool_type;
+
+    for (int i = 0; i < n->values.size(); i++) {
+        auto value_t = exec(n->values[i], depth);
+
+        //
+        //  TODO: we could create a builtin file that define
+        //  bool as a class that has the __and__ attribute
+        //  that would harmonize this code
+        //
+        // if not a bool we need to check for
+        //  * __and__ inside the lhs
+        //  * __rand__ inside the rhs
+        if (!equal(value_t, bool_type)) {
+        }
+    }
+
+    return return_t;
 }
 TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) {
     auto value_t = exec(n->value, depth);

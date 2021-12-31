@@ -173,23 +173,35 @@ Token const &Lexer::next_token() {
     }
 
     // Operators & Arrow
-    auto *previous   = _operators.match(c);
-    auto *last_valid = previous != nullptr && previous->leaf() ? previous : nullptr;
-    auto  next       = previous;
+    Trie<128UL> const *prev = nullptr;
+    Trie<128UL> const *next = nullptr;
 
+    // Generate a single token for `not in`
+    // should return `int`
     String ident;
-    while (next != nullptr) {
-        previous = next;
+    while (c != ' ' && c != '\n' && c != '.' && c != EOF) {
+        if (next == nullptr) {
+            next = _operators.match(c);
+        } else {
+            prev = next;
+            next = next->matching(c);
+        }
 
+        // not part of an operator stop looking
+        if (next == nullptr) {
+            break;
+        }
+
+        // add the char
         ident.push_back(c);
-        c          = nextc();
-        last_valid = next != nullptr && next->leaf() ? next : last_valid;
-        next       = previous->matching(c);
+        c = nextc();
     }
+
+    debug("`{}` `{}`", ident, c);
 
     // if valid operator return that
     // if (previous != nullptr && previous->leaf()) {
-    if (last_valid != nullptr) {
+    if (next != nullptr && next->leaf()) {
         try {
             auto        op        = strip(ident);
             auto const &op_config = _operators.precedence_table().at(op);

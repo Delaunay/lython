@@ -50,6 +50,7 @@ TEST_MACRO(parser)
 TEST_MACRO(equality)
 TEST_MACRO(pool)
 TEST_MACRO(utilities)
+TEST_MACRO(attribute)
 
 
 
