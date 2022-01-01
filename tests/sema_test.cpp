@@ -149,7 +149,7 @@ inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
 
     Array<String> errors;
     for (auto &err: sema.errors) {
-        errors.push_back(err.message);
+        errors.push_back(err.what());
     }
 
     return std::make_tuple(entry.type, errors);

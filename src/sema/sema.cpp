@@ -1,78 +1,8 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
-
-std::string const &TypeError::message() const {
-    if (cached_message != "") {
-        return cached_message;
-    }
-
-    Array<String> msg = {};
-    if (lhs_v) {
-        msg.push_back("expression `");
-        msg.push_back(str(lhs_v));
-        msg.push_back("`");
-        msg.push_back(" of ");
-    }
-    if (lhs_t) {
-        msg.push_back("type `");
-        msg.push_back(str(lhs_t));
-        msg.push_back("`");
-    } else {
-        msg.push_back("type None");
-    }
-
-    msg.push_back(" is not compatible with ");
-    if (rhs_v) {
-        msg.push_back("expression `");
-        msg.push_back(str(rhs_v));
-        msg.push_back("`");
-        msg.push_back(" of ");
-    }
-    if (rhs_t) {
-        msg.push_back("type `");
-        msg.push_back(str(rhs_t));
-        msg.push_back("`");
-    } else {
-        msg.push_back("type None");
-    }
-
-    cached_message = std::string(join("", msg));
-    return cached_message;
-}
-
-void Bindings::dump(std::ostream &out) const {
-    auto big   = String(40, '-');
-    auto small = String(20, '-');
-    auto sep   = fmt::format("{:>40}-+-{:>20}-+-{}", big, small, small);
-
-    out << sep << '\n';
-    out << fmt::format("{:40} | {:20} | {}", "name", "type", "value") << "\n";
-    out << sep << '\n';
-    for (auto &e: bindings) {
-        print(out, e);
-    }
-    out << sep << '\n';
-}
-
-inline std::ostream &print(std::ostream &out, BindingEntry const &entry) {
-    String n = str(entry.name);
-    String v = str(entry.value);
-    String t = str(entry.type);
-
-    auto frags = split('\n', v);
-
-    out << fmt::format("{:>40} | {:>20} | {}", n, t, frags[0]) << '\n';
-    for (int i = 1; i < frags.size(); i++) {
-        if (strip(frags[i]) == "") {
-            continue;
-        }
-        out << fmt::format("{:>40} | {:>20} | {}", "", "", frags[i]) << '\n';
-    }
-    return out;
-}
 
 bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type) {
     auto name = cast<Name>(expr);
@@ -105,7 +35,7 @@ bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, 
 
     auto match = equal(lookup(bindings, lhs_t), lookup(bindings, rhs_t));
     if (!match) {
-        throw TypeError(lhs, lhs_t, rhs, rhs_t, loc);
+        SEMA_ERROR(TypeError(lhs, lhs_t, rhs, rhs_t, loc));
     }
     return match;
 }
@@ -334,7 +264,7 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     auto arrow = cast<Arrow>(type);
 
     if (arrow == nullptr) {
-        throw TypeError(fmt::format("{} is not callable", str(n->func)), LOC);
+        SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func)), LOC));
         return nullptr;
     }
 
@@ -404,9 +334,7 @@ TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
         n->varid = bindings.get_varid(n->id);
         if (n->varid == -1) {
             debug("Value {} not found", n->id);
-            errors.push_back(
-                SemanticError{nullptr, n, nullptr,
-                              String(fmt::format("Undefined variable {}", n->id).c_str()), LOC});
+            SEMA_ERROR(NameError(n, n->id, LOC));
         }
     }
 
@@ -805,9 +733,7 @@ TypeExpr *SemanticAnalyser::global(Global *n, int depth) {
     for (auto &name: n->names) {
         auto varid = bindings.get_varid(name);
         if (varid == -1) {
-            errors.push_back(
-                SemanticError{n, nullptr, nullptr,
-                              String(fmt::format("Undefined variable {}", name).c_str()), LOC});
+            SEMA_ERROR(NameError(n, name, LOC));
         }
     }
     return nullptr;
@@ -816,9 +742,7 @@ TypeExpr *SemanticAnalyser::nonlocal(Nonlocal *n, int depth) {
     for (auto &name: n->names) {
         auto varid = bindings.get_varid(name);
         if (varid == -1) {
-            errors.push_back(
-                SemanticError{n, nullptr, nullptr,
-                              String(fmt::format("Undefined variable {}", name).c_str()), LOC});
+            SEMA_ERROR(NameError(n, name, LOC));
         }
     }
     return nullptr;
@@ -891,37 +815,6 @@ TypeExpr *SemanticAnalyser::matchor(MatchOr *n, int depth) {
         exec(pat, depth);
     }
     return nullptr;
-}
-
-BuiltinType make_type(String const &name) {
-    auto expr = BuiltinType();
-    expr.name = name;
-    return expr;
-}
-
-#define TYPE(name)                                  \
-    TypeExpr *name##_t() {                          \
-        static BuiltinType type = make_type(#name); \
-        return &type;                               \
-    }
-
-BUILTIN_TYPES(TYPE)
-
-#undef TYPE
-
-ExprNode *none() {
-    static Constant constant(ConstantValue::none());
-    return &constant;
-}
-
-ExprNode *True() {
-    static Constant constant(true);
-    return &constant;
-}
-
-ExprNode *False() {
-    static Constant constant(false);
-    return &constant;
 }
 
 TypeExpr *SemanticAnalyser::dicttype(DictType *n, int depth) { return Type_t(); }

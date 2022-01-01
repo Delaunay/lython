@@ -4,174 +4,14 @@
 #include "ast/magic.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
+#include "sema/bindings.h"
+#include "sema/builtin.h"
+#include "sema/errors.h"
 #include "utilities/strings.h"
 
-#define SEMA_THROW(exception) errors.push_back(exception);
+#define SEMA_ERROR(exception) errors.push_back(exception);
 
 namespace lython {
-
-using TypeExpr = ExprNode;
-
-ExprNode *False();
-ExprNode *True();
-ExprNode *none();
-
-struct SemaException: LythonException {};
-
-struct TypeError: public SemaException {
-    TypeError(std::string const &msg, CodeLocation const &loc): cached_message(msg), loc(loc) {}
-
-    TypeError(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
-              CodeLocation const &loc):
-        lhs_v(lhs),
-        lhs_t(lhs_t), rhs_v(rhs), rhs_t(rhs_t), loc(loc) {}
-
-    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {
-        message();
-        return cached_message.c_str();
-    }
-
-    std::string const &message() const;
-
-    // Source code info
-    ExprNode *lhs_v = nullptr;
-    TypeExpr *lhs_t = nullptr;
-    ExprNode *rhs_v = nullptr;
-    TypeExpr *rhs_t = nullptr;
-
-    // Compiler Debug location
-    CodeLocation loc;
-
-    mutable std::string cached_message;
-};
-
-struct BindingEntry {
-    BindingEntry(StringRef a = StringRef(), Node *b = nullptr, TypeExpr *c = nullptr):
-        name(a), value(b), type(c) {}
-
-    bool operator==(BindingEntry const &b) const {
-        return name == b.name && value == b.value && type == b.type;
-    }
-
-    StringRef name;
-    Node *    value = nullptr;
-    TypeExpr *type  = nullptr;
-};
-
-std::ostream &print(std::ostream &out, BindingEntry const &entry);
-
-#define BUILTIN_TYPES(TYPE) \
-    TYPE(Type)              \
-    TYPE(None)              \
-    TYPE(i8)                \
-    TYPE(i16)               \
-    TYPE(i32)               \
-    TYPE(i64)               \
-    TYPE(f32)               \
-    TYPE(f64)               \
-    TYPE(u8)                \
-    TYPE(u16)               \
-    TYPE(u32)               \
-    TYPE(u64)               \
-    TYPE(str)               \
-    TYPE(bool)
-
-#define TYPE(name) TypeExpr *name##_t();
-
-BUILTIN_TYPES(TYPE)
-
-#undef TYPE
-
-struct Bindings {
-    Bindings() {
-        bindings.reserve(128);
-
-#define TYPE(name) add(String(#name), name##_t(), Type_t());
-
-        BUILTIN_TYPES(TYPE)
-
-#undef TYPE
-
-        // Builtin constant
-        add(String("None"), none(), None_t());
-        add(String("True"), True(), bool_t());
-        add(String("False"), False(), bool_t());
-    }
-
-    // returns the varid it was inserted as
-    inline int add(StringRef const &name, Node *value, TypeExpr *type) {
-        auto size = int(bindings.size());
-        bindings.push_back({name, value, type});
-        return size;
-    }
-
-    inline void set_type(int varid, TypeExpr *type) {
-        if (varid < 0 && varid > bindings.size())
-            return;
-
-        bindings[varid].type = type;
-    }
-
-    inline TypeExpr *get_type(int varid) {
-        if (varid < 0 && varid > bindings.size())
-            return nullptr;
-        return bindings[varid].type;
-    }
-
-    inline Node *get_value(int varid) {
-        if (varid < 0 && varid > bindings.size())
-            return nullptr;
-        return bindings[varid].value;
-    }
-
-    StringRef get_name(int varid) {
-        if (varid < 0 && varid > bindings.size())
-            return StringRef();
-        return bindings[varid].name;
-    }
-
-    int get_varid(StringRef name) {
-        auto start = std::rbegin(bindings);
-        auto end   = std::rend(bindings);
-
-        int i = 0;
-        while (start != end) {
-            if (start->name == name) {
-                return bindings.size() - i - 1;
-            }
-            ++start;
-            i += 1;
-        }
-        return -1;
-    }
-
-    String __str__() const {
-        StringStream ss;
-        dump(ss);
-        return ss.str();
-    }
-
-    void dump(std::ostream &out) const;
-
-    Array<BindingEntry> bindings;
-};
-
-struct Scope {
-    Scope(Bindings &array): bindings(array), oldsize(bindings.bindings.size()) {}
-
-    ~Scope() { bindings.bindings.resize(oldsize); }
-
-    Bindings &  bindings;
-    std::size_t oldsize;
-};
-
-struct SemanticError {
-    StmtNode *   stmt;
-    ExprNode *   expr;
-    Pattern *    pat;
-    String       message;
-    CodeLocation loc;
-};
 
 struct SemaVisitorTrait {
     using StmtRet = TypeExpr *;
@@ -180,9 +20,6 @@ struct SemaVisitorTrait {
     using PatRet  = TypeExpr *;
     using IsConst = std::false_type;
 };
-
-// TODO: Method lookups
-// TODO: typechecking i.e equality
 
 /* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
  * syntactically correct its job is to detect issues that could prevent a succesful compilation.
@@ -221,7 +58,7 @@ struct SemaVisitorTrait {
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
     Bindings             bindings;
     bool                 forwardpass = false;
-    Array<SemanticError> errors;
+    Array<SemaException> errors;
 
     public:
     virtual ~SemanticAnalyser() {}

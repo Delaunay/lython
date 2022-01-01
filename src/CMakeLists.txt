@@ -55,6 +55,9 @@ SET(ADD_SOURCE
     parser/parsing_error.cpp
     lowering/lowering.cpp
     sema/sema.cpp
+    sema/errors.cpp
+    sema/bindings.cpp
+    sema/builtin.cpp
     utilities/allocator.cpp 
     utilities/metadata.cpp
     utilities/pool.cpp
