@@ -155,16 +155,6 @@ inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
     return std::make_tuple(entry.type, errors);
 }
 
-Array<String> expected_errors(TestCase const &test) {
-    Array<String> r;
-    r.reserve(test.undefined.size());
-    for (auto &undef: test.undefined) {
-        r.push_back("Undefined variable " + undef);
-    }
-
-    return r;
-}
-
 void run_testcase(String const &name, Array<TestCase> cases) {
     info("Testing {}", name);
 
@@ -173,18 +163,15 @@ void run_testcase(String const &name, Array<TestCase> cases) {
     for (auto &c: cases) {
         Module *mod;
 
-        if (c.exception == "") {
-            std::tie(deduced_type, errors) = sema_it(c.code, mod);
+        std::tie(deduced_type, errors) = sema_it(c.code, mod);
 
-            REQUIRE(errors == expected_errors(c));
+        REQUIRE(errors == c.errors);
 
-            if (c.expected_type != "") {
-                REQUIRE(c.expected_type == str(deduced_type));
-            }
-            delete mod;
-        } else {
-            REQUIRE_THROWS_WITH(sema_it(c.code, mod), std::string(c.exception.c_str()));
+        if (c.expected_type != "") {
+            REQUIRE(c.expected_type == str(deduced_type));
         }
+        delete mod;
+
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }

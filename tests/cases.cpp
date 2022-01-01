@@ -172,13 +172,10 @@ Array<TestCase> const &AnnAssign_examples() {
         {"a: bool = True", {}},
         // TODO: those a lexer tests!
         // make sure "int" is not read as "in t"
-        {"a: int = 1", {}, "", "expression `int` of type None is not compatible with type `Type`"},
+        {"a: int = 1", {"expression `int` of type None is not compatible with type `Type`"}, ""},
         // make sure "isnt" is not read as "is nt"
-        {"a: isnt = 1",
-         {},
-         "",
-         "expression `isnt` of type None is not compatible with type `Type`"},
-        {"a: f32 = 2.0", {}, "", ""},
+        {"a: isnt = 1", {"expression `isnt` of type None is not compatible with type `Type`"}, ""},
+        {"a: f32 = 2.0", {}, ""},
     };
     return ex;
 }
@@ -385,9 +382,8 @@ Array<TestCase> const &Call_examples() {
     static Array<TestCase> ex = {
         {
             "fun(a, b, c=d)",
-            {"fun", "a", "b", "d"},
+            {"fun", "fun is not callable", "a", "b", "d"},
             "",
-            "fun is not callable", // cannot find fun type
         },
     };
     return ex;
