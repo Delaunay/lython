@@ -55,6 +55,7 @@ jobs:
           make -j $(nproc)
 
       - name: Git Clone
+        if: always() && (github.ref == 'refs/heads/master')
         run: |
           git clone --single-branch --branch gh-pages https://${{ secrets.GH_TOKEN }}@github.com/Delaunay/lython.git build/coverage/
           git config --global user.email "Coverage"
