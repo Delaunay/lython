@@ -133,7 +133,7 @@ struct Bindings {
         int i = 0;
         while (start != end) {
             if (start->name == name) {
-                return i;
+                return bindings.size() - i - 1;
             }
             ++start;
             i += 1;

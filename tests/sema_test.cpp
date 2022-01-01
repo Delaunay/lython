@@ -30,6 +30,7 @@ Array<TestCase> sema_cases() {
             "    return a\n"
             "x = fun(1)\n" // Works
         },
+        /*/*
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
@@ -189,7 +190,7 @@ void run_testcase(String const &name, Array<TestCase> cases) {
     }
 }
 
-TEST_CASE("Class Attribute Lookup") {
+TEST_CASE("Class_Attribute_Lookup") {
     // Futures tests cases
     run_testcase("ClassDef", sema_cases());
 }

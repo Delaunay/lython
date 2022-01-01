@@ -9,30 +9,34 @@ std::string const &TypeError::message() const {
         return cached_message;
     }
 
-    Array<String> msg = {"Type "};
-    if (rhs_v) {
-        msg.push_back(str(rhs_v));
+    Array<String> msg = {};
+    if (lhs_v) {
+        msg.push_back("expression `");
+        msg.push_back(str(lhs_v));
+        msg.push_back("`");
+        msg.push_back(" of ");
     }
-    if (rhs_v) {
-        msg.push_back(": ");
-    }
-    if (rhs_t) {
-        msg.push_back(str(rhs_t));
+    if (lhs_t) {
+        msg.push_back("type `");
+        msg.push_back(str(lhs_t));
+        msg.push_back("`");
     } else {
-        msg.push_back("None");
+        msg.push_back("type None");
     }
 
     msg.push_back(" is not compatible with ");
-    if (lhs_v) {
-        msg.push_back(str(lhs_v));
+    if (rhs_v) {
+        msg.push_back("expression `");
+        msg.push_back(str(rhs_v));
+        msg.push_back("`");
+        msg.push_back(" of ");
     }
-    if (lhs_v) {
-        msg.push_back(": ");
-    }
-    if (lhs_t) {
-        msg.push_back(str(lhs_t));
+    if (rhs_t) {
+        msg.push_back("type `");
+        msg.push_back(str(rhs_t));
+        msg.push_back("`");
     } else {
-        msg.push_back("None");
+        msg.push_back("type None");
     }
 
     cached_message = std::string(join("", msg));
@@ -380,19 +384,28 @@ TypeExpr *SemanticAnalyser::starred(Starred *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
     if (n->ctx == ExprContext::Store) {
-        debug("{}", "here storing value");
         auto id  = bindings.add(n->id, n, nullptr);
         n->varid = id;
+
+        debug("Storing value for {} ({})", n->id, n->varid);
     } else {
         // Both delete & Load requires the variable to be defined first
         n->varid = bindings.get_varid(n->id);
         if (n->varid == -1) {
+            debug("Value {} not found", n->id);
             errors.push_back(
                 SemanticError{nullptr, n, nullptr,
                               String(fmt::format("Undefined variable {}", n->id).c_str()), LOC});
         }
     }
-    return bindings.get_type(n->varid);
+
+    auto t = bindings.get_type(n->varid);
+    if (t == nullptr) {
+        debug("Value {} does not have a type", n->id);
+    } else {
+        debug("Loading value {}: {} of type {}", n->id, n->varid, str(t));
+    }
+    return t;
 }
 TypeExpr *SemanticAnalyser::listexpr(ListExpr *n, int depth) {
     TypeExpr *val_t = nullptr;
