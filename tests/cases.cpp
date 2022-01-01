@@ -172,10 +172,13 @@ Array<TestCase> const &AnnAssign_examples() {
         {"a: bool = True", {}},
         // TODO: those a lexer tests!
         // make sure "int" is not read as "in t"
-        {"a: int = 1", {}, "", "Type Type is not compatible with int: None"},
+        {"a: int = 1", {}, "", "expression `int` of type None is not compatible with type `Type`"},
         // make sure "isnt" is not read as "is nt"
-        {"a: isnt = 1", {}, "", "Type Type is not compatible with isnt: None"},
-        {"a: f32 = 2.0", {}, "", "Type 2.0: f64 is not compatible with a: f32"},
+        {"a: isnt = 1",
+         {},
+         "",
+         "expression `isnt` of type None is not compatible with type `Type`"},
+        {"a: f32 = 2.0", {}, "", ""},
     };
     return ex;
 }

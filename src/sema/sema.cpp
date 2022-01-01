@@ -353,8 +353,7 @@ TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
     case ConstantValue::TFloat:
         return make_ref(n, "f32");
     case ConstantValue::TDouble:
-        // FIXME
-        return f64_t();
+        return make_ref(n, "f64");
     case ConstantValue::TString:
         return make_ref(n, "str");
     case ConstantValue::TBool:
