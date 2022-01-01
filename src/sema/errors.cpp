@@ -1,6 +1,7 @@
 #include "sema/errors.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
+#include "utilities/names.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -46,6 +47,10 @@ std::string TypeError::message() const {
     };
 
     return message(_str(lhs_v), _str(lhs_t), _str(rhs_v), _str(rhs_t));
+}
+
+std::string NameError::message() const {
+    return fmt::format("NameError: name '{}' is not defined", str(name));
 }
 
 } // namespace lython

@@ -12,6 +12,8 @@ String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String 
     return String(TypeError::message(lhs_v, lhs_t, rhs_v, rhs_t));
 }
 
+String AE() { return String(); }
+
 Array<TestCase> const &Match_examples() {
     static Array<TestCase> ex = {
         // TODO: check this test case on python

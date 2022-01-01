@@ -55,9 +55,7 @@ struct AttributeError: public SemaException {};
 struct NameError: public SemaException {
     NameError(Node *code, StringRef name): code(code), name(name) {}
 
-    std::string message() const override {
-        return fmt::format("NameError: name '{}' is not defined", str(name));
-    }
+    std::string message() const override;
 
     Node *    code;
     StringRef name;
