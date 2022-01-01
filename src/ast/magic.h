@@ -45,7 +45,7 @@ inline String str(String const &obj) { return obj; }
 
 #define BINARY(X)                      \
     X(+, __add__(self, other))         \
-    X(–, __sub__(self, other))         \
+    X(-, __sub__(self, other))         \
     X(*, __mul__(self, other))         \
     X(/, __truediv__(self, other))     \
     X(\/\/, __floordiv__(self, other)) \
@@ -80,7 +80,7 @@ inline String str(String const &obj) { return obj; }
     X(^=, __ixor__(self, other))
 
 #define UNARY(X)               \
-    X(–, __neg__(self, other)) \
+    X(-, __neg__(self, other)) \
     X(+, __pos__(self, other)) \
     X(~, __invert__(self, other))
 

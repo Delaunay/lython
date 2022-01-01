@@ -6,6 +6,8 @@
 #include "ast/visitor.h"
 #include "utilities/strings.h"
 
+#define SEMA_THROW(exception) errors.push_back(exception);
+
 namespace lython {
 
 using TypeExpr = ExprNode;
@@ -17,6 +19,8 @@ ExprNode *none();
 struct SemaException: LythonException {};
 
 struct TypeError: public SemaException {
+    TypeError(std::string const &msg, CodeLocation const &loc): cached_message(msg), loc(loc) {}
+
     TypeError(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
               CodeLocation const &loc):
         lhs_v(lhs),

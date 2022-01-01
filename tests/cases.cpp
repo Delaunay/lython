@@ -278,7 +278,11 @@ Array<TestCase> const &FunctionDef_examples() {
 
 Array<TestCase> const &Inline_examples() {
     static Array<TestCase> ex = {
-        {"a = 2; b = c; d = e", {"c", "e"}},
+        {
+            "a = 2; b = c; d = e",
+            {"c", "e"},
+
+        },
     };
     return ex;
 }
@@ -379,7 +383,12 @@ Array<TestCase> const &JoinedStr_examples() {
 
 Array<TestCase> const &Call_examples() {
     static Array<TestCase> ex = {
-        {"fun(a, b, c=d)", {"fun", "a", "b", "d"}},
+        {
+            "fun(a, b, c=d)",
+            {"fun", "a", "b", "d"},
+            "",
+            "fun is not callable", // cannot find fun type
+        },
     };
     return ex;
 }

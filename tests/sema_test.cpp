@@ -30,7 +30,6 @@ Array<TestCase> sema_cases() {
             "    return a\n"
             "x = fun(1)\n" // Works
         },
-        /*/*
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"

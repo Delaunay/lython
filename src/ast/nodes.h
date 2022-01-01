@@ -833,6 +833,9 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 // Safe cast
 template <typename T>
 T *cast(Node *obj) {
+    if (obj == nullptr) {
+        return nullptr;
+    }
     if (obj->is_instance<T>()) {
         return (T *)obj;
     }
