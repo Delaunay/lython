@@ -8,6 +8,10 @@ String NC(std::string const &name) {
     return String(fmt::format("{} is not callable", name).c_str());
 }
 
+String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String const &rhs_t) {
+    return String(TypeError::message(lhs_v, lhs_t, rhs_v, rhs_t));
+}
+
 Array<TestCase> const &Match_examples() {
     static Array<TestCase> ex = {
         // TODO: check this test case on python
@@ -221,16 +225,16 @@ Array<TestCase> const &AnnAssign_examples() {
             "a: int = 1",
             {
                 NE("int"),
-                "expression `int` of type None is not compatible with type `Type`",
-                "expression `a` of type `int` is not compatible with expression `1` of type `i32`",
+                TE("int", "", "", "Type"),
+                TE("a", "int", "1", "i32"),
             },
         },
         // make sure "isnt" is not read as "is nt"
         {"a: isnt = 1",
          {
              NE("isnt"),
-             "expression `isnt` of type None is not compatible with type `Type`",
-             "expression `a` of type `isnt` is not compatible with expression `1` of type `i32`",
+             TE("isnt", "", "", "Type"),
+             TE("a", "isnt", "1", "i32"),
          },
          ""},
         {"a: f32 = 2.0", {}, ""},

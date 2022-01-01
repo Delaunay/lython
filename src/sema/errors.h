@@ -83,6 +83,9 @@ struct TypeError: public SemaException {
 
     std::string message() const override;
 
+    static std::string message(String const &lhs_v, String const &lhs_t, String const &rhs_v,
+                               String const &rhs_t);
+
     // Source code info
     ExprNode *lhs_v = nullptr;
     TypeExpr *lhs_t = nullptr;
