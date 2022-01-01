@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+        integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@forevolve/bootstrap-dark@1.0.0/dist/css/bootstrap-dark.min.css" />
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"
+        integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
+        crossorigin="anonymous"></script>
+
+    <style>
+        .axis line {
+            stroke: white;
+        }
+
+        .axis path {
+            stroke: white;
+        }
+
+        .axis text {
+            fill: white;
+        }
+
+        .label text {
+            fill: white;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+
+    <div class="container">
+
+        <h1>Lython Coverage Evolution</h1>
+        <a href='http://delaunay.github.io/lython/'>
+            <img src='https://raw.githubusercontent.com/Delaunay/lython/gh-pages/badge.svg' alt='Coverage' />
+        </a>
+
+        <h2>Evolution</h2>
+        <!-- Create a div where the graph will take place -->
+        <div id="coverage-evol"></div>
+
+        <h2>Summary</h2>
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <table class="table">
+                    <tr>
+                        <td></td>
+                        <td>Valid</td>
+                        <td>Covered</td>
+                        <td>%</td>
+                    </tr>
+                    <tr>
+                        <td>Line</td>
+                        <td id="lines-valid"></td>
+                        <td id="lines-covered"></td>
+                        <td id="line-rate"></td>
+                    </tr>
+                    <tr>
+                        <td>Branch</td>
+                        <td id="branches-valid"></td>
+                        <td id="branches-covered"></td>
+                        <td id="branch-rate"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var lastline = 0
+
+        legend = function (x, y, name, color) {
+            svg.append("circle")
+                .attr("cx", x)
+                .attr("cy", y)
+                .attr("r", 6)
+                .style("fill", color)
+
+            svg.append("text")
+                .attr("x", x + 10)
+                .attr("y", y + 6)
+                .attr("class", "legend")
+                .text(name)
+                .style("font-size", "15px")
+                .style("fill", "#ffffff")
+                .attr("alignment-baseline", "middle")
+        };
+
+        // set the dimensions and margins of the graph
+        var margin = { top: 10, right: 60, bottom: 30, left: 60 },
+            width = 1100 - margin.left - margin.right,
+            height = 400 - margin.top - margin.bottom;
+
+        var format = d3.timeFormat("%Y-%m-%d");
+        // format(new Date(1075611600000))
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#coverage-evol")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        //Read the data
+        d3.csv("https://raw.githubusercontent.com/Delaunay/lython/gh-pages/coverage.csv", function (data) {
+
+            var label_size = "2em";
+            var x = d3.scaleTime()
+                .domain(d3.extent(data, function (d) { return new Date(+d.timestamp); }))
+                .range([0, width]);
+
+            // Add Y axis
+            var y_percent = d3.scaleLinear()
+                .domain([0.33, 1])
+                .range([height, 0]);
+
+            var line_val_extent = d3.extent(data, function (d) { return +d['lines-valid']; })
+            line_val_extent = [0, line_val_extent[1]]
+
+            var y_lines = d3.scaleLinear()
+                .domain(line_val_extent)
+                .range([height, 0]);
+
+            var branch_val_extend = d3.extent(data, function (d) { return +d['branches-valid']; })
+            branch_val_extend = [0, branch_val_extend[1]]
+
+            var y_branches = d3.scaleLinear()
+                .domain(branch_val_extend)
+                .range([height, 0]);
+
+
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .attr("class", "axis")
+                .call(d3.axisBottom(x)) // .ticks(d3.timeDay, 1).tickFormat(d3.timeFormat('%b')));
+                ;
+
+            // x axis label
+            svg.append("text")
+                .attr("transform",
+                    "translate(" + (width / 2) + " ," +
+                    (height + margin.top + 20) + ")")
+                .style("text-anchor", "middle")
+                .style("fill", "white")
+                .style("font-size", "15px")
+                .attr("class", "label")
+                .text("Time");
+
+
+            // svg.append("g")
+            //     .attr("class", "axis")
+            //     .call(d3.axisLeft(y_percent));
+
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", "translate(" + width + " ,0)")
+                .call(d3.axisRight(y_branches).ticks(3));
+
+            svg.append("text")
+                .attr("transform", "rotate(90)")
+                .attr("y", - width - margin.right)
+                .attr("x", height / 2)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("fill", "white")
+                .attr("class", "label")
+                .style("font-size", "15px")
+                .text("Branches");
+
+            svg.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(y_lines).ticks(3))
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "15px")
+                .style("fill", "white")
+                .attr("class", "label")
+                .text("Lines");
+
+
+            var lines_rate = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_percent(+d['line-rate']); });
+
+            var branch_rate = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_percent(+d['branch-rate']); });
+
+            var lines_valid = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_lines(+d['lines-valid']); });
+
+            var lines_covered = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_lines(+d['lines-covered']); });
+
+            var branches_valid = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_branches(+d['branches-valid']); });
+
+            var branches_covered = d3.line()
+                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .y(function (d) { return y_branches(+d['branches-covered']); });
+
+            colors = [
+                "#75CFB8",
+                "#BBDFC8",
+                "#d8f0e5",
+                "#FFC478",
+                "#F0E5D8"
+            ];
+
+            orange = "#FFC478"
+            beige = "#F0E5D8"
+            green = "#75CFB8"
+            lgreen = "#BBDFC8"
+            pink = "#FFd8e5"
+            red = "#FFA0A0"
+
+            // ordered by apparition
+            lines = [
+                ["branches-valid", red, branches_valid, y_branches],
+                ["lines-valid", green, lines_valid, y_lines],
+
+                // Same as branch-covered
+                // ["line-rate", "#ff0000", lines_rate, y_percent],
+
+
+                ["lines-covered", lgreen, lines_covered, y_lines],
+
+                // Same as branch-covered
+                // ["branch-rate", "#00ff00", branch_rate, y_percent]
+
+                ["branches-covered", pink, branches_covered, y_branches],
+            ]
+
+            var circles = svg.selectAll('circle')
+                .data(data).enter();
+
+            for (let i = 0; i < lines.length; i++) {
+                [n, color, line, yscale] = lines[i];
+
+                svg.append("path")
+                    .attr("fill", "none")
+                    .attr("stroke", color)
+                    .attr("stroke-width", 3)
+                    .attr("d", line(data));
+
+                circles
+                    .append('circle')
+                    .attr("r", 6)
+                    .attr("cx", function (d) { return x(new Date(+d.timestamp)); })
+                    .attr("cy", function (d) {
+                        console.log(n, d[n]);
+                        return yscale(+d[n]);
+                    })
+                    .style("fill", color);
+            }
+
+            // Draw legend after to control the z-order
+            // legend is on top of everything
+            legend_x = 25; // width - 150;
+            legend_y = height - 17 * lines.length - 10;
+            legend_height = (lines.length) * 17;
+
+            font_size = 8
+            circle_r = 6
+            margin = 10
+            rect = svg.append("rect")
+                .attr("x", legend_x - margin)
+                .attr("y", legend_y - margin)
+                .attr("fill", "#1d1d1d")
+                .attr("opacity", 1)
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("height", legend_height + margin)
+                .attr("width", 16 * font_size + circle_r * 2 + margin);
+
+            for (let i = 0; i < lines.length; i++) {
+                [n, color, line, yscale] = lines[i];
+
+                legend(legend_x, legend_y + i * 20, n, color);
+            }
+
+            lastline = data[data.length - 1];
+
+            stats = [
+                ["branches-valid", 1],
+                ["lines-valid", 1],
+                ["line-rate", 100],
+                ["lines-covered", 1],
+                ["branch-rate", 100],
+                ["branches-covered", 1]
+            ]
+            stats.forEach(function (d) {
+                [name, scale] = d;
+                value = (lastline[name] * scale);
+                if (scale > 1) {
+                    value = value.toFixed(2);
+                }
+                d3.select("#" + name).text(value)
+            })
+        })
+    </script>
+</body>
+
+</html>
