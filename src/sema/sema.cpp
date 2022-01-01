@@ -265,26 +265,32 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
 
     if (arrow == nullptr) {
         SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
-        return nullptr;
     }
 
     // Create the matching Arrow type for this call
     Arrow *got = n->new_object<Arrow>();
-    got->args.reserve(arrow->args.size());
+    if (arrow != nullptr) {
+        got->args.reserve(arrow->args.size());
+    }
     for (auto &arg: n->args) {
         got->args.push_back(exec(arg, depth));
     }
 
     // FIXME: we do not know the returns so we just use the one we have
-    got->returns = arrow->returns;
-    typecheck(n, got, n->func, arrow, LOC);
+    if (arrow != nullptr) {
+        got->returns = arrow->returns;
+        typecheck(n, got, n->func, arrow, LOC);
+    }
 
     for (auto &kw: n->keywords) {
         // TODO: Handle keywods
         exec(kw.value, depth);
     }
 
-    return arrow->returns;
+    if (arrow != nullptr) {
+        return arrow->returns;
+    }
+    return nullptr;
 }
 TypeExpr *SemanticAnalyser::joinedstr(JoinedStr *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { return nullptr; }
