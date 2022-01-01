@@ -264,7 +264,7 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     auto arrow = cast<Arrow>(type);
 
     if (arrow == nullptr) {
-        SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func)), LOC));
+        SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
         return nullptr;
     }
 
@@ -334,7 +334,7 @@ TypeExpr *SemanticAnalyser::name(Name *n, int depth) {
         n->varid = bindings.get_varid(n->id);
         if (n->varid == -1) {
             debug("Value {} not found", n->id);
-            SEMA_ERROR(NameError(n, n->id, LOC));
+            SEMA_ERROR(NameError(n, n->id));
         }
     }
 
@@ -733,7 +733,7 @@ TypeExpr *SemanticAnalyser::global(Global *n, int depth) {
     for (auto &name: n->names) {
         auto varid = bindings.get_varid(name);
         if (varid == -1) {
-            SEMA_ERROR(NameError(n, name, LOC));
+            SEMA_ERROR(NameError(n, name));
         }
     }
     return nullptr;
@@ -742,7 +742,7 @@ TypeExpr *SemanticAnalyser::nonlocal(Nonlocal *n, int depth) {
     for (auto &name: n->names) {
         auto varid = bindings.get_varid(name);
         if (varid == -1) {
-            SEMA_ERROR(NameError(n, name, LOC));
+            SEMA_ERROR(NameError(n, name));
         }
     }
     return nullptr;

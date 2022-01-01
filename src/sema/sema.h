@@ -9,7 +9,9 @@
 #include "sema/errors.h"
 #include "utilities/strings.h"
 
-#define SEMA_ERROR(exception) errors.push_back(exception);
+#define SEMA_ERROR(exception)      \
+    error("{}", exception.what()); \
+    errors.push_back(std::unique_ptr<SemaException>(new exception));
 
 namespace lython {
 
@@ -56,9 +58,9 @@ struct SemaVisitorTrait {
  *
  */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
-    Bindings             bindings;
-    bool                 forwardpass = false;
-    Array<SemaException> errors;
+    Bindings                              bindings;
+    bool                                  forwardpass = false;
+    Array<std::unique_ptr<SemaException>> errors;
 
     public:
     virtual ~SemanticAnalyser() {}

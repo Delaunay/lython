@@ -23,7 +23,9 @@ Array<TestCase> sema_cases() {
         {
             "def fun():\n"
             "    return x\n", // Name error
-            {"x"},
+            {
+                NE("x"),
+            },
         },
         {
             "def fun(a: i32) -> i32:\n"
@@ -149,7 +151,7 @@ inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
 
     Array<String> errors;
     for (auto &err: sema.errors) {
-        errors.push_back(err.what());
+        errors.push_back(err->what());
     }
 
     return std::make_tuple(entry.type, errors);

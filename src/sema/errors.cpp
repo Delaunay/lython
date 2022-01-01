@@ -5,11 +5,7 @@
 
 namespace lython {
 
-std::string const &TypeError::message() const {
-    if (cached_message != "") {
-        return cached_message;
-    }
-
+std::string TypeError::message() const {
     Array<String> msg = {};
     if (lhs_v) {
         msg.push_back("expression `");
@@ -39,9 +35,7 @@ std::string const &TypeError::message() const {
     } else {
         msg.push_back("type None");
     }
-
-    cached_message = std::string(join("", msg));
-    return cached_message;
+    return std::string(join("", msg));
 }
 
 } // namespace lython

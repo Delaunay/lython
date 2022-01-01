@@ -1,6 +1,6 @@
+#include "sema/bindings.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
-#include "sema/bindings.h"
 #include "utilities/strings.h"
 
 namespace lython {

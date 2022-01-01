@@ -6,44 +6,88 @@
 
 namespace lython {
 
-struct SemaException: LythonException {};
+struct SemaException: LythonException {
+    SemaException(std::string const &msg): cached_message(msg) {}
 
-struct AttributeError: public SemaException {};
+    SemaException(): cached_message("") {}
 
-struct NameError: public SemaException {
-    NameError(Node *code, StringRef name, CodeLocation const &loc):
-        code(code), name(name), loc(loc) {}
+    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW override final {
+        generate_message();
+        return cached_message.c_str();
+    }
 
-    Node *       code;
-    StringRef    name;
-    CodeLocation loc;
+    void generate_message() const {
+        if (cached_message.size() > 0) {
+            return;
+        }
+
+        cached_message = message();
+    }
+
+    virtual std::string message() const = 0;
+
+    mutable std::string cached_message;
 };
 
+/*
+ *
+ * Examples
+ * --------
+ * >>> class Name:
+ * ...     x = 1
+ * ...
+ * >>> a = Name()
+ * >>> a.n
+ * Traceback (most recent call last):
+ *   File "<stdin>", line 1, in <module>
+ * AttributeError: 'Name' object has no attribute 'n'
+ */
+struct AttributeError: public SemaException {};
+
+/*
+ * Examples
+ * --------
+ * >>> x
+ * Traceback (most recent call last):
+ *   File "<stdin>", line 1, in <module>
+ * NameError: name 'x' is not defined
+ */
+struct NameError: public SemaException {
+    NameError(Node *code, StringRef name): code(code), name(name) {}
+
+    std::string message() const override {
+        return fmt::format("NameError: name '{}' is not defined", str(name));
+    }
+
+    Node *    code;
+    StringRef name;
+};
+
+/*
+ * Examples
+ * --------
+ * >>> x = 1
+ * >>> x(1)
+ * Traceback (most recent call last):
+ *  File "<stdin>", line 1, in <module>
+ * TypeError: 'int' object is not callable
+ *
+ */
 struct TypeError: public SemaException {
-    TypeError(std::string const &msg, CodeLocation const &loc): cached_message(msg), loc(loc) {}
+    TypeError(std::string const &msg): SemaException(msg) {}
 
     TypeError(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
               CodeLocation const &loc):
         lhs_v(lhs),
-        lhs_t(lhs_t), rhs_v(rhs), rhs_t(rhs_t), loc(loc) {}
+        lhs_t(lhs_t), rhs_v(rhs), rhs_t(rhs_t) {}
 
-    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW {
-        message();
-        return cached_message.c_str();
-    }
-
-    std::string const &message() const;
+    std::string message() const override;
 
     // Source code info
     ExprNode *lhs_v = nullptr;
     TypeExpr *lhs_t = nullptr;
     ExprNode *rhs_v = nullptr;
     TypeExpr *rhs_t = nullptr;
-
-    // Compiler Debug location
-    CodeLocation loc;
-
-    mutable std::string cached_message;
 };
 
 } // namespace lython

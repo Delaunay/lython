@@ -39,4 +39,6 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 #undef GENTEST
 
+String NE(String const &name);
+
 #endif
