@@ -106,6 +106,12 @@
         var format = d3.timeFormat("%Y-%m-%d");
         // format(new Date(1075611600000))
 
+        var parseEpoch = function (date) {
+            var d = new Date(0);
+            d.setUTCSeconds(+date);
+            return d;
+        }
+
         // append the svg object to the body of the page
         var svg = d3.select("#coverage-evol")
             .append("svg")
@@ -120,7 +126,7 @@
 
             var label_size = "2em";
             var x = d3.scaleTime()
-                .domain(d3.extent(data, function (d) { return new Date(+d.timestamp); }))
+                .domain(d3.extent(data, function (d) { return parseEpoch(+d.timestamp); }))
                 .range([0, width]);
 
             // Add Y axis
@@ -198,27 +204,27 @@
 
 
             var lines_rate = d3.line()
-                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .x(function (d) { return x(parseEpoch(+d.timestamp)); })
                 .y(function (d) { return y_percent(+d['line-rate']); });
 
             var branch_rate = d3.line()
-                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .x(function (d) { return x(parseEpoch(+d.timestamp)); })
                 .y(function (d) { return y_percent(+d['branch-rate']); });
 
             var lines_valid = d3.line()
-                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .x(function (d) { return x(parseEpoch(+d.timestamp)); })
                 .y(function (d) { return y_lines(+d['lines-valid']); });
 
             var lines_covered = d3.line()
-                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .x(function (d) { return x(parseEpoch(+d.timestamp)); })
                 .y(function (d) { return y_lines(+d['lines-covered']); });
 
             var branches_valid = d3.line()
-                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .x(function (d) { return x(parseEpoch(+d.timestamp)); })
                 .y(function (d) { return y_branches(+d['branches-valid']); });
 
             var branches_covered = d3.line()
-                .x(function (d) { return x(new Date(+d.timestamp)); })
+                .x(function (d) { return x(parseEpoch(+d.timestamp)); })
                 .y(function (d) { return y_branches(+d['branches-covered']); });
 
             colors = [
@@ -267,8 +273,8 @@
 
                 circles
                     .append('circle')
-                    .attr("r", 6)
-                    .attr("cx", function (d) { return x(new Date(+d.timestamp)); })
+                    .attr("r", 3)
+                    .attr("cx", function (d) { return x(parseEpoch(+d.timestamp)); })
                     .attr("cy", function (d) {
                         console.log(n, d[n]);
                         return yscale(+d[n]);
