@@ -239,7 +239,7 @@ Array<TestCase> const &AnnAssign_examples() {
              TE("a", "isnt", "1", "i32"),
          },
          ""},
-        {"a: f32 = 2.0", {}, ""},
+        {"a: f32 = 2.0", {TE("a", "f32", "2.0", "f64")}, ""},
     };
     return ex;
 }

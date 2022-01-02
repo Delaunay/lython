@@ -299,13 +299,14 @@ Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int dept
         if (init == nullptr) {
             debug("Use default ctor");
             Arrow *arrow = fun->new_object<Arrow>();
-            arrow->args.push_back(nullptr);
+            arrow->args.push_back(type);
             arrow->returns = fun;
             return arrow;
         } else {
             debug("Got a custom ctor");
             auto   init_t  = self->exec(init, depth);
             Arrow *arrow   = cast<Arrow>(init_t);
+            arrow->args[0] = type;
             arrow->returns = fun;
             return arrow;
         }
@@ -315,8 +316,7 @@ Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int dept
 }
 
 TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
-    auto type = exec(n->func, depth);
-    info("{} {}", str(type->kind), str(n->func->kind));
+    auto type   = exec(n->func, depth);
     int  offset = 0;
     auto arrow  = get_arrow(this, n->func, type, depth, offset);
 
@@ -330,7 +330,7 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
         got->args.reserve(arrow->args.size());
     }
     if (offset == 1) {
-        got->args.push_back(nullptr);
+        got->args.push_back(type);
     }
     for (auto &arg: n->args) {
         got->args.push_back(exec(arg, depth));
