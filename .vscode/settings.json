@@ -106,7 +106,8 @@
     "typeindex": "cpp",
     "codecvt": "cpp",
     "complex": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "ranges": "cpp"
   },
   "python.formatting.provider": "black"
 }

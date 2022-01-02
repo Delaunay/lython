@@ -1,8 +1,10 @@
-#include "ast/magic.h"
 #include "sema/sema.h"
+#include "ast/magic.h"
 #include "utilities/strings.h"
 
 namespace lython {
+ClassDef *get_class(Bindings const &bindings, ExprNode *classref);
+Arrow *   get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int depth, int &offset);
 
 bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type) {
     auto name = cast<Name>(expr);
@@ -16,24 +18,12 @@ bool SemanticAnalyser::add_name(ExprNode *expr, ExprNode *value, ExprNode *type)
     return false;
 }
 
-TypeExpr *lookup(Bindings &binds, TypeExpr *lhs_t) {
-    if (lhs_t == nullptr) {
-        return lhs_t;
-    }
-    if (lhs_t->kind == NodeKind::Name) {
-        Name *nm = cast<Name>(lhs_t);
-        return binds.get_type(nm->varid);
-    }
-    return lhs_t;
-}
-
 bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
                                  CodeLocation const &loc) {
 
     if (lhs_t && rhs_t)
         debug("{} {} {} {} {}", str(lhs_t), lhs_t->kind, str(rhs_t), rhs_t->kind, loc.repr());
 
-    // auto match = equal(lookup(bindings, lhs_t), lookup(bindings, rhs_t));
     auto match = equal(lhs_t, rhs_t);
 
     if (!match) {
@@ -49,17 +39,19 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
     auto   return_t         = bool_type;
     String magic            = "";
     String rmagic           = "";
+
     if (n->op == BoolOperator::And) {
-        magic == "__and__";
-        magic == "__rand__";
+        magic  = "__and__";
+        rmagic = "__rand__";
     }
     if (n->op == BoolOperator::Or) {
-        magic == "__or__";
-        magic == "__ror__";
+        magic  = "__or__";
+        rmagic = "__ror__";
     }
 
-    for (int i = 0; i < n->values.size(); i++) {
-        auto value_t = exec(n->values[i], depth);
+    auto lhs_t = exec(n->values[0], depth);
+    for (int i = 1; i < n->values.size(); i++) {
+        auto rhs_t = exec(n->values[i], depth);
 
         //
         //  TODO: we could create a builtin file that define
@@ -69,9 +61,33 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
         // if not a bool we need to check for
         //  * __and__ inside the lhs
         //  * __rand__ inside the rhs
-        if (!equal(value_t, bool_type)) {
+        if (!equal(lhs_t, bool_type)) {
+            auto cls = get_class(bindings, lhs_t);
 
-            // auto fun = getattr(value_t, magic);
+            if (cls == nullptr) {
+                SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
+                return nullptr;
+            }
+
+            auto fun = getattr(cls, magic);
+
+            if (fun == nullptr) {
+                SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
+                return nullptr;
+            }
+
+            // This is a standard call now
+            auto arrow_expr = exec(fun, depth);
+            auto arrow      = cast<Arrow>(arrow_expr);
+
+            // Generate the Call Arrow
+            auto got = n->new_object<Arrow>();
+            got->args.push_back(nullptr); // lhs_t
+            got->args.push_back(rhs_t);
+            got->returns = arrow->returns;
+
+            typecheck(n, got, nullptr, arrow, LOC);
+            lhs_t = arrow->returns;
         }
     }
 
@@ -271,6 +287,17 @@ TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
 // <fun>(arg1 arg2 ...)
 //
 
+ClassDef *get_class(Bindings const &bindings, ExprNode *classref) {
+    auto cls_name = cast<Name>(classref);
+    if (!cls_name) {
+        return nullptr;
+    }
+    // Class is a compile-time value
+    auto cls_node = bindings.get_value(cls_name->varid);
+    auto cls      = cast<ClassDef>(cls_node);
+    return cls;
+}
+
 Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int depth, int &offset) {
     if (type == nullptr) {
         return nullptr;
@@ -284,15 +311,7 @@ Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int dept
         if (!equal(type, Type_t())) {
             return nullptr;
         }
-
-        auto cls_name = cast<Name>(fun);
-        auto cls_node = self->bindings.get_value(cls_name->varid);
-
-        if (cls_node->kind != NodeKind::ClassDef) {
-            return nullptr;
-        }
-
-        auto cls  = cast<ClassDef>(cls_node);
+        auto cls  = get_class(self->bindings, fun);
         auto init = getattr(cls, "__init__");
         offset    = 1;
 

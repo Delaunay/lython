@@ -110,9 +110,18 @@ enum class BinaryOperator : int8_t
 enum class BoolOperator : int8_t
 {
     None,
-    And,
-    Or
+#define BOOL_OPERATORS(OP) \
+    OP(And, and)           \
+    OP(Or, or)
+
+#define OP(name, kw) name,
+
+    BOOL_OPERATORS(OP)
+
+#undef OP
 };
+
+void print(BoolOperator const &, std::ostream &out);
 
 enum class UnaryOperator : int8_t
 {

@@ -47,4 +47,6 @@ String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String 
 
 String AE();
 
+String UO(String const &op, String const &lhs, String const &rhs);
+
 #endif

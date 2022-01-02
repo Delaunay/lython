@@ -64,8 +64,18 @@ Array<TestCase> sema_cases() {
         },
         {
             "class CustomAnd:\n" // Bool op
-            "    def __and__(self, a) -> int:\n"
-            "        retrun 1\n"
+            "    pass\n"
+            "\n"
+            "a = CustomAnd()\n"
+            "a and True\n",
+            {
+                UO("and", "CustomAnd", "bool"),
+            },
+        },
+        {
+            "class CustomAnd:\n" // Bool op
+            "    def __and__(self, a: bool) -> bool:\n"
+            "        return True\n"
             "\n"
             "a = CustomAnd()\n"
             "a and True\n" // <= lookup of __and__ to call __and__(a, b)

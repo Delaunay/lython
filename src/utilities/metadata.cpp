@@ -80,6 +80,10 @@ bool _metadata_init_names() {
 #undef MOD
 #undef MATCH
 
+    meta::register_type<
+        HashNodeInternal<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
+        "Pair[Ref, Classdef::Attr]");
+
     meta::register_type<HashNodeInternal<std::pair<const String, lython::OpConfig>, false>>(
         "Pair[String, OpConfig]");
 

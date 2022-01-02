@@ -91,6 +91,19 @@ struct TypeError: public SemaException {
     TypeExpr *rhs_t = nullptr;
 };
 
+struct UnsupportedOperand: public SemaException {
+    UnsupportedOperand(String const &str, TypeExpr *lhs_t, TypeExpr *rhs_t):
+        operand(str), lhs_t(lhs_t), rhs_t(rhs_t) {}
+
+    std::string message() const override;
+
+    static std::string message(String const &op, String const &lhs_t, String const &rhs_t);
+
+    String    operand;
+    TypeExpr *lhs_t = nullptr;
+    TypeExpr *rhs_t = nullptr;
+};
+
 } // namespace lython
 
 #endif

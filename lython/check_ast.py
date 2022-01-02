@@ -20,4 +20,9 @@ code = \
 f"{a:2d} a {b:6.2f}"
 """
 
+code = \
+"""
+a and b and c and d
+"""
+
 show(code)

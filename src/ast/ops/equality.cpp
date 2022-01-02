@@ -170,6 +170,9 @@ struct Equality {
         if (a == nullptr && b == nullptr) {
             return true;
         }
+        if (a == nullptr || b == nullptr) {
+            return false;
+        }
         trace(depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {

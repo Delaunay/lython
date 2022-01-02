@@ -1,6 +1,6 @@
+#include "sema/errors.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
-#include "sema/errors.h"
 #include "utilities/names.h"
 #include "utilities/strings.h"
 
@@ -50,6 +50,14 @@ std::string TypeError::message() const {
 
 std::string NameError::message() const {
     return fmt::format("NameError: name '{}' is not defined", str(name));
+}
+
+std::string UnsupportedOperand::message() const { return message(operand, str(lhs_t), str(rhs_t)); }
+
+std::string UnsupportedOperand::message(String const &op, String const &lhs_t,
+                                        String const &rhs_t) {
+    return fmt::format("TypeError: unsupported operand type(s) for {}: '{}' and '{}'", op, lhs_t,
+                       rhs_t);
 }
 
 } // namespace lython

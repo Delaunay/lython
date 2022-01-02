@@ -31,5 +31,19 @@ String str(NodeKind k) {
 #undef MATCH
     return "<invalid>";
 }
+
+void print(BoolOperator const &v, std::ostream &out) {
+    switch (v) {
+#define OP(name, kw)           \
+    case BoolOperator::name: { \
+        out << #kw;            \
+        return;                \
+    }
+        BOOL_OPERATORS(OP)
+
+#undef OP
+    }
+}
+
 // ------------------------------------------
 } // namespace lython

@@ -50,25 +50,25 @@ struct Bindings {
         bindings[varid].type = type;
     }
 
-    inline TypeExpr *get_type(int varid) {
+    inline TypeExpr *get_type(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return nullptr;
         return bindings[varid].type;
     }
 
-    inline Node *get_value(int varid) {
+    inline Node *get_value(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return nullptr;
         return bindings[varid].value;
     }
 
-    StringRef get_name(int varid) {
+    StringRef get_name(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return StringRef();
         return bindings[varid].name;
     }
 
-    int get_varid(StringRef name) {
+    int get_varid(StringRef name) const {
         auto start = std::rbegin(bindings);
         auto end   = std::rend(bindings);
 

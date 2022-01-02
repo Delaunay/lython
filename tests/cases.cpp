@@ -14,6 +14,10 @@ String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String 
 
 String AE() { return String(); }
 
+String UO(String const &op, String const &lhs, String const &rhs) {
+    return String(UnsupportedOperand::message(op, lhs, rhs));
+}
+
 Array<TestCase> const &Match_examples() {
     static Array<TestCase> ex = {
         // TODO: check this test case on python
@@ -530,7 +534,13 @@ Array<TestCase> const &Call_examples() {
     static Array<TestCase> ex = {
         {
             "fun(a, b, c=d)",
-            {NE("fun"), NC("fun"), NE("a"), NE("b"), NE("d")},
+            {
+                NE("fun"),
+                NC("fun"),
+                NE("a"),
+                NE("b"),
+                NE("d"),
+            },
             "",
         },
     };
@@ -762,11 +772,13 @@ Array<TestCase> const &BoolOp_examples() {
          {
              NE("a"),
              NE("b"),
+             UO("and", "None", "None"),
          }},
         {"a or b",
          {
              NE("a"),
              NE("b"),
+             UO("or", "None", "None"),
          }},
     };
     return ex;
