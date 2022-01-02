@@ -139,7 +139,8 @@ Logger new_logger(char const *name) {
     console->flush_on(spdlog::level::level_enum::trace);
 
     spdlog::register_logger(console);
-    spdlog::set_pattern("[%L] [%Y-%m-%d %H:%M:%S.%e] [%t] %v");
+    // %Y-%m-%d %H:%M:%S.%e
+    spdlog::set_pattern("[%L] [%t] %v");
 
     return console;
 }

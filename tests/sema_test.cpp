@@ -37,20 +37,25 @@ Array<TestCase> sema_cases() {
             "    return a\n"
             "x: i32 = fun(1)\n" // Works
         },
+
+        {
+            "def fun(a: i32) -> i32:\n"
+            "    return a\n"
+            "x = fun(1.0)\n", // Type Error
+            {
+                TE("fun(1.0)", "(f64) -> i32", "fun", "(i32) -> i32"),
+            },
+        },
+
+        {
+            "def fun(a: i32) -> i32:\n"
+            "    return a\n"
+            "x: f32 = fun(1)\n", // Type Error
+            {
+                TE("x", "f32", "fun(1)", "i32"),
+            },
+        },
         /*
-        {
-            "def fun(a: i32) -> i32:\n"
-            "    return a\n"
-            "x = fun(1.0)\n" // Type Error
-        },
-        {
-            "def fun(a: i32) -> i32:\n"
-            "    return a\n"
-            "x: f32 = fun(1)\n" // Type Error
-        },
-        {
-            "a" // Name Error a is not defined
-        },
         {
             "class CustomAnd:\n" // Bool op
             "    def __and__(self, a) -> int:\n"

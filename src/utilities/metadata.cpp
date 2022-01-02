@@ -19,6 +19,9 @@ template <typename T>
 using SharedPtrInternal =
     std::_Sp_counted_ptr_inplace<T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
 
+template <typename T>
+using UniquePtrInternal = std::unique_ptr<T>;
+
 template <typename T, bool cache>
 using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
 #else
@@ -41,6 +44,9 @@ bool _metadata_init_names() {
     meta::register_type<lython::GCObject *>("GCObject*");
     meta::register_type<lython::ExprNode *>("ExprNode*");
     meta::register_type<lython::StmtNode *>("StmtNode*");
+
+    meta::register_type<UniquePtrInternal<lython::SemaException>>("SemaException");
+    meta::register_type<UniquePtrInternal<lython::ParsingException>>("ParsingException");
 
     meta::register_type<lython::Comprehension>("Comprehension");
     meta::register_type<lython::Alias>("Alias");

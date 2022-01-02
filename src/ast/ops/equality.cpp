@@ -259,10 +259,11 @@ struct Equality {
     }
 
     bool arrow(Arrow *a, Arrow *b, int depth) {
-        return exec(a->args, a->args, depth) && exec(a->returns, b->returns, depth);
+        return exec(a->args, b->args, depth) && exec(a->returns, b->returns, depth);
     }
 
     bool builtintype(BuiltinType *a, BuiltinType *b, int depth) {
+        debug("{} {} {}", a->name, b->name, exec(a->name, b->name, depth));
         return exec(a->name, b->name, depth);
     }
     bool functiondef(FunctionDef *a, FunctionDef *b, int depth) {

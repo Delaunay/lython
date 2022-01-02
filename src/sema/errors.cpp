@@ -1,6 +1,6 @@
-#include "sema/errors.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
+#include "sema/errors.h"
 #include "utilities/names.h"
 #include "utilities/strings.h"
 
@@ -45,7 +45,6 @@ std::string TypeError::message() const {
             return String();
         return str(r);
     };
-
     return message(_str(lhs_v), _str(lhs_t), _str(rhs_v), _str(rhs_t));
 }
 

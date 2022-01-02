@@ -41,4 +41,10 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 String NE(String const &name);
 
+String NC(std::string const &name);
+
+String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String const &rhs_t);
+
+String AE();
+
 #endif

@@ -1,5 +1,5 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -33,7 +33,9 @@ bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, 
     if (lhs_t && rhs_t)
         debug("{} {} {} {} {}", str(lhs_t), lhs_t->kind, str(rhs_t), rhs_t->kind, loc.repr());
 
-    auto match = equal(lookup(bindings, lhs_t), lookup(bindings, rhs_t));
+    // auto match = equal(lookup(bindings, lhs_t), lookup(bindings, rhs_t));
+    auto match = equal(lhs_t, rhs_t);
+
     if (!match) {
         SEMA_ERROR(TypeError(lhs, lhs_t, rhs, rhs_t, loc));
     }
@@ -663,7 +665,9 @@ TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     if (type.has_value()) {
         // if we were able to deduce a type from the expression
         // make sure it matches the annotation constraint
-        typecheck(n->target, constraint, n->value.value(), type.value(), LOC);
+        typecheck(n->target, constraint,          //
+                  n->value.value(), type.value(), //
+                  LOC);
 
         value = n->value.value();
         return type.value();
