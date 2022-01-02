@@ -407,6 +407,11 @@ function(setup_target_for_coverage_gcovr_html)
             -s -r ${BASEDIR} ${GCOVR_EXCLUDE_ARGS}
             --object-directory=${PROJECT_BINARY_DIR}
             --xml-pretty
+            --exclude-unreachable-branches
+            --exclude-function-lines
+            --exclude-throw-branches
+            -j 4
+            -k
             -x ${Coverage_NAME}/coverage.xml
             -o ${Coverage_NAME}/index.html
             --exclude-directories /usr/

@@ -261,9 +261,64 @@ TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
     return make_ref(n, "bool");
 }
 
+//  def fun(a: int, b:int) -> float:
+//      pass
+//
+// Arrow1: (int, int) -> float
+//
+// Arrow2: (typeof(arg1), typeof(arg2)) -> ..
+//
+// <fun>(arg1 arg2 ...)
+//
+
+Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int depth, int &offset) {
+    if (type == nullptr) {
+        return nullptr;
+    }
+    switch (type->kind) {
+    case NodeKind::Arrow: {
+        offset = 0;
+        return cast<Arrow>(type);
+    }
+    case NodeKind::BuiltinType: {
+        if (!equal(type, Type_t())) {
+            return nullptr;
+        }
+
+        auto cls_name = cast<Name>(fun);
+        auto cls_node = self->bindings.get_value(cls_name->varid);
+
+        if (cls_node->kind != NodeKind::ClassDef) {
+            return nullptr;
+        }
+
+        auto cls  = cast<ClassDef>(cls_node);
+        auto init = getattr(cls, "__init__");
+        offset    = 1;
+
+        if (init == nullptr) {
+            debug("Use default ctor");
+            Arrow *arrow = fun->new_object<Arrow>();
+            arrow->args.push_back(nullptr);
+            arrow->returns = fun;
+            return arrow;
+        } else {
+            debug("Got a custom ctor");
+            auto   init_t  = self->exec(init, depth);
+            Arrow *arrow   = cast<Arrow>(init_t);
+            arrow->returns = fun;
+            return arrow;
+        }
+    }
+    }
+    return nullptr;
+}
+
 TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
-    auto type  = exec(n->func, depth);
-    auto arrow = cast<Arrow>(type);
+    auto type = exec(n->func, depth);
+    info("{} {}", str(type->kind), str(n->func->kind));
+    int  offset = 0;
+    auto arrow  = get_arrow(this, n->func, type, depth, offset);
 
     if (arrow == nullptr) {
         SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
@@ -273,6 +328,9 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     Arrow *got = n->new_object<Arrow>();
     if (arrow != nullptr) {
         got->args.reserve(arrow->args.size());
+    }
+    if (offset == 1) {
+        got->args.push_back(nullptr);
     }
     for (auto &arg: n->args) {
         got->args.push_back(exec(arg, depth));
@@ -504,21 +562,7 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     return type;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
-    int       id;
-    TypeExpr *class_t = nullptr;
-
-    // I might have to always run the forward pass
-    if (!forwardpass /*|| depth > 1*/) {
-        auto t   = n->new_object<Name>();
-        id       = bindings.add(n->name, n, t);
-        t->id    = n->name;
-        t->varid = id;
-        class_t  = t;
-
-    } else {
-        id      = bindings.get_varid(n->name);
-        class_t = bindings.get_type(id);
-    }
+    int id = bindings.add(n->name, n, Type_t());
 
     // TODO: go through bases and add their elements
     for (auto base: n->bases) {
@@ -598,7 +642,7 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
         auto deco_t = exec(deco, depth);
         // TODO: check signature here
     }
-    return class_t;
+    return Type_t();
 }
 TypeExpr *SemanticAnalyser::returnstmt(Return *n, int depth) {
     auto v = exec<TypeExpr *>(n->value, depth);

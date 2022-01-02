@@ -167,6 +167,9 @@ struct Equality {
     }
 
     bool exec(ExprNode *a, ExprNode *b, int depth) {
+        if (a == nullptr && b == nullptr) {
+            return true;
+        }
         trace(depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {

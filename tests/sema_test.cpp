@@ -55,7 +55,13 @@ Array<TestCase> sema_cases() {
                 TE("x", "f32", "fun(1)", "i32"),
             },
         },
-        /*
+        {
+            "class Custom:\n"
+            "    def __init__(self, a: i32):\n"
+            "        sefl.a = a\n"
+            "\n"
+            "a = Custom(1)\n" // works
+        },
         {
             "class CustomAnd:\n" // Bool op
             "    def __and__(self, a) -> int:\n"
@@ -64,6 +70,8 @@ Array<TestCase> sema_cases() {
             "a = CustomAnd()\n"
             "a and True\n" // <= lookup of __and__ to call __and__(a, b)
         },
+
+        /*
         {
             "class Custom:\n" // Compare op
             "    def __gt__(self, a) -> int:\n"
