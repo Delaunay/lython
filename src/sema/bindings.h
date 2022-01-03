@@ -94,6 +94,18 @@ struct Bindings {
     Array<BindingEntry> bindings;
 };
 
+template <typename T, typename U>
+struct PopGuard {
+    PopGuard(T &array, U const &v): array(array), oldsize(array.size()) { array.push_back(v); }
+
+    ~PopGuard() { array.pop_back(); }
+
+    U const &last(int offset) const { return array[oldsize - offset]; }
+
+    T &         array;
+    std::size_t oldsize;
+};
+
 struct Scope {
     Scope(Bindings &array): bindings(array), oldsize(bindings.bindings.size()) {}
 

@@ -529,6 +529,7 @@ struct FunctionDef: public StmtNode {
     Array<ExprNode *>    decorator_list = {};
     Optional<ExprNode *> returns;
     String               type_comment;
+    struct Arrow *       type = nullptr; // cached SEMA result
 
     Optional<String> docstring;
     bool             async : 1 = false;

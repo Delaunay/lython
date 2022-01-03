@@ -1,5 +1,5 @@
-#include "ast/magic.h"
 #include "sema/sema.h"
+#include "ast/magic.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -119,7 +119,7 @@ TypeExpr *SemanticAnalyser::unaryop(UnaryOp *n, int depth) {
 TypeExpr *SemanticAnalyser::lambda(Lambda *n, int depth) {
     Scope scope(bindings);
     auto  funtype = n->new_object<Arrow>();
-    add_arguments(n->args, funtype, depth);
+    add_arguments(n->args, funtype, nullptr, depth);
     auto type        = exec(n->body, depth);
     funtype->returns = type;
     return funtype;
@@ -323,10 +323,11 @@ Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int dept
             return arrow;
         } else {
             debug("Got a custom ctor");
-            auto   init_t  = self->exec(init, depth);
-            Arrow *arrow   = cast<Arrow>(init_t);
-            arrow->args[0] = type;
-            arrow->returns = fun;
+            auto   init_t = self->exec(init, depth);
+            Arrow *arrow  = cast<Arrow>(init_t);
+            // sema should already have run for this
+            // arrow->args[0] = type;
+            // arrow->returns = fun;
             return arrow;
         }
     }
@@ -481,8 +482,11 @@ TypeExpr *SemanticAnalyser::slice(Slice *n, int depth) {
     return nullptr;
 }
 
-void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
-
+void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *def, int depth) {
+    TypeExpr *class_t = nullptr;
+    if (def != nullptr) {
+        class_t = make_ref(arrow, str(def->name));
+    }
     for (int i = 0, n = int(args.args.size()); i < n; i++) {
         auto      arg      = args.args[i];
         ExprNode *dvalue   = nullptr;
@@ -511,6 +515,12 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
         // if no annotation use default value type
         if (type == nullptr) {
             type = dvalue_t;
+        }
+
+        // if it is a method populate the type of self
+        // TODO: fix for staticmethod & class methods
+        if (class_t != nullptr && i == 0) {
+            type = class_t;
         }
 
         // we could populate the default value here
@@ -562,12 +572,19 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, int depth) {
 }
 
 TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
+    // if sema was already done on the function
+    if (n->type) {
+        return n->type;
+    }
+
+    PopGuard nested_stmt(nested, (StmtNode *)n);
+
     // Add the function name first to handle recursive calls
     auto  id = bindings.add(n->name, n, nullptr);
     Scope scope(bindings);
 
     auto type = n->new_object<Arrow>();
-    add_arguments(n->args, type, depth);
+    add_arguments(n->args, type, cast<ClassDef>(nested_stmt.last(1)), depth);
 
     auto return_effective = exec<TypeExpr *>(n->body, depth);
 
@@ -592,9 +609,12 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     }
 
     // bindings.dump(std::cout);
+    n->type = type;
     return type;
 }
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
+    PopGuard _(nested, n);
+
     int id = bindings.add(n->name, n, Type_t());
 
     // TODO: go through bases and add their elements
@@ -607,9 +627,10 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
         exec(kw.value, depth);
     }
 
-    Array<StmtNode *> secondpass;
-    FunctionDef *     ctor;
+    Array<StmtNode *> methods;
+    FunctionDef *     ctor = nullptr;
 
+    // Do a first pass to look for special methods such as __init__
     for (auto &stmt: n->body) {
         Scope scope(bindings);
 
@@ -620,7 +641,7 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
             if (str(fun->name) == "__init__") {
                 ctor = fun;
             } else {
-                secondpass.push_back(stmt);
+                methods.push_back(stmt);
             }
             continue;
         }
@@ -663,13 +684,36 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     }
 
     // get __init__ and do a pass to insert its attribute to the class
+    auto class_t = make_ref(n, str(n->name));
 
-    Array<StmtNode *> secondpass2;
-    for (auto &stmt: secondpass2) {
+    if (ctor != nullptr) {
+        auto ctor_t = cast<Arrow>(exec(ctor, depth));
+
+        if (ctor_t != nullptr) {
+            ctor_t->args[0] = class_t;
+            ctor_t->returns = class_t;
+        }
+    }
+    // -----------------------------
+
+    // Process the remaining methods;
+    for (auto &stmt: methods) {
         Scope scope(bindings);
 
-        auto fun_t = exec(stmt, depth);
+        // fun_t is the arrow that is saved in the context
+        // populate self type
+        auto fun   = cast<FunctionDef>(stmt);
+        auto fun_t = cast<Arrow>(exec(stmt, depth));
+        if (fun_t != nullptr) {
+            fun_t->args[0] = class_t;
+        }
+
+        if (fun != nullptr) {
+            fun->type = fun_t;
+        }
     }
+
+    // ----
 
     for (auto deco: n->decorator_list) {
         auto deco_t = exec(deco, depth);

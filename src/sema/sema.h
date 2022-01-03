@@ -61,6 +61,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Bindings                              bindings;
     bool                                  forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
+    Array<StmtNode *>                     nested;
 
     public:
     virtual ~SemanticAnalyser() {}
@@ -91,7 +92,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return ref;
     }
 
-    void add_arguments(Arguments &args, Arrow *, int);
+    void add_arguments(Arguments &args, Arrow *, ClassDef *def, int);
 
 #define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);
 

@@ -346,7 +346,7 @@ Array<TestCase> const &ClassDef_examples() {
             "    z = 1.2\n"
             "\n"
             "    def __init__(self):\n"
-            "        self.a = 2\n"
+            "        self.x = 2\n"
             //"\n"
             //"    class Nested:\n"
             //"        xx: i32 = 0\n"
@@ -503,6 +503,7 @@ Array<TestCase> const &Attribute_examples() {
     static Array<TestCase> ex = {
         {"a.b",
          {
+             NE("a"),
              NE("a"),
          }},
     };
