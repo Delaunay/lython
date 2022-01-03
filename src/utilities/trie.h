@@ -8,6 +8,13 @@
 #include "logging/logging.h"
 
 namespace lython {
+
+// This use a flat array to store children
+// it use more memory than a simple node trie
+//
+// Depth is usually 2-3 tries since it is only used for operators
+//
+//
 template <size_t size>
 class Trie {
     public:

@@ -1,5 +1,5 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -392,10 +392,24 @@ TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
-    auto class_t = exec(n->value, depth);
-    // TODO: check that attr is defined in class_t
-    // n->attr
-    return nullptr;
+    auto type_t = exec(n->value, depth);
+
+    auto class_t = get_class(bindings, type_t);
+
+    if (class_t == nullptr) {
+        SEMA_ERROR(NameError(n->value, str(n->value)));
+        return nullptr;
+    }
+
+    auto attr = getattr(class_t, str(n->attr));
+
+    if (attr == nullptr) {
+        SEMA_ERROR(AttributeError(class_t, n->attr));
+    }
+
+    auto attr_t = exec(attr, depth);
+
+    return attr_t;
 }
 TypeExpr *SemanticAnalyser::subscript(Subscript *n, int depth) {
     auto class_t = exec(n->value, depth);
@@ -680,7 +694,17 @@ TypeExpr *SemanticAnalyser::assign(Assign *n, int depth) {
     auto type = exec(n->value, depth);
 
     if (n->targets.size() == 1) {
-        add_name(n->targets[0], n->value, type);
+        auto target = n->targets[0];
+
+        if (target->kind == NodeKind::Name) {
+            add_name(target, n->value, type);
+        } else if (target->kind == NodeKind::Attribute) {
+            auto target_t = exec(target, depth);
+            typecheck(target, target_t, n->value, type, LOC);
+        } else {
+            error("Assignment to an unsupported expression {}", str(target->kind));
+        }
+
     } else {
         auto types = cast<TupleType>(type);
         if (!types) {

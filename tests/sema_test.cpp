@@ -56,9 +56,29 @@ Array<TestCase> sema_cases() {
             },
         },
         {
+            "class Name:\n"
+            "    pass\n"
+            "\n"
+            "a = Name()\n"
+            "a.x\n"
+            "a.x = 2\n",
+            {
+                AE("Name", "x"),
+                AE("Name", "x"),
+                TE("a.x", "", "2", "i32"),
+            },
+        },
+        {
+            "class Name:\n"
+            "    x: i32 = 1\n"
+            "\n"
+            "a = Name()\n"
+            "a.x = 2\n",
+        },
+        {
             "class Custom:\n"
             "    def __init__(self, a: i32):\n"
-            "        sefl.a = a\n"
+            "        self.a = a\n"
             "\n"
             "a = Custom(1)\n" // works
         },
@@ -133,15 +153,7 @@ Array<TestCase> sema_cases() {
             "a = CustomRAnd()\n"
             "b and a\n" // <= lookup if __rand__ to call __rand__(a, b)
         },
-        {
-            "class Name:\n"
-            "    x: i32 = 1\n"
-            "\n"
-            "a = Name()\n"
-            "a.x\n"
-            "a.x = 2\n"
-            "print(a.x)\n" //
-        },
+
         {
             "class Name:\n"
             "    def __init__(self, x: i32):\n" // Resolve an attribute defined inside the ctor

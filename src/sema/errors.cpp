@@ -1,6 +1,6 @@
-#include "sema/errors.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
+#include "sema/errors.h"
 #include "utilities/names.h"
 #include "utilities/strings.h"
 
@@ -8,7 +8,7 @@ namespace lython {
 
 std::string TypeError::message(String const &lhs_v, String const &lhs_t, String const &rhs_v,
                                String const &rhs_t) {
-    Array<String> msg = {};
+    Array<String> msg = {"TypeError: "};
     if (lhs_v.size() > 0) {
         msg.push_back("expression `");
         msg.push_back((lhs_v));
@@ -50,6 +50,12 @@ std::string TypeError::message() const {
 
 std::string NameError::message() const {
     return fmt::format("NameError: name '{}' is not defined", str(name));
+}
+
+std::string AttributeError::message() const { return message(str(obj->name), str(attr)); }
+
+std::string AttributeError::message(String const &name, String const &attr) {
+    return fmt::format("AttributeError: '{}' has no attribute '{}'", name, attr);
 }
 
 std::string UnsupportedOperand::message() const { return message(operand, str(lhs_t), str(rhs_t)); }

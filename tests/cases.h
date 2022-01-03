@@ -45,7 +45,7 @@ String NC(std::string const &name);
 
 String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String const &rhs_t);
 
-String AE();
+String AE(String const &name, String const &attr);
 
 String UO(String const &op, String const &lhs, String const &rhs);
 

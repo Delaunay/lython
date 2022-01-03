@@ -8,10 +8,13 @@ TEST_CASE("Trie") {
     Trie base;
 
     base.insert("abcd");
+    // Trie cp;
+    // cp = base;
+    // REQUIRE(cp.has("abcd") == true);
 
     REQUIRE(base.has("a") == false);
     REQUIRE(base.has("ab") == false);
-    // REQUIRE(base.has("abcd") == true);
+    REQUIRE(base.has("abcd") == true);
     REQUIRE(base.has("abcde") == false);
     REQUIRE(base.has("vc") == false);
 

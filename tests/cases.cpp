@@ -12,7 +12,9 @@ String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String 
     return String(TypeError::message(lhs_v, lhs_t, rhs_v, rhs_t));
 }
 
-String AE() { return String(); }
+String AE(String const &name, String const &attr) {
+    return String(AttributeError::message(name, attr));
+}
 
 String UO(String const &op, String const &lhs, String const &rhs) {
     return String(UnsupportedOperand::message(op, lhs, rhs));

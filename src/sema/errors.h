@@ -42,7 +42,16 @@ struct SemaException: LythonException {
  *   File "<stdin>", line 1, in <module>
  * AttributeError: 'Name' object has no attribute 'n'
  */
-struct AttributeError: public SemaException {};
+struct AttributeError: public SemaException {
+    AttributeError(ClassDef *obj, StringRef attr): obj(obj), attr(attr) {}
+
+    std::string message() const override;
+
+    static std::string message(String const &name, String const &attr);
+
+    ClassDef *obj;
+    StringRef attr;
+};
 
 /*
  * Examples
