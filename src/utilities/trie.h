@@ -7,6 +7,7 @@
 
 #include "logging/logging.h"
 
+namespace lython {
 template <size_t size>
 class Trie {
     public:
@@ -67,7 +68,7 @@ class Trie {
         Trie const *ptr = this;
 
         for (auto c: name) {
-            ptr = matching(int(c));
+            ptr = ptr->matching(int(c));
 
             if (ptr == nullptr) {
                 return nullptr;
@@ -86,12 +87,12 @@ class Trie {
 
     bool has(std::string_view const &name) const {
         Trie const *ptr = matching(name);
-        return ptr != nullptr && ptr->leaf;
+        return ptr != nullptr && ptr->leaf();
     }
 
     int has_children() const {
         int count = 0;
-        for (auto child: children) {
+        for (auto &child: children) {
             count += child != nullptr;
         }
         return count;
@@ -142,5 +143,6 @@ class CoWTrie {
     Trie<size> const *original;
     Trie<size>        copy;
 };
+} // namespace lython
 
 #endif

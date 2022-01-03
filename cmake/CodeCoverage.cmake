@@ -415,8 +415,8 @@ function(setup_target_for_coverage_gcovr_html)
             -x ${Coverage_NAME}/coverage.xml
             -o ${Coverage_NAME}/index.html
             --exclude-directories /usr/
-            --exclude-directories "${PROJECT_SOURCE_DIR}/dependencies"
-            --exclude-directories "${PROJECT_SOURCE_DIR}/tests"
+            --exclude-directories 'dependencies/.*'
+            --exclude-directories 'tests/.*'
 
         BYPRODUCTS ${PROJECT_BINARY_DIR}/${Coverage_NAME}  # report directory
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
