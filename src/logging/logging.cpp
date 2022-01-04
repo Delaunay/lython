@@ -182,8 +182,9 @@ std::string format_function(std::string const &fun) {
 // instead of setting a single log level for the entire program allow to cherry pick
 // which level is enabled
 std::unordered_map<LogLevel, bool> &log_levels() {
-    static std::unordered_map<LogLevel, bool> levels{{Info, true},  {Warn, true},  {Debug, true},
-                                                     {Error, true}, {Fatal, true}, {Trace, true}};
+    static std::unordered_map<LogLevel, bool> levels{
+        {Info, true}, {Warn, true}, {Debug, true}, {Error, true}, {Fatal, true}, {Trace, true},
+    };
     return levels;
 }
 

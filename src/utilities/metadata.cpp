@@ -94,6 +94,25 @@ bool _metadata_init_names() {
     meta::register_type<HashNodeInternal<std::pair<const String, OpConfig>, true>>(
         "Pair[String, OpConfig]");
 
+#if !__linux__
+    // hashtable internal stuff
+    // windows only
+    meta::register_type<ListIterator<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
+        "Iterator[Pair[Ref, Classdef::Attr]]");
+
+    meta::register_type<ListIterator<std::pair<const int, String>, false>>(
+        "Iterator[Pair[int, String]]");
+
+    meta::register_type<ListIterator<std::pair<const std::string_view, std::size_t>, false>>(
+        "Iterator[Pair[StringView, size_t]]");
+
+    meta::register_type<ListIterator<std::pair<const String, OpConfig>, false>>(
+        "Iterator[Pair[String, OpConfig]]");
+
+    meta::register_type<ListIterator<std::pair<const String, TokenType>, false>>(
+        "Iterator[Pair[String, TokenType]]");
+#endif
+
     // StringDatabase
     meta::register_type<HashNodeInternal<std::pair<const StringView, std::size_t>, true>>(
         "Pair[StringView, size_t]");
