@@ -584,7 +584,7 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     Scope scope(bindings);
 
     auto type = n->new_object<Arrow>();
-    add_arguments(n->args, type, cast<ClassDef>(nested_stmt.last(1)), depth);
+    add_arguments(n->args, type, cast<ClassDef>(nested_stmt.last(1, nullptr)), depth);
 
     auto return_effective = exec<TypeExpr *>(n->body, depth);
 

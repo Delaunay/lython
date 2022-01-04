@@ -100,7 +100,12 @@ struct PopGuard {
 
     ~PopGuard() { array.pop_back(); }
 
-    U const &last(int offset) const { return array[oldsize - offset]; }
+    U const &last(int offset, U const &default_value) const {
+        if (oldsize > offset) {
+            return array[oldsize - offset];
+        }
+        return default_value;
+    }
 
     T &         array;
     std::size_t oldsize;
