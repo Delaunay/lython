@@ -171,6 +171,14 @@ std::string format_code_loc_trace(const char *, const char *function, int line) 
     return fmt::format("{:>25}:{:4}", function, line);
 }
 
+std::string format_function(std::string const &fun) {
+    auto start = fun.find_last_of(':');
+    if (start == std::string::npos) {
+        return fun;
+    }
+    return fun.substr(start + 1);
+}
+
 // instead of setting a single log level for the entire program allow to cherry pick
 // which level is enabled
 std::unordered_map<LogLevel, bool> &log_levels() {

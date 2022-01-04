@@ -69,14 +69,17 @@ std::string demangle(std::string const &original_str);
 // retrieve backtrace using execinfo
 std::vector<std::string> get_backtrace(size_t size);
 
+// remove namespace info
+std::string format_function(std::string const &);
+
 template <typename... Args>
 void log(LogLevel level, CodeLocation const &loc, const char *fmt, const Args &...args) {
     if (!is_log_enabled(level)) {
         return;
     }
 
-    auto msg = fmt::format("{}:{} {} - {}", loc.filename, loc.line, loc.function_name,
-                           fmt::format(fmt, args...));
+    auto msg = fmt::format("{}:{} {} - {}", loc.filename, loc.line,
+                           format_function(loc.function_name), fmt::format(fmt, args...));
 
     spdlog_log(level, msg);
 }
@@ -98,7 +101,8 @@ void log_trace(LogLevel level, size_t depth, bool end, CodeLocation const &loc, 
         str[i] = i % 2 ? '|' : ':';
     }
 
-    auto msg = fmt::format(msg_fmt, loc.function_name, loc.line, str, fmt::format(fmt, args...));
+    auto msg = fmt::format(msg_fmt, format_function(loc.function_name), loc.line, str,
+                           fmt::format(fmt, args...));
 
     spdlog_log(level, msg);
 }
