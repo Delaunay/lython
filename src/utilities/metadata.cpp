@@ -18,10 +18,6 @@ namespace lython {
 template <typename T>
 using SharedPtrInternal =
     std::_Sp_counted_ptr_inplace<T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
-
-template <typename T>
-using UniquePtrInternal = std::unique_ptr<T>;
-
 template <typename T, bool cache>
 using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
 #else
@@ -33,8 +29,10 @@ using HashNodeInternal = std::_List_node<T, void *__ptr64>;
 
 template <typename T, bool cache>
 using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<T>>>;
-
 #endif
+
+template <typename T>
+using UniquePtrInternal = std::unique_ptr<T>;
 
 bool _metadata_init_names() {
     meta::register_type<int>("int");

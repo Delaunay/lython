@@ -98,4 +98,10 @@ class LythonException: public std::exception {};
 
 } // namespace lython
 
+#if __linux__
+#    define NOTHROW _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
+#else
+#    define NOTHROW
+#endif
+
 #endif

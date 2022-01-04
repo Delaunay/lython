@@ -88,9 +88,9 @@ void log_trace(LogLevel level, size_t depth, bool end, CodeLocation const &loc, 
         return;
     }
 
-    const char *msg_fmt = "{:>25}:{:4} {}+-> {}";
+    const char *msg_fmt = "{:>30}:{:4} {}+-> {}";
     if (end) {
-        msg_fmt = "{:>25}:{:4} {}+-< {}";
+        msg_fmt = "{:>30}:{:4} {}+-< {}";
     }
 
     std::string str(depth, ' ');

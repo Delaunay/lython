@@ -29,20 +29,21 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
     ADD_DEPENDENCIES(coverage ${NAME}_test)
     ADD_DEPENDENCIES(coverage ${NAME}_test)
 	ENDIF(UNIX)
-	 
+
   ADD_TEST(
       NAME ${NAME}
       WORKING_DIRECTORY .
       COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NAME}_test)
 ENDMACRO(TEST_MACRO)
 
-ADD_TEST(
-   NAME lython
-   WORKING_DIRECTORY .
-   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
+IF(UNIX)
+  ADD_TEST(
+    NAME lython
+    WORKING_DIRECTORY .
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
 
-ADD_DEPENDENCIES(coverage lython)
-
+  ADD_DEPENDENCIES(coverage lython)
+ENDIF()
 # add test here
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
 TEST_MACRO(logging)

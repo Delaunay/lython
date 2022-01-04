@@ -15,7 +15,7 @@ find_program(GIT_EXECUTABLE
   NAMES
     git git.cmd
   HINTS
-    ENV PATH
+    ENV PATH "C:/Users/Newton/AppData/Local/Programs/Git/bin/"
   DOC "Full path to git commandline client"
 )
 MARK_AS_ADVANCED(GIT_EXECUTABLE)

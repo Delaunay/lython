@@ -11,7 +11,7 @@ struct SemaException: LythonException {
 
     SemaException(): cached_message("") {}
 
-    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW override final {
+    virtual const char *what() const NOTHROW override final {
         generate_message();
         return cached_message.c_str();
     }

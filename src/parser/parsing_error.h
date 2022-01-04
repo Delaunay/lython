@@ -15,7 +15,7 @@ class SyntaxError: ParsingException {
     public:
     SyntaxError(std::string const &message = ""): msg(message) {}
 
-    virtual const char *what() const _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW { return msg.c_str(); }
+    virtual const char *what() const NOTHROW { return msg.c_str(); }
 
     std::string msg;
 };
