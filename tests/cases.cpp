@@ -313,10 +313,16 @@ Array<TestCase> const &Delete_examples() {
 
 Array<TestCase> const &Return_examples() {
     static Array<TestCase> ex = {
-        {"return a",
-         {
-             NE("a"),
-         }},
+        {
+            "return a",
+            {
+                NE("a"),
+            },
+        },
+        {
+            "return 1, 2",
+            {},
+        },
     };
     return ex;
 }
@@ -585,21 +591,31 @@ Array<TestCase> const &Compare_examples() {
 
 Array<TestCase> const &YieldFrom_examples() {
     static Array<TestCase> ex = {
-        {"yield from a",
-         {
-             NE("a"),
-         }},
+        {
+            "yield from a",
+            {
+                NE("a"),
+            },
+
+        },
     };
     return ex;
 }
 
 Array<TestCase> const &Yield_examples() {
     static Array<TestCase> ex = {
-        {"yield a",
-         {
-             NE("a"),
-         }},
-        {"yield"},
+        {
+            "yield a",
+            {
+                NE("a"),
+            },
+        },
+        {
+            "yield 1, 2",
+        },
+        {
+            "yield",
+        },
     };
     return ex;
 }

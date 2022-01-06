@@ -93,6 +93,28 @@ TEST_CASE("ClassDef_Attribute") {
     run_testcase("ClassDef", ex);
 }
 
+TEST_CASE("Unpacking") {
+    static Array<TestCase> ex = {
+        {
+            "def fun():\n"
+            "    return 1, 2, 3\n"
+            "a = fun()\n",
+        },
+        {
+            "def fun():\n"
+            "    return 1, 2, 3\n"
+            "a, b, c = fun()\n",
+        },
+        {
+            "def fun():\n"
+            "    return 1, 2, 3\n"
+            "a, *b = fun()\n",
+        },
+    };
+
+    run_testcase("Unpacking", ex);
+}
+
 TEST_CASE("ClassDef_Static_Attribute") {
     static Array<TestCase> ex = {
 
@@ -142,6 +164,7 @@ Array<TestCase> sema_cases() {
     static Array<TestCase> ex = {
 
         /*
+
         {
             "class Custom:\n" // Compare op
             "    def __gt__(self, a) -> int:\n"

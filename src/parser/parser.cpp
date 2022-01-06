@@ -1119,7 +1119,7 @@ StmtNode *Parser::parse_return(Node *parent, int depth) {
     next_token();
 
     if (token().type() != tok_newline && token().type() != tok_eof) {
-        stmt->value = parse_expression(stmt, depth + 1);
+        stmt->value = parse_expression(stmt, depth + 1, true);
         end_code_loc(stmt, token());
     } else {
         end_code_loc(stmt, token());
@@ -1346,7 +1346,7 @@ ExprNode *Parser::parse_yield(Node *parent, int depth) {
     next_token();
 
     if (!in(token().type(), tok_newline, tok_eof)) {
-        expr->value = parse_expression(expr, depth + 1);
+        expr->value = parse_expression(expr, depth + 1, true);
     } else {
         next_token();
     }
@@ -2254,7 +2254,7 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
 
     // Left Unary operator
     // + <expr> | - <expr> | ! <expr> | ~ <expr>
-    error("Could not deduce the expression {}", token().type());
+    error("Could not deduce the expression {}", str(TokenType(token().type())));
     throw SyntaxError();
 }
 

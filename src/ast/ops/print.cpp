@@ -769,7 +769,7 @@ ReturnType Printer::returnstmt(Return const *self, int depth, std::ostream &out,
     out << "return ";
 
     if (self->value.has_value()) {
-        exec(self->value.value(), depth, out, level);
+        exec(self->value.value(), depth, out, -1);
     }
 
     return false;

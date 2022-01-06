@@ -25,6 +25,8 @@ namespace lython {
  * In case of an error (i.e unexpected token) the parser continues as if was token
  * was defined. This can cause cascading SyntaxError, users should focus on the first one.
  *
+ *
+ * TODO: fix SyntaxError reporting
  */
 class Parser {
     public:
