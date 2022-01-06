@@ -79,6 +79,15 @@ TEST_CASE("ClassDef_Attribute") {
             "\n"
             "a = Custom(1)\n" // works
         },
+        {
+            "class Name:\n"
+            "    def __init__(self, x: i32):\n" // Resolve an attribute defined inside the ctor
+            "        self.x = x\n"
+            "\n"
+            "a = Name(2)\n"
+            "a.x\n"
+            "a.x = 4\n",
+        },
     };
 
     run_testcase("ClassDef", ex);
@@ -185,16 +194,6 @@ Array<TestCase> sema_cases() {
             "b and a\n" // <= lookup if __rand__ to call __rand__(a, b)
         },
 
-        {
-            "class Name:\n"
-            "    def __init__(self, x: i32):\n" // Resolve an attribute defined inside the ctor
-            "        self.x = x\n"
-            "\n"
-            "a = Name(2)\n"
-            "a.x\n"
-            "a.x = 4\n"
-            "print(a.x)\n" //
-        },
         // */
     };
     return ex;

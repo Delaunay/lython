@@ -340,7 +340,7 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     auto arrow  = get_arrow(this, n->func, type, depth, offset);
 
     if (arrow == nullptr) {
-        SEMA_ERROR(TypeError(fmt::format("{} is not callable type: {}", str(n->func), str(arrow))));
+        SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
     }
 
     // Create the matching Arrow type for this call
