@@ -43,9 +43,12 @@ String strip2(String const &v) {
 }
 
 struct Args {
-    std::string file         = "";
-    bool        dump_lexer   = false;
-    bool        lexer_format = false;
+    std::string file              = "";
+    bool        dump_lexer        = false;
+    bool        lexer_format      = false;
+    bool        dump_string_db    = false;
+    bool        show_alloc_stats  = false;
+    bool        show_alloc_layout = false;
 };
 
 template <typename T>
@@ -149,17 +152,21 @@ int main(int argc, const char *argv[]) {
             std::cout << std::string(80, '-') << '\n';
         }
 
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Parsing Trace\n";
-        std::cout << std::string(80, '-') << '\n';
         Module *mod = nullptr;
 
         try {
-            Lexer lex(*reader.get());
 
+            Lexer  lex(*reader.get());
             Parser parser(lex);
 
-            mod = parser.parse_module();
+            // Parsing Logs
+            // ------------
+            {
+                std::cout << std::string(80, '=') << '\n';
+                std::cout << "Parsing Trace\n";
+                std::cout << std::string(80, '-') << '\n';
+                mod = parser.parse_module();
+            }
 
             // Parsing diagnostics
             // -------------------
@@ -199,6 +206,8 @@ int main(int argc, const char *argv[]) {
                 sema.exec(mod, 0);
                 std::cout << std::string(80, '-') << '\n';
 
+                // Sema Diagnostic
+                // ---------------
                 {
                     std::stringstream ss;
                     for (auto &diag: sema.errors) {
@@ -211,6 +220,9 @@ int main(int argc, const char *argv[]) {
                     std::cout << ss.str();
                     std::cout << std::string(80, '-') << '\n';
                 }
+
+                // Bindings Dump
+                // -------------
                 {
                     std::stringstream ss;
                     sema.bindings.dump(ss);
@@ -228,60 +240,27 @@ int main(int argc, const char *argv[]) {
             std::cout << "\t" << e.what() << std::endl;
         }
 
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Alloc Layout\n";
-        std::cout << std::string(80, '-') << '\n';
-        std::stringstream ss;
-        mod->dump(ss);
-        std::cout << ss.str();
-        std::cout << std::string(80, '-') << '\n';
+        if (args.show_alloc_layout) {
+            std::cout << std::string(80, '=') << '\n';
+            std::cout << "Alloc Layout\n";
+            std::cout << std::string(80, '-') << '\n';
+            std::stringstream ss;
+            mod->dump(ss);
+            std::cout << ss.str();
+            std::cout << std::string(80, '-') << '\n';
+        }
 
         delete mod;
     }
 
-    std::cout << std::string(80, '=') << '\n';
-    std::cout << "Alloc\n";
-    show_alloc_stats();
-    // StringDatabase::instance().report(std::cout);
+    if (args.show_alloc_stats) {
+        std::cout << std::string(80, '=') << '\n';
+        std::cout << "Alloc\n";
+        show_alloc_stats();
+    }
+
+    if (args.dump_string_db) {
+        StringDatabase::instance().report(std::cout);
+    }
     return 0;
 }
-
-/*
-Expression make_point(Module& mod){
-    auto expr = Expression::make<AST::Call>();
-    AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.reference("Point");
-    call->arguments.emplace_back(
-        Expression::make<AST::Value>(1.0, Expression()));
-    call->arguments.emplace_back(
-        Expression::make<AST::Value>(2.0, Expression()));
-    return expr;
-}
-
-
-Expression make_point_check(Module& mod){
-    auto expr = Expression::make<AST::Call>();
-    AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.reference("struct_set_get");
-    call->arguments.emplace_back(
-        Expression::make<AST::Value>(2.0, Expression()));
-    return expr;
-}
-
-Expression make_import_call_check(Module& mod){
-    auto expr = Expression::make<AST::Call>();
-    AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.reference("call_import");
-    return expr;
-}
-
-
-Expression make_max(Module& mod){
-    auto expr = Expression::make<AST::Call>();
-    AST::Call* call = expr.ref<AST::Call>();
-    call->function = mod.reference("max_alias");
-    call->arguments.emplace_back(Expression::make<AST::Value>(1.0, Expression()));
-    call->arguments.emplace_back(Expression::make<AST::Value>(2.0, Expression()));
-    return expr;
-}
-*/
