@@ -13,12 +13,9 @@
 
 using namespace lython;
 
-// TypeError
-// NameError
-// AttributeError
-//
-// Add Inheritance lookup
-Array<TestCase> sema_cases() {
+void run_testcase(String const &name, Array<TestCase> cases);
+
+TEST_CASE("FunctionDef_Typing") {
     static Array<TestCase> ex = {
         {
             "def fun():\n"
@@ -55,6 +52,13 @@ Array<TestCase> sema_cases() {
                 TE("x", "f32", "fun(1)", "i32"),
             },
         },
+    };
+
+    run_testcase("FunctionDef", ex);
+}
+
+TEST_CASE("ClassDef_Attribute") {
+    static Array<TestCase> ex = {
         {
             "class Name:\n"
             "    pass\n"
@@ -69,19 +73,34 @@ Array<TestCase> sema_cases() {
             },
         },
         {
-            "class Name:\n"
-            "    x: i32 = 1\n"
-            "\n"
-            "a = Name()\n"
-            "a.x = 2\n",
-        },
-        {
             "class Custom:\n"
             "    def __init__(self, a: i32):\n"
             "        self.a = a\n"
             "\n"
             "a = Custom(1)\n" // works
         },
+    };
+
+    run_testcase("ClassDef", ex);
+}
+
+TEST_CASE("ClassDef_Static_Attribute") {
+    static Array<TestCase> ex = {
+
+        {
+            "class Name:\n"
+            "    x: i32 = 1\n"
+            "\n"
+            "a = Name()\n"
+            "a.x = 2\n",
+        },
+    };
+
+    run_testcase("ClassDef", ex);
+}
+
+TEST_CASE("ClassDef_Magic_BoolOperator") {
+    static Array<TestCase> ex = {
         {
             "class CustomAnd:\n" // Bool op
             "    pass\n"
@@ -100,6 +119,18 @@ Array<TestCase> sema_cases() {
             "a = CustomAnd()\n"
             "a and True\n" // <= lookup of __and__ to call __and__(a, b)
         },
+    };
+
+    run_testcase("ClassDef", ex);
+}
+
+// TypeError
+// NameError
+// AttributeError
+//
+// Add Inheritance lookup
+Array<TestCase> sema_cases() {
+    static Array<TestCase> ex = {
 
         /*
         {
