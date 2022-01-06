@@ -165,6 +165,10 @@ class Parser {
     ParsingError *expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,
                                 CodeLocation const &loc);
 
+    // check for a new lines and eats all the subsequent newlines
+    // NB: maybe we should each repeating newlines inside the lexer
+    // NB: making the lexer not eat new line enable the lexer to be closer
+    // to the original code when it is used for formatting only
     void expect_newline(Node *wip_expression, CodeLocation const &loc);
 
     ParsingError *write_error(Array<int> const &expected, Node *wip_expression,

@@ -62,11 +62,14 @@
             ]
         },
         {
-            "name": "Debug Lython",
+            "name": "Debug Lython-Inspect",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/lython",
-            "args": [],
+            "program": "${workspaceFolder}/build/bin/lython-inspector",
+            "args": [
+                "--file",
+                "${workspaceFolder}/code/python_test.ly"
+            ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

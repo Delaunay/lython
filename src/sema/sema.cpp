@@ -779,7 +779,7 @@ Arrow *record_ctor_attributes(SemanticAnalyser *sema, ClassDef *n, FunctionDef *
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     PopGuard _(nested, n);
 
-    int id = bindings.add(n->name, n, Type_t());
+    int id = bindings.add(n->name, n, make_ref(n, "Type"));
 
     // TODO: go through bases and add their elements
     for (auto base: n->bases) {

@@ -9,3 +9,8 @@ def function_def(a):
         test_f()
         
     return 0
+
+
+class Name:
+    def add(self):
+        pass

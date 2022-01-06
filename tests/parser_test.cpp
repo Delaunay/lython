@@ -44,6 +44,8 @@ struct AllowEntry {
     bool operator==(AllowEntry const &v) const { return name == v.name && i == v.i && j == v.j; }
 };
 
+// List of Fuzzed examples that works
+// mostly because some much is missing that the expression becomes valid
 Array<AllowEntry> allow_list = {
     {"Inline", 0, 9},      {"Inline", 0, 8},       {"Inline", 0, 7},     {"Inline", 0, 5},
     {"Inline", 0, 4},      {"Inline", 0, 3},       {"Inline", 0, 1},     {"Match", 2, 27},
