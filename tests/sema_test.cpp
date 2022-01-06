@@ -15,7 +15,7 @@ using namespace lython;
 
 void run_testcase(String const &name, Array<TestCase> cases);
 
-TEST_CASE("FunctionDef_Typing") {
+TEST_CASE("SEMA_FunctionDef_Typing") {
     static Array<TestCase> ex = {
         {
             "def fun():\n"
@@ -57,7 +57,9 @@ TEST_CASE("FunctionDef_Typing") {
     run_testcase("FunctionDef", ex);
 }
 
-TEST_CASE("ClassDef_Attribute") {
+TEST_CASE("SEMA_Match_Details") {}
+
+TEST_CASE("SEMA_ClassDef_Attribute") {
     static Array<TestCase> ex = {
         {
             "class Name:\n"
@@ -93,7 +95,7 @@ TEST_CASE("ClassDef_Attribute") {
     run_testcase("ClassDef", ex);
 }
 
-TEST_CASE("Unpacking") {
+TEST_CASE("SEMA_Unpacking") {
     static Array<TestCase> ex = {
         {
             "def fun():\n"
@@ -115,7 +117,7 @@ TEST_CASE("Unpacking") {
     run_testcase("Unpacking", ex);
 }
 
-TEST_CASE("ClassDef_Static_Attribute") {
+TEST_CASE("SEMA_ClassDef_Static_Attribute") {
     static Array<TestCase> ex = {
 
         {
@@ -130,7 +132,7 @@ TEST_CASE("ClassDef_Static_Attribute") {
     run_testcase("ClassDef", ex);
 }
 
-TEST_CASE("ClassDef_Magic_BoolOperator") {
+TEST_CASE("SEMA_ClassDef_Magic_BoolOperator") {
     static Array<TestCase> ex = {
         {
             "class CustomAnd:\n" // Bool op

@@ -865,6 +865,8 @@ TypeExpr *SemanticAnalyser::deletestmt(Delete *n, int depth) {
 TypeExpr *SemanticAnalyser::assign(Assign *n, int depth) {
     auto type = exec(n->value, depth);
 
+    // TODO: check if the assigned name already exist or not
+    //
     if (n->targets.size() == 1) {
         auto target = n->targets[0];
 
@@ -915,6 +917,9 @@ TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
 TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
     auto constraint = n->annotation;
     auto typetype   = exec(n->annotation, depth);
+
+    // TODO: check if the assigned name already exist or not
+    //
 
     // Type annotation must be a type
     typecheck(n->annotation, typetype, nullptr, Type_t(), LOC);
@@ -1010,6 +1015,8 @@ TypeExpr *SemanticAnalyser::assertstmt(Assert *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::import(Import *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) { return nullptr; }
+
+// This means the binding lookup for variable should stop before the global scope :/
 TypeExpr *SemanticAnalyser::global(Global *n, int depth) {
     for (auto &name: n->names) {
         auto varid = bindings.get_varid(name);
