@@ -161,29 +161,67 @@ int main(int argc, const char *argv[]) {
 
             mod = parser.parse_module();
 
-            std::cout << std::string(80, '-') << '\n';
-            std::cout << "Parsing Diag\n";
-            std::cout << std::string(80, '-') << '\n';
-            for (auto &diag: parser.get_errors()) {
-                diag.print(std::cout);
+            // Parsing diagnostics
+            // -------------------
+            {
+                std::cout << std::string(80, '-') << '\n';
+                std::cout << "Parsing Diag\n";
+                std::cout << std::string(80, '-') << '\n';
+                for (auto &diag: parser.get_errors()) {
+                    diag.print(std::cout);
+                }
+                std::cout << std::string(80, '-') << '\n';
             }
-            std::cout << std::string(80, '-') << '\n';
 
-            std::cout << std::string(80, '-') << '\n';
-            std::cout << "Parsed Module dump\n";
-            std::cout << std::string(80, '-') << '\n';
-            for (auto stmt: mod->body) {
-                print(str(stmt), std::cout);
-                std::cout << "\n";
+            // Parsing dump
+            // ------------
+            {
+                std::stringstream ss;
+                for (auto stmt: mod->body) {
+                    print(str(stmt), ss);
+                    ss << "\n";
+                }
+                std::cout << std::string(80, '-') << '\n';
+                std::cout << "Parsed Module dump\n";
+                std::cout << std::string(80, '-') << '\n';
+                std::cout << ss.str();
+                std::cout << std::string(80, '-') << '\n';
             }
-            std::cout << std::string(80, '-') << '\n';
 
-            SemanticAnalyser sema;
-            sema.exec(mod, 0);
+            // Sema
+            // ----
+            {
+                SemanticAnalyser sema;
 
-            std::stringstream ss;
-            sema.bindings.dump(ss);
-            std::cout << ss.str();
+                std::cout << std::string(80, '-') << '\n';
+                std::cout << "Sema Logs\n";
+                std::cout << std::string(80, '-') << '\n';
+                sema.exec(mod, 0);
+                std::cout << std::string(80, '-') << '\n';
+
+                {
+                    std::stringstream ss;
+                    for (auto &diag: sema.errors) {
+                        ss << "  - " << diag->what() << "\n";
+                    }
+
+                    std::cout << std::string(80, '-') << '\n';
+                    std::cout << "Sema Diagnostic dump\n";
+                    std::cout << std::string(80, '-') << '\n';
+                    std::cout << ss.str();
+                    std::cout << std::string(80, '-') << '\n';
+                }
+                {
+                    std::stringstream ss;
+                    sema.bindings.dump(ss);
+
+                    std::cout << std::string(80, '-') << '\n';
+                    std::cout << "Sema bindings dump\n";
+                    std::cout << std::string(80, '-') << '\n';
+                    std::cout << ss.str();
+                    std::cout << std::string(80, '-') << '\n';
+                }
+            }
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
