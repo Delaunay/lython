@@ -83,7 +83,7 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
 
             // Generate the Call Arrow
             auto got = n->new_object<Arrow>();
-            got->args.push_back(nullptr); // lhs_t
+            got->args.push_back(make_ref(got, str(cls->name))); // lhs_t
             got->args.push_back(rhs_t);
             got->returns = arrow->returns;
 
@@ -779,7 +779,7 @@ Arrow *record_ctor_attributes(SemanticAnalyser *sema, ClassDef *n, FunctionDef *
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     PopGuard _(nested, n);
 
-    int id = bindings.add(n->name, n, make_ref(n, "Type"));
+    int id = bindings.add(n->name, n, Type_t());
 
     // TODO: go through bases and add their elements
     for (auto base: n->bases) {
