@@ -102,9 +102,9 @@ ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
 TARGET_LINK_LIBRARIES(liblython spdlog::spdlog)
 
 # Main interpreter loop
-ADD_EXECUTABLE(${PROJECT_NAME} lython.cpp)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} spdlog::spdlog liblython liblogging)
-SET_PROPERTY(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+ADD_EXECUTABLE(lython-inspector lython_inspector.cpp)
+TARGET_LINK_LIBRARIES(lython-inspector spdlog::spdlog liblython liblogging)
+SET_PROPERTY(TARGET lython-inspector PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 IF(UNIX)
     setup_target_for_coverage_gcovr_html(

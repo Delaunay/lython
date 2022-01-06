@@ -38,12 +38,12 @@ ENDMACRO(TEST_MACRO)
 
 IF(UNIX)
   ADD_TEST(
-    NAME lython
+    NAME lython-inspector
     WORKING_DIRECTORY .
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython --file ../code/python_test.ly  
-)
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython-inspector --file ../code/python_test.ly  
+) 
 
-  ADD_DEPENDENCIES(coverage lython)
+  ADD_DEPENDENCIES(coverage lython-inspector)
 ENDIF()
 # add test here
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
