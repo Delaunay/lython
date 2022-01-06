@@ -1,5 +1,4 @@
 
-
 def function_def(a):
 
     print()
@@ -10,5 +9,3 @@ def function_def(a):
         test_f()
         
     return 0
-
-

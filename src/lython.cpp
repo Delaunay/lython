@@ -42,13 +42,41 @@ String strip2(String const &v) {
     return String(v.begin(), v.begin() + i + 1);
 }
 
-/*
-Expression make_point(Module &mod);
-Expression make_point_check(Module &mod);
-Expression make_import_call_check(Module &mod);
-*/
+struct Args {
+    std::string file         = "";
+    bool        dump_lexer   = false;
+    bool        lexer_format = false;
+};
 
-int main() {
+template <typename T>
+struct ArgumentsParser {
+    using Handler = std::function<void(T &args, std::string const &value)>;
+
+    void add_argument(std::string const &name, Handler fun) { parser[name] = fun; }
+
+    T parse_args(int argc, const char *argv[]) {
+        T args;
+
+        for (int i = 1; i < argc;) {
+            auto name  = std::string(argv[i]);
+            auto value = std::string(argv[i + 1]);
+
+            auto handler_result = parser.find(name);
+            if (handler_result != parser.end()) {
+                handler_result->second(args, value);
+            }
+
+            i += 2;
+        }
+
+        return args;
+    }
+
+    private:
+    std::unordered_map<std::string, Handler> parser;
+};
+
+int main(int argc, const char *argv[]) {
     {
         metadata_init_names();
         // Static globals
@@ -63,6 +91,18 @@ int main() {
         track_static();
     }
 
+    ArgumentsParser<Args> argparser;
+    argparser.add_argument("--file", [](Args &arg, std::string const &value) { arg.file = value; });
+    argparser.add_argument("--debug-lexer", [](Args &arg, std::string const &value) {
+        std::stringstream ss(value);
+        ss >> arg.dump_lexer;
+    });
+    argparser.add_argument("--lexer-format", [](Args &arg, std::string const &value) {
+        std::stringstream ss(value);
+        ss >> arg.lexer_format;
+    });
+    Args args = argparser.parse_args(argc, argv);
+
     {
         info("Enter");
         //*
@@ -74,86 +114,40 @@ int main() {
                      "[0]    Version: " _HASH "\n"
                      "[0]       Date: " _DATE "\n\n";
 
-        // ConsoleBuffer reader;
-
-        String code = "def simple_function(a: b, c: d) -> e:\n"
-                      "    return a + c\n"
-                      "\n";
-
-        "def test1(p: Float, b):\n"
-        "    return sin(1)\n\n"
-
-            ;
-        "import a.b.c\n"
-        "import a.b.c as e\n"
-        "from a.b.c import f, k\n"
-        "from a.b.c import g as h, i as j\n\n"
-
-        "struct Point:\n"
-        "    x: Float\n"
-        "    y: Float\n"
-        "\n"
-
-        "def test1(p: Float) -> Float:\n"
-        "    return sin(1)\n\n"
-
-        "def test3(p: Float) -> Float:\n"
-        "    return sin(max(sin(p * 2), sin(p + 1)))\n\n"
-
-        "def test2(p: Float) -> Float:\n"
-        "    return sin(max(2, 3) / 3 * p)\n\n"
-
-        "def get_x(p: Point) -> Float:\n"
-        "    return p.x\n\n"
-
-        "def set_x(p: Point, x: Float) -> Point:\n"
-        "    p.x = x\n"
-        "    return p\n\n"
-
-        "def struct_set_get(v: Float) -> Float:\n"
-        "    p = Point(1.0, 2.0)\n"
-        "    set_x(p, v)\n"
-        "    a = get_x(p)\n"
-        "    return a\n\n"
-
-        "def call_import() -> Float:\n"
-        "    return k(1.0, 2.0)\n\n";
-
-        "def function2(test: double, test) -> double:\n"
-        "    \"\"\"This is a docstring\"\"\"\n"
-        "    return add(1, 1)\n\n"
-
-        "def function3(test: int, test) -> e:\n"
-        "    return add(1, 1)\n\n"
-
-        "struct Object:\n"
-        "    \"\"\"This is a docstring\"\"\"\n"
-        "    a: Type\n";
-
-        StringBuffer reader(code);
-
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Lexer Token Dump\n";
-        {
-            Lexer lex(reader);
-            lex.debug_print(std::cout);
-            reader.reset();
+        std::unique_ptr<AbstractBuffer> reader;
+        if (args.file != "") {
+            reader = std::make_unique<FileBuffer>(String(args.file.c_str()));
+        } else {
+            reader = std::make_unique<ConsoleBuffer>();
         }
-        std::cout << std::string(80, '-') << '\n';
 
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Lexing Round-trip\n";
-        String lexer_string;
-        {
-            Lexer        lex(reader);
-            StringStream ss;
-            lex.print(ss);
-            lexer_string = ss.str();
-            reader.reset();
+        if (args.dump_lexer) {
+            std::cout << std::string(80, '=') << '\n';
+            std::cout << "Lexer Token Dump\n";
+            {
+                Lexer lex(*reader.get());
+                lex.debug_print(std::cout);
+                reader.reset();
+            }
+            std::cout << std::string(80, '-') << '\n';
         }
-        std::cout << std::string(80, '-') << '\n';
-        std::cout << strip2(lexer_string) << std::endl;
-        std::cout << std::string(80, '-') << '\n';
+
+        if (args.lexer_format) {
+            std::cout << std::string(80, '=') << '\n';
+            std::cout << "Lexing Round-trip\n";
+            String lexer_string;
+            {
+                Lexer        lex(*reader.get());
+                StringStream ss;
+                lex.print(ss);
+                lexer_string = ss.str();
+                reader.reset();
+            }
+
+            std::cout << std::string(80, '-') << '\n';
+            std::cout << strip2(lexer_string) << std::endl;
+            std::cout << std::string(80, '-') << '\n';
+        }
 
         std::cout << std::string(80, '=') << '\n';
         std::cout << "Parsing Trace\n";
@@ -161,7 +155,7 @@ int main() {
         Module *mod = nullptr;
 
         try {
-            Lexer lex(reader);
+            Lexer lex(*reader.get());
 
             Parser parser(lex);
 
@@ -187,7 +181,9 @@ int main() {
             SemanticAnalyser sema;
             sema.exec(mod, 0);
 
-            sema.bindings.dump(std::cout);
+            std::stringstream ss;
+            sema.bindings.dump(ss);
+            std::cout << ss.str();
 
         } catch (lython::Exception e) {
             std::cout << "Error Occured:" << std::endl;
@@ -197,7 +193,9 @@ int main() {
         std::cout << std::string(80, '=') << '\n';
         std::cout << "Alloc Layout\n";
         std::cout << std::string(80, '-') << '\n';
-        mod->dump(std::cout);
+        std::stringstream ss;
+        mod->dump(ss);
+        std::cout << ss.str();
         std::cout << std::string(80, '-') << '\n';
 
         delete mod;

@@ -40,7 +40,8 @@ IF(UNIX)
   ADD_TEST(
     NAME lython
     WORKING_DIRECTORY .
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython)
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython --file ../code/python_test.ly  
+)
 
   ADD_DEPENDENCIES(coverage lython)
 ENDIF()

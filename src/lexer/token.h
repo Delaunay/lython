@@ -141,14 +141,18 @@ enum TokenType
 #undef X
 };
 
+String to_string(int8 t);
+;
+
+inline void print(TokenType const &t, std::ostream &out) { out << to_string(t); }
+
 using ReservedKeyword = Dict<String, TokenType>;
 using KeywordToString = Dict<int, String>;
 
 ReservedKeyword &keywords();
 KeywordToString &keyword_as_string();
 
-int8   tok_name_size();
-String to_string(int8 t);
+int8 tok_name_size();
 
 class Token {
     public:
@@ -190,8 +194,6 @@ class Token {
     public:
     // print all tokens and their info
     std::ostream &debug_print(std::ostream &out) const;
-
-    String __str__() const { return to_string(_type); }
 
     // could be used for code formatting
     std::ostream &print(std::ostream &out, int32 indent = 0) const;

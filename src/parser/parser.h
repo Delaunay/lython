@@ -156,15 +156,19 @@ class Parser {
 
     // Error Handling
     // --------------
-    ParsingError *expect_token(int expected, bool eat, Node *wip_expression, CodeLocation loc);
+    ParsingError *expect_token(int expected, bool eat, Node *wip_expression,
+                               CodeLocation const &loc);
 
     ParsingError *expect_operator(String const &op, bool eat, Node *wip_expression,
-                                  CodeLocation loc);
+                                  CodeLocation const &loc);
 
     ParsingError *expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,
-                                CodeLocation loc);
+                                CodeLocation const &loc);
 
-    ParsingError *write_error(Array<int> const &expected, Node *wip_expression, CodeLocation loc);
+    void expect_newline(Node *wip_expression, CodeLocation const &loc);
+
+    ParsingError *write_error(Array<int> const &expected, Node *wip_expression,
+                              CodeLocation const &loc);
 
     // Shortcuts
     // ---------
