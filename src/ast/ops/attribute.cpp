@@ -73,13 +73,20 @@ struct IsAttr {
     }
 };
 
-StmtNode *getattr(StmtNode *obj, String const &attr) {
+StmtNode *getattr(StmtNode *obj, String const &attr, ExprNode *&type) {
     if (obj->kind != NodeKind::ClassDef) {
         return nullptr;
     }
 
-    ClassDef *def = cast<ClassDef>(obj);
+    ClassDef *     def = cast<ClassDef>(obj);
+    ClassDef::Attr at;
+    bool           found = def->get_attribute(attr, at);
 
+    if (found) {
+        return at.stmt;
+    }
+
+    // Static Lookup
     for (auto &stmt: def->body) {
         auto value = IsAttr::isattr(stmt, attr);
 
@@ -91,6 +98,9 @@ StmtNode *getattr(StmtNode *obj, String const &attr) {
     return nullptr;
 };
 
-bool hasattr(StmtNode *obj, String const &attr) { return getattr(obj, attr) != nullptr; }
+bool hasattr(StmtNode *obj, String const &attr) {
+    ExprNode *dummy;
+    return getattr(obj, attr, dummy) != nullptr;
+}
 
 } // namespace lython

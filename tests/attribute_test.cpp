@@ -42,22 +42,23 @@ TEST_CASE("Attribute") {
     auto fun       = class_def->body[3];
     auto nested    = class_def->body[4];
 
+    ExprNode *ignore = nullptr;
     REQUIRE(hasattr(annassign, "a") == false);
 
     REQUIRE(hasattr(class_def, "a"));
-    REQUIRE(equal(getattr(class_def, "a"), annassign));
+    REQUIRE(equal(getattr(class_def, "a", ignore), annassign));
 
     REQUIRE(hasattr(class_def, "b"));
-    REQUIRE(equal(getattr(class_def, "b"), assign));
+    REQUIRE(equal(getattr(class_def, "b", ignore), assign));
 
     REQUIRE(hasattr(class_def, "__init__"));
-    REQUIRE(equal(getattr(class_def, "__init__"), init_fun));
+    REQUIRE(equal(getattr(class_def, "__init__", ignore), init_fun));
 
     REQUIRE(hasattr(class_def, "f"));
-    REQUIRE(equal(getattr(class_def, "f"), fun));
+    REQUIRE(equal(getattr(class_def, "f", ignore), fun));
 
     REQUIRE(hasattr(class_def, "Nested"));
-    REQUIRE(equal(getattr(class_def, "Nested"), nested));
+    REQUIRE(equal(getattr(class_def, "Nested", ignore), nested));
 
     REQUIRE(hasattr(class_def, "does_not_exist") == false);
 }

@@ -23,7 +23,7 @@ void print(ModNode const *&obj, std::ostream &out);
 
 String str(ExprNode const *obj);
 
-StmtNode *getattr(StmtNode *obj, String const &attr);
+StmtNode *getattr(StmtNode *obj, String const &attr, ExprNode *&type);
 bool      hasattr(StmtNode *obj, String const &attr);
 } // namespace lython
 

@@ -561,10 +561,30 @@ struct ClassDef: public StmtNode {
         ExprNode *type   = nullptr;
 
         operator bool() { return name != StringRef(); }
+
+        void dump(std::ostream &out);
     };
     Dict<StringRef, Attr> attributes;
 
-    Attr &get_attribute(StringRef name) { return attributes[name]; }
+    void dump(std::ostream &out) {
+        out << "Attributes:\n";
+        for (auto &item: attributes) {
+            out << "`" << item.first << "` ";
+            item.second.dump(out);
+            out << "\n";
+        }
+    }
+
+    bool get_attribute(StringRef name, Attr &out) {
+        auto result = attributes.find(name);
+
+        if (result != attributes.end()) {
+            out = (*result).second;
+            return true;
+        }
+
+        return false;
+    }
 
     bool insert_attribute(StringRef name, StmtNode *stmt, ExprNode *type = nullptr) {
         auto v = attributes[name];

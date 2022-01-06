@@ -101,7 +101,7 @@ struct PopGuard {
     ~PopGuard() { array.pop_back(); }
 
     U const &last(int offset, U const &default_value) const {
-        if (oldsize > offset) {
+        if (oldsize >= offset) {
             return array[oldsize - offset];
         }
         return default_value;
@@ -118,6 +118,17 @@ struct Scope {
 
     Bindings &  bindings;
     std::size_t oldsize;
+};
+
+struct ScopedFlag {
+    ScopedFlag(Dict<StringRef, bool> &array, StringRef flag): flags(array), flag(flag) {
+        flags[flag] = true;
+    }
+
+    ~ScopedFlag() { flags.erase(flag); }
+
+    Dict<StringRef, bool> &flags;
+    StringRef              flag;
 };
 
 } // namespace lython

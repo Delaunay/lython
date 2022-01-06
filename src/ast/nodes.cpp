@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include "magic.h"
 
 namespace lython {
 
@@ -43,6 +44,10 @@ void print(BoolOperator const &v, std::ostream &out) {
 
 #undef OP
     }
+}
+
+void ClassDef::Attr::dump(std::ostream &out) {
+    out << name << ": " << str(type) << " = " << str(stmt);
 }
 
 // ------------------------------------------

@@ -69,7 +69,8 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
                 return nullptr;
             }
 
-            auto fun = getattr(cls, magic);
+            TypeExpr *op_type = nullptr;
+            auto      fun     = getattr(cls, magic, op_type);
 
             if (fun == nullptr) {
                 SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
@@ -302,6 +303,7 @@ Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int dept
     if (type == nullptr) {
         return nullptr;
     }
+
     switch (type->kind) {
     case NodeKind::Arrow: {
         offset = 0;
@@ -311,24 +313,21 @@ Arrow *get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int dept
         if (!equal(type, Type_t())) {
             return nullptr;
         }
-        auto cls  = get_class(self->bindings, fun);
-        auto init = getattr(cls, "__init__");
-        offset    = 1;
+        auto      cls   = get_class(self->bindings, fun);
+        TypeExpr *arrow = nullptr;
+        auto      init  = getattr(cls, "__init__", arrow);
+        offset          = 1;
 
         if (init == nullptr) {
             debug("Use default ctor");
             Arrow *arrow = fun->new_object<Arrow>();
-            arrow->args.push_back(type);
+            arrow->args.push_back(self->make_ref(arrow, str(cls->name)));
             arrow->returns = fun;
             return arrow;
         } else {
-            debug("Got a custom ctor");
-            auto   init_t = self->exec(init, depth);
-            Arrow *arrow  = cast<Arrow>(init_t);
-            // sema should already have run for this
-            // arrow->args[0] = type;
-            // arrow->returns = fun;
-            return arrow;
+            auto init_t = self->exec(init, depth);
+            debug("Got a custom ctor {}", str(init_t));
+            return cast<Arrow>(init_t);
         }
     }
     }
@@ -341,7 +340,7 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     auto arrow  = get_arrow(this, n->func, type, depth, offset);
 
     if (arrow == nullptr) {
-        SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
+        SEMA_ERROR(TypeError(fmt::format("{} is not callable type: {}", str(n->func), str(arrow))));
     }
 
     // Create the matching Arrow type for this call
@@ -350,7 +349,8 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
         got->args.reserve(arrow->args.size());
     }
     if (offset == 1) {
-        got->args.push_back(type);
+        auto cls = get_class(bindings, n->func);
+        got->args.push_back(make_ref(got, str(cls->name)));
     }
     for (auto &arg: n->args) {
         got->args.push_back(exec(arg, depth));
@@ -392,9 +392,10 @@ TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
 
     return nullptr;
 }
-TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
-    auto type_t = exec(n->value, depth);
 
+// This is only called when loading
+TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
+    auto type_t  = exec(n->value, depth);
     auto class_t = get_class(bindings, type_t);
 
     if (class_t == nullptr) {
@@ -402,16 +403,40 @@ TypeExpr *SemanticAnalyser::attribute(Attribute *n, int depth) {
         return nullptr;
     }
 
-    auto attr = getattr(class_t, str(n->attr));
+    ClassDef::Attr attr;
+    bool           found = class_t->get_attribute(n->attr, attr);
 
-    if (attr == nullptr) {
+    if (!found) {
         SEMA_ERROR(AttributeError(class_t, n->attr));
     }
 
-    auto attr_t = exec(attr, depth);
-
-    return attr_t;
+    return attr.type;
 }
+
+TypeExpr *SemanticAnalyser::attribute_assign(Attribute *n, int depth, TypeExpr *expected) {
+    auto type_t  = exec(n->value, depth);
+    auto class_t = get_class(bindings, type_t);
+
+    if (class_t == nullptr) {
+        SEMA_ERROR(NameError(n->value, str(n->value)));
+        return nullptr;
+    }
+
+    ClassDef::Attr attr;
+    bool           found = class_t->get_attribute(n->attr, attr);
+
+    if (!found) {
+        SEMA_ERROR(AttributeError(class_t, n->attr));
+    }
+
+    // Update attribute type when we are in an assignment
+    if (found && attr.type == nullptr) {
+        attr.type = expected;
+    }
+
+    return attr.type;
+}
+
 TypeExpr *SemanticAnalyser::subscript(Subscript *n, int depth) {
     auto class_t = exec(n->value, depth);
     exec(n->slice, depth);
@@ -520,6 +545,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
         // if it is a method populate the type of self
         // TODO: fix for staticmethod & class methods
         if (class_t != nullptr && i == 0) {
+            debug("Insert class type");
             type = class_t;
         }
 
@@ -574,6 +600,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
 TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     // if sema was already done on the function
     if (n->type) {
+        info("Send cached type {}", str(n->type));
         return n->type;
     }
 
@@ -584,7 +611,8 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     Scope scope(bindings);
 
     auto type = n->new_object<Arrow>();
-    add_arguments(n->args, type, cast<ClassDef>(nested_stmt.last(1, nullptr)), depth);
+    auto lst  = nested_stmt.last(1, nullptr);
+    add_arguments(n->args, type, cast<ClassDef>(lst), depth);
 
     auto return_effective = exec<TypeExpr *>(n->body, depth);
 
@@ -612,6 +640,142 @@ TypeExpr *SemanticAnalyser::functiondef(FunctionDef *n, int depth) {
     n->type = type;
     return type;
 }
+
+void record_attributes(SemanticAnalyser *self, ClassDef *n, Array<StmtNode *> const &body,
+                       Array<StmtNode *> &methods, FunctionDef **ctor, int depth) {
+
+    for (auto &stmt: n->body) {
+        Scope scope(self->bindings);
+
+        // Assignment
+        ExprNode *target   = nullptr;
+        ExprNode *value    = nullptr;
+        TypeExpr *target_t = nullptr;
+
+        switch (stmt->kind) {
+        case NodeKind::FunctionDef: {
+            // Look for special functions
+            auto fun = cast<FunctionDef>(stmt);
+            n->insert_attribute(fun->name, fun);
+
+            if (str(fun->name) == "__init__") {
+                info("Found ctor");
+                ctor[0] = fun;
+            } else {
+                methods.push_back(stmt);
+            }
+            continue;
+        }
+        case NodeKind::Assign: {
+            auto assn = cast<Assign>(stmt);
+            target    = assn->targets[0];
+            value     = assn->value;
+            break;
+        }
+        case NodeKind::AnnAssign: {
+            auto ann = cast<AnnAssign>(stmt);
+            target   = ann->target;
+            value    = ann->value.has_value() ? ann->value.value() : nullptr;
+            target_t = ann->annotation;
+            break;
+        }
+        default:
+            debug("Unhandled statement {}", str(stmt->kind));
+            continue;
+        }
+
+        auto name = cast<Name>(target);
+
+        // Not a variable, move on
+        if (name == nullptr) {
+            continue;
+        }
+
+        TypeExpr *value_t = nullptr;
+
+        // try to deduce type fo the value
+        if (value) {
+            value_t = self->exec(value, depth);
+        }
+
+        // if both types are available do a type check
+        if (target_t != nullptr && value_t != nullptr) {
+            self->typecheck(target, target_t, value, value_t, LOC);
+        }
+
+        // insert attribute using the annotation first
+        n->insert_attribute(name->id, stmt, target_t ? target_t : value_t);
+    }
+}
+
+Arrow *record_ctor_attributes(SemanticAnalyser *sema, ClassDef *n, FunctionDef *ctor, int depth) {
+    if (ctor->args.args.size() <= 0) {
+        error("__init__ without self");
+        return nullptr;
+    }
+
+    info("Looking for attributes inside the ctor");
+    auto self = ctor->args.args[0].arg;
+
+    // we need the arguments in the scope so we can look them up
+    Arrow arrow;
+    sema->add_arguments(ctor->args, &arrow, n, depth);
+
+    for (auto stmt: ctor->body) {
+        ExprNode *attr_expr = nullptr;
+        ExprNode *value     = nullptr;
+        TypeExpr *type      = nullptr;
+
+        switch (stmt->kind) {
+        case NodeKind::Assign: {
+            auto assn = cast<Assign>(stmt);
+            attr_expr = assn->targets[0];
+            value     = assn->value;
+            break;
+        }
+        case NodeKind::AnnAssign: {
+            auto ann  = cast<AnnAssign>(stmt);
+            attr_expr = ann->target;
+            value     = ann->value.has_value() ? ann->value.value() : nullptr;
+            type      = ann->annotation;
+            break;
+        }
+        }
+
+        if (attr_expr->kind != NodeKind::Attribute) {
+            continue;
+        }
+
+        auto attr = cast<Attribute>(attr_expr);
+        auto name = cast<Name>(attr->value);
+
+        if (name == nullptr) {
+            continue;
+        }
+
+        if (name->id != self) {
+            continue;
+        }
+
+        //
+        // TODO: think about this, sema will reexecute that
+        // the type should be added else where because we are inside a function
+        // and we are processing only a subset of statements
+        //
+        // TODO: maybe we should nto rely on `sema->exec(ctor, depth)`
+        //
+        // Try to guess the attribute type
+        if (type == nullptr && value != nullptr) {
+            type = sema->exec(value, depth);
+        }
+
+        n->insert_attribute(attr->attr, stmt, type);
+    }
+
+    // We have identified all the attributes
+    // we can now do the semantic analysis
+    return cast<Arrow>(sema->exec(ctor, depth));
+}
 TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     PopGuard _(nested, n);
 
@@ -630,65 +794,29 @@ TypeExpr *SemanticAnalyser::classdef(ClassDef *n, int depth) {
     Array<StmtNode *> methods;
     FunctionDef *     ctor = nullptr;
 
+    // TODO: insert methods as functions
+    //  #<class>_<method>_#uid:()
+    //
+    //  class = '_'.join(nested)
+    //
+    //  this makes lookup easy and binding can now become the main module
+    //  with the AST Module being the syntax owner and binding being the
+    //  semantic owner.
+    //
+
     // Do a first pass to look for special methods such as __init__
-    for (auto &stmt: n->body) {
-        Scope scope(bindings);
+    // the attributes here are also static
+    record_attributes(this, n, n->body, methods, &ctor, depth);
+    // -----------------------------
 
-        auto fun = cast<FunctionDef>(stmt);
-        if (fun) {
-            n->insert_attribute(fun->name, fun);
-
-            if (str(fun->name) == "__init__") {
-                ctor = fun;
-            } else {
-                methods.push_back(stmt);
-            }
-            continue;
-        }
-
-        auto attr = cast<Assign>(stmt);
-        if (attr) {
-            // TODO:  get the target type
-            auto targets_t = exec(attr->value, depth);
-
-            for (auto target: attr->targets) {
-                auto name = cast<Name>(target);
-                if (name) {
-                    n->insert_attribute(name->id, stmt);
-                }
-            }
-
-            continue;
-        }
-
-        auto attras = cast<AnnAssign>(stmt);
-        if (attras) {
-            auto type = exec<TypeExpr *>(attras->value, depth);
-
-            auto typetype = exec(attras->annotation, depth);
-            typecheck(attras->annotation, typetype, nullptr, Type_t(), LOC);
-
-            if (type.has_value()) {
-                typecheck(attras->target, attras->annotation, attras->value.value(), type.value(),
-                          LOC);
-            }
-
-            auto name = cast<Name>(attras->target);
-            if (name) {
-                n->insert_attribute(name->id, stmt, attras->annotation);
-            }
-            continue;
-        }
-
-        debug("Unhandled statement {}", str(stmt->kind));
-    }
-
-    // get __init__ and do a pass to insert its attribute to the class
     auto class_t = make_ref(n, str(n->name));
 
+    // get __init__ and do a pass to insert its attribute to the class
     if (ctor != nullptr) {
-        auto ctor_t = cast<Arrow>(exec(ctor, depth));
+        // Traverse body to look for our attributes
+        auto ctor_t = record_ctor_attributes(this, n, ctor, depth);
 
+        // Fix ctor type
         if (ctor_t != nullptr) {
             ctor_t->args[0] = class_t;
             ctor_t->returns = class_t;
@@ -743,7 +871,9 @@ TypeExpr *SemanticAnalyser::assign(Assign *n, int depth) {
         if (target->kind == NodeKind::Name) {
             add_name(target, n->value, type);
         } else if (target->kind == NodeKind::Attribute) {
-            auto target_t = exec(target, depth);
+            // Deduce the type of the attribute from the value
+            auto target_t = attribute_assign(cast<Attribute>(n->targets[0]), depth, type);
+
             typecheck(target, target_t, n->value, type, LOC);
         } else {
             error("Assignment to an unsupported expression {}", str(target->kind));
@@ -801,10 +931,20 @@ TypeExpr *SemanticAnalyser::annassign(AnnAssign *n, int depth) {
                   LOC);
 
         value = n->value.value();
-        return type.value();
     }
 
-    add_name(n->target, value, constraint);
+    if (n->target->kind == NodeKind::Name) {
+        add_name(n->target, value, constraint);
+    } else if (n->target->kind == NodeKind::Attribute) {
+        // if it is an attribute make sure to update its type
+        auto attr_t = attribute_assign(cast<Attribute>(n->target), depth, constraint);
+
+        // if attr has no type it will be added
+        // if attr has a type then we need to check that the assignment type
+        // matches
+        typecheck(n->target, attr_t, nullptr, constraint, LOC);
+    }
+
     return constraint;
 }
 TypeExpr *SemanticAnalyser::forstmt(For *n, int depth) {

@@ -62,9 +62,17 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     bool                                  forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
     Array<StmtNode *>                     nested;
+    Dict<StringRef, bool>                 flags;
 
     public:
     virtual ~SemanticAnalyser() {}
+
+    StmtNode *current_namespace() {
+        if (nested.size() > 0) {
+            return nested[nested.size() - 1];
+        }
+        return nullptr;
+    }
 
     bool typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
                    CodeLocation const &loc);
@@ -91,6 +99,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         ref->varid = bindings.get_varid(ref->id);
         return ref;
     }
+
+    TypeExpr *attribute_assign(Attribute *n, int depth, TypeExpr *expected);
 
     void add_arguments(Arguments &args, Arrow *, ClassDef *def, int);
 
