@@ -25,7 +25,8 @@ ExprNode *none();
     TYPE(u32)               \
     TYPE(u64)               \
     TYPE(str)               \
-    TYPE(bool)
+    TYPE(bool)              \
+    TYPE(Module)
 
 #define TYPE(name) TypeExpr *name##_t();
 

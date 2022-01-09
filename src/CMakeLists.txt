@@ -54,7 +54,10 @@ SET(ADD_SOURCE
     parser/parser.cpp
     parser/parsing_error.cpp
     lowering/lowering.cpp
+    vm/tree.cpp
+    vm/tree.h
     sema/sema.cpp
+    sema/sema_import.cpp
     sema/errors.cpp
     sema/bindings.cpp
     sema/builtin.cpp

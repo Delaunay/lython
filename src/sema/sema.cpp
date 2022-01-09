@@ -1,5 +1,5 @@
-#include "sema/sema.h"
 #include "ast/magic.h"
+#include "sema/sema.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -1003,18 +1003,21 @@ TypeExpr *SemanticAnalyser::with(With *n, int depth) {
     return oneof(types);
 }
 TypeExpr *SemanticAnalyser::raise(Raise *n, int depth) {
+    // TODO:
     exec<TypeExpr *>(n->exc, depth);
     exec<TypeExpr *>(n->cause, depth);
     return nullptr;
 }
-TypeExpr *SemanticAnalyser::trystmt(Try *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::trystmt(Try *n, int depth) {
+    // TODO:
+    return nullptr;
+}
 TypeExpr *SemanticAnalyser::assertstmt(Assert *n, int depth) {
+    // TODO:
     exec(n->test, depth);
     exec<TypeExpr *>(n->msg, depth + 1);
     return nullptr;
 }
-TypeExpr *SemanticAnalyser::import(Import *n, int depth) { return nullptr; }
-TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) { return nullptr; }
 
 // This means the binding lookup for variable should stop before the global scope :/
 TypeExpr *SemanticAnalyser::global(Global *n, int depth) {

@@ -63,6 +63,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Array<std::unique_ptr<SemaException>> errors;
     Array<StmtNode *>                     nested;
     Dict<StringRef, bool>                 flags;
+    Array<String>                         paths;
 
     public:
     virtual ~SemanticAnalyser() {}

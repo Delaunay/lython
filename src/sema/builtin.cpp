@@ -8,10 +8,10 @@ BuiltinType make_type(String const &name) {
     return expr;
 }
 
-#define TYPE(name)                                  \
-    TypeExpr *name##_t() {                          \
-        static BuiltinType type = make_type(#name); \
-        return &type;                               \
+#define TYPE(name)                                      \
+    TypeExpr *name##_t() {                              \
+        static BuiltinType type##_v = make_type(#name); \
+        return &type##_v;                               \
     }
 
 BUILTIN_TYPES(TYPE)
