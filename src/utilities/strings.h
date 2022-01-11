@@ -61,6 +61,11 @@ T replace(T const &t, char a, T const &b) {
     return str;
 }
 
+template <typename T>
+inline void print(Array<T> const &obj, std::ostream &out) {
+    out << '[' << join(", ", obj) << ']';
+}
+
 } // namespace lython
 
 #endif
