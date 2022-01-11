@@ -22,7 +22,7 @@ Array<String> python_paths() {
     return split(':', path);
 }
 
-String lookup_module(StringRef const &module_path, Array<String> const &additional_paths) {
+String lookup_module(StringRef const &module_path, Array<String> const &paths) {
     // Look for the module in the path
     // env/3.9.7/lib/python39.zip
     // env/3.9.7/lib/python3.9
@@ -35,7 +35,6 @@ String lookup_module(StringRef const &module_path, Array<String> const &addition
     // Check the path from first to last
 
     namespace fs = std::filesystem;
-    auto paths   = python_paths();
 
     debug("{}", str(paths));
     auto module_frags = split('.', str(module_path));
@@ -151,6 +150,8 @@ StmtNode *find(Array<StmtNode *> const &body, StringRef name) {
                 return ann;
             }
         }
+        default:
+            continue;
         }
     }
 

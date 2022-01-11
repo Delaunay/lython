@@ -1,6 +1,7 @@
 #include "ast/magic.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
+#include "revision_data.h"
 #include "sema/sema.h"
 #include "utilities/strings.h"
 
@@ -10,6 +11,10 @@
 #include "logging/logging.h"
 
 #include "cases.h"
+
+// Path to repository on current system
+
+String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 using namespace lython;
 
@@ -235,6 +240,7 @@ inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
 
     info("{}", "Sema");
     SemanticAnalyser sema;
+    sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
 
     BindingEntry &entry = sema.bindings.bindings.back();
