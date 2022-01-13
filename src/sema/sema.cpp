@@ -343,6 +343,9 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
         SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
     }
 
+    // Sort kwargs to make them positional
+    // Get Arguments and generate an arrow from it
+
     // Create the matching Arrow type for this call
     Arrow *got = n->new_object<Arrow>();
     if (arrow != nullptr) {
@@ -352,19 +355,45 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
         auto cls = get_class(bindings, n->func);
         got->args.push_back(make_ref(got, str(cls->name)));
     }
+
     for (auto &arg: n->args) {
         got->args.push_back(exec(arg, depth));
     }
 
-    // FIXME: we do not know the returns so we just use the one we have
-    if (arrow != nullptr) {
-        got->returns = arrow->returns;
-        typecheck(n, got, n->func, arrow, LOC);
+    Dict<StringRef, ExprNode *> kwargs;
+    for (auto &kw: n->keywords) {
+        kwargs[kw.arg] = exec(kw.value, depth);
     }
 
-    for (auto &kw: n->keywords) {
-        // TODO: Handle keywods
-        exec(kw.value, depth);
+    if (arrow != nullptr) {
+        for (int i = got->args.size(); i < arrow->names.size(); i++) {
+            auto name = arrow->names[i];
+
+            auto item = kwargs.find(name);
+            if (item == kwargs.end()) {
+                auto value = got->defaults[name];
+                if (value) {
+                    SEMA_ERROR(TypeError(fmt::format("Arguement {} is not set", name)));
+                }
+                // Got default use the expected type
+                got->args.push_back(arrow->args[i]);
+                continue;
+            }
+
+            got->args.push_back(item->second);
+        }
+    }
+
+    // FIXME: we do not know the returns so we just use the one we have
+    if (arrow != nullptr) {
+        if (got->args.size() != arrow->args.size()) {
+            // we do not really that check
+            // SEMA_ERROR(TypeError(" missing {} required positional arguments"));
+            //
+        }
+
+        got->returns = arrow->returns;
+        typecheck(n, got, n->func, arrow, LOC);
     }
 
     if (arrow != nullptr) {
@@ -520,8 +549,9 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
         int d = int(args.defaults.size()) - (n - i);
 
         if (d >= 0) {
-            dvalue   = args.defaults[d];
-            dvalue_t = exec(dvalue, depth);
+            dvalue                   = args.defaults[d];
+            dvalue_t                 = exec(dvalue, depth);
+            arrow->defaults[arg.arg] = true;
         }
 
         TypeExpr *type = nullptr;
@@ -554,6 +584,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
         bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
+            arrow->names.push_back(arg.arg);
             arrow->args.push_back(type);
         }
     }
@@ -567,8 +598,9 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
         int d = int(args.kw_defaults.size()) - (n - i);
 
         if (d >= 0) {
-            dvalue   = args.kw_defaults[d];
-            dvalue_t = exec(dvalue, depth);
+            dvalue                   = args.kw_defaults[d];
+            dvalue_t                 = exec(dvalue, depth);
+            arrow->defaults[arg.arg] = true;
         }
 
         TypeExpr *type = nullptr;
@@ -592,6 +624,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
         bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
+            arrow->names.push_back(arg.arg);
             arrow->args.push_back(type);
         }
     }

@@ -57,6 +57,27 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
                 TE("x", "f32", "fun(1)", "i32"),
             },
         },
+
+        {
+            "def fun(a: i32, b: f64) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun(b=1.0, a=1)\n", // works
+        },
+
+        {
+            "def fun(a: i32 = 1, b: f64 = 1.1) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun()\n", // works
+        },
+
+        {
+            "def fun(a: i32, b: f64 = 1.1) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun()\n", // missing argument
+            {
+                // TE("Argument a is not defined");
+            },
+        },
     };
 
     run_testcase("FunctionDef", ex);

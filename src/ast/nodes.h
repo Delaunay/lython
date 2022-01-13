@@ -185,6 +185,8 @@ struct Arguments {
     Array<ExprNode *> kw_defaults;
     Optional<Arg>     kwarg; // **kwargs
     Array<ExprNode *> defaults;
+
+    int size() const { return posonlyargs.size() + args.size() + kwonlyargs.size(); }
 };
 
 struct Keyword: public CommonAttributes {
@@ -786,11 +788,15 @@ struct NotAllowedEpxr: public ExprNode {
     String msg;
 };
 
+// Record a function type as positional arguments only
+// makes it easier to re-order the arguments and insert defaults
 struct Arrow: public ExprNode {
     Arrow(): ExprNode(NodeKind::Arrow) {}
 
-    Array<ExprNode *> args;
-    ExprNode *        returns = nullptr;
+    Array<ExprNode *>     args;
+    Array<StringRef>      names;    // Allow the names to be there as well
+    Dict<StringRef, bool> defaults; //
+    ExprNode *            returns = nullptr;
 };
 
 struct DictType: public ExprNode {
