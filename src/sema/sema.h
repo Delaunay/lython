@@ -15,6 +15,8 @@
 
 namespace lython {
 
+Array<String> python_paths();
+
 struct SemaVisitorTrait {
     using StmtRet = TypeExpr *;
     using ExprRet = TypeExpr *;
@@ -63,7 +65,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Array<std::unique_ptr<SemaException>> errors;
     Array<StmtNode *>                     nested;
     Dict<StringRef, bool>                 flags;
-    Array<String>                         paths;
+    Array<String>                         paths = python_paths();
 
     public:
     virtual ~SemanticAnalyser() {}

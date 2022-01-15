@@ -110,14 +110,35 @@ Array<TestCase> const &Global_examples() {
 
 Array<TestCase> const &ImportFrom_examples() {
     static Array<TestCase> ex = {
-        {"from a.b import c as d, e.f as g"},
-    };
+        {
+            "from a.b import c as d, e.f as g",
+            {
+                // IE()
+                // MNFE()
+            },
+        },
+        {
+            // import_test should be inside the path
+            "from import_test import cls as Klass, fun as Fun, ann as Ann, var as Var",
+            {},
+        }};
     return ex;
 }
 
 Array<TestCase> const &Import_examples() {
     static Array<TestCase> ex = {
-        {"import a as b, c as d, e.f as g"},
+        {
+            "import a as b, c as d, e.f as g",
+            {
+                // IE()
+                // MNFE()
+            },
+        },
+        {
+            // import_test should be inside the path
+            "import import_test as imp_test",
+            {},
+        },
     };
     return ex;
 }

@@ -1,6 +1,7 @@
 #include "ast/magic.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
+#include "revision_data.h"
 #include "sema/sema.h"
 #include "utilities/strings.h"
 
@@ -10,6 +11,10 @@
 #include "logging/logging.h"
 
 #include "cases.h"
+
+// Path to repository on current system
+
+String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 using namespace lython;
 
@@ -50,6 +55,27 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
             "x: f32 = fun(1)\n", // Type Error
             {
                 TE("x", "f32", "fun(1)", "i32"),
+            },
+        },
+
+        {
+            "def fun(a: i32, b: f64) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun(b=1.0, a=1)\n", // works
+        },
+
+        {
+            "def fun(a: i32 = 1, b: f64 = 1.1) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun()\n", // works
+        },
+
+        {
+            "def fun(a: i32, b: f64 = 1.1) -> i32:\n"
+            "    return a\n"
+            "x: i32 = fun()\n", // missing argument
+            {
+                // TE("Argument a is not defined");
             },
         },
     };
@@ -235,6 +261,7 @@ inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
 
     info("{}", "Sema");
     SemanticAnalyser sema;
+    sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
 
     BindingEntry &entry = sema.bindings.bindings.back();
