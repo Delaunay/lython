@@ -113,6 +113,27 @@ struct UnsupportedOperand: public SemaException {
     TypeExpr *rhs_t = nullptr;
 };
 
+struct ModuleNotFoundError: public SemaException {
+    ModuleNotFoundError(StringRef const &mod): module(mod) {}
+
+    std::string message() const override;
+
+    static std::string message(String const &module);
+
+    StringRef module;
+};
+
+struct ImportError: public SemaException {
+    ImportError(StringRef const &mod, StringRef const &name): module(mod), name(name) {}
+
+    std::string message() const override;
+
+    static std::string message(String const &module, String const &name);
+
+    StringRef module;
+    StringRef name;
+};
+
 } // namespace lython
 
 #endif

@@ -1,6 +1,6 @@
-#include "sema/errors.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
+#include "sema/errors.h"
 #include "utilities/names.h"
 #include "utilities/strings.h"
 
@@ -64,6 +64,18 @@ std::string UnsupportedOperand::message(String const &op, String const &lhs_t,
                                         String const &rhs_t) {
     return fmt::format("TypeError: unsupported operand type(s) for {}: '{}' and '{}'", op, lhs_t,
                        rhs_t);
+}
+
+std::string ModuleNotFoundError::message() const { return message(str(module)); }
+
+std::string ModuleNotFoundError::message(String const &module) {
+    return fmt::format("ModuleNotFoundError: No module named '{}'", module);
+}
+
+std::string ImportError::message() const { return message(str(module), str(name)); }
+
+std::string ImportError::message(String const &module, String const &name) {
+    return fmt::format("ImportError: cannot import name {} from '{}'", name, module);
 }
 
 } // namespace lython

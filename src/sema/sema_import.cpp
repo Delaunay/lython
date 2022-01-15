@@ -37,9 +37,24 @@ TypeExpr *SemanticAnalyser::import(Import *n, int depth) {
         StringRef nm  = name.name;
         auto      mod = process_file(name.name, paths);
 
+        if (mod == nullptr) {
+            SEMA_ERROR(ModuleNotFoundError(name.name));
+            continue;
+        }
+
         if (name.asname.has_value()) {
             nm = name.asname.value();
         }
+
+        // Check ownership of Module
+        // we could make the import statement the owner
+        // but it could be imported multiple times
+        // in that case we would like to avoid doing SEMA
+        // and reuse the same version
+        // we could also import modules using multiple threads
+        // so we will need a place to manage all those modules
+        // sounds like shared_ptr might the easiest
+        mod->move(n);
 
         bindings.add(nm, mod, lython::Module_t());
     }
@@ -49,16 +64,25 @@ TypeExpr *SemanticAnalyser::import(Import *n, int depth) {
 TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {
     Module *mod = nullptr;
 
-    if (n->module.has_value()) {
-        auto mod = process_file(n->module.value(), paths);
+    // Regular import using system path
+    if (n->module.has_value() && !n->level.has_value()) {
+        mod = process_file(n->module.value(), paths);
+
+        if (mod == nullptr) {
+            SEMA_ERROR(ModuleNotFoundError(n->module.value()));
+            return nullptr;
+        }
     } else if (n->level.has_value()) {
         // relative import using level
+
+        if (mod == nullptr) {
+            SEMA_ERROR(ModuleNotFoundError(n->module.value()));
+            return nullptr;
+        }
     }
 
-    if (mod == nullptr) {
-        // ImportError: Module not found
-        return nullptr;
-    }
+    // TODO: Someone must be the owner of module
+    mod->move(n);
 
     for (auto &name: n->names) {
         StringRef nm = name.name;
@@ -67,6 +91,12 @@ TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {
         // functions, classes are stmt
         // but variable could also be imported which are expressions
         StmtNode *value = nullptr;
+
+        // Did not find the value inside the module
+        if (value == nullptr) {
+            SEMA_ERROR(ImportError(n->module.value(), nm));
+            continue;
+        }
 
         //
         if (name.asname.has_value()) {
