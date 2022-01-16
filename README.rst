@@ -15,8 +15,8 @@ Features
 * Type-deduction
 
 
-Language Goals
---------------
+Language Goals (i.e maybe one day)
+----------------------------------
 
 * Simple language for fast prototyping
 * Able to reuse Python tools (sphinx)
@@ -29,10 +29,25 @@ Language Goals
 * Parallelism (multi-threading)
 * Distributed computing (multi-node)
 * Optional GC with multiple kind of GC per application
+* Reflection through code generation 
+  meta programming & extended compile-time execution
 
 
-Compiler Goals
---------------
+With Batteries
+^^^^^^^^^^^^^^
+
+* Matrix
+* Visualization
+* Database
+* Webserver
+* Dyanmic Webpage
+* Networking
+* Threadpool (parallelism)
+* Event Manager (concurrency)
+* Message queue (multi-node)
+
+Compiler Goals (i.e maybe one day)
+----------------------------------
 
 * Type-inference maybe
 * LLVM-Code Generation

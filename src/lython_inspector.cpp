@@ -44,11 +44,11 @@ String strip2(String const &v) {
 
 struct Args {
     std::string file              = "";
-    bool        dump_lexer        = false;
-    bool        lexer_format      = false;
-    bool        dump_string_db    = false;
-    bool        show_alloc_stats  = false;
-    bool        show_alloc_layout = false;
+    bool        dump_lexer        = true;
+    bool        lexer_format      = true;
+    bool        dump_string_db    = true;
+    bool        show_alloc_stats  = true;
+    bool        show_alloc_layout = true;
 };
 
 template <typename T>

@@ -56,11 +56,21 @@ struct TreeEvaluatorTrait {
  *    Pointi = Point(int)
  *    Pointf = Point(float)                # <= Generate new types at compile time
  *
+ *
+ * Evaluation Implementation
+ * -------------------------
+ *
+ * 1. Reuse as much as possible from the sema context
+ *    Save the context inside each statement so we can use it
+ *    during evaluation.
+ *    Because the context is copied, it is easy to do parallel executions
+ *
+ * 2. Create a different context for evaluation only
  */
 struct TreeEvaluator: BaseVisitor<TreeEvaluator, true, TreeEvaluatorTrait> {
 
     public:
-    TreeEvaluator(Bindings &bindings) {}
+    TreeEvaluator(Bindings &bindings): bindings(bindings) {}
 
     virtual ~TreeEvaluator() {}
 
@@ -83,6 +93,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, true, TreeEvaluatorTrait> {
 #undef MATCH
 
 #undef FUNCTION_GEN
+
+    Bindings &bindings;
 };
 
 } // namespace lython

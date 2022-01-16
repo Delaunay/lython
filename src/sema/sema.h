@@ -46,17 +46,44 @@ struct SemaVisitorTrait {
  * only have to specify the type of the arguments which is good practice anyway as it serves as
  * documentation.
  *
+ * Notes
+ * -----
+ *
+ * SEM-A does a quick first pass through the module to insert definitions
+ * that are used before their definitions. This allow us to get away
+ * with not forward-declaring everything, but it means some analytics
+ * will get delayed until the end. In the case of mutually recursive definitions
+ * forward declaration is required so typing can be checked.
+ *
+ * SEM-A will add type annotation & reorder arguments wherever it can.
+ * This has the goal and standardizing the code & simplifying its execution
+ * later on.
+ *
+ * You can inspect the change by saving the resulting AST.
+ * You could implement an automatic formatter that executes semantic analysis
+ * to format & complete the code. The completed code will then take less time
+ * to compile as the representation will be easier to analyse.
+ *
  * Raises
  * ------
  *
  * TypeError
- *      when types between expression mismatch
+ *      Raised when types between expression mismatch
+ *
+ * UnsupportedOperand
+ *      Raised when using an operand on an object that does not support it
  *
  * AttributeError
- *      When using an object attribute that does not exist
+ *      Raised when using an object attribute that does not exist
  *
  * NameError
- *      When using an undefined variable
+ *      Raised when using an undefined variable
+ *
+ * ModuleNotFoundError
+ *      Raised when importing a module that was not found
+ *
+ * ImportError
+ *      Raised when importing a statement that was not found from a module
  *
  */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
