@@ -69,7 +69,7 @@ struct GCObject {
 
     private:
     Array<GCObject *> children;
-    GCObject *        parent;
+    GCObject *        parent = nullptr;
 };
 
 } // namespace lython

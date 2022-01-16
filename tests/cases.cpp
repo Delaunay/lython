@@ -19,6 +19,11 @@ String AE(String const &name, String const &attr) {
 String UO(String const &op, String const &lhs, String const &rhs) {
     return String(UnsupportedOperand::message(op, lhs, rhs));
 }
+String IE(String const &module, String const &name) {
+    return String(ImportError::message(module, name));
+}
+
+String MNFE(String const &module) { return String(ModuleNotFoundError::message(module)); }
 
 Array<TestCase> const &Match_examples() {
     static Array<TestCase> ex = {
@@ -111,10 +116,9 @@ Array<TestCase> const &Global_examples() {
 Array<TestCase> const &ImportFrom_examples() {
     static Array<TestCase> ex = {
         {
-            "from a.b import c as d, e.f as g",
+            "from aa.b import c as d, e.f as g",
             {
-                // IE()
-                // MNFE()
+                MNFE("aa.b"),
             },
         },
         {
@@ -128,10 +132,11 @@ Array<TestCase> const &ImportFrom_examples() {
 Array<TestCase> const &Import_examples() {
     static Array<TestCase> ex = {
         {
-            "import a as b, c as d, e.f as g",
+            "import aa as b, c as d, e.f as g",
             {
-                // IE()
-                // MNFE()
+                MNFE("aa"),
+                MNFE("c"),
+                MNFE("e.f"),
             },
         },
         {

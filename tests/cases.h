@@ -49,4 +49,8 @@ String AE(String const &name, String const &attr);
 
 String UO(String const &op, String const &lhs, String const &rhs);
 
+String IE(String const &import, String const &name);
+
+String MNFE(String const &module);
+
 #endif

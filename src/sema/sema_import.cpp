@@ -118,7 +118,8 @@ TypeExpr *SemanticAnalyser::import(Import *n, int depth) {
         // we could also import modules using multiple threads
         // so we will need a place to manage all those modules
         // sounds like shared_ptr might the easiest
-        mod->move(n);
+        // mod->move(n);
+
         // TODO: this needs to be kept somewhere
         SemanticAnalyser sema;
         sema.exec(mod, 0);
@@ -145,24 +146,28 @@ StmtNode *find(Array<StmtNode *> const &body, StringRef name) {
             if (def->name == name) {
                 return stmt;
             }
+            continue;
         }
         case NodeKind::FunctionDef: {
             auto def = cast<FunctionDef>(stmt);
             if (def->name == name) {
                 return stmt;
             }
+            continue;
         }
         case NodeKind::Assign: {
             auto ass = cast<Assign>(stmt);
             if (get_name(ass->targets[0]) == name) {
                 return ass;
             }
+            continue;
         }
         case NodeKind::AnnAssign: {
             auto ann = cast<AnnAssign>(stmt);
             if (get_name(ann->target) == name) {
                 return ann;
             }
+            continue;
         }
         default:
             continue;
@@ -193,7 +198,8 @@ TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {
     }
 
     // TODO: Someone must be the owner of module
-    mod->move(n);
+    // mod->move(n);
+
     // TODO: this needs to be kept somewhere
     SemanticAnalyser sema;
     sema.exec(mod, 0);
