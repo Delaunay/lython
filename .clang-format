@@ -1,36 +1,106 @@
-BasedOnStyle: LLVM
+# BasedOnStyle: LLVM
+Language: Cpp
 IndentWidth: 4
 ColumnLimit: 100
+
+# Cross platform
+UseCRLF: false
+
+# Disable automatic detection
+DerivePointerAlignment: false
+ExperimentalAutoDetectBinPacking: false
+
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignConsecutiveMacros: true
 AlignEscapedNewlines: true
 AlignTrailingComments: true
-AllowAllArgumentsOnNextLine: true 
-AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Never
-AllowShortEnumsOnASingleLine: false
-IndentPPDirectives: AfterHash
-# PackConstructorInitializers: CurrentLine 
-# ReferenceAlignmentStyle: Left
-DerivePointerAlignment: false
-PointerAlignment: Left
-UseCRLF: false
-BreakBeforeInheritanceComma: false
-BreakConstructorInitializers: AfterColon
-Cpp11BracedListStyle: true
-PointerAlignment: Right
-SpaceInEmptyParentheses: false
-AccessModifierOffset: 0
-SpaceBeforeParens: ControlStatements 
-AlwaysBreakTemplateDeclarations: true
-BraceWrapping:
-  AfterEnum: true
-  AfterCaseLabel: false
-SpaceBeforeCaseColon: false
-SpaceBeforeCtorInitializerColon: false
-SpaceBeforeInheritanceColon: false
-SpaceBeforeRangeBasedForLoopColon: false
-# SpacesBeforeTrailingComments: 2 
 
- 
+# while (true) {}
+# while (true) {
+#   continue;
+# }
+AllowShortBlocksOnASingleLine: Empty
+AllowShortEnumsOnASingleLine: false
+
+# #if FOO
+#  if BAR
+#    include <foo>
+#  endif
+#endif
+IndentPPDirectives: AfterHash
+
+# Constructor() : a(), b()
+
+# Constructor()
+#     : aaaaaaaaaaaaaaaaaaaa(),
+#       bbbbbbbbbbbbbbbbbbbb(),
+#       ddddddddddddd()
+PackConstructorInitializers: CurrentLine
+
+ReferenceAlignmentStyle: Left
+PointerAlignment: Left
+
+# Constructor() :
+#    initializer1(),
+BreakConstructorInitializers: AfterColon
+
+# No space in braced list
+Cpp11BracedListStyle: true
+SpaceInEmptyParentheses: false
+
+# class Foo {
+# public:
+#   my fun()
+AccessModifierOffset: 0
+
+# if () | while ()
+SpaceBeforeParens: ControlStatements
+
+# template <typename T>
+# T foo() {
+AlwaysBreakTemplateDeclarations: true
+
+# function() {
+# class {
+BraceWrapping: false
+
+# case a: break;
+SpaceBeforeCaseColon: false
+
+# Foo::Foo(): a(a) {}
+SpaceBeforeCtorInitializerColon: false
+
+# class Foo: Bar {}
+SpaceBeforeInheritanceColon: false
+
+# for(auto v: values)
+SpaceBeforeRangeBasedForLoopColon: false
+
+# a = b;  // comment
+SpacesBeforeTrailingComments: 2
+
+# type function() {
+# }
+BreakBeforeBraces: Attach
+
+# while (true) { continue; }
+AllowShortBlocksOnASingleLine: true
+
+# case 2: whatever return;
+AllowShortCaseLabelsOnASingleLine: true
+
+#
+# rtype function(abc,
+#                abc)
+#
+# function(abc,
+#          abc)
+AlignAfterOpenBracket: Align
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllArgumentsOnNextLine: true
+BinPackArguments: false
+BinPackParameters: false
+
+
+AlignOperands: AlignAfterOperator

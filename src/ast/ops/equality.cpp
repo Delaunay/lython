@@ -51,10 +51,13 @@ struct Equality {
     }
 
     bool exec(Arguments const &a, Arguments const &b, int depth) {
-        return exec(a.posonlyargs, b.posonlyargs, depth) && exec(a.args, b.args, depth) &&
-               exec(a.vararg, b.vararg, depth) && exec(a.kwonlyargs, b.kwonlyargs, depth) &&
-               exec(a.kw_defaults, b.kw_defaults, depth) && exec(a.kwarg, b.kwarg, depth) &&
-               exec(a.defaults, b.defaults, depth);
+        return exec(a.posonlyargs, b.posonlyargs, depth)
+            && exec(a.args, b.args, depth)
+            && exec(a.vararg, b.vararg, depth)
+            && exec(a.kwonlyargs, b.kwonlyargs, depth)
+            && exec(a.kw_defaults, b.kw_defaults, depth)
+            && exec(a.kwarg, b.kwarg, depth)
+            && exec(a.defaults, b.defaults, depth);
     }
 
     template <typename T>

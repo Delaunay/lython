@@ -16,6 +16,7 @@
   "C_Cpp_Runner.warningsAsError": false,
   "editor.formatOnSave": true,
   "files.associations": {
+    "*.rst": "reStructuredText",
     "*.usf": "cpp",
     "cctype": "cpp",
     "clocale": "cpp",
@@ -107,7 +108,8 @@
     "codecvt": "cpp",
     "complex": "cpp",
     "valarray": "cpp",
-    "ranges": "cpp"
+    "ranges": "cpp",
+    "filesystem": "cpp"
   },
   "python.formatting.provider": "black"
 }
