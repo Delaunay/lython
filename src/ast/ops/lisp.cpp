@@ -99,6 +99,7 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
 void comprehension(LispSexp &p, Comprehension const &self, int depth, int level);
 
 ReturnType LispSexp::attribute(Attribute const *self, int depth, int level) {
+    // obj.attr
     // (getattr obj "attr")
     return Sexp::list(
         Sexp::symbol("getattr"),
@@ -108,6 +109,7 @@ ReturnType LispSexp::attribute(Attribute const *self, int depth, int level) {
 }
 
 ReturnType LispSexp::subscript(Subscript const *self, int depth, int level) {
+    // obj[i]
     // (getitem obj i)
     return Sexp::list(
         Sexp::symbol("getitem"),
@@ -117,6 +119,7 @@ ReturnType LispSexp::subscript(Subscript const *self, int depth, int level) {
 }
 
 ReturnType LispSexp::starred(Starred const *self, int depth, int level) {
+    // *expr
     // (star expr)
     return Sexp::list(
         Sexp::symbol("star"),

@@ -63,7 +63,7 @@ AlwaysBreakTemplateDeclarations: true
 
 # function() {
 # class {
-BraceWrapping: false
+# BraceWrapping: false
 
 # case a: break;
 SpaceBeforeCaseColon: false

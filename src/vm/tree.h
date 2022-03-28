@@ -74,7 +74,7 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, true, TreeEvaluatorTrait> {
 
     virtual ~TreeEvaluator() {}
 
-#define FUNCTION_GEN(name, fun) virtual PartialResult *fun(name *n, int depth);
+#define FUNCTION_GEN(name, fun) virtual PartialResult *fun(name##_t *n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)
