@@ -34,8 +34,17 @@ using int16  = std::int16_t;
 using uint8 = std::uint8_t;
 using int8  = std::int8_t;
 
+// using float8 = ;
+// using float16 = ;
+// using float24 = ;
 using float32 = float;
 using float64 = double;
+
+// using bfloat16 = ;
+// using float40 = ;
+// using float80 = ;
+// using float128 = ;
+// using float256 = ;
 
 using uchar = unsigned char;
 

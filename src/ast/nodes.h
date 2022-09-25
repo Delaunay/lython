@@ -78,6 +78,7 @@ struct ExprNode: public CommonAttributes, public Node {
     NodeFamily family() const override { return NodeFamily::Expression; }
 };
 
+
 enum class ConversionKind : int8_t
 {
     None           = -1,
@@ -186,7 +187,7 @@ struct Arguments {
     Optional<Arg>     kwarg; // **kwargs
     Array<ExprNode *> defaults;
 
-    int size() const { return posonlyargs.size() + args.size() + kwonlyargs.size(); }
+    int size() const { return int(posonlyargs.size() + args.size() + kwonlyargs.size()); }
 };
 
 struct Keyword: public CommonAttributes {

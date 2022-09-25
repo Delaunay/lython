@@ -109,7 +109,8 @@
     "complex": "cpp",
     "valarray": "cpp",
     "ranges": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "stack": "cpp"
   },
   "python.formatting.provider": "black"
 }

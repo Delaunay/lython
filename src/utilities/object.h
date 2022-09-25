@@ -25,6 +25,23 @@ struct GCObject {
         return obj;
     }
 
+    template<typename T>
+    std::remove_const<T>::type* copy(T* obj) {
+        using NoConstT = std::remove_const<T>::type;
+
+        auto &alloc = get_allocator<NoConstT>();
+
+        // allocate
+        NoConstT *memory = alloc.allocate(1);
+        // construct
+        NoConstT *nobj        = new ((void *)memory) NoConstT(*obj);
+
+        nobj->class_id = meta::type_id<NoConstT>();
+        nobj->parent   = this;
+
+        return nobj;
+    }
+
     //! Make an object match the lifetime of the parent
     template <typename T>
     void add_child(T *child) {

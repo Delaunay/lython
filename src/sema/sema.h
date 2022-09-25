@@ -116,13 +116,6 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return nullptr;
     }
 
-    TypeExpr *module(Module *stmt, int depth) {
-        // TODO: Add a forward pass that simply add functions & variables
-        // to the context so the SEMA can look everything up
-        exec<TypeExpr *>(stmt->body, depth);
-        return nullptr;
-    };
-
     ExprNode *make_ref(Node *parent, String const &name) {
         auto ref   = parent->new_object<Name>();
         ref->id    = name;
@@ -138,7 +131,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
 #define X(name, _)
 #define SSECTION(name)
-#define MOD(name, fun)
+#define MOD(name, fun)   FUNCTION_GEN(name, fun)
 #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
 #define STMT(name, fun)  FUNCTION_GEN(name, fun)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun)

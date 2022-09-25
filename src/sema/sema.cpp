@@ -366,7 +366,7 @@ TypeExpr *SemanticAnalyser::call(Call *n, int depth) {
     }
 
     if (arrow != nullptr) {
-        for (int i = got->args.size(); i < arrow->names.size(); i++) {
+        for (int i = int(got->args.size()); i < arrow->names.size(); i++) {
             auto name = arrow->names[i];
 
             auto item = kwargs.find(name);
@@ -589,7 +589,7 @@ void SemanticAnalyser::add_arguments(Arguments &args, Arrow *arrow, ClassDef *de
         }
     }
 
-    for (int i = 0, n = args.kwonlyargs.size(); i < n; i++) {
+    for (int i = 0, n = int(args.kwonlyargs.size()); i < n; i++) {
         auto arg = args.kwonlyargs[i];
 
         ExprNode *dvalue   = nullptr;
@@ -1148,5 +1148,18 @@ TypeExpr *SemanticAnalyser::builtintype(BuiltinType *n, int depth) { return Type
 TypeExpr *SemanticAnalyser::tupletype(TupleType *n, int depth) { return Type_t(); }
 TypeExpr *SemanticAnalyser::settype(SetType *n, int depth) { return Type_t(); }
 TypeExpr *SemanticAnalyser::classtype(ClassType *n, int depth) { return Type_t(); }
+
+
+TypeExpr *SemanticAnalyser::module(Module *stmt, int depth) {
+    // TODO: Add a forward pass that simply add functions & variables
+    // to the context so the SEMA can look everything up
+    exec<TypeExpr *>(stmt->body, depth);
+    return nullptr;
+};
+
+TypeExpr *SemanticAnalyser::interactive(Interactive *n, int depth) { return nullptr; }
+TypeExpr *SemanticAnalyser::functiontype(FunctionType *n, int depth) { return Type_t(); }
+TypeExpr *SemanticAnalyser::expression(Expression *n, int depth) { return exec(n->body, depth); }
+
 
 } // namespace lython

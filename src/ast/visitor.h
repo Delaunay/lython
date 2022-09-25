@@ -100,7 +100,7 @@ struct BaseVisitor {
 
     ModRet exec(ModNode_t *mod, int depth, Args... args) {
         // clang-format off
-        // trace(depth, "{}", mod->kind);  
+        // trace(depth, "{}", mod->kind);
         switch (mod->kind) {
 
             #define X(name, _)
@@ -168,7 +168,7 @@ struct BaseVisitor {
 
             #define X(name, _)
             #define PASS(a, b)
-            #define SSECTION(_) 
+            #define SSECTION(_)
             #define EXPR(name, fun)\
                 case NodeKind::name: {\
                     name##_t* node = reinterpret_cast<name##_t*>(expr);\
@@ -191,6 +191,7 @@ struct BaseVisitor {
 
     StmtRet exec(StmtNode_t *stmt, int depth, Args... args) {
         if (!stmt) {
+            debug("Null statement");
             return StmtRet();
         }
         // trace(depth, "{}", stmt->kind);

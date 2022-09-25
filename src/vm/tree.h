@@ -12,7 +12,7 @@
 
 namespace lython {
 
-using PartialResult = ExprNode;
+using PartialResult = Node;
 
 struct TreeEvaluatorTrait {
     using StmtRet = PartialResult *;
@@ -67,7 +67,7 @@ struct TreeEvaluatorTrait {
  *
  * 2. Create a different context for evaluation only
  */
-struct TreeEvaluator: BaseVisitor<TreeEvaluator, true, TreeEvaluatorTrait> {
+struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     public:
     TreeEvaluator(Bindings &bindings): bindings(bindings) {}
@@ -94,6 +94,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, true, TreeEvaluatorTrait> {
 
 #undef FUNCTION_GEN
 
+    PartialResult* return_value;
+    Expression root;
     Bindings &bindings;
 };
 

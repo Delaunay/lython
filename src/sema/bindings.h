@@ -75,7 +75,7 @@ struct Bindings {
         int i = 0;
         while (start != end) {
             if (start->name == name) {
-                return bindings.size() - i - 1;
+                return int(bindings.size()) - i - 1;
             }
             ++start;
             i += 1;
