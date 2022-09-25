@@ -915,17 +915,39 @@ void ConstantValue::print(std::ostream &out) const {
         out << "<Constant:Invalid>";
         break;
 
-    case TInt:
-        out << value.integer;
+    case Ti8:
+        out << value.i8;
+        break;
+    case Ti16:
+        out << value.i16;
+        break;
+    case Ti32:
+        out << value.i32;
+        break;
+    case Ti64:
+        out << value.i64;
         break;
 
-    case TFloat:
-        out << value.singlef;
+    case Tu8:
+        out << value.u8;
+        break;
+    case Tu16:
+        out << value.u16;
+        break;
+    case Tu32:
+        out << value.u32;
+        break;
+    case Tu64:
+        out << value.u64;
         break;
 
-    case TDouble:
+    case Tf32:
+        out << value.f32;
+        break;
+
+    case Tf64:
         // always print a float even without decimal point
-        out << fmt::format("{:#}", value.doublef);
+        out << fmt::format("{:#}", value.f64);
         break;
 
     case TBool:

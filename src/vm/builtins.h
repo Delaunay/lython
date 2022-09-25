@@ -1,5 +1,4 @@
-
-
+#pragma once
 
 namespace lython {
 
@@ -129,35 +128,25 @@ struct BinaryOperation {
     };
 
     static void call(Params& params) {
-        Implementation::call(params);
+        params.r = Implementation::call(params.a, params.b);
     }
 
     static T call(T a, T b) {
-        Params p;
-        p.a = a;
-        p.b = a;
-        Implementation::call(p);
-        return p.r;
+        return Implementation::call(a, b);
     }
 };
 
 template<typename T>
 struct Add: public BinaryOperation<T, Add<T>> {
-    using Super = typename BinaryOperation<T, Add<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a + params.b;
+    static T call(T a, T b) {
+        return a + b;
     }
 };
 
 template<typename T>
 struct Sub: public BinaryOperation<T, Sub<T>> {
-    using Super = typename BinaryOperation<T, Sub<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a - params.b;
+    static T call(T a, T b) {
+        return a - b;
     }
 };
 
@@ -167,12 +156,12 @@ T ly_pow(T a, T b) {
 }
 
 template<>
-float ly_pow(float a, float b) {
+inline float ly_pow(float a, float b) {
     return std::powf(a, b);
 }
 
 template<>
-double ly_pow(double a, double b) {
+inline double ly_pow(double a, double b) {
     return std::pow(a, b);
 }
 
@@ -189,51 +178,36 @@ struct Pow: public BinaryOperation<T, Pow<T>> {
 
 template<typename T>
 struct LShift: public BinaryOperation<T, LShift<T>> {
-    using Super = typename BinaryOperation<T, LShift<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a << params.b;
+    static T call(T a, T b) {
+        return a << b;
     }
 };
 
 template<typename T>
 struct RShift: public BinaryOperation<T, RShift<T>> {
-    using Super = typename BinaryOperation<T, RShift<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a >> params.b;
+    static T call(T a, T b) {
+        return a >> b;
     }
 };
 
 template<typename T>
 struct Mult: public BinaryOperation<T, Mult<T>> {
-    using Super = typename BinaryOperation<T, Mult<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a * params.b;
+    static T call(T a, T b) {
+        return a * b;
     }
 };
 
 template<typename T>
 struct Div: public BinaryOperation<T, Div<T>> {
-    using Super = typename BinaryOperation<T, Div<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a / params.b;
+    static T call(T a, T b) {
+        return a / b;
     }
 };
 
 template<typename T>
 struct Mod: public BinaryOperation<T, Mod<T>> {
-    using Super = typename BinaryOperation<T, Mod<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a % params.b;
+    static T call(T a, T b) {
+        return a % b;
     }
 };
 
@@ -242,8 +216,8 @@ struct Mod<float>: public BinaryOperation<float, Mod<float>> {
     using Super = typename BinaryOperation<float, Mod<float>>;
     using Params = Super::Params;
 
-    static void call(Params& params) {
-        params.r = std::fmodf(params.a, params.b);
+    static float call(float a, float b) {
+        return fmodf(a, b);
     }
 };
 
@@ -252,59 +226,44 @@ struct Mod<double>: public BinaryOperation<double, Mod<double>> {
     using Super = typename BinaryOperation<double, Mod<double>>;
     using Params = Super::Params;
 
-    static void call(Params& params) {
-        params.r = std::fmod(params.a, params.b);
+    static double call(double a, double b) {
+        return fmod(a, b);
     }
 };
 
 template<typename T>
 struct And: public BinaryOperation<T, And<T>> {
-    using Super = typename BinaryOperation<T, And<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a && params.b;
+    static T call(T a, T b) {
+        return a && b;
     }
 };
 
 template<typename T>
 struct Or: public BinaryOperation<T, Or<T>> {
-    using Super = typename BinaryOperation<T, Or<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a || params.b;
+    static T call(T a, T b) {
+        return a || b;
     }
 };
 
 
 template<typename T>
 struct BitAnd: public BinaryOperation<T, BitAnd<T>> {
-    using Super = typename BinaryOperation<T, BitAnd<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a & params.b;
+    static T call(T a, T b) {
+        return a & b;
     }
 };
 
 template<typename T>
 struct BitOr: public BinaryOperation<T, BitOr<T>> {
-    using Super = typename BinaryOperation<T, BitOr<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a | params.b;
+    static T call(T a, T b) {
+        return a | b;
     }
 };
 
 template<typename T>
 struct BitXor: public BinaryOperation<T, BitXor<T>> {
-    using Super = typename BinaryOperation<T, BitXor<T>>;
-    using Params = Super::Params;
-
-    static void call(Params& params) {
-        params.r = params.a ^ params.b;
+    static T call(T a, T b) {
+        return a ^ b;
     }
 };
 

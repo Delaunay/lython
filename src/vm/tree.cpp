@@ -9,65 +9,40 @@
 
 namespace lython {
 
-static ExprNode* none_instance() {
-    static ExprNode none(NodeKind::Name);
-    return &none;
-}
-
-#define INTEGERS(X)\
-    X(int8)\
-    X(int16)\
-    X(int32)\
-    X(int64)\
-    X(uint8)\
-    X(uint16)\
-    X(uint32)\
-    X(uint64)
-
-#define FLOATS(X)\
-    X(float32)\
-    X(float64)
-
-
-
-#define EXPLICIT_TEMPLATE(Type)\
-    template struct Not<Type>;\
-    template struct UAdd<Type>;\
-    template struct USub<Type>;\
-    template struct Add<Type>;\
-    template struct Sub<Type>;\
-    template struct Pow<Type>;\
-    template struct Mult<Type>;\
-    template struct Div<Type>;\
-    template struct Mod<Type>;\
-    template struct And<Type>;\
-    template struct Or<Type>;\
-    template struct Eq<Type>;\
-    template struct NotEq<Type>;\
-    template struct Lt<Type>;\
-    template struct LtE<Type>;\
-    template struct Gt<Type>;\
-    template struct GtE<Type>;
-
-
-INTEGERS(EXPLICIT_TEMPLATE)
-FLOATS(EXPLICIT_TEMPLATE)
-
-
-#define EXPLICIT_TEMPLATE_BITS(Type)\
-    template struct Invert<Type>;\
-    template struct BitAnd<Type>;\
-    template struct BitOr<Type>;\
-
-
-INTEGERS(EXPLICIT_TEMPLATE_BITS)
-
-#undef EXPLICIT_TEMPLATE
-
-
 PartialResult *TreeEvaluator::boolop(BoolOp_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::namedexpr(NamedExpr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::binop(BinOp_t *n, int depth) { return nullptr; }
+PartialResult *TreeEvaluator::binop(BinOp_t *n, int depth) {
+
+    auto lhs = exec(n->left, depth);
+    auto rhs = exec(n->right, depth);
+
+    // We can execute the function because both arguments got resolved
+    if (lhs && lhs->is_instance<Constant>() && rhs && rhs->is_instance<Constant>()) {
+
+        // Execute function
+        if (n->resolved_operator) {
+            Scope scope(bindings);
+
+            bindings.add(StringRef(), lhs, nullptr);
+            bindings.add(StringRef(), rhs, nullptr);
+
+            return exec(n->resolved_operator, depth);
+        }
+
+        if (n->native_operator)
+        {
+            Constant* lhsc = static_cast<Constant*>(lhs);
+            Constant* rhsc = static_cast<Constant*>(rhs);
+
+            return root.new_object<Constant>(
+                n->native_operator(lhsc->value, rhsc->value)
+            );
+        }
+    }
+
+    // We could not execute, just return itself
+    return n;
+}
 PartialResult *TreeEvaluator::unaryop(UnaryOp_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::lambda(Lambda_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::ifexp(IfExp_t *n, int depth) { return nullptr; }
@@ -97,6 +72,7 @@ PartialResult *TreeEvaluator::call(Call_t *n, int depth) {
     }
 
     // execute function
+    // NB: function can both be a Statement and and Expression (lambda)
     auto returned = exec<PartialResult*>(function, depth);
     return returned;
 }
@@ -152,7 +128,7 @@ PartialResult *TreeEvaluator::returnstmt(Return_t *n, int depth) {
         debug("Returning {}", str(return_value));
         return return_value;
     }
-    return_value = none_instance();
+    return_value = None();
     return return_value;
 }
 

@@ -281,6 +281,16 @@ struct MatchCase {
 // Expressions
 // -----------
 
+struct Constant: public ExprNode {
+    ConstantValue    value;
+    Optional<String> kind;
+
+    template <typename T>
+    Constant(T const &v): ExprNode(NodeKind::Constant), value(v) {}
+
+    Constant(): Constant(ConstantValue::invalid_t()) {}
+};
+
 struct BoolOp: public ExprNode {
     BoolOperator      op;
     Array<ExprNode *> values;
@@ -296,9 +306,15 @@ struct NamedExpr: public ExprNode {
 };
 
 struct BinOp: public ExprNode {
+    using NativeBinaryOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+
     ExprNode *     left = nullptr;
     BinaryOperator op;
     ExprNode *     right = nullptr;
+
+    // Function to apply, resolved by the sema
+    StmtNode* resolved_operator = nullptr;
+    NativeBinaryOp native_operator = nullptr;
 
     BinOp(): ExprNode(NodeKind::BinOp) {}
 };
@@ -420,16 +436,6 @@ struct FormattedValue: public ExprNode {
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
 
-struct Constant: public ExprNode {
-    ConstantValue    value;
-    Optional<String> kind;
-
-    template <typename T>
-    Constant(T const &v): ExprNode(NodeKind::Constant), value(v) {}
-
-    Constant(): Constant(ConstantValue::invalid_t()) {}
-};
-
 // the following expression can appear in assignment context
 struct Attribute: public ExprNode {
     ExprNode *  value = nullptr;
@@ -458,7 +464,7 @@ struct Name: public ExprNode {
     Identifier  id;
     ExprContext ctx;
 
-    // SEMA
+    // Variable id, resolved by SEMA
     int varid = -1;
 
     Name(): ExprNode(NodeKind::Name) {}

@@ -9,7 +9,7 @@ using TypeExpr = ExprNode;
 
 ExprNode *False();
 ExprNode *True();
-ExprNode *none();
+ExprNode *None();
 
 #define BUILTIN_TYPES(TYPE) \
     TYPE(Type)              \

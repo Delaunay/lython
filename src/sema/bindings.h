@@ -31,7 +31,7 @@ struct Bindings {
 #undef TYPE
 
         // Builtin constant
-        add(String("None"), none(), None_t());
+        add(String("None"), None(), None_t());
         add(String("True"), True(), bool_t());
         add(String("False"), False(), bool_t());
     }

@@ -18,7 +18,7 @@ BUILTIN_TYPES(TYPE)
 
 #undef TYPE
 
-ExprNode *none() {
+ExprNode *None() {
     static Constant constant(ConstantValue::none());
     return &constant;
 }

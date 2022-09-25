@@ -2,6 +2,26 @@
 #include "ast/magic.h"
 #include "utilities/strings.h"
 
+#include "vm/builtins.h"
+
+namespace lython {
+
+ConstantValue add(ConstantValue::Type type, ConstantValue const& a, ConstantValue const& b) {
+    switch(type) {
+        #define NUM(kind, type, c)\
+            case ConstantValue::T##kind: return Add<type>::call(a.get<type>(), b.get<type>());
+
+        NUMERIC_CONSTANT(NUM)
+
+        #undef NUM
+    }
+
+    return ConstantValue();
+}
+
+}
+
+
 namespace lython {
 ClassDef *get_class(Bindings const &bindings, ExprNode *classref);
 Arrow *   get_arrow(SemanticAnalyser *self, ExprNode *fun, ExprNode *type, int depth, int &offset);
@@ -99,12 +119,30 @@ TypeExpr *SemanticAnalyser::namedexpr(NamedExpr *n, int depth) {
     add_name(n->target, n->value, value_t);
     return value_t;
 }
+
+TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
+
+    Name* name = cast<Name>(node);
+
+    if (name) {
+        return static_cast<TypeExpr*>(bindings.get_value(name->varid));
+    }
+
+    return nullptr;
+}
+
 TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 
     auto lhs_t = exec(n->left, depth);
     auto rhs_t = exec(n->right, depth);
 
     typecheck(n->left, lhs_t, n->right, rhs_t, LOC);
+
+    if (equal(resolve_variable(lhs_t), i32_t())) {
+        n->native_operator = [](ConstantValue const& a, ConstantValue const& b) -> ConstantValue {
+            return add(ConstantValue::Ti32, a, b);
+        };
+    }
 
     // TODO: check that op is defined for those types
     // use the op return type here
@@ -405,11 +443,27 @@ TypeExpr *SemanticAnalyser::joinedstr(JoinedStr *n, int depth) { return nullptr;
 TypeExpr *SemanticAnalyser::formattedvalue(FormattedValue *n, int depth) { return nullptr; }
 TypeExpr *SemanticAnalyser::constant(Constant *n, int depth) {
     switch (n->value.type()) {
-    case ConstantValue::TInt:
+    case ConstantValue::Ti8:
+        return make_ref(n, "i8");
+    case ConstantValue::Ti16:
+        return make_ref(n, "i16");
+    case ConstantValue::Ti32:
         return make_ref(n, "i32");
-    case ConstantValue::TFloat:
+    case ConstantValue::Ti64:
+        return make_ref(n, "i64");
+
+    case ConstantValue::Tu8:
+        return make_ref(n, "u8");
+    case ConstantValue::Tu16:
+        return make_ref(n, "u16");
+    case ConstantValue::Tu32:
+        return make_ref(n, "u32");
+    case ConstantValue::Tu64:
+        return make_ref(n, "u64");
+
+    case ConstantValue::Tf32:
         return make_ref(n, "f32");
-    case ConstantValue::TDouble:
+    case ConstantValue::Tf64:
         return make_ref(n, "f64");
     case ConstantValue::TString:
         return make_ref(n, "str");

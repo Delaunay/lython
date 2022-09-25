@@ -66,10 +66,16 @@ void run_test_case(String code, String expr, String expected) {
 }
 
 TEST_CASE("VM_Tree") {
+    // run_test_case(
+    //     "def fun(a: i32) -> i32:\n"
+    //     "    return a\n",
+    //     "fun(1)",
+    //     "1"
+    // );
     run_test_case(
         "def fun(a: i32) -> i32:\n"
-        "    return a\n",
+        "    return a + 1\n",
         "fun(1)",
-        "1"
+        "2"
     );
 }

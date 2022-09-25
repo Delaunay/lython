@@ -123,6 +123,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return ref;
     }
 
+    TypeExpr* resolve_variable(ExprNode* node);
+
     TypeExpr *attribute_assign(Attribute *n, int depth, TypeExpr *expected);
 
     void add_arguments(Arguments &args, Arrow *, ClassDef *def, int);
