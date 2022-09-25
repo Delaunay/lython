@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -40,22 +41,285 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>20</td>
-      <td>51</td>
-      <td class="coverage-low">39.2%</td>
+      <td>30</td>
+      <td>53</td>
+      <td class="coverage-low">56.6%</td>
+    </tr>
+    <tr>
+      <th scope="row">Functions:</th>
+      <td>12</td>
+      <td>22</td>
+      <td class="coverage-low">54.5%</td>
     </tr>
     <tr>
       <th scope="row">Branches:</th>
       <td>9</td>
-      <td>44</td>
-      <td class="coverage-low">20.5%</td>
+      <td>34</td>
+      <td class="coverage-low">26.5%</td>
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l24">lython::AbstractBuffer::AbstractBuffer()</a>
+      </td>
+      <td>
+        <a href="#l24">24</a>
+      </td>
+      <td>
+        <a href="#l24"> called 1 time</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::AbstractBuffer::col()</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 6506 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">lython::AbstractBuffer::consume()</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 13098 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l64">lython::AbstractBuffer::empty_line()</a>
+      </td>
+      <td>
+        <a href="#l64">64</a>
+      </td>
+      <td>
+        <a href="#l64"> called 2365 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l58">lython::AbstractBuffer::getline[abi:cxx11](int, int)</a>
+      </td>
+      <td>
+        <a href="#l58">58</a>
+      </td>
+      <td>
+        <a href="#l58"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l63">lython::AbstractBuffer::indent()</a>
+      </td>
+      <td>
+        <a href="#l63">63</a>
+      </td>
+      <td>
+        <a href="#l63"> called 6 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::AbstractBuffer::init()</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 3 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l61">lython::AbstractBuffer::line()</a>
+      </td>
+      <td>
+        <a href="#l61">61</a>
+      </td>
+      <td>
+        <a href="#l61"> called 6506 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l60">lython::AbstractBuffer::peek()</a>
+      </td>
+      <td>
+        <a href="#l60">60</a>
+      </td>
+      <td>
+        <a href="#l60"> called 21162 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l66">lython::AbstractBuffer::reset()</a>
+      </td>
+      <td>
+        <a href="#l66">66</a>
+      </td>
+      <td>
+        <a href="#l66"> called 2 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l200">lython::ConsoleBuffer::ConsoleBuffer()</a>
+      </td>
+      <td>
+        <a href="#l200">200</a>
+      </td>
+      <td>
+        <a href="#l200"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l204">lython::ConsoleBuffer::file_name[abi:cxx11]()</a>
+      </td>
+      <td>
+        <a href="#l204">204</a>
+      </td>
+      <td>
+        <a href="#l204"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l202">lython::ConsoleBuffer::getc()</a>
+      </td>
+      <td>
+        <a href="#l202">202</a>
+      </td>
+      <td>
+        <a href="#l202"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l99">lython::FileBuffer::file_name[abi:cxx11]()</a>
+      </td>
+      <td>
+        <a href="#l99">99</a>
+      </td>
+      <td>
+        <a href="#l99"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l97">lython::FileBuffer::getc()</a>
+      </td>
+      <td>
+        <a href="#l97">97</a>
+      </td>
+      <td>
+        <a href="#l97"> called 705 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l106">lython::FileBuffer::getline[abi:cxx11](int, int)</a>
+      </td>
+      <td>
+        <a href="#l106">106</a>
+      </td>
+      <td>
+        <a href="#l106"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l101">lython::FileBuffer::reset()</a>
+      </td>
+      <td>
+        <a href="#l101">101</a>
+      </td>
+      <td>
+        <a href="#l101"> called 2 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l86">lython::FileError::FileError&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;(char const*, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l86">86</a>
+      </td>
+      <td>
+        <a href="#l86"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l149">lython::StringBuffer::file_name[abi:cxx11]()</a>
+      </td>
+      <td>
+        <a href="#l149">149</a>
+      </td>
+      <td>
+        <a href="#l149"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l139">lython::StringBuffer::getc()</a>
+      </td>
+      <td>
+        <a href="#l139">139</a>
+      </td>
+      <td>
+        <a href="#l139"> called 12943 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l162">lython::StringBuffer::getline[abi:cxx11](int, int)</a>
+      </td>
+      <td>
+        <a href="#l162">162</a>
+      </td>
+      <td>
+        <a href="#l162"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l157">lython::StringBuffer::reset()</a>
+      </td>
+      <td>
+        <a href="#l157">157</a>
+      </td>
+      <td>
+        <a href="#l157"> not called</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -313,11 +577,11 @@
         <summary class="linebranchSummary">1/2</summary>
         <div class="linebranchContents">
           <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
-          <div class="takenBranch">&check; Branch 1 taken 12695 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 13098 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">12695</td>
+      <td class="linecount coveredLine">13098</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_next_char</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">EOF</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
@@ -341,7 +605,7 @@
       <td class="lineno"><a id="l34" href="#l34">34</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12695</td>
+      <td class="linecount coveredLine">13098</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">_col</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -359,12 +623,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 541 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 12154 times.</div>
+          <div class="takenBranch">&check; Branch 0 taken 575 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 12523 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">12695</td>
+      <td class="linecount coveredLine">13098</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_next_char</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39;\n&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -372,7 +636,7 @@
       <td class="lineno"><a id="l37" href="#l37">37</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">541</td>
+      <td class="linecount coveredLine">575</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">_line</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -380,7 +644,7 @@
       <td class="lineno"><a id="l38" href="#l38">38</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">541</td>
+      <td class="linecount coveredLine">575</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -396,7 +660,7 @@
       <td class="lineno"><a id="l40" href="#l40">40</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">541</td>
+      <td class="linecount coveredLine">575</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">_indent</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -404,7 +668,7 @@
       <td class="lineno"><a id="l41" href="#l41">41</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">541</td>
+      <td class="linecount coveredLine">575</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">_empty_line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -412,7 +676,7 @@
       <td class="lineno"><a id="l42" href="#l42">42</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">541</td>
+      <td class="linecount coveredLine">575</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">_next_char</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">getc</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -420,7 +684,7 @@
       <td class="lineno"><a id="l43" href="#l43">43</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">541</td>
+      <td class="linecount coveredLine">575</td>
       <td class="src coveredLine"><span class="w">            </span><span class="k">return</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -446,12 +710,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 3409 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 8745 times.</div>
+          <div class="takenBranch">&check; Branch 0 taken 3544 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 8979 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">12154</td>
+      <td class="linecount coveredLine">12523</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_next_char</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -461,12 +725,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 1456 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 1953 times.</div>
+          <div class="takenBranch">&check; Branch 0 taken 1564 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 1980 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">3409</td>
+      <td class="linecount coveredLine">3544</td>
       <td class="src coveredLine"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_empty_line</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
@@ -474,7 +738,7 @@
       <td class="lineno"><a id="l48" href="#l48">48</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1456</td>
+      <td class="linecount coveredLine">1564</td>
       <td class="src coveredLine"><span class="w">                </span><span class="n">_indent</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -482,7 +746,7 @@
       <td class="lineno"><a id="l49" href="#l49">49</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">3409</td>
+      <td class="linecount coveredLine">3544</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">_next_char</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getc</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -490,7 +754,7 @@
       <td class="lineno"><a id="l50" href="#l50">50</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">3409</td>
+      <td class="linecount coveredLine">3544</td>
       <td class="src coveredLine"><span class="w">            </span><span class="k">return</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -514,7 +778,7 @@
       <td class="lineno"><a id="l53" href="#l53">53</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">8745</td>
+      <td class="linecount coveredLine">8979</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">_empty_line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -522,7 +786,7 @@
       <td class="lineno"><a id="l54" href="#l54">54</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">8745</td>
+      <td class="linecount coveredLine">8979</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">_next_char</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">getc</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -626,56 +890,56 @@
       <td class="lineno"><a id="l67" href="#l67">67</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">_next_char</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">_next_char</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l68" href="#l68">68</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">_line</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">_line</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l69" href="#l69">69</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">_col</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">_col</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l70" href="#l70">70</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">_indent</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">_indent</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l71" href="#l71">71</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">_empty_line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">_empty_line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l72" href="#l72">72</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">init</span><span class="p">();</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">init</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l73" href="#l73">73</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -906,24 +1170,24 @@
       <td class="lineno"><a id="l102" href="#l102">102</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">fseek</span><span class="p">(</span><span class="n">_file</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">SEEK_SET</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">fseek</span><span class="p">(</span><span class="n">_file</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">SEEK_SET</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l103" href="#l103">103</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="n">AbstractBuffer</span><span class="o">::</span><span class="n">reset</span><span class="p">();</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">AbstractBuffer</span><span class="o">::</span><span class="n">reset</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l104" href="#l104">104</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1212,12 +1476,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 1 taken 543 times.</div>
-          <div class="takenBranch">&check; Branch 2 taken 12351 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 545 times.</div>
+          <div class="takenBranch">&check; Branch 2 taken 12398 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">12894</td>
+      <td class="linecount coveredLine">12943</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_pos</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">_code</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"></span></td>
     </tr>
 
@@ -1225,7 +1489,7 @@
       <td class="lineno"><a id="l141" href="#l141">141</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">543</td>
+      <td class="linecount coveredLine">545</td>
       <td class="src coveredLine"><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">EOF</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -1241,7 +1505,7 @@
       <td class="lineno"><a id="l143" href="#l143">143</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12351</td>
+      <td class="linecount coveredLine">12398</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">_pos</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -1249,7 +1513,7 @@
       <td class="lineno"><a id="l144" href="#l144">144</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12351</td>
+      <td class="linecount coveredLine">12398</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">_code</span><span class="p">[</span><span class="n">_pos</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"></span></td>
     </tr>
 
@@ -1807,11 +2071,11 @@
 
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>

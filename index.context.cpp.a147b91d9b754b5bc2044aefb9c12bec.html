@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -45,6 +46,12 @@
       <td class="coverage-low">68.2%</td>
     </tr>
     <tr>
+      <th scope="row">Functions:</th>
+      <td>9</td>
+      <td>73</td>
+      <td class="coverage-low">12.3%</td>
+    </tr>
+    <tr>
       <th scope="row">Branches:</th>
       <td>4</td>
       <td>8</td>
@@ -52,10 +59,828 @@
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l101">lython::SetContext::attribute(lython::Attribute*, int)</a>
+      </td>
+      <td>
+        <a href="#l101">101</a>
+      </td>
+      <td>
+        <a href="#l101"> called 11 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l121">lython::SetContext::listexpr(lython::ListExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l121">121</a>
+      </td>
+      <td>
+        <a href="#l121"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l116">lython::SetContext::name(lython::Name*, int)</a>
+      </td>
+      <td>
+        <a href="#l116">116</a>
+      </td>
+      <td>
+        <a href="#l116"> called 659 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l111">lython::SetContext::starred(lython::Starred*, int)</a>
+      </td>
+      <td>
+        <a href="#l111">111</a>
+      </td>
+      <td>
+        <a href="#l111"> called 1 time</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l106">lython::SetContext::subscript(lython::Subscript*, int)</a>
+      </td>
+      <td>
+        <a href="#l106">106</a>
+      </td>
+      <td>
+        <a href="#l106"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l126">lython::SetContext::tupleexpr(lython::TupleExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l126">126</a>
+      </td>
+      <td>
+        <a href="#l126"> called 16 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l68">lython::Traverse::annassign(lython::AnnAssign*, int)</a>
+      </td>
+      <td>
+        <a href="#l68">68</a>
+      </td>
+      <td>
+        <a href="#l68"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l56">lython::Traverse::arraytype(lython::ArrayType*, int)</a>
+      </td>
+      <td>
+        <a href="#l56">56</a>
+      </td>
+      <td>
+        <a href="#l56"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l58">lython::Traverse::arrow(lython::Arrow*, int)</a>
+      </td>
+      <td>
+        <a href="#l58">58</a>
+      </td>
+      <td>
+        <a href="#l58"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l75">lython::Traverse::assertstmt(lython::Assert*, int)</a>
+      </td>
+      <td>
+        <a href="#l75">75</a>
+      </td>
+      <td>
+        <a href="#l75"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l66">lython::Traverse::assign(lython::Assign*, int)</a>
+      </td>
+      <td>
+        <a href="#l66">66</a>
+      </td>
+      <td>
+        <a href="#l66"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l38">lython::Traverse::attribute(lython::Attribute*, int)</a>
+      </td>
+      <td>
+        <a href="#l38">38</a>
+      </td>
+      <td>
+        <a href="#l38"> called 11 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l67">lython::Traverse::augassign(lython::AugAssign*, int)</a>
+      </td>
+      <td>
+        <a href="#l67">67</a>
+      </td>
+      <td>
+        <a href="#l67"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">lython::Traverse::await(lython::Await*, int)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l20">lython::Traverse::binop(lython::BinOp*, int)</a>
+      </td>
+      <td>
+        <a href="#l20">20</a>
+      </td>
+      <td>
+        <a href="#l20"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l18">lython::Traverse::boolop(lython::BoolOp*, int)</a>
+      </td>
+      <td>
+        <a href="#l18">18</a>
+      </td>
+      <td>
+        <a href="#l18"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Traverse::breakstmt(lython::Break*, int)</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l61">lython::Traverse::builtintype(lython::BuiltinType*, int)</a>
+      </td>
+      <td>
+        <a href="#l61">61</a>
+      </td>
+      <td>
+        <a href="#l61"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l34">lython::Traverse::call(lython::Call*, int)</a>
+      </td>
+      <td>
+        <a href="#l34">34</a>
+      </td>
+      <td>
+        <a href="#l34"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l63">lython::Traverse::classdef(lython::ClassDef*, int)</a>
+      </td>
+      <td>
+        <a href="#l63">63</a>
+      </td>
+      <td>
+        <a href="#l63"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l59">lython::Traverse::classtype(lython::ClassType*, int)</a>
+      </td>
+      <td>
+        <a href="#l59">59</a>
+      </td>
+      <td>
+        <a href="#l59"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l33">lython::Traverse::compare(lython::Compare*, int)</a>
+      </td>
+      <td>
+        <a href="#l33">33</a>
+      </td>
+      <td>
+        <a href="#l33"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l37">lython::Traverse::constant(lython::Constant*, int)</a>
+      </td>
+      <td>
+        <a href="#l37">37</a>
+      </td>
+      <td>
+        <a href="#l37"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l83">lython::Traverse::continuestmt(lython::Continue*, int)</a>
+      </td>
+      <td>
+        <a href="#l83">83</a>
+      </td>
+      <td>
+        <a href="#l83"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l65">lython::Traverse::deletestmt(lython::Delete*, int)</a>
+      </td>
+      <td>
+        <a href="#l65">65</a>
+      </td>
+      <td>
+        <a href="#l65"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l29">lython::Traverse::dictcomp(lython::DictComp*, int)</a>
+      </td>
+      <td>
+        <a href="#l29">29</a>
+      </td>
+      <td>
+        <a href="#l29"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l24">lython::Traverse::dictexpr(lython::DictExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l24">24</a>
+      </td>
+      <td>
+        <a href="#l24"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Traverse::dicttype(lython::DictType*, int)</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l80">lython::Traverse::exprstmt(lython::Expr*, int)</a>
+      </td>
+      <td>
+        <a href="#l80">80</a>
+      </td>
+      <td>
+        <a href="#l80"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l36">lython::Traverse::formattedvalue(lython::FormattedValue*, int)</a>
+      </td>
+      <td>
+        <a href="#l36">36</a>
+      </td>
+      <td>
+        <a href="#l36"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l69">lython::Traverse::forstmt(lython::For*, int)</a>
+      </td>
+      <td>
+        <a href="#l69">69</a>
+      </td>
+      <td>
+        <a href="#l69"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Traverse::functiondef(lython::FunctionDef*, int)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l27">lython::Traverse::generateexpr(lython::GeneratorExp*, int)</a>
+      </td>
+      <td>
+        <a href="#l27">27</a>
+      </td>
+      <td>
+        <a href="#l27"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l78">lython::Traverse::global(lython::Global*, int)</a>
+      </td>
+      <td>
+        <a href="#l78">78</a>
+      </td>
+      <td>
+        <a href="#l78"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l23">lython::Traverse::ifexp(lython::IfExp*, int)</a>
+      </td>
+      <td>
+        <a href="#l23">23</a>
+      </td>
+      <td>
+        <a href="#l23"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l71">lython::Traverse::ifstmt(lython::If*, int)</a>
+      </td>
+      <td>
+        <a href="#l71">71</a>
+      </td>
+      <td>
+        <a href="#l71"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l76">lython::Traverse::import(lython::Import*, int)</a>
+      </td>
+      <td>
+        <a href="#l76">76</a>
+      </td>
+      <td>
+        <a href="#l76"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l77">lython::Traverse::importfrom(lython::ImportFrom*, int)</a>
+      </td>
+      <td>
+        <a href="#l77">77</a>
+      </td>
+      <td>
+        <a href="#l77"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l85">lython::Traverse::inlinestmt(lython::Inline*, int)</a>
+      </td>
+      <td>
+        <a href="#l85">85</a>
+      </td>
+      <td>
+        <a href="#l85"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l35">lython::Traverse::joinedstr(lython::JoinedStr*, int)</a>
+      </td>
+      <td>
+        <a href="#l35">35</a>
+      </td>
+      <td>
+        <a href="#l35"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l22">lython::Traverse::lambda(lython::Lambda*, int)</a>
+      </td>
+      <td>
+        <a href="#l22">22</a>
+      </td>
+      <td>
+        <a href="#l22"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l26">lython::Traverse::listcomp(lython::ListComp*, int)</a>
+      </td>
+      <td>
+        <a href="#l26">26</a>
+      </td>
+      <td>
+        <a href="#l26"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l42">lython::Traverse::listexpr(lython::ListExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l42">42</a>
+      </td>
+      <td>
+        <a href="#l42"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l84">lython::Traverse::match(lython::Match*, int)</a>
+      </td>
+      <td>
+        <a href="#l84">84</a>
+      </td>
+      <td>
+        <a href="#l84"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l92">lython::Traverse::matchas(lython::MatchAs*, int)</a>
+      </td>
+      <td>
+        <a href="#l92">92</a>
+      </td>
+      <td>
+        <a href="#l92"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l90">lython::Traverse::matchclass(lython::MatchClass*, int)</a>
+      </td>
+      <td>
+        <a href="#l90">90</a>
+      </td>
+      <td>
+        <a href="#l90"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l89">lython::Traverse::matchmapping(lython::MatchMapping*, int)</a>
+      </td>
+      <td>
+        <a href="#l89">89</a>
+      </td>
+      <td>
+        <a href="#l89"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l93">lython::Traverse::matchor(lython::MatchOr*, int)</a>
+      </td>
+      <td>
+        <a href="#l93">93</a>
+      </td>
+      <td>
+        <a href="#l93"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l88">lython::Traverse::matchsequence(lython::MatchSequence*, int)</a>
+      </td>
+      <td>
+        <a href="#l88">88</a>
+      </td>
+      <td>
+        <a href="#l88"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l87">lython::Traverse::matchsingleton(lython::MatchSingleton*, int)</a>
+      </td>
+      <td>
+        <a href="#l87">87</a>
+      </td>
+      <td>
+        <a href="#l87"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l91">lython::Traverse::matchstar(lython::MatchStar*, int)</a>
+      </td>
+      <td>
+        <a href="#l91">91</a>
+      </td>
+      <td>
+        <a href="#l91"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l86">lython::Traverse::matchvalue(lython::MatchValue*, int)</a>
+      </td>
+      <td>
+        <a href="#l86">86</a>
+      </td>
+      <td>
+        <a href="#l86"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l41">lython::Traverse::name(lython::Name*, int)</a>
+      </td>
+      <td>
+        <a href="#l41">41</a>
+      </td>
+      <td>
+        <a href="#l41"> called 659 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l19">lython::Traverse::namedexpr(lython::NamedExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l19">19</a>
+      </td>
+      <td>
+        <a href="#l19"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l79">lython::Traverse::nonlocal(lython::Nonlocal*, int)</a>
+      </td>
+      <td>
+        <a href="#l79">79</a>
+      </td>
+      <td>
+        <a href="#l79"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Traverse::pass(lython::Pass*, int)</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l73">lython::Traverse::raise(lython::Raise*, int)</a>
+      </td>
+      <td>
+        <a href="#l73">73</a>
+      </td>
+      <td>
+        <a href="#l73"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l64">lython::Traverse::returnstmt(lython::Return*, int)</a>
+      </td>
+      <td>
+        <a href="#l64">64</a>
+      </td>
+      <td>
+        <a href="#l64"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Traverse::setcomp(lython::SetComp*, int)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l25">lython::Traverse::setexpr(lython::SetExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l25">25</a>
+      </td>
+      <td>
+        <a href="#l25"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l60">lython::Traverse::settype(lython::SetType*, int)</a>
+      </td>
+      <td>
+        <a href="#l60">60</a>
+      </td>
+      <td>
+        <a href="#l60"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l54">lython::Traverse::slice(lython::Slice*, int)</a>
+      </td>
+      <td>
+        <a href="#l54">54</a>
+      </td>
+      <td>
+        <a href="#l54"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l40">lython::Traverse::starred(lython::Starred*, int)</a>
+      </td>
+      <td>
+        <a href="#l40">40</a>
+      </td>
+      <td>
+        <a href="#l40"> called 1 time</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l39">lython::Traverse::subscript(lython::Subscript*, int)</a>
+      </td>
+      <td>
+        <a href="#l39">39</a>
+      </td>
+      <td>
+        <a href="#l39"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l74">lython::Traverse::trystmt(lython::Try*, int)</a>
+      </td>
+      <td>
+        <a href="#l74">74</a>
+      </td>
+      <td>
+        <a href="#l74"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l48">lython::Traverse::tupleexpr(lython::TupleExpr*, int)</a>
+      </td>
+      <td>
+        <a href="#l48">48</a>
+      </td>
+      <td>
+        <a href="#l48"> called 16 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Traverse::tupletype(lython::TupleType*, int)</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l21">lython::Traverse::unaryop(lython::UnaryOp*, int)</a>
+      </td>
+      <td>
+        <a href="#l21">21</a>
+      </td>
+      <td>
+        <a href="#l21"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l70">lython::Traverse::whilestmt(lython::While*, int)</a>
+      </td>
+      <td>
+        <a href="#l70">70</a>
+      </td>
+      <td>
+        <a href="#l70"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l72">lython::Traverse::with(lython::With*, int)</a>
+      </td>
+      <td>
+        <a href="#l72">72</a>
+      </td>
+      <td>
+        <a href="#l72"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l31">lython::Traverse::yield(lython::Yield*, int)</a>
+      </td>
+      <td>
+        <a href="#l31">31</a>
+      </td>
+      <td>
+        <a href="#l31"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l32">lython::Traverse::yieldfrom(lython::YieldFrom*, int)</a>
+      </td>
+      <td>
+        <a href="#l32">32</a>
+      </td>
+      <td>
+        <a href="#l32"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l132">lython::set_context(lython::Node*, lython::ExprContext)</a>
+      </td>
+      <td>
+        <a href="#l132">132</a>
+      </td>
+      <td>
+        <a href="#l132"> called 645 times</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -456,8 +1281,8 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 3 taken 42 times.</div>
-          <div class="takenBranch">&check; Branch 4 taken 16 times.</div>
+          <div class="takenBranch">&check; Branch 5 taken 42 times.</div>
+          <div class="takenBranch">&check; Branch 6 taken 16 times.</div>
         </div>
         </details>
       </td>
@@ -1162,7 +1987,7 @@
         </details>
       </td>
       <td class="linecount coveredLine">645</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">t</span><span class="p">.</span><span class="n">exec</span><span class="o">&lt;</span><span class="n">void_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">t</span><span class="p">.</span><span class="n">exec</span><span class="o">&lt;</span><span class="n">void_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1207,11 +2032,11 @@
 
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>

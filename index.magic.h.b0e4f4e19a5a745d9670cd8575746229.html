@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -45,6 +46,12 @@
       <td class="coverage-high">100.0%</td>
     </tr>
     <tr>
+      <th scope="row">Functions:</th>
+      <td>13</td>
+      <td>15</td>
+      <td class="coverage-medium">86.7%</td>
+    </tr>
+    <tr>
       <th scope="row">Branches:</th>
       <td>6</td>
       <td>10</td>
@@ -52,10 +59,190 @@
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;int&gt;(int const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 244 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::BoolOperator&gt;(lython::BoolOperator const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 6 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::Comprehension&gt;(lython::Comprehension const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 16 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l37">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::ExprNode&gt;(lython::ExprNode* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l37">37</a>
+      </td>
+      <td>
+        <a href="#l37"> called 57 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::OpConfig&gt;(lython::OpConfig const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l37">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::StmtNode&gt;(lython::StmtNode* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l37">37</a>
+      </td>
+      <td>
+        <a href="#l37"> called 2 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::StringRef&gt;(lython::StringRef const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 719 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::Token&gt;(lython::Token const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 283 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;lython::TokenType&gt;(lython::TokenType const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 713 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l30">std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; lython::str&lt;std::vector&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt;, lython::Allocator&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt;, lython::device::CPU&gt; &gt; &gt;(std::vector&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt;, lython::Allocator&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt;, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l30">30</a>
+      </td>
+      <td>
+        <a href="#l30"> called 6 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l20">void lython::print&lt;int&gt;(int const&amp;, std::ostream&amp;)</a>
+      </td>
+      <td>
+        <a href="#l20">20</a>
+      </td>
+      <td>
+        <a href="#l20"> called 244 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l10">void lython::print&lt;lython::OpConfig&gt;(lython::OpConfig const&amp;, std::ostream&amp;)</a>
+      </td>
+      <td>
+        <a href="#l10">10</a>
+      </td>
+      <td>
+        <a href="#l10"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l10">void lython::print&lt;lython::StringRef&gt;(lython::StringRef const&amp;, std::ostream&amp;)</a>
+      </td>
+      <td>
+        <a href="#l10">10</a>
+      </td>
+      <td>
+        <a href="#l10"> called 719 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l10">void lython::print&lt;lython::Token&gt;(lython::Token const&amp;, std::ostream&amp;)</a>
+      </td>
+      <td>
+        <a href="#l10">10</a>
+      </td>
+      <td>
+        <a href="#l10"> called 283 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l15">void lython::print&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;, std::ostream&amp;)</a>
+      </td>
+      <td>
+        <a href="#l15">15</a>
+      </td>
+      <td>
+        <a href="#l15"> called 2 times</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -302,8 +489,8 @@
       <td class="lineno"><a id="l30" href="#l30">30</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1987</td>
-      <td class="src coveredLine"><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -312,12 +499,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 1 taken 1981 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 1987 times.</div>
           <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">7936</td>
+      <td class="linecount coveredLine">3974</td>
       <td class="src coveredLine"><span class="w">    </span><span class="n">StringStream</span><span class="w"> </span><span class="n">ss</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -327,12 +514,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 1 taken 1981 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 1987 times.</div>
           <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">3968</td>
+      <td class="linecount coveredLine">3974</td>
       <td class="src coveredLine"><span class="w">    </span><span class="n">print</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span><span class="w"> </span><span class="n">ss</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -342,12 +529,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 1 taken 1981 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 1987 times.</div>
           <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">7936</td>
+      <td class="linecount coveredLine">7948</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -355,8 +542,8 @@
       <td class="lineno"><a id="l34" href="#l34">34</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w"></span></td>
+      <td class="linecount coveredLine">3974</td>
+      <td class="src coveredLine"><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -379,7 +566,7 @@
       <td class="lineno"><a id="l37" href="#l37">37</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">23</td>
+      <td class="linecount coveredLine">24</td>
       <td class="src coveredLine"><span class="n">String</span><span class="w"> </span><span class="n">str</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -390,11 +577,11 @@
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
           <div class="takenBranch">&check; Branch 0 taken 2 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 37 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 57 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">62</td>
+      <td class="linecount coveredLine">83</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">obj</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -425,7 +612,7 @@
       <td class="lineno"><a id="l41" href="#l41">41</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">60</td>
+      <td class="linecount coveredLine">81</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">__str__</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -823,11 +1010,11 @@
 
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>

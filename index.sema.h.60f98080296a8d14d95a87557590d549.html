@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -40,9 +41,15 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>8</td>
-      <td>9</td>
-      <td class="coverage-medium">88.9%</td>
+      <td>6</td>
+      <td>7</td>
+      <td class="coverage-medium">85.7%</td>
+    </tr>
+    <tr>
+      <th scope="row">Functions:</th>
+      <td>3</td>
+      <td>3</td>
+      <td class="coverage-high">100.0%</td>
     </tr>
     <tr>
       <th scope="row">Branches:</th>
@@ -52,10 +59,58 @@
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l119">lython::SemanticAnalyser::make_ref(lython::Node*, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l119">119</a>
+      </td>
+      <td>
+        <a href="#l119"> called 139 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l112">lython::SemanticAnalyser::oneof(std::vector&lt;lython::ExprNode*, lython::Allocator&lt;lython::ExprNode*, lython::device::CPU&gt; &gt;)</a>
+      </td>
+      <td>
+        <a href="#l112">112</a>
+      </td>
+      <td>
+        <a href="#l112"> called 22 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l98">lython::SemanticAnalyser::~SemanticAnalyser()</a>
+      </td>
+      <td>
+        <a href="#l98">98</a>
+      </td>
+      <td>
+        <a href="#l98"> called 1 time</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -455,7 +510,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * Raises</span></td>
+      <td class="src "><span class="cm"> * Notes</span></td>
     </tr>
 
     <tr class="source-line">
@@ -463,7 +518,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * ------</span></td>
+      <td class="src "><span class="cm"> * -----</span></td>
     </tr>
 
     <tr class="source-line">
@@ -479,7 +534,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * TypeError</span></td>
+      <td class="src "><span class="cm"> * SEM-A does a quick first pass through the module to insert definitions</span></td>
     </tr>
 
     <tr class="source-line">
@@ -487,7 +542,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *      when types between expression mismatch</span></td>
+      <td class="src "><span class="cm"> * that are used before their definitions. This allow us to get away</span></td>
     </tr>
 
     <tr class="source-line">
@@ -495,7 +550,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> * with not forward-declaring everything, but it means some analytics</span></td>
     </tr>
 
     <tr class="source-line">
@@ -503,7 +558,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * AttributeError</span></td>
+      <td class="src "><span class="cm"> * will get delayed until the end. In the case of mutually recursive definitions</span></td>
     </tr>
 
     <tr class="source-line">
@@ -511,7 +566,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *      When using an object attribute that does not exist</span></td>
+      <td class="src "><span class="cm"> * forward declaration is required so typing can be checked.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -527,7 +582,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * NameError</span></td>
+      <td class="src "><span class="cm"> * SEM-A will add type annotation &amp; reorder arguments wherever it can.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -535,7 +590,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *      When using an undefined variable</span></td>
+      <td class="src "><span class="cm"> * This has the goal and standardizing the code &amp; simplifying its execution</span></td>
     </tr>
 
     <tr class="source-line">
@@ -543,7 +598,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> * later on.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -551,7 +606,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> */</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -559,7 +614,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">SemanticAnalyser</span><span class="o">:</span><span class="w"> </span><span class="n">BaseVisitor</span><span class="o">&lt;</span><span class="n">SemanticAnalyser</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">SemaVisitorTrait</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * You can inspect the change by saving the resulting AST.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -567,7 +622,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Bindings</span><span class="w">                              </span><span class="n">bindings</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * You could implement an automatic formatter that executes semantic analysis</span></td>
     </tr>
 
     <tr class="source-line">
@@ -575,7 +630,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">                                  </span><span class="n">forwardpass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * to format &amp; complete the code. The completed code will then take less time</span></td>
     </tr>
 
     <tr class="source-line">
@@ -583,7 +638,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">SemaException</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">errors</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * to compile as the representation will be easier to analyse.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -591,7 +646,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*&gt;</span><span class="w">                     </span><span class="n">nested</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -599,7 +654,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Dict</span><span class="o">&lt;</span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="o">&gt;</span><span class="w">                 </span><span class="n">flags</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * Raises</span></td>
     </tr>
 
     <tr class="source-line">
@@ -607,7 +662,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w">                         </span><span class="n">paths</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">python_paths</span><span class="p">();</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * ------</span></td>
     </tr>
 
     <tr class="source-line">
@@ -615,7 +670,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -623,7 +678,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">public</span><span class="o">:</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * TypeError</span></td>
     </tr>
 
     <tr class="source-line">
@@ -631,7 +686,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">SemanticAnalyser</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *      Raised when types between expression mismatch</span></td>
     </tr>
 
     <tr class="source-line">
@@ -639,7 +694,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -647,7 +702,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*</span><span class="n">current_namespace</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * UnsupportedOperand</span></td>
     </tr>
 
     <tr class="source-line">
@@ -655,7 +710,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nested</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *      Raised when using an operand on an object that does not support it</span></td>
     </tr>
 
     <tr class="source-line">
@@ -663,7 +718,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">nested</span><span class="p">[</span><span class="n">nested</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -671,7 +726,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * AttributeError</span></td>
     </tr>
 
     <tr class="source-line">
@@ -679,7 +734,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *      Raised when using an object attribute that does not exist</span></td>
     </tr>
 
     <tr class="source-line">
@@ -687,7 +742,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -695,7 +750,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> * NameError</span></td>
     </tr>
 
     <tr class="source-line">
@@ -703,7 +758,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">typecheck</span><span class="p">(</span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">lhs</span><span class="p">,</span><span class="w"> </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="n">lhs_t</span><span class="p">,</span><span class="w"> </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">rhs</span><span class="p">,</span><span class="w"> </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="n">rhs_t</span><span class="p">,</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *      Raised when using an undefined variable</span></td>
     </tr>
 
     <tr class="source-line">
@@ -711,7 +766,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">                   </span><span class="n">CodeLocation</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">loc</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -719,7 +774,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> * ModuleNotFoundError</span></td>
     </tr>
 
     <tr class="source-line">
@@ -727,7 +782,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">add_name</span><span class="p">(</span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">expr</span><span class="p">,</span><span class="w"> </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">type</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *      Raised when importing a module that was not found</span></td>
     </tr>
 
     <tr class="source-line">
@@ -735,7 +790,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -743,30 +798,23 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="nf">oneof</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*&gt;</span><span class="w"> </span><span class="n">types</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * ImportError</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l86" href="#l86">86</a></td>
       <td class="linebranch">
-        <details class="linebranchDetails">
-        <summary class="linebranchSummary">1/2</summary>
-        <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 1 taken 21 times.</div>
-          <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
-        </div>
-        </details>
       </td>
-      <td class="linecount coveredLine">21</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">types</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cm"> *      Raised when importing a statement that was not found from a module</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l87" href="#l87">87</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">21</td>
-      <td class="src coveredLine"><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">types</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -774,15 +822,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> */</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l89" href="#l89">89</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">SemanticAnalyser</span><span class="o">:</span><span class="w"> </span><span class="n">BaseVisitor</span><span class="o">&lt;</span><span class="n">SemanticAnalyser</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">SemaVisitorTrait</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -790,7 +838,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">Bindings</span><span class="w">                              </span><span class="n">bindings</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -798,7 +846,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">                                  </span><span class="n">forwardpass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -806,7 +854,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="nf">module</span><span class="p">(</span><span class="n">Module</span><span class="w"> </span><span class="o">*</span><span class="n">stmt</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">SemaException</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="n">errors</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -814,7 +862,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// TODO: Add a forward pass that simply add functions &amp; variables</span></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*&gt;</span><span class="w">                     </span><span class="n">nested</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -822,23 +870,23 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// to the context so the SEMA can look everything up</span></td>
+      <td class="src "><span class="w">    </span><span class="n">Dict</span><span class="o">&lt;</span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="o">&gt;</span><span class="w">                 </span><span class="n">flags</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l95" href="#l95">95</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">exec</span><span class="o">&lt;</span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">stmt</span><span class="o">-&gt;</span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w">                         </span><span class="n">paths</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">python_paths</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l96" href="#l96">96</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -846,7 +894,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">};</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">public</span><span class="o">:</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -854,7 +902,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">SemanticAnalyser</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -862,45 +910,39 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="nf">make_ref</span><span class="p">(</span><span class="n">Node</span><span class="w"> </span><span class="o">*</span><span class="n">parent</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l100" href="#l100">100</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">137</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">ref</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">new_object</span><span class="o">&lt;</span><span class="n">Name</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*</span><span class="n">current_namespace</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l101" href="#l101">101</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">137</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">ref</span><span class="o">-&gt;</span><span class="n">id</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nested</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l102" href="#l102">102</a></td>
       <td class="linebranch">
-        <details class="linebranchDetails">
-        <summary class="linebranchSummary">1/1</summary>
-        <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 2 taken 137 times.</div>
-        </div>
-        </details>
       </td>
-      <td class="linecount coveredLine">137</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">ref</span><span class="o">-&gt;</span><span class="n">varid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bindings</span><span class="p">.</span><span class="n">get_varid</span><span class="p">(</span><span class="n">ref</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">nested</span><span class="p">[</span><span class="n">nested</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l103" href="#l103">103</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">137</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ref</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -908,7 +950,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -916,7 +958,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -924,7 +966,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="nf">attribute_assign</span><span class="p">(</span><span class="n">Attribute</span><span class="w"> </span><span class="o">*</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">,</span><span class="w"> </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="n">expected</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -932,7 +974,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">typecheck</span><span class="p">(</span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">lhs</span><span class="p">,</span><span class="w"> </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="n">lhs_t</span><span class="p">,</span><span class="w"> </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">rhs</span><span class="p">,</span><span class="w"> </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="n">rhs_t</span><span class="p">,</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -940,7 +982,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">add_arguments</span><span class="p">(</span><span class="n">Arguments</span><span class="w"> </span><span class="o">&amp;</span><span class="n">args</span><span class="p">,</span><span class="w"> </span><span class="n">Arrow</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">ClassDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">                   </span><span class="n">CodeLocation</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">loc</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -956,7 +998,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);</span></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">add_name</span><span class="p">(</span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">expr</span><span class="p">,</span><span class="w"> </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">value</span><span class="p">,</span><span class="w"> </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="n">type</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -972,23 +1014,30 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define X(name, _)</span></td>
+      <td class="src "><span class="w">    </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="nf">oneof</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*&gt;</span><span class="w"> </span><span class="n">types</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l113" href="#l113">113</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/2</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 1 taken 22 times.</div>
+          <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
+        </div>
+        </details>
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#define SSECTION(name)</span></td>
+      <td class="linecount coveredLine">22</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">types</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l114" href="#l114">114</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#define MOD(name, fun)</span></td>
+      <td class="linecount coveredLine">22</td>
+      <td class="src coveredLine"><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">types</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -996,15 +1045,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define EXPR(name, fun)  FUNCTION_GEN(name, fun)</span></td>
+      <td class="src "><span class="w">        </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l116" href="#l116">116</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#define STMT(name, fun)  FUNCTION_GEN(name, fun)</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1012,7 +1061,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define MATCH(name, fun) FUNCTION_GEN(name, fun)</span></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1028,39 +1077,45 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">NODEKIND_ENUM</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">SSECTION</span><span class="p">,</span><span class="w"> </span><span class="n">EXPR</span><span class="p">,</span><span class="w"> </span><span class="n">STMT</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">,</span><span class="w"> </span><span class="n">MATCH</span><span class="p">)</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*</span><span class="nf">make_ref</span><span class="p">(</span><span class="n">Node</span><span class="w"> </span><span class="o">*</span><span class="n">parent</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">&amp;</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l120" href="#l120">120</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">139</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">ref</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">new_object</span><span class="o">&lt;</span><span class="n">Name</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l121" href="#l121">121</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef X</span></td>
+      <td class="linecount coveredLine">139</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">ref</span><span class="o">-&gt;</span><span class="n">id</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l122" href="#l122">122</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/1</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 2 taken 139 times.</div>
+        </div>
+        </details>
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef SSECTION</span></td>
+      <td class="linecount coveredLine">139</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">ref</span><span class="o">-&gt;</span><span class="n">varid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bindings</span><span class="p">.</span><span class="n">get_varid</span><span class="p">(</span><span class="n">ref</span><span class="o">-&gt;</span><span class="n">id</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l123" href="#l123">123</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef EXPR</span></td>
+      <td class="linecount coveredLine">139</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ref</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1068,7 +1123,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef STMT</span></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1076,7 +1131,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef MOD</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1084,7 +1139,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef MATCH</span></td>
+      <td class="src "><span class="w">    </span><span class="n">TypeExpr</span><span class="o">*</span><span class="w"> </span><span class="nf">resolve_variable</span><span class="p">(</span><span class="n">ExprNode</span><span class="o">*</span><span class="w"> </span><span class="n">node</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1100,7 +1155,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef FUNCTION_GEN</span></td>
+      <td class="src "><span class="w">    </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="nf">attribute_assign</span><span class="p">(</span><span class="n">Attribute</span><span class="w"> </span><span class="o">*</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">,</span><span class="w"> </span><span class="n">TypeExpr</span><span class="w"> </span><span class="o">*</span><span class="n">expected</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1108,7 +1163,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1116,7 +1171,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">add_arguments</span><span class="p">(</span><span class="n">Arguments</span><span class="w"> </span><span class="o">&amp;</span><span class="n">args</span><span class="p">,</span><span class="w"> </span><span class="n">Arrow</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">ClassDef</span><span class="w"> </span><span class="o">*</span><span class="n">def</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1124,7 +1179,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w"> </span><span class="c1">// namespace lython</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1132,7 +1187,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1140,11 +1195,187 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#endif</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l134" href="#l134">134</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define X(name, _)</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l135" href="#l135">135</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define SSECTION(name)</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l136" href="#l136">136</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define MOD(name, fun)   FUNCTION_GEN(name, fun)</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l137" href="#l137">137</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define EXPR(name, fun)  FUNCTION_GEN(name, fun)</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l138" href="#l138">138</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define STMT(name, fun)  FUNCTION_GEN(name, fun)</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l139" href="#l139">139</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define MATCH(name, fun) FUNCTION_GEN(name, fun)</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l140" href="#l140">140</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l141" href="#l141">141</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">NODEKIND_ENUM</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">SSECTION</span><span class="p">,</span><span class="w"> </span><span class="n">EXPR</span><span class="p">,</span><span class="w"> </span><span class="n">STMT</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">,</span><span class="w"> </span><span class="n">MATCH</span><span class="p">)</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l142" href="#l142">142</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l143" href="#l143">143</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef X</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l144" href="#l144">144</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef SSECTION</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l145" href="#l145">145</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef EXPR</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l146" href="#l146">146</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef STMT</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l147" href="#l147">147</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef MOD</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l148" href="#l148">148</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef MATCH</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l149" href="#l149">149</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l150" href="#l150">150</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef FUNCTION_GEN</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l151" href="#l151">151</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l152" href="#l152">152</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l153" href="#l153">153</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w"> </span><span class="c1">// namespace lython</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l154" href="#l154">154</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l155" href="#l155">155</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#endif</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l156" href="#l156">156</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1153,11 +1384,11 @@
 
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>

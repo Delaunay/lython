@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -40,22 +41,153 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>45</td>
-      <td>45</td>
+      <td>46</td>
+      <td>46</td>
+      <td class="coverage-high">100.0%</td>
+    </tr>
+    <tr>
+      <th scope="row">Functions:</th>
+      <td>10</td>
+      <td>10</td>
       <td class="coverage-high">100.0%</td>
     </tr>
     <tr>
       <th scope="row">Branches:</th>
+      <td>33</td>
       <td>34</td>
-      <td>35</td>
       <td class="coverage-high">97.1%</td>
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l9">lython::IsAttr::IsAttr(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l9">9</a>
+      </td>
+      <td>
+        <a href="#l9"> called 40 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l33">lython::IsAttr::annassign(lython::AnnAssign*)</a>
+      </td>
+      <td>
+        <a href="#l33">33</a>
+      </td>
+      <td>
+        <a href="#l33"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l25">lython::IsAttr::assign(lython::Assign*)</a>
+      </td>
+      <td>
+        <a href="#l25">25</a>
+      </td>
+      <td>
+        <a href="#l25"> called 9 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l46">lython::IsAttr::classdef(lython::ClassDef*)</a>
+      </td>
+      <td>
+        <a href="#l46">46</a>
+      </td>
+      <td>
+        <a href="#l46"> called 3 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l39">lython::IsAttr::functiondef(lython::FunctionDef*)</a>
+      </td>
+      <td>
+        <a href="#l39">39</a>
+      </td>
+      <td>
+        <a href="#l39"> called 13 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::IsAttr::isattr(lython::StmtNode*, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 40 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l53">lython::IsAttr::lookup(lython::StmtNode*)</a>
+      </td>
+      <td>
+        <a href="#l53">53</a>
+      </td>
+      <td>
+        <a href="#l53"> called 40 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l15">lython::IsAttr::match(lython::ExprNode*)</a>
+      </td>
+      <td>
+        <a href="#l15">15</a>
+      </td>
+      <td>
+        <a href="#l15"> called 21 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l76">lython::getattr(lython::StmtNode*, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;, lython::ExprNode*&amp;)</a>
+      </td>
+      <td>
+        <a href="#l76">76</a>
+      </td>
+      <td>
+        <a href="#l76"> called 20 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l101">lython::hasattr(lython::StmtNode*, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l101">101</a>
+      </td>
+      <td>
+        <a href="#l101"> called 7 times</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -286,8 +418,8 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 3 taken 9 times.</div>
-          <div class="takenBranch">&check; Branch 4 taken 7 times.</div>
+          <div class="takenBranch">&check; Branch 5 taken 9 times.</div>
+          <div class="takenBranch">&check; Branch 6 taken 7 times.</div>
         </div>
         </details>
       </td>
@@ -563,7 +695,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">13</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="n">NodeKind</span><span class="o">::</span><span class="n">FunctionDef</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">NodeKind</span><span class="o">::</span><span class="no">FunctionDef</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -595,7 +727,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">9</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="n">NodeKind</span><span class="o">::</span><span class="n">Assign</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">NodeKind</span><span class="o">::</span><span class="no">Assign</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -627,7 +759,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">12</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="n">NodeKind</span><span class="o">::</span><span class="n">AnnAssign</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">NodeKind</span><span class="o">::</span><span class="no">AnnAssign</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -659,7 +791,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">3</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="n">NodeKind</span><span class="o">::</span><span class="n">ClassDef</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">case</span><span class="w"> </span><span class="no">NodeKind</span><span class="o">::</span><span class="no">ClassDef</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -797,7 +929,7 @@
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">38</td>
+      <td class="linecount coveredLine">19</td>
       <td class="src coveredLine"><span class="w">    </span><span class="n">ClassDef</span><span class="o">::</span><span class="n">Attr</span><span class="w"> </span><span class="n">at</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -877,8 +1009,8 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 3 taken 40 times.</div>
-          <div class="takenBranch">&check; Branch 4 taken 6 times.</div>
+          <div class="takenBranch">&check; Branch 5 taken 40 times.</div>
+          <div class="takenBranch">&check; Branch 6 taken 6 times.</div>
         </div>
         </details>
       </td>
@@ -967,8 +1099,8 @@
       <td class="lineno"><a id="l99" href="#l99">99</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="linecount coveredLine">19</td>
+      <td class="src coveredLine"><span class="p">};</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1043,11 +1175,11 @@
 
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>

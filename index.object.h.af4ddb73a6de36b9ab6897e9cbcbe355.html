@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -40,22 +41,835 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>17</td>
-      <td>17</td>
+      <td>23</td>
+      <td>23</td>
       <td class="coverage-high">100.0%</td>
     </tr>
     <tr>
+      <th scope="row">Functions:</th>
+      <td>66</td>
+      <td>72</td>
+      <td class="coverage-high">91.7%</td>
+    </tr>
+    <tr>
       <th scope="row">Branches:</th>
-      <td>2</td>
       <td>4</td>
-      <td class="coverage-low">50.0%</td>
+      <td>6</td>
+      <td class="coverage-low">66.7%</td>
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::AnnAssign* lython::GCObject::new_object&lt;lython::AnnAssign&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 97 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::ArrayType* lython::GCObject::new_object&lt;lython::ArrayType&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 7 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Arrow* lython::GCObject::new_object&lt;lython::Arrow&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 52 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Assert* lython::GCObject::new_object&lt;lython::Assert&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Assign* lython::GCObject::new_object&lt;lython::Assign&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 230 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::AsyncFor* lython::GCObject::new_object&lt;lython::AsyncFor&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::AsyncFunctionDef* lython::GCObject::new_object&lt;lython::AsyncFunctionDef&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::AsyncWith* lython::GCObject::new_object&lt;lython::AsyncWith&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Attribute* lython::GCObject::new_object&lt;lython::Attribute&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 20 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::AugAssign* lython::GCObject::new_object&lt;lython::AugAssign&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 11 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Await* lython::GCObject::new_object&lt;lython::Await&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::BinOp* lython::GCObject::new_object&lt;lython::BinOp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 62 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::BoolOp* lython::GCObject::new_object&lt;lython::BoolOp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 10 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Break* lython::GCObject::new_object&lt;lython::Break&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 4 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Call* lython::GCObject::new_object&lt;lython::Call&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 104 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::ClassDef* lython::GCObject::new_object&lt;lython::ClassDef&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 68 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Compare* lython::GCObject::new_object&lt;lython::Compare&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 52 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Constant* lython::GCObject::new_object&lt;lython::Constant, lython::ConstantValue&gt;(lython::ConstantValue&amp;&amp;)</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 1 time</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Constant* lython::GCObject::new_object&lt;lython::Constant&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 453 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Continue* lython::GCObject::new_object&lt;lython::Continue&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Delete* lython::GCObject::new_object&lt;lython::Delete&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 7 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::DictComp* lython::GCObject::new_object&lt;lython::DictComp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::DictExpr* lython::GCObject::new_object&lt;lython::DictExpr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 32 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::DictType* lython::GCObject::new_object&lt;lython::DictType&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Expr* lython::GCObject::new_object&lt;lython::Expr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 252 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::For* lython::GCObject::new_object&lt;lython::For&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 41 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::FunctionDef* lython::GCObject::new_object&lt;lython::FunctionDef&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 102 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l59">lython::GCObject::move(lython::GCObject*)</a>
+      </td>
+      <td>
+        <a href="#l59">59</a>
+      </td>
+      <td>
+        <a href="#l59"> called 382 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::GeneratorExp* lython::GCObject::new_object&lt;lython::GeneratorExp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Global* lython::GCObject::new_object&lt;lython::Global&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::If* lython::GCObject::new_object&lt;lython::If&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 25 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::IfExp* lython::GCObject::new_object&lt;lython::IfExp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 9 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Import* lython::GCObject::new_object&lt;lython::Import&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 26 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::ImportFrom* lython::GCObject::new_object&lt;lython::ImportFrom&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 40 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Inline* lython::GCObject::new_object&lt;lython::Inline&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 8 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Lambda* lython::GCObject::new_object&lt;lython::Lambda&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 7 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::ListComp* lython::GCObject::new_object&lt;lython::ListComp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::ListExpr* lython::GCObject::new_object&lt;lython::ListExpr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 26 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Match* lython::GCObject::new_object&lt;lython::Match&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 135 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchAs* lython::GCObject::new_object&lt;lython::MatchAs&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 55 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchClass* lython::GCObject::new_object&lt;lython::MatchClass&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 33 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchMapping* lython::GCObject::new_object&lt;lython::MatchMapping&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 41 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchOr* lython::GCObject::new_object&lt;lython::MatchOr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 44 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchSequence* lython::GCObject::new_object&lt;lython::MatchSequence&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 105 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchSingleton* lython::GCObject::new_object&lt;lython::MatchSingleton&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 132 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchStar* lython::GCObject::new_object&lt;lython::MatchStar&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 11 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::MatchValue* lython::GCObject::new_object&lt;lython::MatchValue&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 274 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Name* lython::GCObject::new_object&lt;lython::Name&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 2672 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::NamedExpr* lython::GCObject::new_object&lt;lython::NamedExpr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Nonlocal* lython::GCObject::new_object&lt;lython::Nonlocal&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::NotAllowedEpxr* lython::GCObject::new_object&lt;lython::NotAllowedEpxr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::NotImplementedExpr* lython::GCObject::new_object&lt;lython::NotImplementedExpr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::NotImplementedStmt* lython::GCObject::new_object&lt;lython::NotImplementedStmt&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Pass* lython::GCObject::new_object&lt;lython::Pass&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 274 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Raise* lython::GCObject::new_object&lt;lython::Raise&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Return* lython::GCObject::new_object&lt;lython::Return&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 161 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::SetComp* lython::GCObject::new_object&lt;lython::SetComp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::SetExpr* lython::GCObject::new_object&lt;lython::SetExpr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 24 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::SetType* lython::GCObject::new_object&lt;lython::SetType&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 4 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Slice* lython::GCObject::new_object&lt;lython::Slice&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 14 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Starred* lython::GCObject::new_object&lt;lython::Starred&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 6 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Subscript* lython::GCObject::new_object&lt;lython::Subscript&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 17 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Try* lython::GCObject::new_object&lt;lython::Try&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 33 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::TupleExpr* lython::GCObject::new_object&lt;lython::TupleExpr&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 102 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::TupleType* lython::GCObject::new_object&lt;lython::TupleType&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 12 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::UnaryOp* lython::GCObject::new_object&lt;lython::UnaryOp&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 26 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::While* lython::GCObject::new_object&lt;lython::While&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 18 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::With* lython::GCObject::new_object&lt;lython::With&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 16 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Yield* lython::GCObject::new_object&lt;lython::Yield&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 17 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::YieldFrom* lython::GCObject::new_object&lt;lython::YieldFrom&gt;()</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l29">std::remove_const&lt;lython::Constant&gt;::type* lython::GCObject::copy&lt;lython::Constant&gt;(lython::Constant*)</a>
+      </td>
+      <td>
+        <a href="#l29">29</a>
+      </td>
+      <td>
+        <a href="#l29"> called 2 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l47">void lython::GCObject::add_child&lt;lython::GCObject&gt;(lython::GCObject*)</a>
+      </td>
+      <td>
+        <a href="#l47">47</a>
+      </td>
+      <td>
+        <a href="#l47"> called 382 times</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -174,7 +988,7 @@
       <td class="lineno"><a id="l14" href="#l14">14</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">alloc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_allocator</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -198,7 +1012,7 @@
       <td class="lineno"><a id="l17" href="#l17">17</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">T</span><span class="w"> </span><span class="o">*</span><span class="n">memory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -221,8 +1035,14 @@
     <tr class="source-line">
       <td class="lineno"><a id="l20" href="#l20">20</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/1</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 3 taken 1 times.</div>
+        </div>
+        </details>
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">T</span><span class="w"> </span><span class="o">*</span><span class="n">obj</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">new</span><span class="w"> </span><span class="p">((</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">memory</span><span class="p">)</span><span class="w"> </span><span class="n">T</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">Args</span><span class="o">&gt;</span><span class="p">(</span><span class="n">args</span><span class="p">)...);</span><span class="w"></span></td>
     </tr>
 
@@ -230,7 +1050,7 @@
       <td class="lineno"><a id="l21" href="#l21">21</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">class_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">meta</span><span class="o">::</span><span class="n">type_id</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -238,7 +1058,7 @@
       <td class="lineno"><a id="l22" href="#l22">22</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">parent</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -256,12 +1076,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 1 taken 6063 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 6079 times.</div>
           <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">children</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -269,7 +1089,7 @@
       <td class="lineno"><a id="l25" href="#l25">25</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">12126</td>
+      <td class="linecount coveredLine">12158</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">obj</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -294,7 +1114,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">//! Make an object match the lifetime of the parent</span></td>
+      <td class="src "><span class="w">    </span><span class="n">template</span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -302,7 +1122,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">remove_const</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">type</span><span class="o">*</span><span class="w"> </span><span class="n">copy</span><span class="p">(</span><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -310,31 +1130,31 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">add_child</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="o">*</span><span class="n">child</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="n">using</span><span class="w"> </span><span class="n">NoConstT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">remove_const</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">type</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l31" href="#l31">31</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">children</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">child</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l32" href="#l32">32</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">child</span><span class="o">-&gt;</span><span class="n">parent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">alloc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_allocator</span><span class="o">&lt;</span><span class="n">NoConstT</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l33" href="#l33">33</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -342,15 +1162,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">        </span><span class="c1">// allocate</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l35" href="#l35">35</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">typename</span><span class="w"> </span><span class="n">D</span><span class="o">&gt;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">NoConstT</span><span class="w"> </span><span class="o">*</span><span class="n">memory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">alloc</span><span class="p">.</span><span class="n">allocate</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -358,15 +1178,21 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">add_child</span><span class="p">(</span><span class="n">Unique</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">D</span><span class="o">&gt;</span><span class="w"> </span><span class="n">child</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// construct</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l37" href="#l37">37</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/1</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 2 taken 2 times.</div>
+        </div>
+        </details>
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="n">children</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">child</span><span class="p">.</span><span class="n">release</span><span class="p">());</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">NoConstT</span><span class="w"> </span><span class="o">*</span><span class="n">nobj</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">new</span><span class="w"> </span><span class="p">((</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">memory</span><span class="p">)</span><span class="w"> </span><span class="n">NoConstT</span><span class="p">(</span><span class="o">*</span><span class="n">obj</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -374,23 +1200,23 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l39" href="#l39">39</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">nobj</span><span class="o">-&gt;</span><span class="n">class_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">meta</span><span class="o">::</span><span class="n">type_id</span><span class="o">&lt;</span><span class="n">NoConstT</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l40" href="#l40">40</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">remove_child</span><span class="p">(</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="n">child</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">dofree</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">nobj</span><span class="o">-&gt;</span><span class="n">parent</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -405,47 +1231,40 @@
       <td class="lineno"><a id="l42" href="#l42">42</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">move</span><span class="p">(</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="n">newparent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="linecount coveredLine">2</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">nobj</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l43" href="#l43">43</a></td>
       <td class="linebranch">
-        <details class="linebranchDetails">
-        <summary class="linebranchSummary">1/2</summary>
-        <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 382 times.</div>
-          <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
-        </div>
-        </details>
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l44" href="#l44">44</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">            </span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">remove_child</span><span class="p">(</span><span class="n">this</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l45" href="#l45">45</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">newparent</span><span class="o">-&gt;</span><span class="n">add_child</span><span class="p">(</span><span class="n">this</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">//! Make an object match the lifetime of the parent</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l46" href="#l46">46</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">382</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -453,31 +1272,31 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">add_child</span><span class="p">(</span><span class="n">T</span><span class="w"> </span><span class="o">*</span><span class="n">child</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l48" href="#l48">48</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">free</span><span class="p">(</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="n">child</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">children</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">child</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l49" href="#l49">49</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">child</span><span class="o">-&gt;</span><span class="n">parent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">this</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l50" href="#l50">50</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">dump</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="w"> </span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -493,7 +1312,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">destroy</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">typename</span><span class="w"> </span><span class="n">D</span><span class="o">&gt;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -501,7 +1320,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">add_child</span><span class="p">(</span><span class="n">Unique</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span><span class="w"> </span><span class="n">D</span><span class="o">&gt;</span><span class="w"> </span><span class="n">child</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -509,7 +1328,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">            </span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">remove_child</span><span class="p">(</span><span class="n">this</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="n">children</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">child</span><span class="p">.</span><span class="n">release</span><span class="p">());</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -517,7 +1336,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -525,7 +1344,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="n">this</span><span class="o">-&gt;~</span><span class="n">GCObject</span><span class="p">();</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -533,7 +1352,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">remove_child</span><span class="p">(</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="n">child</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">dofree</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -549,39 +1368,46 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">GCObject</span><span class="p">();</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">move</span><span class="p">(</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="n">newparent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l60" href="#l60">60</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/2</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 0 taken 382 times.</div>
+          <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
+        </div>
+        </details>
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l61" href="#l61">61</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">class_id</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">            </span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">remove_child</span><span class="p">(</span><span class="n">this</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l62" href="#l62">62</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">newparent</span><span class="o">-&gt;</span><span class="n">add_child</span><span class="p">(</span><span class="n">this</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l63" href="#l63">63</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
+      <td class="linecount coveredLine">382</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -589,31 +1415,31 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l65" href="#l65">65</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">6063</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">AllocatorCPU</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">get_allocator</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">free</span><span class="p">(</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="n">child</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l66" href="#l66">66</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">6063</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">alloc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AllocatorCPU</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l67" href="#l67">67</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">6063</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">alloc</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">dump</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">ostream</span><span class="w"> </span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -621,7 +1447,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -629,7 +1455,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">destroy</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -637,7 +1463,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -645,7 +1471,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*&gt;</span><span class="w"> </span><span class="n">children</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">            </span><span class="n">parent</span><span class="o">-&gt;</span><span class="n">remove_child</span><span class="p">(</span><span class="n">this</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -653,7 +1479,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="w">        </span><span class="n">parent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -661,7 +1487,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="n">this</span><span class="o">-&gt;~</span><span class="n">GCObject</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -669,7 +1495,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -677,7 +1503,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w"> </span><span class="c1">// namespace lython</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -685,7 +1511,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#endif</span></td>
+      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">GCObject</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -696,13 +1522,149 @@
       <td class="src "></td>
     </tr>
 
+    <tr class="source-line">
+      <td class="lineno"><a id="l78" href="#l78">78</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">class_id</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l79" href="#l79">79</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l80" href="#l80">80</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l81" href="#l81">81</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">T</span><span class="o">&gt;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l82" href="#l82">82</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">6081</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">AllocatorCPU</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">get_allocator</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l83" href="#l83">83</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">6081</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">static</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">alloc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AllocatorCPU</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l84" href="#l84">84</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">6081</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">alloc</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l85" href="#l85">85</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l86" href="#l86">86</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l87" href="#l87">87</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l88" href="#l88">88</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*&gt;</span><span class="w"> </span><span class="n">children</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l89" href="#l89">89</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">GCObject</span><span class="w"> </span><span class="o">*</span><span class="w">        </span><span class="n">parent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l90" href="#l90">90</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l91" href="#l91">91</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l92" href="#l92">92</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w"> </span><span class="c1">// namespace lython</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l93" href="#l93">93</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#endif</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l94" href="#l94">94</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>

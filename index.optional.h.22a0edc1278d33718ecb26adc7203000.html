@@ -9,16 +9,17 @@
   </head>
 
   <body>
-    <h1>GCC Code Coverage Report</h1>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
 
-    <hr/>
+      <hr/>
 
-    <div class="summary">
+      <div class="summary">
 <div>
   <table class="legend">
     <tr>
       <th scope="row">Directory:</th>
-      <td>src/</td>
+      <td>./</td>
     </tr>
     <tr>
       <th scope="row">File:</th>
@@ -26,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-01-16 01:12:57</td>
+      <td>2022-09-25 22:07:29</td>
     </tr>
   </table>
 </div>
@@ -45,6 +46,12 @@
       <td class="coverage-high">95.5%</td>
     </tr>
     <tr>
+      <th scope="row">Functions:</th>
+      <td>59</td>
+      <td>65</td>
+      <td class="coverage-high">90.8%</td>
+    </tr>
+    <tr>
       <th scope="row">Branches:</th>
       <td>12</td>
       <td>16</td>
@@ -52,10 +59,740 @@
     </tr>
   </table>
 </div>
-    </div>
+      </div>
 
-    <hr/>
+      <hr/>
+    </header>
 
+    <nav>
+<details>
+  <summary>List of functions</summary>
+  <table class="listOfFunctions">
+    <tr>
+      <th>Function</th>
+      <th>Line</th>
+      <th>Call count</th>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l11">lython::Optional&lt;int&gt;::Optional()</a>
+      </td>
+      <td>
+        <a href="#l11">11</a>
+      </td>
+      <td>
+        <a href="#l11"> called 12946 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Optional&lt;int&gt;::Optional(lython::Optional&lt;int&gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 996 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;int&gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> called 8 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Optional&lt;int&gt;::holder_t::holder_t()</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> called 13942 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Optional&lt;int&gt;::holder_t::~holder_t()</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> called 6424 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Optional&lt;int&gt;::operator=(int const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 4678 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l33">lython::Optional&lt;int&gt;::operator=(lython::Optional&lt;int&gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l33">33</a>
+      </td>
+      <td>
+        <a href="#l33"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Optional&lt;int&gt;::set_data(int const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 4680 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;int&gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l49">lython::Optional&lt;int&gt;::~Optional()</a>
+      </td>
+      <td>
+        <a href="#l49">49</a>
+      </td>
+      <td>
+        <a href="#l49"> called 6424 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l11">lython::Optional&lt;lython::Arg&gt;::Optional()</a>
+      </td>
+      <td>
+        <a href="#l11">11</a>
+      </td>
+      <td>
+        <a href="#l11"> called 424 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;lython::Arg&gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> called 54 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Optional&lt;lython::Arg&gt;::holder_t::holder_t()</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> called 424 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Optional&lt;lython::Arg&gt;::holder_t::~holder_t()</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> called 298 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Optional&lt;lython::Arg&gt;::operator=(lython::Arg const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 35 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l33">lython::Optional&lt;lython::Arg&gt;::operator=(lython::Optional&lt;lython::Arg&gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l33">33</a>
+      </td>
+      <td>
+        <a href="#l33"> called 146 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Optional&lt;lython::Arg&gt;::set_data(lython::Arg const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 61 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;lython::Arg&gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> called 2 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l49">lython::Optional&lt;lython::Arg&gt;::~Optional()</a>
+      </td>
+      <td>
+        <a href="#l49">49</a>
+      </td>
+      <td>
+        <a href="#l49"> called 298 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;lython::ConversionKind&gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;lython::ConversionKind&gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l89">lython::Optional&lt;lython::ExprNode*&gt; lython::none&lt;lython::ExprNode*&gt;()</a>
+      </td>
+      <td>
+        <a href="#l89">89</a>
+      </td>
+      <td>
+        <a href="#l89"> called 13 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l94">lython::Optional&lt;lython::ExprNode*&gt; lython::some&lt;lython::ExprNode*&gt;(lython::ExprNode* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l94">94</a>
+      </td>
+      <td>
+        <a href="#l94"> called 46 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l11">lython::Optional&lt;lython::ExprNode*&gt;::Optional()</a>
+      </td>
+      <td>
+        <a href="#l11">11</a>
+      </td>
+      <td>
+        <a href="#l11"> called 1020 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l9">lython::Optional&lt;lython::ExprNode*&gt;::Optional(lython::ExprNode* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l9">9</a>
+      </td>
+      <td>
+        <a href="#l9"> called 70 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Optional&lt;lython::ExprNode*&gt;::Optional(lython::Optional&lt;lython::ExprNode*&gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 846 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;lython::ExprNode*&gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> called 375 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Optional&lt;lython::ExprNode*&gt;::holder_t::holder_t()</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> called 1936 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Optional&lt;lython::ExprNode*&gt;::holder_t::~holder_t()</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> called 1381 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Optional&lt;lython::ExprNode*&gt;::operator=(lython::ExprNode* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 402 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l33">lython::Optional&lt;lython::ExprNode*&gt;::operator=(lython::Optional&lt;lython::ExprNode*&gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l33">33</a>
+      </td>
+      <td>
+        <a href="#l33"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Optional&lt;lython::ExprNode*&gt;::set_data(lython::ExprNode* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 592 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l59">lython::Optional&lt;lython::ExprNode*&gt;::value()</a>
+      </td>
+      <td>
+        <a href="#l59">59</a>
+      </td>
+      <td>
+        <a href="#l59"> called 157 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;lython::ExprNode*&gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> called 116 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l49">lython::Optional&lt;lython::ExprNode*&gt;::~Optional()</a>
+      </td>
+      <td>
+        <a href="#l49">49</a>
+      </td>
+      <td>
+        <a href="#l49"> called 1381 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l11">lython::Optional&lt;lython::Pattern*&gt;::Optional()</a>
+      </td>
+      <td>
+        <a href="#l11">11</a>
+      </td>
+      <td>
+        <a href="#l11"> called 55 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;lython::Pattern*&gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> called 5 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Optional&lt;lython::Pattern*&gt;::holder_t::holder_t()</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> called 55 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Optional&lt;lython::Pattern*&gt;::holder_t::~holder_t()</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> called 4 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Optional&lt;lython::Pattern*&gt;::operator=(lython::Pattern* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 55 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Optional&lt;lython::Pattern*&gt;::set_data(lython::Pattern* const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 55 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l59">lython::Optional&lt;lython::Pattern*&gt;::value()</a>
+      </td>
+      <td>
+        <a href="#l59">59</a>
+      </td>
+      <td>
+        <a href="#l59"> called 1 time</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;lython::Pattern*&gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> called 3 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l49">lython::Optional&lt;lython::Pattern*&gt;::~Optional()</a>
+      </td>
+      <td>
+        <a href="#l49">49</a>
+      </td>
+      <td>
+        <a href="#l49"> called 4 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l11">lython::Optional&lt;lython::StringRef&gt;::Optional()</a>
+      </td>
+      <td>
+        <a href="#l11">11</a>
+      </td>
+      <td>
+        <a href="#l11"> called 289 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Optional&lt;lython::StringRef&gt;::Optional(lython::Optional&lt;lython::StringRef&gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 185 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;lython::StringRef&gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> called 85 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Optional&lt;lython::StringRef&gt;::holder_t::holder_t()</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> called 474 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Optional&lt;lython::StringRef&gt;::holder_t::~holder_t()</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> called 280 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Optional&lt;lython::StringRef&gt;::operator=(lython::StringRef const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 239 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l40">lython::Optional&lt;lython::StringRef&gt;::operator==(lython::Optional&lt;lython::StringRef&gt; const&amp;) const</a>
+      </td>
+      <td>
+        <a href="#l40">40</a>
+      </td>
+      <td>
+        <a href="#l40"> called 10 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Optional&lt;lython::StringRef&gt;::set_data(lython::StringRef const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 408 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l59">lython::Optional&lt;lython::StringRef&gt;::value()</a>
+      </td>
+      <td>
+        <a href="#l59">59</a>
+      </td>
+      <td>
+        <a href="#l59"> called 11 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;lython::StringRef&gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> called 53 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l49">lython::Optional&lt;lython::StringRef&gt;::~Optional()</a>
+      </td>
+      <td>
+        <a href="#l49">49</a>
+      </td>
+      <td>
+        <a href="#l49"> called 280 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l11">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::Optional()</a>
+      </td>
+      <td>
+        <a href="#l11">11</a>
+      </td>
+      <td>
+        <a href="#l11"> called 16 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l13">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::Optional(lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l13">13</a>
+      </td>
+      <td>
+        <a href="#l13"> called 408 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l55">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::has_value() const</a>
+      </td>
+      <td>
+        <a href="#l55">55</a>
+      </td>
+      <td>
+        <a href="#l55"> called 24 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l81">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::holder_t::holder_t()</a>
+      </td>
+      <td>
+        <a href="#l81">81</a>
+      </td>
+      <td>
+        <a href="#l81"> called 22 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l82">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::holder_t::~holder_t()</a>
+      </td>
+      <td>
+        <a href="#l82">82</a>
+      </td>
+      <td>
+        <a href="#l82"> called 22 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l33">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::operator=(lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l33">33</a>
+      </td>
+      <td>
+        <a href="#l33"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l28">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::operator=(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l28">28</a>
+      </td>
+      <td>
+        <a href="#l28"> called 14 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l62">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::set_data(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; const&amp;)</a>
+      </td>
+      <td>
+        <a href="#l62">62</a>
+      </td>
+      <td>
+        <a href="#l62"> called 14 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l57">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::value() const</a>
+      </td>
+      <td>
+        <a href="#l57">57</a>
+      </td>
+      <td>
+        <a href="#l57"> called 3 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l49">lython::Optional&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, lython::Allocator&lt;char, lython::device::CPU&gt; &gt; &gt;::~Optional()</a>
+      </td>
+      <td>
+        <a href="#l49">49</a>
+      </td>
+      <td>
+        <a href="#l49"> called 22 times</a>
+      </td>
+    </tr>
+  </table>
+</details>
+    </nav>
+
+    <main>
 <div class="file-source">
   <table>
     <tr>
@@ -176,12 +913,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 356 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 2061 times.</div>
+          <div class="takenBranch">&check; Branch 0 taken 361 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 2074 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">4834</td>
+      <td class="linecount coveredLine">4870</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">opt</span><span class="p">.</span><span class="n">_has_data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -196,7 +933,7 @@
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">712</td>
+      <td class="linecount coveredLine">722</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">set_data</span><span class="p">(</span><span class="n">opt</span><span class="p">.</span><span class="n">holder</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">value</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -212,7 +949,7 @@
       <td class="lineno"><a id="l17" href="#l17">17</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">4834</td>
+      <td class="linecount coveredLine">4870</td>
       <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
@@ -308,7 +1045,7 @@
       <td class="lineno"><a id="l29" href="#l29">29</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">10820</td>
+      <td class="linecount coveredLine">10846</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">set_data</span><span class="p">(</span><span class="n">data</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -316,7 +1053,7 @@
       <td class="lineno"><a id="l30" href="#l30">30</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">10820</td>
+      <td class="linecount coveredLine">10846</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">*</span><span class="n">this</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -351,11 +1088,11 @@
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
           <div class="takenBranch">&check; Branch 0 taken 26 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 118 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 120 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">288</td>
+      <td class="linecount coveredLine">292</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">opt</span><span class="p">.</span><span class="n">_has_data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -379,7 +1116,7 @@
       <td class="lineno"><a id="l37" href="#l37">37</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">288</td>
+      <td class="linecount coveredLine">292</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">*</span><span class="n">this</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -499,12 +1236,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 296 times.</div>
-          <div class="takenBranch">&check; Branch 1 taken 300 times.</div>
+          <div class="takenBranch">&check; Branch 0 taken 2796 times.</div>
+          <div class="takenBranch">&check; Branch 1 taken 5613 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">16622</td>
+      <td class="linecount coveredLine">16796</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_has_data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -512,7 +1249,7 @@
       <td class="lineno"><a id="l51" href="#l51">51</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">592</td>
+      <td class="linecount coveredLine">5592</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">holder</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="o">~</span><span class="n">T</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
@@ -528,7 +1265,7 @@
       <td class="lineno"><a id="l53" href="#l53">53</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">16622</td>
+      <td class="linecount coveredLine">16796</td>
       <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
@@ -610,12 +1347,12 @@
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
         <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 0 taken 5727 times.</div>
+          <div class="takenBranch">&check; Branch 0 taken 5745 times.</div>
           <div class="takenBranch">&check; Branch 1 taken 65 times.</div>
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">11584</td>
+      <td class="linecount coveredLine">11620</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">_has_data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
@@ -630,7 +1367,7 @@
         </div>
         </details>
       </td>
-      <td class="linecount coveredLine">11454</td>
+      <td class="linecount coveredLine">11490</td>
       <td class="src coveredLine"><span class="w">            </span><span class="n">new</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">holder</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="n">T</span><span class="p">(</span><span class="n">data</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -662,7 +1399,7 @@
       <td class="lineno"><a id="l68" href="#l68">68</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11584</td>
+      <td class="linecount coveredLine">11620</td>
       <td class="src coveredLine"><span class="w">        </span><span class="n">_has_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
@@ -670,7 +1407,7 @@
       <td class="lineno"><a id="l69" href="#l69">69</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11584</td>
+      <td class="linecount coveredLine">11620</td>
       <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
@@ -878,7 +1615,7 @@
       <td class="lineno"><a id="l95" href="#l95">95</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">45</td>
+      <td class="linecount coveredLine">46</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Optional</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
@@ -988,11 +1725,11 @@
 
   </table>
 </div>
-
-    <hr/>
+      <hr/>
+    </main>
 
     <footer>
-      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.0)</a>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
     </footer>
   </body>
 </html>
