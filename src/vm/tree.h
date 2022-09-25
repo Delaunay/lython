@@ -94,9 +94,28 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
 #undef FUNCTION_GEN
 
-    PartialResult* return_value;
+
     Expression root;
     Bindings &bindings;
+
+    // `Registers`
+    PartialResult* return_value;
+    bool loop_break;
+    bool loop_continue;
+
+    Array<PartialResult*> exceptions;
+    PartialResult* cause = nullptr;
+
+    int handling_exceptions = 0;
+
+    bool has_exceptions() const {
+        return int(exceptions.size()) > handling_exceptions;
+    }
+
+    // Helpers
+    PartialResult *get_next(Node *iterator, int depth);
+    void execute_body(Array<StmtNode *>& body, int depth);
+    void execute_loop_body(Array<StmtNode *>& body, int depth);
 };
 
 } // namespace lython

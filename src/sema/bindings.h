@@ -50,6 +50,10 @@ struct Bindings {
         bindings[varid].type = type;
     }
 
+    inline void set_value(int varid, Node* value) {
+        bindings[varid].value = value;
+    }
+
     inline TypeExpr *get_type(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return nullptr;

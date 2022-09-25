@@ -292,10 +292,32 @@ struct Constant: public ExprNode {
 };
 
 struct BoolOp: public ExprNode {
+    using NativeBoolyOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+
     BoolOperator      op;
     Array<ExprNode *> values;
 
+    // Function to apply, resolved by the sema
+    StmtNode* resolved_operator = nullptr;
+    NativeBoolyOp native_operator = nullptr;
+
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
+};
+
+// need sequences for compare to distinguish between
+// x < 4 < 3 and (x < 4) < 3
+struct Compare: public ExprNode {
+    using NativeCompOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+
+    ExprNode *         left = nullptr;
+    Array<CmpOperator> ops;
+    Array<ExprNode *>  comparators;
+
+    // Function to apply, resolved by the sema
+    Array<StmtNode*> resolved_operator;
+    Array<NativeCompOp> native_operator;
+
+    Compare(): ExprNode(NodeKind::Compare) {}
 };
 
 struct NamedExpr: public ExprNode {
@@ -320,8 +342,14 @@ struct BinOp: public ExprNode {
 };
 
 struct UnaryOp: public ExprNode {
+    using NativeUnaryOp = ConstantValue(*)(ConstantValue const&);
+
     UnaryOperator op;
     ExprNode *    operand;
+
+    // Function to apply, resolved by the sema
+    StmtNode* resolved_operator = nullptr;
+    NativeUnaryOp native_operator = nullptr;
 
     UnaryOp(): ExprNode(NodeKind::UnaryOp) {}
 };
@@ -401,16 +429,6 @@ struct YieldFrom: public ExprNode {
     ExprNode *value = nullptr;
 
     YieldFrom(): ExprNode(NodeKind::YieldFrom) {}
-};
-
-// need sequences for compare to distinguish between
-// x < 4 < 3 and (x < 4) < 3
-struct Compare: public ExprNode {
-    ExprNode *         left = nullptr;
-    Array<CmpOperator> ops;
-    Array<ExprNode *>  comparators;
-
-    Compare(): ExprNode(NodeKind::Compare) {}
 };
 
 struct Call: public ExprNode {
@@ -636,9 +654,15 @@ struct Assign: public StmtNode {
 };
 
 struct AugAssign: public StmtNode {
+    using NativeBinaryOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+
     ExprNode *     target = nullptr;
     BinaryOperator op;
     ExprNode *     value = nullptr;
+
+    // Function to apply, resolved by the sema
+    StmtNode* resolved_operator = nullptr;
+    NativeBinaryOp native_operator = nullptr;
 
     AugAssign(): StmtNode(NodeKind::AugAssign) {}
 };
