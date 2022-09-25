@@ -130,15 +130,6 @@ struct ConstantValue {
         return value.i64;
     }
 
-#ifndef __linux__
-    #define POD(kind, type, name) template<> type const& get<type>() const { return value.name; }
-    #define CPX(kind, type, name) template<> type const& get<type>() const { return value.name; }
-
-    ConstantType(POD, CPX);
-
-    #undef CPX
-    #undef POD
-#endif
 
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
@@ -228,16 +219,14 @@ struct ConstantValue {
 };
 
 
-#if __linux___
 // Explicit specialization needs to be declare outisde of the class
-#define POD(kind, type, name) template<> type const& ConstantValue::get<type>() const { return value.name; }
-#define CPX(kind, type, name) template<> type const& ConstantValue::get<type>() const { return value.name; }
+#define POD(kind, type, name)  template<> inline type const& ConstantValue::get<type>() const { return value.name; }
+#define CPX(kind, type, name)  template<> inline type const& ConstantValue::get<type>() const { return value.name; }
 
 ConstantType(POD, CPX);
 
 #undef CPX
 #undef POD
-#endif
 
 } // namespace lython
 

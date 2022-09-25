@@ -657,7 +657,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
 
     if (received_exception) {
         // start handling all the exceptions we received
-        handling_exceptions = int(exceptions.size());
+        auto _ = HandleException(this);
 
         ExceptHandler const* matched = nullptr;
         PartialResult* latest_exception = exceptions[exceptions.size() - 1];
@@ -712,9 +712,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
         }
     }
 
-    // this some clean up code, acknowledge we have exceptions
-    // but this code needs to run regardless, it will stop if new exceptions are raised
-    handling_exceptions = int(exceptions.size());
+    auto _ = HandleException(this);
 
     for(StmtNode* stmt: n->finalbody)
     {
@@ -776,7 +774,7 @@ PartialResult *TreeEvaluator::with(With_t *n, int depth)
     }
 
     // Call exit regardless of exception status
-    handling_exceptions = exceptions.size();
+    auto _ = HandleException(this);
 
     for(auto& item: n->items) {
         auto ctx = exec(item.context_expr, depth);

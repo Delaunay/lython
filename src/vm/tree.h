@@ -94,6 +94,22 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
 #undef FUNCTION_GEN
 
+    // this some clean up code, acknowledge we have exceptions
+    // but this code needs to run regardless, it will stop if new exceptions are raised
+    struct HandleException {
+        HandleException(TreeEvaluator* self):
+            self(self)
+        {
+            self->handling_exceptions = int(self->exceptions.size());
+        }
+
+        ~HandleException() {
+            self->handling_exceptions = 0;
+        }
+
+        TreeEvaluator* self;
+    };
+
 
     Expression root;
     Bindings &bindings;
