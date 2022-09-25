@@ -130,7 +130,7 @@ int main(int argc, const char *argv[]) {
             {
                 Lexer lex(*reader.get());
                 lex.debug_print(std::cout);
-                reader.reset();
+                reader->reset();
             }
             std::cout << std::string(80, '-') << '\n';
         }
@@ -144,7 +144,7 @@ int main(int argc, const char *argv[]) {
                 StringStream ss;
                 lex.print(ss);
                 lexer_string = ss.str();
-                reader.reset();
+                reader->reset();
             }
 
             std::cout << std::string(80, '-') << '\n';
