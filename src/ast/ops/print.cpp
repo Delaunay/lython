@@ -952,7 +952,7 @@ String Node::__str__() const {
         error("Node is invalid");
     }
     Printer p;
-    p.Super::exec<bool>(this, ss, 0);
+    p.Super::exec<bool>(this, 0, ss, 0);
     return ss.str();
 }
 
@@ -1169,7 +1169,7 @@ int get_precedence(Node const *node) {
 
 void print(Node const *obj, std::ostream &out) {
     Printer p;
-    p.exec<bool>(obj, out, 0);
+    p.exec<bool>(obj, 0, out, 0);
 }
 void print(ExprNode const *obj, std::ostream &out) {
     Printer p;

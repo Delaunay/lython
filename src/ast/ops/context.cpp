@@ -132,7 +132,7 @@ struct SetContext: public Traverse {
 void set_context(Node *n, ExprContext ctx) {
     SetContext t;
     t.ctx = ctx;
-    t.exec<void_t>(n);
+    t.exec<void_t>(n, 0);
     return;
 }
 

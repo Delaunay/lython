@@ -84,16 +84,16 @@ struct BaseVisitor {
     };
 
     template <typename T>
-    T exec(Node_t *n, Args... args) {
+    T exec(Node_t *n, int depth, Args... args) {
         switch (n->family()) {
         case NodeFamily::Module:
-            return exec(reinterpret_cast<ModNode_t *>(n), 0, (args)...);
+            return exec(reinterpret_cast<ModNode_t *>(n), depth, (args)...);
         case NodeFamily::Statement:
-            return exec(reinterpret_cast<StmtNode_t *>(n), 0, (args)...);
+            return exec(reinterpret_cast<StmtNode_t *>(n), depth, (args)...);
         case NodeFamily::Expression:
-            return exec(reinterpret_cast<ExprNode_t *>(n), 0, (args)...);
+            return exec(reinterpret_cast<ExprNode_t *>(n), depth, (args)...);
         case NodeFamily::Pattern:
-            return exec(reinterpret_cast<Pattern_t *>(n), 0, (args)...);
+            return exec(reinterpret_cast<Pattern_t *>(n), depth, (args)...);
         }
         return T();
     }

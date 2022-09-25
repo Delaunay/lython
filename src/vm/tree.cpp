@@ -97,7 +97,7 @@ PartialResult *TreeEvaluator::call(Call_t *n, int depth) {
     }
 
     // execute function
-    auto returned = exec(static_cast<StmtNode*>(function), depth);
+    auto returned = exec<PartialResult*>(function, depth);
     return returned;
 }
 
