@@ -9,4 +9,4 @@
 	url = https://github.com/pybind/pybind11
 [submodule "dependencies/mimalloc"]
 	path = dependencies/mimalloc
-	url = git@github.com:microsoft/mimalloc.git
+	url = https://github.com/microsoft/mimalloc.git
