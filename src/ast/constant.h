@@ -130,8 +130,8 @@ struct ConstantValue {
         return value.i64;
     }
 
-    #define POD(kind, type, name) template<> type const& get<type>() const { return value.##name; }
-    #define CPX(kind, type, name) template<> type const& get<type>() const { return value.##name; }
+    #define POD(kind, type, name) template<> type const& get<type>() const { return value.name; }
+    #define CPX(kind, type, name) template<> type const& get<type>() const { return value.name; }
 
     ConstantType(POD, CPX);
 
