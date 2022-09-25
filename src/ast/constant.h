@@ -21,7 +21,7 @@ struct ConstantValue {
 
     ; // clang-format off
     #define ConstantType(POC, CPX)       \
-        POD(Invalid, invalid_t, invalid) \
+        POD(Invalid, ConstantValue::invalid_t, invalid) \
         POD(i8,  int8, i8)            \
         POD(i16, int16, i16)          \
         POD(i32, int32, i32)          \
@@ -34,7 +34,7 @@ struct ConstantValue {
         POD(f64, float64, f64)        \
         CPX(String, String, string)      \
         POD(Bool, bool, boolean)         \
-        POD(None, none_t, none)
+        POD(None, ConstantValue::none_t, none)
 
 
     #define NUMERIC_CONSTANT(NUM)     \
@@ -130,6 +130,16 @@ struct ConstantValue {
         return value.i64;
     }
 
+#ifndef __linux__
+    #define POD(kind, type, name) template<> type const& get<type>() const { return value.name; }
+    #define CPX(kind, type, name) template<> type const& get<type>() const { return value.name; }
+
+    ConstantType(POD, CPX);
+
+    #undef CPX
+    #undef POD
+#endif
+
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {
@@ -218,6 +228,7 @@ struct ConstantValue {
 };
 
 
+#if __linux___
 // Explicit specialization needs to be declare outisde of the class
 #define POD(kind, type, name) template<> type const& ConstantValue::get<type>() const { return value.name; }
 #define CPX(kind, type, name) template<> type const& ConstantValue::get<type>() const { return value.name; }
@@ -226,7 +237,9 @@ ConstantType(POD, CPX);
 
 #undef CPX
 #undef POD
+#endif
 
 } // namespace lython
+
 
 #endif
