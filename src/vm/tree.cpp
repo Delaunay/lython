@@ -657,7 +657,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
 
     if (received_exception) {
         // start handling all the exceptions we received
-        handling_exceptions = exceptions.size();
+        handling_exceptions = int(exceptions.size());
 
         ExceptHandler const* matched = nullptr;
         PartialResult* latest_exception = exceptions[exceptions.size() - 1];
@@ -714,7 +714,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
 
     // this some clean up code, acknowledge we have exceptions
     // but this code needs to run regardless, it will stop if new exceptions are raised
-    handling_exceptions = exceptions.size();
+    handling_exceptions = int(exceptions.size());
 
     for(StmtNode* stmt: n->finalbody)
     {
@@ -732,19 +732,72 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
     return None();
 }
 
-PartialResult *TreeEvaluator::with(With_t *n, int depth) { return nullptr; }
+/*
+https://stackoverflow.com/questions/60926323/can-i-raise-an-exception-in-exit
+
+manager = (EXPRESSION)
+enter = type(manager).__enter__
+exit = type(manager).__exit__
+value = enter(manager)
+hit_except = False
+
+try:
+    TARGET = value
+    SUITE
+except:
+    hit_except = True
+    if not exit(manager, *sys.exc_info()):
+        raise
+finally:
+    if not hit_except:
+        exit(manager, None, None, None)
+
+*/
+PartialResult *TreeEvaluator::with(With_t *n, int depth)
+{
+    // Call enter
+    for(auto& item: n->items) {
+        auto ctx = exec(item.context_expr, depth);
+        auto result = call_enter(ctx, depth);
+
+        if (item.optional_vars.has_value()) {
+            bindings.add(StringRef(""), result, nullptr);
+        }
+    }
+
+    for(StmtNode* stmt: n->body)
+    {
+        exec(stmt, depth);
+
+        // New exceptions
+        if (has_exceptions()) {
+            return None();
+        }
+    }
+
+    // Call exit regardless of exception status
+    handling_exceptions = exceptions.size();
+
+    for(auto& item: n->items) {
+        auto ctx = exec(item.context_expr, depth);
+        call_exit(ctx, depth);
+    }
+
+    return nullptr;
+}
+
 PartialResult *TreeEvaluator::match(Match_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::import(Import_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::importfrom(ImportFrom_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::global(Global_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::nonlocal(Nonlocal_t *n, int depth) { return nullptr; }
+
 PartialResult *TreeEvaluator::dictexpr(DictExpr_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::setexpr(SetExpr_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::listcomp(ListComp_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::generateexpr(GeneratorExp_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::setcomp(SetComp_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::dictcomp(DictComp_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::await(Await_t *n, int depth) { return nullptr; }
+
+
 PartialResult *TreeEvaluator::yield(Yield_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::yieldfrom(YieldFrom_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::joinedstr(JoinedStr_t *n, int depth) { return nullptr; }
@@ -753,17 +806,27 @@ PartialResult *TreeEvaluator::formattedvalue(FormattedValue_t *n, int depth) { r
 PartialResult *TreeEvaluator::starred(Starred_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::listexpr(ListExpr_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::tupleexpr(TupleExpr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::slice(Slice_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::deletestmt(Delete_t *n, int depth) { return nullptr; }
 
+PartialResult *TreeEvaluator::await(Await_t *n, int depth) { return nullptr; }
 
 // Objects
+PartialResult *TreeEvaluator::slice(Slice_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::attribute(Attribute_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::subscript(Subscript_t *n, int depth) { return nullptr; }
 
 // Call __next__ for a given object
 PartialResult *TreeEvaluator::get_next(Node *iterator, int depth) {
     // FIXME: implement me
+    return nullptr;
+}
+
+PartialResult *TreeEvaluator::call_enter(Node* ctx, int depth) {
+    // Call __enter__
+    return nullptr;
+}
+PartialResult *TreeEvaluator::call_exit(Node* ctx, int depth) {
+    // Call __exit__
     return nullptr;
 }
 
@@ -789,5 +852,18 @@ PartialResult *TreeEvaluator::matchclass(MatchClass_t *n, int depth) { return nu
 PartialResult *TreeEvaluator::matchstar(MatchStar_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::matchas(MatchAs_t *n, int depth) { return nullptr; }
 PartialResult *TreeEvaluator::matchor(MatchOr_t *n, int depth) { return nullptr; }
+
+
+
+PartialResult *TreeEvaluator::global(Global_t *n, int depth) {
+    // we don't really need it right now, we are not enforcing this
+    // might be sema business anyway
+    return nullptr;
+}
+PartialResult *TreeEvaluator::nonlocal(Nonlocal_t *n, int depth) {
+    // we don't really need it right now, we are not enforcing this
+    // might be sema business anyway
+    return nullptr;
+}
 
 } // namespace lython

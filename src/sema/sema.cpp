@@ -141,6 +141,32 @@ static StringRef nu16 = String("u16");
 static StringRef nu32 = String("u32");
 static StringRef nu64 = String("u64");
 
+TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
+
+    auto prev_t = exec(n->left, depth);
+    auto prev   = n->left;
+
+    for (int i = 0; i < n->ops.size(); i++) {
+        auto op    = n->ops[i];
+        auto cmp   = n->comparators[i];
+        auto cmp_t = exec(cmp, depth);
+
+        // TODO: fetch native operator to use
+
+        //
+        // prev <op> cmp
+
+        // TODO: typecheck op
+        // op: (prev_t -> cmp_t -> bool)
+
+        // --
+        prev   = cmp;
+        prev_t = cmp_t;
+    }
+
+    return make_ref(n, "bool");
+}
+
 TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 
     auto lhs_t = exec(n->left, depth);
@@ -153,6 +179,7 @@ TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 
     // Builtin type, all the operations are known
     if (blt) {
+        // FIXME: add operators
         if (blt->name == ni8) {
 
         }
@@ -178,6 +205,7 @@ TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 TypeExpr *SemanticAnalyser::unaryop(UnaryOp *n, int depth) {
     auto expr_t = exec(n->operand, depth);
 
+    // TODO: fetch native operator
     // TODO: check that op is defined for this type
     // use the op return type here
     return expr_t;
@@ -319,29 +347,6 @@ TypeExpr *SemanticAnalyser::yield(Yield *n, int depth) {
     return nullptr;
 }
 TypeExpr *SemanticAnalyser::yieldfrom(YieldFrom *n, int depth) { return exec(n->value, depth); }
-TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
-
-    auto prev_t = exec(n->left, depth);
-    auto prev   = n->left;
-
-    for (int i = 0; i < n->ops.size(); i++) {
-        auto op    = n->ops[i];
-        auto cmp   = n->comparators[i];
-        auto cmp_t = exec(cmp, depth);
-
-        //
-        // prev <op> cmp
-
-        // TODO: typecheck op
-        // op: (prev_t -> cmp_t -> bool)
-
-        // --
-        prev   = cmp;
-        prev_t = cmp_t;
-    }
-
-    return make_ref(n, "bool");
-}
 
 //  def fun(a: int, b:int) -> float:
 //      pass

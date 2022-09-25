@@ -105,17 +105,24 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     Array<PartialResult*> exceptions;
     PartialResult* cause = nullptr;
-
     int handling_exceptions = 0;
 
-    bool has_exceptions() const {
-        return int(exceptions.size()) > handling_exceptions;
-    }
 
     // Helpers
     PartialResult *get_next(Node *iterator, int depth);
+    PartialResult *call_enter(Node* ctx, int depth);
+    PartialResult *call_exit(Node* ctx, int depth);
+
     void execute_body(Array<StmtNode *>& body, int depth);
     void execute_loop_body(Array<StmtNode *>& body, int depth);
+
+    // Only returns true when new exceptions pop up
+    // we usually expect 0 exceptions,
+    // during exceptions handling we will execpt n and this will only be true
+    // if new exceptions are raised during the previous exceptions handling
+    bool has_exceptions() const {
+        return int(exceptions.size()) > handling_exceptions;
+    }
 };
 
 } // namespace lython
