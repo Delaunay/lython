@@ -130,14 +130,6 @@ struct ConstantValue {
         return value.i64;
     }
 
-    #define POD(kind, type, name) template<> type const& get<type>() const { return value.name; }
-    #define CPX(kind, type, name) template<> type const& get<type>() const { return value.name; }
-
-    ConstantType(POD, CPX);
-
-    #undef CPX
-    #undef POD
-
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {
@@ -224,6 +216,16 @@ struct ConstantValue {
         kind = k;
     }
 };
+
+
+// Explicit specialization needs to be declare outisde of the class
+#define POD(kind, type, name) template<> type const& ConstantValue::get<type>() const { return value.name; }
+#define CPX(kind, type, name) template<> type const& ConstantValue::get<type>() const { return value.name; }
+
+ConstantType(POD, CPX);
+
+#undef CPX
+#undef POD
 
 } // namespace lython
 
