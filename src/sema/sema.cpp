@@ -177,6 +177,8 @@ TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
     TypeExpr* type = resolve_variable(lhs_t);
     BuiltinType* blt = cast<BuiltinType>(type);
 
+    String operator = join("-", str(n->op), str(lhs_t). (str(rhs_t))
+
     // Builtin type, all the operations are known
     if (blt) {
         // FIXME: add operators
