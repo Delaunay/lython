@@ -131,6 +131,16 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
     return nullptr;
 }
 
+static StringRef ni8  = String("i8");
+static StringRef ni16 = String("i16");
+static StringRef ni32 = String("i32");
+static StringRef ni64 = String("i64");
+
+static StringRef nu8  = String("u8");
+static StringRef nu16 = String("u16");
+static StringRef nu32 = String("u32");
+static StringRef nu64 = String("u64");
+
 TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 
     auto lhs_t = exec(n->left, depth);
@@ -138,10 +148,27 @@ TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 
     typecheck(n->left, lhs_t, n->right, rhs_t, LOC);
 
-    if (equal(resolve_variable(lhs_t), i32_t())) {
-        n->native_operator = [](ConstantValue const& a, ConstantValue const& b) -> ConstantValue {
-            return add(ConstantValue::Ti32, a, b);
-        };
+    TypeExpr* type = resolve_variable(lhs_t);
+    BuiltinType* blt = cast<BuiltinType>(type);
+
+    // Builtin type, all the operations are known
+    if (blt) {
+        if (blt->name == ni8) {
+
+        }
+        if (blt->name == ni32) {
+            n->native_operator = [](ConstantValue const& a, ConstantValue const& b) -> ConstantValue {
+                return add(ConstantValue::Ti32, a, b);
+            };
+            return lhs_t;
+        }
+
+    } else {
+        // TODO: Not a builtin type, so it is user defined
+        // need to check for a magic method that overload the right operator
+
+        // Get the return value of the custom operator
+        return lhs_t;
     }
 
     // TODO: check that op is defined for those types

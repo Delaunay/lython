@@ -7,13 +7,19 @@
 #include "utilities/allocator.h"
 #include "utilities/metadata.h"
 
+#include <mimalloc.h>
+
+#define USE_MIMALLOC 1
 #define DISABLE_ALIGNED_ALLOC 0
+#define ALIGNMENT 16
 
 namespace lython {
 namespace device {
 
 void *CPU::malloc(std::size_t n) {
-#if DISABLE_ALIGNED_ALLOC
+#if USE_MIMALLOC
+    return mi_malloc_aligned(n, ALIGNMENT);
+#elif DISABLE_ALIGNED_ALLOC
     return std::malloc(n);
 #else
     // TODO: seems 64bit alignment might be better (this is what tensorflow is using)
@@ -44,7 +50,10 @@ void *CPU::malloc(std::size_t n) {
 }
 
 bool CPU::free(void *ptr, std::size_t) {
-#if DISABLE_ALIGNED_ALLOC
+#if USE_MIMALLOC
+    mi_free_aligned(ptr, ALIGNMENT);
+    return true;
+#elif DISABLE_ALIGNED_ALLOC
     std::free(ptr);
     return true;
 #else
