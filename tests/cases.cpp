@@ -19,6 +19,7 @@ String AE(String const &name, String const &attr) {
 String UO(String const &op, String const &lhs, String const &rhs) {
     return String(UnsupportedOperand::message(op, lhs, rhs));
 }
+
 String IE(String const &module, String const &name) {
     return String(ImportError::message(module, name));
 }
@@ -282,11 +283,13 @@ Array<TestCase> const &AugAssign_examples() {
          {
              NE("a"),
              NE("b"),
+             UO("Add", "None", "None"),
          }},
         {"a -= b",
          {
              NE("a"),
              NE("b"),
+             UO("Sub", "None", "None"),
          }},
     };
     return ex;
@@ -590,26 +593,33 @@ Array<TestCase> const &Compare_examples() {
              NE("b"),
              NE("c"),
              NE("d"),
+             UO("NotEq", "None", "None"),
+             UO("Gt", "None", "bool"),
+             UO("Lt", "None", "bool"),
          }},
         {"a not in b",
          {
              NE("a"),
              NE("b"),
+             UO("NotIn", "None", "None"),
          }},
         {"a in b",
          {
              NE("a"),
              NE("b"),
+             UO("In", "None", "None"),
          }},
         {"a is b",
          {
              NE("a"),
              NE("b"),
+             UO("Is", "None", "None"),
          }},
         {"a is not b",
          {
              NE("a"),
              NE("b"),
+             UO("IsNot", "None", "None"),
          }},
     };
     return ex;
@@ -662,6 +672,7 @@ Array<TestCase> const &DictComp_examples() {
          {
              NE("b"),
              NE("c"),
+             UO("Gt", "None", "None"),
              NE("c"),
          }},
     };
@@ -674,6 +685,7 @@ Array<TestCase> const &SetComp_examples() {
          {
              NE("b"),
              NE("c"),
+             UO("Gt", "None", "None"),
          }},
     };
     return ex;
@@ -685,6 +697,7 @@ Array<TestCase> const &GeneratorExp_examples() {
          {
              NE("b"),
              NE("c"),
+             UO("Gt", "None", "None"),
          }},
     };
     return ex;
@@ -696,6 +709,7 @@ Array<TestCase> const &ListComp_examples() {
          {
              NE("b"),
              NE("c"),
+             UO("Gt", "None", "None"),
          }},
     };
     return ex;
@@ -753,18 +767,22 @@ Array<TestCase> const &UnaryOp_examples() {
         {"+ a",
          {
              NE("a"),
+             UO("UAdd", "None", "None"),
          }},
         {"- a",
          {
              NE("a"),
+             UO("USub", "None", "None"),
          }},
         {"~ a",
          {
              NE("a"),
+             UO("Invert", "None", "None"),
          }},
         {"! a",
          {
              NE("a"),
+             UO("Not", "None", "None"),
          }},
     };
     return ex;
