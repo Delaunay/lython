@@ -39,9 +39,12 @@ bool _metadata_init_names() {
     meta::register_type<lython::StringRef>("StringRef");
     meta::register_type<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");
 
+    meta::register_type<lython::Node *>("Node*");
     meta::register_type<lython::GCObject *>("GCObject*");
     meta::register_type<lython::ExprNode *>("ExprNode*");
     meta::register_type<lython::StmtNode *>("StmtNode*");
+    meta::register_type<lython::ConstantValue>("ConstantValue");
+    meta::register_type<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
 
     meta::register_type<UniquePtrInternal<lython::SemaException>>("SemaException");
     meta::register_type<UniquePtrInternal<lython::ParsingException>>("ParsingException");
@@ -94,6 +97,15 @@ bool _metadata_init_names() {
     meta::register_type<HashNodeInternal<std::pair<const String, OpConfig>, true>>(
         "Pair[String, OpConfig]");
 
+    meta::register_type<HashNodeInternal<std::pair<const StringRef, bool>, true>>(
+        "Pair[String, bool]");
+
+    meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, true>>(
+        "Pair[String, ExprNode*]");
+
+    meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, true>>(
+        "Pair[String, NativeBinaryOp]");
+
 #if !__linux__
     // hashtable internal stuff
     // windows only
@@ -111,6 +123,15 @@ bool _metadata_init_names() {
 
     meta::register_type<ListIterator<std::pair<const String, TokenType>, false>>(
         "Iterator[Pair[String, TokenType]]");
+
+    meta::register_type<ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
+        "Iterator[Pair[StringRef, NativeBinaryOp]]");
+
+    meta::register_type<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
+        "Iterator[Pair[StringRef, ExprNode*]]");
+
+    meta::register_type<ListIterator<std::pair<const StringRef, bool>, false>>(
+        "Iterator[Pair[StringRef, bool]]");
 #endif
 
     // StringDatabase

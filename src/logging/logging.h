@@ -1,6 +1,7 @@
 #ifndef LYTHON_LOGGING_HEADER
 #    define LYTHON_LOGGING_HEADER
 
+#    include <cassert>
 #    include <spdlog/fmt/bundled/core.h>
 #    include <string>
 #    include <vector>
@@ -129,7 +130,7 @@ inline void assert_true(bool cond, char const *message, char const *assert_expr,
                     message, assert_expr);
 
         // lython::show_backtrace();
-        std::abort();
+        assert(cond);
     }
 }
 } // namespace lython

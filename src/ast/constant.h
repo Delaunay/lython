@@ -1,6 +1,7 @@
 #ifndef LYTHON_CONSTANT_HEADER
 #define LYTHON_CONSTANT_HEADER
 
+#include "dtypes.h"
 #include <iostream>
 
 namespace lython {
@@ -63,8 +64,8 @@ struct ConstantValue {
 
     };
 
-    #define POD(k, type, name) ConstantValue(type v): kind(T##k) { value.name = v; }
-    #define CPX(k, type, name) ConstantValue(type v): kind(TInvalid) { set_##name(v); }
+    #define POD(k, type, name) explicit ConstantValue(type v): kind(T##k) { value.name = v; }
+    #define CPX(k, type, name) explicit ConstantValue(type v): kind(TInvalid) { set_##name(v); }
 
     ConstantType(POD, CPX);
 

@@ -18,9 +18,6 @@
 using namespace lython;
 
 
-
-
-
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 String eval_it(String code, String expr, Module *&mod) {
@@ -65,13 +62,18 @@ void run_test_case(String code, String expr, String expected) {
 
 }
 
-TEST_CASE("VM_Tree") {
-    // run_test_case(
-    //     "def fun(a: i32) -> i32:\n"
-    //     "    return a\n",
-    //     "fun(1)",
-    //     "1"
-    // );
+#ifndef EXPERIMENT
+
+TEST_CASE("VM_FunctionDef") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    return a\n",
+        "fun(1)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_BinOp_Add_i32") {
     run_test_case(
         "def fun(a: i32) -> i32:\n"
         "    return a + 1\n",
@@ -79,3 +81,211 @@ TEST_CASE("VM_Tree") {
         "2"
     );
 }
+
+
+TEST_CASE("VM_IfStmt_True") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    if a > 0:\n"
+        "        return 1\n"
+        "    else:\n"
+        "        return 2\n",
+        "fun(1)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_IfStmt_False") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    if a > 0:\n"
+        "        return 1\n"
+        "    else:\n"
+        "        return 2\n",
+        "fun(0)",
+        "2"
+    );
+}
+
+
+TEST_CASE("VM_UnaryOp_USub_i32") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    return - a\n",
+        "fun(-1)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_assign") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    b = 3\n"
+        "    b = a * b\n"
+        "    return b\n"
+        "",
+        "fun(2)",
+        "6"
+    );
+}
+
+TEST_CASE("VM_pass") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    pass\n",
+        "fun(0)",
+        "None"
+    );
+}
+
+TEST_CASE("VM_inline_stmt") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    a += 1; return a\n",
+        "fun(0)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_raise") {
+    // This fails because of SEMA, we need a real exception
+    // run_test_case(
+    //     "def fun(a: i32) -> i32:\n"
+    //     "    raise 'Ohoh'\n"
+    //     "    return a\n",
+    //     "fun(-1)",
+    //     "1"
+    // );
+}
+
+TEST_CASE("VM_Try_AllGood") {
+    // Increase once in try
+    // another inside the else (no exception)
+    // and final one inside the finally
+    /*
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    try:\n"
+        "        a += 1\n"
+        "    except:\n"
+        "        a += 1\n"
+        "    else:\n"
+        "        a += 1\n"
+        "    finally:\n"
+        "        a += 1\n",
+        "    return a\n"
+        "fun(0)",
+        "3"
+    );
+    //*/
+}
+
+TEST_CASE("VM_Aug_Add_i32") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    a += 1"
+        "    return a\n",
+        "fun(0)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_While") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    b = 0\n"
+        "    while a > 0:\n"
+        "        a -= 1\n"
+        "        b += 2\n"
+        "    return b\n"
+        "",
+
+        "fun(2)",
+        "4"
+    );
+}
+
+TEST_CASE("VM_While_break") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    b = 0\n"
+        "    while a > 0:\n"
+        "        a -= 1\n"
+        "        b += 1\n"
+        "        break\n"
+        "        b += 1\n"
+        "    return b\n"
+        "",
+
+        "fun(10)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_While_continue") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    b = 0\n"
+        "    while a > 0:\n"
+        "        a -= 1\n"
+        "        b += 1\n"
+        "        continue\n"
+        "        b += 1\n"
+        "    return b\n"
+        "",
+
+        "fun(10)",
+        "10"
+    );
+}
+
+
+TEST_CASE("VM_AnnAssign") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    b: i32 = 3\n"
+        "    b: i32 = a * b\n"
+        "    return b\n"
+        "",
+        "fun(2)",
+        "6"
+    );
+}
+
+
+TEST_CASE("VM_ifexp_True") {
+    // FIXME: wrong syntax
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    return if a > 0: 1 else 0\n"
+        "",
+        "fun(2)",
+        "1"
+    );
+}
+
+TEST_CASE("VM_ifexp_False") {
+    // FIXME: wrong syntax
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    return if a > 0: 1 else 0\n"
+        "",
+        "fun(-2)",
+        "0"
+    );
+}
+
+TEST_CASE("VM_NamedExpr") {
+    run_test_case(
+        "def fun(a: i32) -> i32:\n"
+        "    if (b := a + 1) > 0:\n"
+        "        return b\n"
+        "    return 0\n"
+        "",
+        "fun(0)",
+        "1"
+    );
+}
+
+#endif
+

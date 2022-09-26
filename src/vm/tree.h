@@ -116,8 +116,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     // `Registers`
     PartialResult* return_value;
-    bool loop_break;
-    bool loop_continue;
+    bool loop_break = false;
+    bool loop_continue = false;
 
     Array<PartialResult*> exceptions;
     PartialResult* cause = nullptr;

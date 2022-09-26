@@ -2,181 +2,7 @@
 #include "ast/magic.h"
 #include "utilities/strings.h"
 
-#include "vm/builtins.h"
-
-namespace lython {
-
-Dict<StringRef, BoolOp::NativeBoolyOp> build_native_binary_operators() {
-    // FIXME: add return type, the return type can be different
-    Dict<StringRef, BoolOp::NativeBoolyOp> map;
-
-    #define JOIN(op, t1, t2) op-t1-t2
-    #define _STR(x) #x
-    #define STR(x) _STR(x)
-
-    #define LAMBDA(op, type) op<type>::vm;
-
-    // Float
-    map[StringRef(STR(JOIN(Add, f32, f32)))] = LAMBDA(Add, float32);
-    map[StringRef(STR(JOIN(Add, f64, f64)))] = LAMBDA(Add, float64);
-
-    map[StringRef(STR(JOIN(Sub, f32, f32)))] = LAMBDA(Sub, float32);
-    map[StringRef(STR(JOIN(Sub, f64, f64)))] = LAMBDA(Sub, float64);
-
-    map[StringRef(STR(JOIN(Mult, f32, f32)))] = LAMBDA(Mult, float32);
-    map[StringRef(STR(JOIN(Mult, f64, f64)))] = LAMBDA(Mult, float64);
-
-    map[StringRef(STR(JOIN(Div, f32, f32)))] = LAMBDA(Div, float32);
-    map[StringRef(STR(JOIN(Div, f64, f64)))] = LAMBDA(Div, float64);
-
-    map[StringRef(STR(JOIN(Mod, f32, f32)))] = LAMBDA(Mod, float32);
-    map[StringRef(STR(JOIN(Mod, f64, f64)))] = LAMBDA(Mod, float64);
-
-    map[StringRef(STR(JOIN(Pow, f32, f32)))] = LAMBDA(Pow, float32);
-    map[StringRef(STR(JOIN(Pow, f64, f64)))] = LAMBDA(Pow, float64);
-
-    // Integer
-
-    map[StringRef(STR(JOIN(Add, i8, i8)))]   = LAMBDA(Add, int8);
-    map[StringRef(STR(JOIN(Add, i16, i16)))] = LAMBDA(Add, int16);
-    map[StringRef(STR(JOIN(Add, i32, i32)))] = LAMBDA(Add, int32);
-    map[StringRef(STR(JOIN(Add, i64, i64)))] = LAMBDA(Add, int64);
-
-    map[StringRef(STR(JOIN(Sub, i8, i8)))]   = LAMBDA(Sub, int8);
-    map[StringRef(STR(JOIN(Sub, i16, i16)))] = LAMBDA(Sub, int16);
-    map[StringRef(STR(JOIN(Sub, i32, i32)))] = LAMBDA(Sub, int32);
-    map[StringRef(STR(JOIN(Sub, i64, i64)))] = LAMBDA(Sub, int64);
-
-    map[StringRef(STR(JOIN(Mult, i8, i8)))]   = LAMBDA(Mult, int8);
-    map[StringRef(STR(JOIN(Mult, i16, i16)))] = LAMBDA(Mult, int16);
-    map[StringRef(STR(JOIN(Mult, i32, i32)))] = LAMBDA(Mult, int32);
-    map[StringRef(STR(JOIN(Mult, i64, i64)))] = LAMBDA(Mult, int64);
-
-    map[StringRef(STR(JOIN(Div, i8, i8)))]   = LAMBDA(Div, int8);
-    map[StringRef(STR(JOIN(Div, i16, i16)))] = LAMBDA(Div, int16);
-    map[StringRef(STR(JOIN(Div, i32, i32)))] = LAMBDA(Div, int32);
-    map[StringRef(STR(JOIN(Div, i64, i64)))] = LAMBDA(Div, int64);
-
-    map[StringRef(STR(JOIN(Mod, i8, i8)))]   = LAMBDA(Mod, int8);
-    map[StringRef(STR(JOIN(Mod, i16, i16)))] = LAMBDA(Mod, int16);
-    map[StringRef(STR(JOIN(Mod, i32, i32)))] = LAMBDA(Mod, int32);
-    map[StringRef(STR(JOIN(Mod, i64, i64)))] = LAMBDA(Mod, int64);
-
-    map[StringRef(STR(JOIN(Pow, i8, i8)))]   = LAMBDA(Pow, int8);
-    map[StringRef(STR(JOIN(Pow, i16, i16)))] = LAMBDA(Pow, int16);
-    map[StringRef(STR(JOIN(Pow, i32, i32)))] = LAMBDA(Pow, int32);
-    map[StringRef(STR(JOIN(Pow, i64, i64)))] = LAMBDA(Pow, int64);
-
-    map[StringRef(STR(JOIN(LShift, i8, i8)))]   = LAMBDA(LShift, int8);
-    map[StringRef(STR(JOIN(LShift, i16, i16)))] = LAMBDA(LShift, int16);
-    map[StringRef(STR(JOIN(LShift, i32, i32)))] = LAMBDA(LShift, int32);
-    map[StringRef(STR(JOIN(LShift, i64, i64)))] = LAMBDA(LShift, int64);
-
-    map[StringRef(STR(JOIN(RShift, i8, i8)))]   = LAMBDA(RShift, int8);
-    map[StringRef(STR(JOIN(RShift, i16, i16)))] = LAMBDA(RShift, int16);
-    map[StringRef(STR(JOIN(RShift, i32, i32)))] = LAMBDA(RShift, int32);
-    map[StringRef(STR(JOIN(RShift, i64, i64)))] = LAMBDA(RShift, int64);
-
-    map[StringRef(STR(JOIN(BitOr, i8, i8)))]   = LAMBDA(BitOr, int8);
-    map[StringRef(STR(JOIN(BitOr, i16, i16)))] = LAMBDA(BitOr, int16);
-    map[StringRef(STR(JOIN(BitOr, i32, i32)))] = LAMBDA(BitOr, int32);
-    map[StringRef(STR(JOIN(BitOr, i64, i64)))] = LAMBDA(BitOr, int64);
-
-    map[StringRef(STR(JOIN(BitXor, i8, i8)))]   = LAMBDA(BitXor, int8);
-    map[StringRef(STR(JOIN(BitXor, i16, i16)))] = LAMBDA(BitXor, int16);
-    map[StringRef(STR(JOIN(BitXor, i32, i32)))] = LAMBDA(BitXor, int32);
-    map[StringRef(STR(JOIN(BitXor, i64, i64)))] = LAMBDA(BitXor, int64);
-
-    map[StringRef(STR(JOIN(BitAnd, i8, i8)))]   = LAMBDA(BitAnd, int8);
-    map[StringRef(STR(JOIN(BitAnd, i16, i16)))] = LAMBDA(BitAnd, int16);
-    map[StringRef(STR(JOIN(BitAnd, i32, i32)))] = LAMBDA(BitAnd, int32);
-    map[StringRef(STR(JOIN(BitAnd, i64, i64)))] = LAMBDA(BitAnd, int64);
-
-    // Unsigned
-    map[StringRef(STR(JOIN(Add, u8, u8)))]   = LAMBDA(Add, uint8);
-    map[StringRef(STR(JOIN(Add, u16, u16)))] = LAMBDA(Add, uint16);
-    map[StringRef(STR(JOIN(Add, u32, u32)))] = LAMBDA(Add, uint32);
-    map[StringRef(STR(JOIN(Add, u64, u64)))] = LAMBDA(Add, uint64);
-
-    map[StringRef(STR(JOIN(Sub, u8, u8)))]   = LAMBDA(Sub, uint8);
-    map[StringRef(STR(JOIN(Sub, u16, u16)))] = LAMBDA(Sub, uint16);
-    map[StringRef(STR(JOIN(Sub, u32, u32)))] = LAMBDA(Sub, uint32);
-    map[StringRef(STR(JOIN(Sub, u64, u64)))] = LAMBDA(Sub, uint64);
-
-    map[StringRef(STR(JOIN(Mult, u8, u8)))]   = LAMBDA(Mult, uint8);
-    map[StringRef(STR(JOIN(Mult, u16, u16)))] = LAMBDA(Mult, uint16);
-    map[StringRef(STR(JOIN(Mult, u32, u32)))] = LAMBDA(Mult, uint32);
-    map[StringRef(STR(JOIN(Mult, u64, u64)))] = LAMBDA(Mult, uint64);
-
-    map[StringRef(STR(JOIN(Div, u8, u8)))]   = LAMBDA(Div, uint8);
-    map[StringRef(STR(JOIN(Div, u16, u16)))] = LAMBDA(Div, uint16);
-    map[StringRef(STR(JOIN(Div, u32, u32)))] = LAMBDA(Div, uint32);
-    map[StringRef(STR(JOIN(Div, u64, u64)))] = LAMBDA(Div, uint64);
-
-    map[StringRef(STR(JOIN(Mod, u8, u8)))]   = LAMBDA(Mod, uint8);
-    map[StringRef(STR(JOIN(Mod, u16, u16)))] = LAMBDA(Mod, uint16);
-    map[StringRef(STR(JOIN(Mod, u32, u32)))] = LAMBDA(Mod, uint32);
-    map[StringRef(STR(JOIN(Mod, u64, u64)))] = LAMBDA(Mod, uint64);
-
-    map[StringRef(STR(JOIN(Pow, u8, u8)))]   = LAMBDA(Pow, uint8);
-    map[StringRef(STR(JOIN(Pow, u16, u16)))] = LAMBDA(Pow, uint16);
-    map[StringRef(STR(JOIN(Pow, u32, u32)))] = LAMBDA(Pow, uint32);
-    map[StringRef(STR(JOIN(Pow, u64, u64)))] = LAMBDA(Pow, uint64);
-
-    map[StringRef(STR(JOIN(LShift, u8, u8)))]   = LAMBDA(LShift, uint8);
-    map[StringRef(STR(JOIN(LShift, u16, u16)))] = LAMBDA(LShift, uint16);
-    map[StringRef(STR(JOIN(LShift, u32, u32)))] = LAMBDA(LShift, uint32);
-    map[StringRef(STR(JOIN(LShift, u64, u64)))] = LAMBDA(LShift, uint64);
-
-    map[StringRef(STR(JOIN(RShift, u8, u8)))]   = LAMBDA(RShift, uint8);
-    map[StringRef(STR(JOIN(RShift, u16, u16)))] = LAMBDA(RShift, uint16);
-    map[StringRef(STR(JOIN(RShift, u32, u32)))] = LAMBDA(RShift, uint32);
-    map[StringRef(STR(JOIN(RShift, u64, u64)))] = LAMBDA(RShift, uint64);
-
-    map[StringRef(STR(JOIN(BitOr, u8, u8)))]   = LAMBDA(BitOr, uint8);
-    map[StringRef(STR(JOIN(BitOr, u16, u16)))] = LAMBDA(BitOr, uint16);
-    map[StringRef(STR(JOIN(BitOr, u32, u32)))] = LAMBDA(BitOr, uint32);
-    map[StringRef(STR(JOIN(BitOr, u64, u64)))] = LAMBDA(BitOr, uint64);
-
-    map[StringRef(STR(JOIN(BitXor, u8, u8)))]   = LAMBDA(BitXor, uint8);
-    map[StringRef(STR(JOIN(BitXor, u16, u16)))] = LAMBDA(BitXor, uint16);
-    map[StringRef(STR(JOIN(BitXor, u32, u32)))] = LAMBDA(BitXor, uint32);
-    map[StringRef(STR(JOIN(BitXor, u64, u64)))] = LAMBDA(BitXor, uint64);
-
-    map[StringRef(STR(JOIN(BitAnd, u8, u8)))]   = LAMBDA(BitAnd, uint8);
-    map[StringRef(STR(JOIN(BitAnd, u16, u16)))] = LAMBDA(BitAnd, uint16);
-    map[StringRef(STR(JOIN(BitAnd, u32, u32)))] = LAMBDA(BitAnd, uint32);
-    map[StringRef(STR(JOIN(BitAnd, u64, u64)))] = LAMBDA(BitAnd, uint64);
-
-    return map;
-}
-
-
-
-Dict<StringRef, BoolOp::NativeBoolyOp> native_binary_operators() {
-    static Dict<StringRef, BoolOp::NativeBoolyOp> ops = build_native_binary_operators();
-    return ops;
-}
-
-BoolOp::NativeBoolyOp get_native_binary_operation(StringRef signature) {
-    return native_binary_operators()[signature];
-}
-
-
-ConstantValue add(ConstantValue::Type type, ConstantValue const& a, ConstantValue const& b) {
-    switch(type) {
-        #define NUM(kind, type, c)\
-            case ConstantValue::T##kind: return Add<type>::call(a.get<type>(), b.get<type>());
-
-        NUMERIC_CONSTANT(NUM)
-
-        #undef NUM
-    }
-
-    return ConstantValue();
-}
-
-}
+#include "builtin/operators.h"
 
 
 namespace lython {
@@ -209,6 +35,22 @@ bool SemanticAnalyser::typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, 
     return match;
 }
 
+
+Tuple<ClassDef*, FunctionDef*> SemanticAnalyser::find_method(TypeExpr* class_type, String const& methodname) {
+    ClassDef* cls = get_class(bindings, class_type);
+
+    if (cls == nullptr) {
+        return std::make_tuple(nullptr, nullptr);
+    }
+
+    TypeExpr *op_type = nullptr;
+
+    return std::make_tuple(
+        cls,
+        cast<FunctionDef>(getattr(cls, methodname, op_type))
+    );
+}
+
 TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
     auto   bool_type        = make_ref(n, "bool");
     bool   and_implemented  = false;
@@ -230,6 +72,15 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
     for (int i = 1; i < n->values.size(); i++) {
         auto rhs_t = exec(n->values[i], depth);
 
+        StringRef signature = join("-", Array<String>{
+            str(n->op),
+            str(lhs_t),
+            str(rhs_t)
+        });
+
+        auto handler = get_native_bool_operation(signature);
+        n->native_operator = handler;
+
         //
         //  TODO: we could create a builtin file that define
         //  bool as a class that has the __and__ attribute
@@ -239,15 +90,11 @@ TypeExpr *SemanticAnalyser::boolop(BoolOp *n, int depth) {
         //  * __and__ inside the lhs
         //  * __rand__ inside the rhs
         if (!equal(lhs_t, bool_type)) {
-            auto cls = get_class(bindings, lhs_t);
 
-            if (cls == nullptr) {
-                SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
-                return nullptr;
-            }
+            ClassDef* cls = nullptr;
+            FunctionDef* fun = nullptr;
 
-            TypeExpr *op_type = nullptr;
-            auto      fun     = getattr(cls, magic, op_type);
+            std::tie(cls, fun) = find_method(lhs_t, magic);
 
             if (fun == nullptr) {
                 SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
@@ -288,17 +135,6 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
     return nullptr;
 }
 
-
-static StringRef ni8  = String("i8");
-static StringRef ni16 = String("i16");
-static StringRef ni32 = String("i32");
-static StringRef ni64 = String("i64");
-
-static StringRef nu8  = String("u8");
-static StringRef nu16 = String("u16");
-static StringRef nu32 = String("u32");
-static StringRef nu64 = String("u64");
-
 TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
 
     auto prev_t = exec(n->left, depth);
@@ -309,8 +145,22 @@ TypeExpr *SemanticAnalyser::compare(Compare *n, int depth) {
         auto cmp   = n->comparators[i];
         auto cmp_t = exec(cmp, depth);
 
-        // TODO: fetch native operator to use
+        // Check if we have a native function to handle this
+        String signature = join(
+            String("-"),
+            Array<String>{
+                str(op),
+                str(prev_t),
+                str(cmp_t)
+        });
 
+        // TODO: get return type
+        auto handler = get_native_cmp_operation(signature);
+        n->native_operator.push_back(handler);
+
+        if (!handler) {
+            SEMA_ERROR(UnsupportedOperand(str(op), prev_t, cmp_t));
+        }
         //
         // prev <op> cmp
 
@@ -365,6 +215,22 @@ TypeExpr *SemanticAnalyser::binop(BinOp *n, int depth) {
 }
 TypeExpr *SemanticAnalyser::unaryop(UnaryOp *n, int depth) {
     auto expr_t = exec(n->operand, depth);
+
+    String signature = join(
+        "-",
+        Array<String>{
+            str(n->op),
+            str(expr_t)
+        }
+    );
+
+    UnaryOp::NativeUnaryOp handler = get_native_unary_operation(signature);
+    if (!handler) {
+        SEMA_ERROR(UnsupportedOperand(str(n->op), expr_t, nullptr));
+    }
+
+    // assert(handler != nullptr, "Unary operation require native handler");
+    n->native_operator = handler;
 
     // TODO: fetch native operator
     // TODO: check that op is defined for this type
@@ -1187,6 +1053,19 @@ TypeExpr *SemanticAnalyser::assign(Assign *n, int depth) {
 TypeExpr *SemanticAnalyser::augassign(AugAssign *n, int depth) {
     auto expected_type = exec(n->target, depth);
     auto type          = exec(n->value, depth);
+
+    String signature = join("-", Array<String>{
+        str(n->op),
+        str(expected_type),
+        str(type)
+    });
+
+    auto handler = get_native_binary_operation(signature);
+    n->native_operator = handler;
+
+    if (!handler) {
+        SEMA_ERROR(UnsupportedOperand(str(n->op), expected_type, type));
+    }
 
     typecheck(n->value, type, n->target, expected_type, LOC);
     return type;

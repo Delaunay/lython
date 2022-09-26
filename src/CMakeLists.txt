@@ -24,6 +24,7 @@ SET(ADD_HEADERS
     utilities/object.h
     ast/magic.h
     ast/constant.h
+    builtin/operators.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
@@ -50,6 +51,7 @@ SET(ADD_SOURCE
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
     ast/ops/print.cpp
+    builtin/operators.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp

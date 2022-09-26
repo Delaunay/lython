@@ -104,6 +104,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return nullptr;
     }
 
+    Tuple<ClassDef*, FunctionDef*> find_method(TypeExpr* class_type, String const& methodname);
+
     bool typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
                    CodeLocation const &loc);
 

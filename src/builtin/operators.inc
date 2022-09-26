@@ -5,7 +5,6 @@
 
 namespace lython {
 
-
 // -
 // Unary (T) -> T
 // -
@@ -16,6 +15,14 @@ struct UnaryOperation {
         T r;
         T a;
     };
+
+    static ConstantValue vm(ConstantValue const& a) {
+        return ConstantValue(
+            Implementation::call(
+                a.get<T>()
+            )
+        );
+    }
 
     static void call(Params& params) {
         params.r = Implementation::call(params.a);
@@ -229,6 +236,15 @@ struct ComparisonOperation {
         T a;
         T b;
     };
+
+    static ConstantValue vm(ConstantValue const& a, ConstantValue const& b) {
+        return ConstantValue(
+            Implementation::call(
+                a.get<T>(),
+                b.get<T>()
+            )
+        );
+    }
 
     static void call(Params& params) {
         params.r = Implementation::call(params.a, params.b);

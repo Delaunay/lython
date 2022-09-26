@@ -1,4 +1,5 @@
 {
+  "files.eol": "\n",
   "C_Cpp_Runner.cCompilerPath": "/bin/gcc",
   "C_Cpp_Runner.debuggerPath": "/bin/gdb",
   "C_Cpp_Runner.makePath": "/bin/make",
@@ -110,7 +111,8 @@
     "valarray": "cpp",
     "ranges": "cpp",
     "filesystem": "cpp",
-    "stack": "cpp"
+    "stack": "cpp",
+    "*.inc": "cpp"
   },
   "python.formatting.provider": "black"
 }

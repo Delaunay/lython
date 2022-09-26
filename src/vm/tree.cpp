@@ -4,14 +4,13 @@
 #include "logging/logging.h"
 
 #include "vm/tree.h"
-#include "vm/builtins.h"
 
 
 namespace lython {
 
 PartialResult *TreeEvaluator::compare(Compare_t *n, int depth) {
 
-        // a and b and c and d
+    // a and b and c and d
     //
     PartialResult* left = exec(n->left, depth);
     Constant* left_const = cast<Constant>(left);
@@ -204,7 +203,6 @@ PartialResult *TreeEvaluator::unaryop(UnaryOp_t *n, int depth)
         if (n->native_operator)
         {
             Constant* operandc = static_cast<Constant*>(operand);
-
             return root.new_object<Constant>(
                 n->native_operator(operandc->value)
             );
@@ -261,10 +259,10 @@ PartialResult *TreeEvaluator::ifexp(IfExp_t *n, int depth) {
     bool btrue = value->value.get<bool>();
 
     if (btrue) {
-        return exec(n->orelse, depth);
+        return exec(n->body, depth);
     }
 
-    return exec(n->body, depth);
+    return exec(n->orelse, depth);
 }
 
 
@@ -298,7 +296,13 @@ PartialResult *TreeEvaluator::constant(Constant_t *n, int depth) {
 
 PartialResult *TreeEvaluator::name(Name_t *n, int depth) {
     Node* result = bindings.get_value(n->varid);
-    debug("Looked for {} (id: {}) found {}", n->id, n->varid, str(result->kind));
+    assert(result != nullptr, "Could not find variable");
+
+    String kindstr = "";
+    if (result) {
+        kindstr = str(result->kind);
+    }
+    debug("Looked for {} (id: {}) found {}", n->id, n->varid, kindstr);
     return result;
 }
 
@@ -306,11 +310,7 @@ PartialResult *TreeEvaluator::name(Name_t *n, int depth) {
 PartialResult *TreeEvaluator::functiondef(FunctionDef_t *n, int depth) {
     return_value = nullptr;
 
-    debug("Executing function");
-
     for(StmtNode* stmt: n->body) {
-        debug("Processing stmt");
-
         exec(stmt, depth + 1);
 
         if (has_exceptions()) {
@@ -387,11 +387,13 @@ PartialResult *TreeEvaluator::augassign(AugAssign_t *n, int depth) {
             value = exec(n->resolved_operator, depth);
         }
 
-        if (n->native_operator)
+        else if (n->native_operator)
         {
-            value = root.new_object<Constant>(
-                n->native_operator(left_v, right_v)
-            );
+            auto result = n->native_operator(left_v->value, right_v->value);
+            value = root.new_object<Constant>(result);
+        }
+        else {
+            error("Operator does not have implementation!");
         }
 
         bindings.set_value(name->varid, value); // store a
@@ -464,6 +466,8 @@ PartialResult *TreeEvaluator::forstmt(For_t *n, int depth) {
 }
 PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
 
+    bool broke = false;
+
     while (true) {
         Constant* value = cast<Constant>(exec(n->test, depth));
         // TODO if it is not a value that means we could not evaluate it so we should return the node
@@ -472,7 +476,7 @@ PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
 
         bool bcontinue = value && value->value.get<bool>();
 
-        if (!bcontinue) {
+        if (!bcontinue || broke) {
             break;
         }
 
@@ -485,13 +489,18 @@ PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
             }
 
             if (loop_break) {
+                broke = true;
                 break;
             }
 
             if (loop_continue) {
-                continue;
+                break;
             }
         }
+
+        // reset
+        loop_break = false;
+        loop_continue = false;
     }
 
     for(StmtNode* stmt: n->orelse) {
@@ -501,18 +510,42 @@ PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
 }
 
 PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
-    // Chained
+
     Array<StmtNode *>& body = n->orelse;
+    // Chained
+    if (n->tests.size() > 0) {
+        for(int i = 0; i < n->tests.size(); i++) {
+            Constant* value = cast<Constant>(exec(n->test, depth));
+            assert(value, "If test should return a boolean");
 
-    for(int i = 0; i < n->tests.size(); i++) {
-        Constant* value = cast<Constant>(exec(n->test, depth));
-        assert(value, "If test should return a boolean");
-
-        bool btrue = value->value.get<bool>();
-        if (btrue) {
-            body = n->bodies[i];
-            break;
+            bool btrue = value->value.get<bool>();
+            if (btrue) {
+                body = n->bodies[i];
+                break;
+            }
         }
+
+        for(StmtNode* stmt: body)
+        {
+            exec(stmt, depth);
+
+            if (has_exceptions()) {
+                return None();
+            }
+        }
+
+        return None();
+    }
+
+    // Simple
+    PartialResult* test = exec(n->test, depth);
+    Constant* value = cast<Constant>(test);
+    assert(value, "If test should return a boolean");
+
+    bool btrue = value->value.get<bool>();
+
+    if (btrue) {
+        body = n->body;
     }
 
     for(StmtNode* stmt: body)
@@ -525,26 +558,6 @@ PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
     }
 
     return None();
-
-#if 0
-    // Simple
-    Constant* value = cast<Constant>(exec(n->test, depth));
-    assert(value, "If test should return a boolean");
-
-    bool btrue = value->value.get<bool>();
-
-    Array<StmtNode *>& body = n->orelse;
-    if (btrue) {
-        body = n->body;
-    }
-
-    for(StmtNode* stmt: body)
-    {
-        exec(stmt, depth);
-    }
-
-    return None();
-#endif
 }
 
 PartialResult *TreeEvaluator::assertstmt(Assert_t *n, int depth) {

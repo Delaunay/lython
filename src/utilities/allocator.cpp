@@ -106,6 +106,17 @@ void show_alloc_stats() {
     }
     std::cout << "Total: " << total << std::endl;
     std::cout << line << '\n';
+
+    std::cout <<
+    "NB: Notice that not everything was `freed`, this is because the accounting happens before the static variables gets released.\n"
+    "which means it does not necessarily means there is a memory leak.\n"
+    "use valgrind to make sure everything is released properly.\n"
+    "\n"
+    "* Pair[String, NativeBinaryOp]: Native operator, allocated once using static\n"
+    "* Pair[StringView, size_t]: From the string database, allocated once using static\n"
+    "* Constant: builtin constant created once using static\n"
+    "\n----\n"
+    ;
 }
 
 } // namespace lython
