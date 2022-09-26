@@ -89,23 +89,27 @@ enum class ConversionKind : int8_t
 
 enum class BinaryOperator : int8_t
 {
-    None,
-    Add,
-    Sub,
-    Mult,
-    MatMult,
-    Div,
-    Mod,
-    Pow,
-    LShift,
-    RShift,
-    BitOr,
-    BitXor,
-    BitAnd,
-    FloorDiv,
+#define BINARY_OPERATORS(OP)\
+    OP(None, "")\
+    OP(Add, "+")\
+    OP(Sub, "-")\
+    OP(Mult, "*")\
+    OP(MatMult, "@")\
+    OP(Div, "/")\
+    OP(Mod, "%")\
+    OP(Pow, "^")\
+    OP(LShift, "<<")\
+    OP(RShift, ">>")\
+    OP(BitOr, "|")\
+    OP(BitXor, "^")\
+    OP(BitAnd, "&")\
+    OP(FloorDiv, "//")\
+    OP(EltMult, ".*")\
+    OP(EltDiv, "./")\
 
-    EltMult,
-    EltDiv
+#define OP(name, _) name,
+    BINARY_OPERATORS(OP)
+#undef OP
 };
 
 enum class BoolOperator : int8_t
@@ -116,21 +120,43 @@ enum class BoolOperator : int8_t
     OP(Or, or)
 
 #define OP(name, kw) name,
-
     BOOL_OPERATORS(OP)
-
 #undef OP
 };
 
-void print(BoolOperator const &, std::ostream &out);
-
 enum class UnaryOperator : int8_t
 {
-    None,
-    Invert, // ~
-    Not,    // !
-    UAdd,   // +
-    USub,   // -
+#define UNARY_OPERATORS(OP)\
+    OP(None, "")\
+    OP(Invert, "~")\
+    OP(Not,  "!")\
+    OP(UAdd, "+")\
+    OP(USub, "-")
+
+#define OP(name, kw) name,
+    UNARY_OPERATORS(OP)
+#undef OP
+};
+
+enum class CmpOperator : int8_t
+{
+
+#define COMP_OPERATORS(OP)\
+    OP(None, "")\
+    OP(Eq, "==")\
+    OP(NotEq, "!=")\
+    OP(Lt, "<")\
+    OP(LtE, "<=")\
+    OP(Gt, ">")\
+    OP(GtE, ">=")\
+    OP(Is, "is")\
+    OP(IsNot, "is not")\
+    OP(In, "int")\
+    OP(NotIn, "not in")
+
+#define OP(name, _) name,
+    COMP_OPERATORS(OP)
+#undef OP
 };
 
 enum class ExprContext : int8_t
@@ -139,21 +165,11 @@ enum class ExprContext : int8_t
     Store,
     Del
 };
+void print(BoolOperator const &, std::ostream &out);
+void print(BinaryOperator const &, std::ostream &out);
+void print(CmpOperator const &, std::ostream &out);
+void print(UnaryOperator const &, std::ostream &out);
 
-enum class CmpOperator : int8_t
-{
-    None,
-    Eq,
-    NotEq,
-    Lt,
-    LtE,
-    Gt,
-    GtE,
-    Is,
-    IsNot,
-    In,
-    NotIn,
-};
 
 struct Comprehension {
     ExprNode *        target = nullptr;

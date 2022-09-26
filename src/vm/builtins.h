@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include "ast/constant.h"
 
 namespace lython {
 
@@ -98,6 +99,15 @@ struct BinaryOperation {
         params.r = Implementation::call(params.a, params.b);
     }
 
+    static ConstantValue vm(ConstantValue const& a, ConstantValue const& b) {
+        return ConstantValue(
+            Implementation::call(
+                a.get<T>(),
+                b.get<T>()
+            )
+        );
+    }
+
     static T call(T a, T b) {
         return Implementation::call(a, b);
     }
@@ -120,7 +130,7 @@ struct Sub: public BinaryOperation<T, Sub<T>> {
 template<typename T>
 struct Pow: public BinaryOperation<T, Pow<T>> {
     static T call(T a, T b) {
-        return std::pow(a, b);
+        return T(std::pow(a, b));
     }
 };
 

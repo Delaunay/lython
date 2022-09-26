@@ -46,6 +46,48 @@ void print(BoolOperator const &v, std::ostream &out) {
     }
 }
 
+
+void print(BinaryOperator const &v, std::ostream &out) {
+        switch (v) {
+#define OP(name, kw)           \
+    case BinaryOperator::name: { \
+        out << #name;           \
+        return;                \
+    }
+        BINARY_OPERATORS(OP)
+
+#undef OP
+    }
+}
+
+
+void print(UnaryOperator const &v, std::ostream &out) {
+        switch (v) {
+#define OP(name, kw)           \
+    case UnaryOperator::name: { \
+        out << #name;           \
+        return;                \
+    }
+        UNARY_OPERATORS(OP)
+
+#undef OP
+    }
+}
+
+void print(CmpOperator const &v, std::ostream &out) {
+        switch (v) {
+#define OP(name, kw)           \
+    case CmpOperator::name: { \
+        out << #name;           \
+        return;                \
+    }
+        COMP_OPERATORS(OP)
+
+#undef OP
+    }
+}
+
+
 void ClassDef::Attr::dump(std::ostream &out) {
     out << name << ": " << str(type) << " = " << str(stmt);
 }
