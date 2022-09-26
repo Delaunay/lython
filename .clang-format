@@ -36,9 +36,8 @@ IndentPPDirectives: AfterHash
 #     : aaaaaaaaaaaaaaaaaaaa(),
 #       bbbbbbbbbbbbbbbbbbbb(),
 #       ddddddddddddd()
-PackConstructorInitializers: CurrentLine
-
-ReferenceAlignmentStyle: Left
+# PackConstructorInitializers: CurrentLine
+# ReferenceAlignmentStyle: Left
 PointerAlignment: Left
 
 # Constructor() :

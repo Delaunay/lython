@@ -17,6 +17,7 @@ jobs:
 
       - name: Format
         run: |
+          clang-format --version
           find src -name '*.cpp'|xargs clang-format --dry-run --Werror --style=file
           find src -name '*.h'|xargs clang-format --dry-run --Werror --style=file
 
@@ -66,7 +67,7 @@ jobs:
           cd build
           make coverage
           cd coverage
-          bash ../../scripts/extract_coverage.bash coverage.xml coverage.csv template/badge.svg badge.svg
+          python ../../scripts/parse_coverage.py --report coverage.xml --csv coverage.csv --template template/badge.svg --target badge.svg
 
       - name: Upload coverage to Codecov
         if: always()
