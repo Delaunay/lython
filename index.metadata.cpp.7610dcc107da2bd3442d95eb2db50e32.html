@@ -27,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-09-26 00:03:42</td>
+      <td>2022-09-26 22:40:45</td>
     </tr>
   </table>
 </div>
@@ -41,8 +41,8 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>36</td>
-      <td>36</td>
+      <td>42</td>
+      <td>42</td>
       <td class="coverage-high">100.0%</td>
     </tr>
     <tr>
@@ -86,24 +86,24 @@
     </tr>
     <tr>
       <td>
-        <a href="#l152">lython::metadata_init_names()</a>
+        <a href="#l173">lython::metadata_init_names()</a>
       </td>
       <td>
-        <a href="#l152">152</a>
+        <a href="#l173">173</a>
       </td>
       <td>
-        <a href="#l152"> called 1144 times</a>
+        <a href="#l173"> called 1174 times</a>
       </td>
     </tr>
     <tr>
       <td>
-        <a href="#l141">lython::track_static()</a>
+        <a href="#l162">lython::track_static()</a>
       </td>
       <td>
-        <a href="#l141">141</a>
+        <a href="#l162">162</a>
       </td>
       <td>
-        <a href="#l141"> called 11 times</a>
+        <a href="#l162"> called 11 times</a>
       </td>
     </tr>
   </table>
@@ -454,7 +454,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;GCObject*&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Node</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;Node*&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -462,7 +462,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;ExprNode*&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">GCObject</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;GCObject*&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -470,15 +470,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;StmtNode*&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ExprNode</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;ExprNode*&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l45" href="#l45">45</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;StmtNode*&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -486,7 +486,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">UniquePtrInternal</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">SemaException</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;SemaException&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ConstantValue</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;ConstantValue&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -494,7 +494,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">UniquePtrInternal</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ParsingException</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;ParsingException&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">BinOp</span><span class="o">::</span><span class="n">NativeBinaryOp</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;NativeBinaryOperation&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -510,7 +510,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Comprehension</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Comprehension&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">UniquePtrInternal</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">SemaException</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;SemaException&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -518,15 +518,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Alias</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Alias&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">UniquePtrInternal</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ParsingException</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;ParsingException&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l51" href="#l51">51</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">WithItem</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;WithItem&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -534,7 +534,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ExceptHandler</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;ExceptHandler&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Comprehension</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Comprehension&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -542,7 +542,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Arg</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Arg&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Alias</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Alias&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -550,7 +550,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">CmpOperator</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;CmpOperator&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">WithItem</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;WithItem&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -558,7 +558,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Keyword</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Keyword&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">ExceptHandler</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;ExceptHandler&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -566,7 +566,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">MatchCase</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;MatchCase&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Arg</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Arg&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -574,7 +574,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Pattern</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;Pattern*&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">CmpOperator</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;CmpOperator&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -582,7 +582,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">BindingEntry</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;BindingEntry&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Keyword</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;Keyword&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -590,31 +590,31 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*&gt;&gt;</span><span class="p">(</span><span class="s">&quot;Array&lt;StmtNode*&gt;&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">MatchCase</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;MatchCase&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l60" href="#l60">60</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">Pattern</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="s">&quot;Pattern*&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l61" href="#l61">61</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#define REGISTER_TYPE(type)                   \</span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">lython</span><span class="o">::</span><span class="n">BindingEntry</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&quot;BindingEntry&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l62" href="#l62">62</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">    meta::register_type&lt;lython::type&gt;(#type); \</span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="w"> </span><span class="o">*&gt;&gt;</span><span class="p">(</span><span class="s">&quot;Array&lt;StmtNode*&gt;&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -622,7 +622,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">    meta::register_type&lt;lython::type *&gt;(#type &quot;*&quot;);</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -630,7 +630,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#define REGISTER_TYPE(type)                   \</span></td>
     </tr>
 
     <tr class="source-line">
@@ -638,7 +638,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define X(name, _)</span></td>
+      <td class="src "><span class="cp">    meta::register_type&lt;lython::type&gt;(#type); \</span></td>
     </tr>
 
     <tr class="source-line">
@@ -646,7 +646,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define SECTION(name)</span></td>
+      <td class="src "><span class="cp">    meta::register_type&lt;lython::type *&gt;(#type &quot;*&quot;);</span></td>
     </tr>
 
     <tr class="source-line">
@@ -654,7 +654,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define EXPR(name, _)  REGISTER_TYPE(name)</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -662,7 +662,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define STMT(name, _)  REGISTER_TYPE(name)</span></td>
+      <td class="src "><span class="cp">#define X(name, _)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -670,7 +670,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define MOD(name, _)   REGISTER_TYPE(name)</span></td>
+      <td class="src "><span class="cp">#define SECTION(name)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -678,7 +678,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define MATCH(name, _) REGISTER_TYPE(name)</span></td>
+      <td class="src "><span class="cp">#define EXPR(name, _)  REGISTER_TYPE(name)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -686,15 +686,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#define STMT(name, _)  REGISTER_TYPE(name)</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l72" href="#l72">72</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">NODEKIND_ENUM</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">SECTION</span><span class="p">,</span><span class="w"> </span><span class="n">EXPR</span><span class="p">,</span><span class="w"> </span><span class="n">STMT</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">,</span><span class="w"> </span><span class="n">MATCH</span><span class="p">)</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define MOD(name, _)   REGISTER_TYPE(name)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -702,7 +702,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#define MATCH(name, _) REGISTER_TYPE(name)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -710,15 +710,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef X</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l75" href="#l75">75</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef SECTION</span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">NODEKIND_ENUM</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">SECTION</span><span class="p">,</span><span class="w"> </span><span class="n">EXPR</span><span class="p">,</span><span class="w"> </span><span class="n">STMT</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">,</span><span class="w"> </span><span class="n">MATCH</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -726,7 +726,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef EXPR</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -734,7 +734,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef STMT</span></td>
+      <td class="src "><span class="cp">#undef X</span></td>
     </tr>
 
     <tr class="source-line">
@@ -742,7 +742,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef MOD</span></td>
+      <td class="src "><span class="cp">#undef SECTION</span></td>
     </tr>
 
     <tr class="source-line">
@@ -750,7 +750,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef MATCH</span></td>
+      <td class="src "><span class="cp">#undef EXPR</span></td>
     </tr>
 
     <tr class="source-line">
@@ -758,7 +758,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#undef STMT</span></td>
     </tr>
 
     <tr class="source-line">
@@ -766,15 +766,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="w"></span></td>
+      <td class="src "><span class="cp">#undef MOD</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l82" href="#l82">82</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">ClassDef</span><span class="o">::</span><span class="n">Attr</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef MATCH</span></td>
     </tr>
 
     <tr class="source-line">
@@ -782,7 +782,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[Ref, Classdef::Attr]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -790,7 +790,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -798,7 +798,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">OpConfig</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">ClassDef</span><span class="o">::</span><span class="n">Attr</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -806,7 +806,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, OpConfig]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[Ref, Classdef::Attr]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -822,7 +822,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">TokenType</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">OpConfig</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -830,7 +830,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, TokenType]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, OpConfig]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -846,7 +846,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">TokenType</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">TokenType</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -870,7 +870,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">OpConfig</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">TokenType</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -878,7 +878,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, OpConfig]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, TokenType]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -893,8 +893,8 @@
       <td class="lineno"><a id="l97" href="#l97">97</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cp">#if !__linux__</span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">OpConfig</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -902,7 +902,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// hashtable internal stuff</span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, OpConfig]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -910,15 +910,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// windows only</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l100" href="#l100">100</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">ClassDef</span><span class="o">::</span><span class="n">Attr</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -926,7 +926,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[Ref, Classdef::Attr]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, bool]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -941,8 +941,8 @@
       <td class="lineno"><a id="l103" href="#l103">103</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">ExprNode</span><span class="o">*&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -950,7 +950,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[int, String]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, ExprNode*]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -965,8 +965,8 @@
       <td class="lineno"><a id="l106" href="#l106">106</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">BinOp</span><span class="o">::</span><span class="n">NativeBinaryOp</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -974,7 +974,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[StringView, size_t]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, NativeBinaryOp]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -990,7 +990,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">OpConfig</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="src "><span class="cp">#if !__linux__</span></td>
     </tr>
 
     <tr class="source-line">
@@ -998,7 +998,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[String, OpConfig]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// hashtable internal stuff</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1006,7 +1006,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// windows only</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1014,7 +1014,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">TokenType</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">ClassDef</span><span class="o">::</span><span class="n">Attr</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1022,7 +1022,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[String, TokenType]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[Ref, Classdef::Attr]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1030,7 +1030,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#endif</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1038,7 +1038,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1046,27 +1046,11 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// StringDatabase</span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[int, String]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l117" href="#l117">117</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringView</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l118" href="#l118">118</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[StringView, size_t]&quot;</span><span class="p">);</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l119" href="#l119">119</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1074,19 +1058,35 @@
     </tr>
 
     <tr class="source-line">
+      <td class="lineno"><a id="l118" href="#l118">118</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string_view</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l119" href="#l119">119</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[StringView, size_t]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
       <td class="lineno"><a id="l120" href="#l120">120</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// module</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l121" href="#l121">121</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">OpConfig</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1094,7 +1094,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, Index]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[String, OpConfig]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1110,15 +1110,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// module precedence_table</span></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">TokenType</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l125" href="#l125">125</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[String, TokenType]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1126,7 +1126,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, Tuple[int, bool]]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1134,7 +1134,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">BinOp</span><span class="o">::</span><span class="n">NativeBinaryOp</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1142,15 +1142,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// Keyword to string</span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[StringRef, NativeBinaryOp]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l129" href="#l129">129</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;Pair[int, String]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1158,7 +1158,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="n">lython</span><span class="o">::</span><span class="n">ExprNode</span><span class="o">*&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1166,15 +1166,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// Set Keyword</span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[StringRef, ExprNode*]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l132" href="#l132">132</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="kt">char</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;Set[char]&quot;</span><span class="p">);</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1182,7 +1182,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">ListIterator</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringRef</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1190,7 +1190,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define INIT_METADATA(name, typname) meta::type_name&lt;name&gt;();</span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Iterator[Pair[StringRef, bool]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1198,15 +1198,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#endif</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l136" href="#l136">136</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="n">TYPES_METADATA</span><span class="p">(</span><span class="n">INIT_METADATA</span><span class="p">)</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1214,7 +1214,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// StringDatabase</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1222,7 +1222,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">StringView</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1230,7 +1230,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[StringView, size_t]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1246,15 +1246,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="kt">void</span><span class="w"> </span><span class="nf">track_static</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// module</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l142" href="#l142">142</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// Record the allocation count on startup</span></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1262,7 +1262,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// so we can try to ignore static variables</span></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, Index]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1270,7 +1270,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// this will only work if `metadata_init_names` is called</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1278,7 +1278,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// after the static variables got initialized</span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// module precedence_table</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1286,30 +1286,23 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">stat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">meta</span><span class="o">::</span><span class="n">stats</span><span class="p">();</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="o">&gt;&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l147" href="#l147">147</a></td>
       <td class="linebranch">
-        <details class="linebranchDetails">
-        <summary class="linebranchSummary">2/2</summary>
-        <div class="linebranchContents">
-          <div class="takenBranch">&check; Branch 4 taken 1992 times.</div>
-          <div class="takenBranch">&check; Branch 5 taken 11 times.</div>
-        </div>
-        </details>
       </td>
-      <td class="linecount coveredLine">2003</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">s</span><span class="o">:</span><span class="w"> </span><span class="n">stat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="s">&quot;Pair[String, Tuple[int, bool]]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l148" href="#l148">148</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1992</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">s</span><span class="p">.</span><span class="n">startup_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">allocated</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">deallocated</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1317,7 +1310,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// Keyword to string</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1325,7 +1318,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">11</td>
-      <td class="src coveredLine"><span class="p">}</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;Pair[int, String]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1341,15 +1334,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="kt">void</span><span class="w"> </span><span class="nf">metadata_init_names</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_metadata_init_names</span><span class="p">();</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// Set Keyword</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l153" href="#l153">153</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">meta</span><span class="o">::</span><span class="n">register_type</span><span class="o">&lt;</span><span class="n">HashNodeInternal</span><span class="o">&lt;</span><span class="kt">char</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="o">&gt;&gt;</span><span class="p">(</span><span class="s">&quot;Set[char]&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1357,11 +1350,186 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w"> </span><span class="c1">// namespace lython</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l155" href="#l155">155</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#define INIT_METADATA(name, typname) meta::type_name&lt;name&gt;();</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l156" href="#l156">156</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l157" href="#l157">157</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="n">TYPES_METADATA</span><span class="p">(</span><span class="n">INIT_METADATA</span><span class="p">)</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l158" href="#l158">158</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l159" href="#l159">159</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l160" href="#l160">160</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l161" href="#l161">161</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l162" href="#l162">162</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="kt">void</span><span class="w"> </span><span class="nf">track_static</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l163" href="#l163">163</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// Record the allocation count on startup</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l164" href="#l164">164</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// so we can try to ignore static variables</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l165" href="#l165">165</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// this will only work if `metadata_init_names` is called</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l166" href="#l166">166</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// after the static variables got initialized</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l167" href="#l167">167</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">stat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">meta</span><span class="o">::</span><span class="n">stats</span><span class="p">();</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l168" href="#l168">168</a></td>
+      <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">2/2</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 4 taken 2080 times.</div>
+          <div class="takenBranch">&check; Branch 5 taken 11 times.</div>
+        </div>
+        </details>
+      </td>
+      <td class="linecount coveredLine">2091</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">s</span><span class="o">:</span><span class="w"> </span><span class="n">stat</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l169" href="#l169">169</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">2080</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">s</span><span class="p">.</span><span class="n">startup_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">allocated</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">deallocated</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l170" href="#l170">170</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l171" href="#l171">171</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">11</td>
+      <td class="src coveredLine"><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l172" href="#l172">172</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l173" href="#l173">173</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="kt">void</span><span class="w"> </span><span class="nf">metadata_init_names</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_metadata_init_names</span><span class="p">();</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l174" href="#l174">174</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l175" href="#l175">175</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w"> </span><span class="c1">// namespace lython</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l176" href="#l176">176</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
