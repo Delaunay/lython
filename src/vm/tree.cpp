@@ -5,30 +5,28 @@
 
 #include "vm/tree.h"
 
-
 namespace lython {
 
-PartialResult *TreeEvaluator::compare(Compare_t *n, int depth) {
+PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
     // a and b and c and d
     //
-    PartialResult* left = exec(n->left, depth);
-    Constant* left_const = cast<Constant>(left);
+    PartialResult* left       = exec(n->left, depth);
+    Constant*      left_const = cast<Constant>(left);
 
     Array<PartialResult*> partials;
     partials.reserve(n->comparators.size());
 
-    bool bnative = n->native_operator.size() > 0;
+    bool bnative   = n->native_operator.size() > 0;
     bool full_eval = true;
 
-    for(int i = 0; i < n->comparators.size(); i++) {
+    for (int i = 0; i < n->comparators.size(); i++) {
         PartialResult* right = exec(n->comparators[i], depth);
         partials.push_back(right);
 
         Constant* right_const = cast<Constant>(right);
 
-        if (left_const && right_const)
-        {
+        if (left_const && right_const) {
             Constant* value = nullptr;
 
             if (!bnative) {
@@ -39,11 +37,10 @@ PartialResult *TreeEvaluator::compare(Compare_t *n, int depth) {
 
                 value = cast<Constant>(exec(n->resolved_operator[i], depth));
 
-            }
-            else if (bnative) {
-                 value = root.new_object<Constant>(
-                    n->native_operator[i](left_const->value, right_const->value)
-                );
+            } else if (bnative) {
+                auto native = n->native_operator[i];
+                assert(native, "Operator needs to be set");
+                value = root.new_object<Constant>(native(left_const->value, right_const->value));
             }
 
             assert(value != nullptr, "Must return a value if all arguments are set");
@@ -53,7 +50,7 @@ PartialResult *TreeEvaluator::compare(Compare_t *n, int depth) {
                 return False();
             }
 
-            left = right;
+            left       = right;
             left_const = right_const;
 
         } else {
@@ -66,24 +63,24 @@ PartialResult *TreeEvaluator::compare(Compare_t *n, int depth) {
     }
 
     Compare* comp = root.new_object<Compare>();
-    comp->left = n->left;
-    comp->ops = n->ops;
+    comp->left    = n->left;
+    comp->ops     = n->ops;
     comp->comparators.reserve(partials.size());
 
     comp->resolved_operator = n->resolved_operator;
-    comp->native_operator = n->native_operator;
+    comp->native_operator   = n->native_operator;
 
-    for(auto p: partials) {
-        comp->comparators.push_back((ExprNode*) p);
+    for (auto p: partials) {
+        comp->comparators.push_back((ExprNode*)p);
     }
     return comp;
 }
 
-PartialResult *TreeEvaluator::boolop(BoolOp_t *n, int depth) {
+PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
     // a and b or c and d
     //
     PartialResult* first_value = exec(n->values[0], depth);
-    Constant* first = cast<Constant>(first_value);
+    Constant*      first       = cast<Constant>(first_value);
 
     Array<PartialResult*> partials;
     partials.reserve(n->values.size());
@@ -91,14 +88,13 @@ PartialResult *TreeEvaluator::boolop(BoolOp_t *n, int depth) {
 
     bool full_eval = true;
 
-    for(int i = 1; i < n->values.size(); i++) {
+    for (int i = 1; i < n->values.size(); i++) {
         PartialResult* second_value = exec(n->values[i], depth);
         partials.push_back(second_value);
 
         Constant* second = cast<Constant>(second_value);
 
-        if (first && second)
-        {
+        if (first && second) {
             Constant* value = nullptr;
 
             if (n->resolved_operator) {
@@ -109,11 +105,8 @@ PartialResult *TreeEvaluator::boolop(BoolOp_t *n, int depth) {
 
                 value = cast<Constant>(exec(n->resolved_operator, depth));
 
-            }
-            else if (n->native_operator) {
-                 value = root.new_object<Constant>(
-                    n->native_operator(first->value, second->value)
-                );
+            } else if (n->native_operator) {
+                value = root.new_object<Constant>(n->native_operator(first->value, second->value));
             }
 
             assert(value != nullptr, "Must return a value if all arguments are set");
@@ -123,7 +116,7 @@ PartialResult *TreeEvaluator::boolop(BoolOp_t *n, int depth) {
                 return False();
             }
 
-            first = second;
+            first       = second;
             first_value = second_value;
 
         } else {
@@ -136,18 +129,18 @@ PartialResult *TreeEvaluator::boolop(BoolOp_t *n, int depth) {
     }
 
     BoolOp* boolop = root.new_object<BoolOp>();
-    boolop->op = n->op;
+    boolop->op     = n->op;
     boolop->values.reserve(partials.size());
     boolop->resolved_operator = n->resolved_operator;
-    boolop->native_operator = n->native_operator;
+    boolop->native_operator   = n->native_operator;
 
-    for(auto p: partials) {
-        boolop->values.push_back((ExprNode*) p);
+    for (auto p: partials) {
+        boolop->values.push_back((ExprNode*)p);
     }
     return boolop;
 }
 
-PartialResult *TreeEvaluator::binop(BinOp_t *n, int depth) {
+PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
 
     auto lhs = exec(n->left, depth);
     auto rhs = exec(n->right, depth);
@@ -165,29 +158,25 @@ PartialResult *TreeEvaluator::binop(BinOp_t *n, int depth) {
             return exec(n->resolved_operator, depth);
         }
 
-        if (n->native_operator)
-        {
+        if (n->native_operator) {
             Constant* lhsc = static_cast<Constant*>(lhs);
             Constant* rhsc = static_cast<Constant*>(rhs);
 
-            return root.new_object<Constant>(
-                n->native_operator(lhsc->value, rhsc->value)
-            );
+            return root.new_object<Constant>(n->native_operator(lhsc->value, rhsc->value));
         }
     }
 
     // We could not execute, just return what we could execute so far
-    BinOp* binary = root.new_object<BinOp>();
-    binary->op = n->op;
-    binary->left = (ExprNode*) lhs;
-    binary->right = (ExprNode*) rhs;
+    BinOp* binary             = root.new_object<BinOp>();
+    binary->op                = n->op;
+    binary->left              = (ExprNode*)lhs;
+    binary->right             = (ExprNode*)rhs;
     binary->resolved_operator = n->resolved_operator;
-    binary->native_operator = n->native_operator;
+    binary->native_operator   = n->native_operator;
     return binary;
 }
 
-PartialResult *TreeEvaluator::unaryop(UnaryOp_t *n, int depth)
-{
+PartialResult* TreeEvaluator::unaryop(UnaryOp_t* n, int depth) {
     auto operand = exec(n->operand, depth);
 
     // We can execute the function because both arguments got resolved
@@ -200,25 +189,22 @@ PartialResult *TreeEvaluator::unaryop(UnaryOp_t *n, int depth)
             return exec(n->resolved_operator, depth);
         }
 
-        if (n->native_operator)
-        {
+        if (n->native_operator) {
             Constant* operandc = static_cast<Constant*>(operand);
-            return root.new_object<Constant>(
-                n->native_operator(operandc->value)
-            );
+            return root.new_object<Constant>(n->native_operator(operandc->value));
         }
     }
 
     // We could not execute, just return what we could execute so far
-    UnaryOp* unary = root.new_object<UnaryOp>();
-    unary->op = n->op;
-    unary->operand = (ExprNode*) operand;
+    UnaryOp* unary           = root.new_object<UnaryOp>();
+    unary->op                = n->op;
+    unary->operand           = (ExprNode*)operand;
     unary->resolved_operator = n->resolved_operator;
-    unary->native_operator = n->native_operator;
+    unary->native_operator   = n->native_operator;
     return unary;
 }
 
-PartialResult *TreeEvaluator::namedexpr(NamedExpr_t *n, int depth) {
+PartialResult* TreeEvaluator::namedexpr(NamedExpr_t* n, int depth) {
     PartialResult* value = exec(n->value, depth);
 
     if (value->is_instance<Constant>()) {
@@ -228,13 +214,13 @@ PartialResult *TreeEvaluator::namedexpr(NamedExpr_t *n, int depth) {
 
     // TODO: do i put the evaluated expression or the partial expression ?
     NamedExpr* expr = root.new_object<NamedExpr>();
-    expr->target = n->target;
-    expr->value = (ExprNode*) value;
+    expr->target    = n->target;
+    expr->value     = (ExprNode*)value;
     bindings.add(StringRef(), value, nullptr);
     return expr;
 }
 
-PartialResult *TreeEvaluator::lambda(Lambda_t *n, int depth) {
+PartialResult* TreeEvaluator::lambda(Lambda_t* n, int depth) {
     auto result = exec(n->body, depth);
 
     if (result->is_instance<Constant>())
@@ -247,7 +233,7 @@ PartialResult *TreeEvaluator::lambda(Lambda_t *n, int depth) {
     return None();
 }
 
-PartialResult *TreeEvaluator::ifexp(IfExp_t *n, int depth) {
+PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
     Constant* value = cast<Constant>(exec(n->test, depth));
 
     if (!value) {
@@ -265,8 +251,7 @@ PartialResult *TreeEvaluator::ifexp(IfExp_t *n, int depth) {
     return exec(n->orelse, depth);
 }
 
-
-PartialResult *TreeEvaluator::call(Call_t *n, int depth) {
+PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     Scope scope(bindings);
 
     // fetch the function we need to call
@@ -276,7 +261,7 @@ PartialResult *TreeEvaluator::call(Call_t *n, int depth) {
     // TODO: if function is a FunctionDef/Lambda/Callable we can populate the binding name
 
     // insert arguments to the context
-    for(int i = 0; i < n->args.size(); i++) {
+    for (int i = 0; i < n->args.size(); i++) {
         PartialResult* arg = exec(n->args[i], depth);
         bindings.add(StringRef(), arg, nullptr);
     }
@@ -287,14 +272,12 @@ PartialResult *TreeEvaluator::call(Call_t *n, int depth) {
     return returned;
 }
 
-
-PartialResult *TreeEvaluator::constant(Constant_t *n, int depth) {
+PartialResult* TreeEvaluator::constant(Constant_t* n, int depth) {
     Constant* cpy = root.copy(n);
     return cpy;
 }
 
-
-PartialResult *TreeEvaluator::name(Name_t *n, int depth) {
+PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
     Node* result = bindings.get_value(n->varid);
     assert(result != nullptr, "Could not find variable");
 
@@ -306,11 +289,10 @@ PartialResult *TreeEvaluator::name(Name_t *n, int depth) {
     return result;
 }
 
-
-PartialResult *TreeEvaluator::functiondef(FunctionDef_t *n, int depth) {
+PartialResult* TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
     return_value = nullptr;
 
-    for(StmtNode* stmt: n->body) {
+    for (StmtNode* stmt: n->body) {
         exec(stmt, depth + 1);
 
         if (has_exceptions()) {
@@ -326,7 +308,7 @@ PartialResult *TreeEvaluator::functiondef(FunctionDef_t *n, int depth) {
     return return_value;
 }
 
-PartialResult *TreeEvaluator::returnstmt(Return_t *n, int depth) {
+PartialResult* TreeEvaluator::returnstmt(Return_t* n, int depth) {
     debug("Returning {}", str(n));
 
     if (n->value.has_value()) {
@@ -338,18 +320,16 @@ PartialResult *TreeEvaluator::returnstmt(Return_t *n, int depth) {
     return return_value;
 }
 
-
-
-PartialResult *TreeEvaluator::assign(Assign_t *n, int depth) {
+PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
     PartialResult* value = exec(n->value, depth);
 
     TupleExpr* targets = cast<TupleExpr>(n->targets[0]);
-    TupleExpr* values = cast<TupleExpr>(value);
+    TupleExpr* values  = cast<TupleExpr>(value);
 
     if (values && targets) {
         assert(values->elts.size() == targets->elts.size(), "Size must match");
 
-        for(int i = 0; i < values->elts.size(); i++) {
+        for (int i = 0; i < values->elts.size(); i++) {
             bindings.add(StringRef(), values->elts[i], nullptr);
         }
     } else {
@@ -358,7 +338,7 @@ PartialResult *TreeEvaluator::assign(Assign_t *n, int depth) {
 
     return None();
 }
-PartialResult *TreeEvaluator::augassign(AugAssign_t *n, int depth) {
+PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
 
     // This should a Name
     auto name = cast<Name>(n->target);
@@ -368,10 +348,10 @@ PartialResult *TreeEvaluator::augassign(AugAssign_t *n, int depth) {
         return None();
     }
 
-    auto left = exec(n->target, depth); // load a
-    auto right = exec(n->value, depth); // load b
+    auto left  = exec(n->target, depth);  // load a
+    auto right = exec(n->value, depth);   // load b
 
-    auto left_v = cast<Constant>(left);
+    auto left_v  = cast<Constant>(left);
     auto right_v = cast<Constant>(right);
 
     if (left_v && right_v) {
@@ -387,30 +367,28 @@ PartialResult *TreeEvaluator::augassign(AugAssign_t *n, int depth) {
             value = exec(n->resolved_operator, depth);
         }
 
-        else if (n->native_operator)
-        {
+        else if (n->native_operator) {
             auto result = n->native_operator(left_v->value, right_v->value);
-            value = root.new_object<Constant>(result);
-        }
-        else {
+            value       = root.new_object<Constant>(result);
+        } else {
             error("Operator does not have implementation!");
         }
 
-        bindings.set_value(name->varid, value); // store a
+        bindings.set_value(name->varid, value);  // store a
         return None();
     }
 
     AugAssign* expr = root.new_object<AugAssign>();
     // Do not use the evaluted target here
     expr->target = n->target;
-    expr->op = n->op;
-    expr->value = (ExprNode*) right;
+    expr->op     = n->op;
+    expr->value  = (ExprNode*)right;
     return expr;
 }
 
-PartialResult *TreeEvaluator::annassign(AnnAssign_t *n, int depth) {
+PartialResult* TreeEvaluator::annassign(AnnAssign_t* n, int depth) {
     PartialResult* value = None();
-    if (n->value.has_value()){
+    if (n->value.has_value()) {
         value = exec(n->value.value(), depth);
     }
 
@@ -418,7 +396,7 @@ PartialResult *TreeEvaluator::annassign(AnnAssign_t *n, int depth) {
     return None();
 }
 
-PartialResult *TreeEvaluator::forstmt(For_t *n, int depth) {
+PartialResult* TreeEvaluator::forstmt(For_t* n, int depth) {
 
     // insert target into the context
     // exec(n->target, depth);
@@ -440,8 +418,7 @@ PartialResult *TreeEvaluator::forstmt(For_t *n, int depth) {
 
         bindings.set_value(targetid, value);
 
-        for(StmtNode* stmt: n->body)
-        {
+        for (StmtNode* stmt: n->body) {
             exec(stmt, depth);
 
             if (has_exceptions()) {
@@ -458,20 +435,20 @@ PartialResult *TreeEvaluator::forstmt(For_t *n, int depth) {
         }
     }
 
-    for(StmtNode* stmt: n->orelse) {
+    for (StmtNode* stmt: n->orelse) {
         exec(stmt, depth);
     }
 
     return None();
 }
-PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
+PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
 
     bool broke = false;
 
     while (true) {
         Constant* value = cast<Constant>(exec(n->test, depth));
-        // TODO if it is not a value that means we could not evaluate it so we should return the node
-        // itself
+        // TODO if it is not a value that means we could not evaluate it so we should return the
+        // node itself
         assert(value, "While test should return a boolean");
 
         bool bcontinue = value && value->value.get<bool>();
@@ -480,11 +457,10 @@ PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
             break;
         }
 
-        for(StmtNode* stmt: n->body)
-        {
+        for (StmtNode* stmt: n->body) {
             exec(stmt, depth);
 
-            if (has_exceptions()){
+            if (has_exceptions()) {
                 return None();
             }
 
@@ -499,22 +475,22 @@ PartialResult *TreeEvaluator::whilestmt(While_t *n, int depth) {
         }
 
         // reset
-        loop_break = false;
+        loop_break    = false;
         loop_continue = false;
     }
 
-    for(StmtNode* stmt: n->orelse) {
+    for (StmtNode* stmt: n->orelse) {
         exec(stmt, depth);
     }
     return None();
 }
 
-PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
+PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
 
-    Array<StmtNode *>& body = n->orelse;
+    Array<StmtNode*>& body = n->orelse;
     // Chained
     if (n->tests.size() > 0) {
-        for(int i = 0; i < n->tests.size(); i++) {
+        for (int i = 0; i < n->tests.size(); i++) {
             Constant* value = cast<Constant>(exec(n->test, depth));
             assert(value, "If test should return a boolean");
 
@@ -525,8 +501,7 @@ PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
             }
         }
 
-        for(StmtNode* stmt: body)
-        {
+        for (StmtNode* stmt: body) {
             exec(stmt, depth);
 
             if (has_exceptions()) {
@@ -538,8 +513,8 @@ PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
     }
 
     // Simple
-    PartialResult* test = exec(n->test, depth);
-    Constant* value = cast<Constant>(test);
+    PartialResult* test  = exec(n->test, depth);
+    Constant*      value = cast<Constant>(test);
     assert(value, "If test should return a boolean");
 
     bool btrue = value->value.get<bool>();
@@ -548,8 +523,7 @@ PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
         body = n->body;
     }
 
-    for(StmtNode* stmt: body)
-    {
+    for (StmtNode* stmt: body) {
         exec(stmt, depth);
 
         if (has_exceptions()) {
@@ -560,9 +534,9 @@ PartialResult *TreeEvaluator::ifstmt(If_t *n, int depth) {
     return None();
 }
 
-PartialResult *TreeEvaluator::assertstmt(Assert_t *n, int depth) {
+PartialResult* TreeEvaluator::assertstmt(Assert_t* n, int depth) {
     PartialResult* btest = exec(n->test, depth);
-    Constant* value = cast<Constant>(btest);
+    Constant*      value = cast<Constant>(btest);
     if (value) {
         if (!value->value.get<bool>()) {
             // raise AssertionError with the assertion message
@@ -574,32 +548,28 @@ PartialResult *TreeEvaluator::assertstmt(Assert_t *n, int depth) {
     }
 
     Assert* expr = root.new_object<Assert>();
-    expr->test = (ExprNode*) btest;
-    expr->msg = n->msg;
+    expr->test   = (ExprNode*)btest;
+    expr->msg    = n->msg;
     return expr;
 }
 
-
-PartialResult *TreeEvaluator::exprstmt(Expr_t *n, int depth) {
-    return exec(n->value, depth);
-}
-PartialResult *TreeEvaluator::pass(Pass_t *n, int depth) {
+PartialResult* TreeEvaluator::exprstmt(Expr_t* n, int depth) { return exec(n->value, depth); }
+PartialResult* TreeEvaluator::pass(Pass_t* n, int depth) {
     // return itself in case the pass is required for correctness
     return n;
 }
-PartialResult *TreeEvaluator::breakstmt(Break_t *n, int depth) {
+PartialResult* TreeEvaluator::breakstmt(Break_t* n, int depth) {
     loop_break = true;
     return n;
 }
-PartialResult *TreeEvaluator::continuestmt(Continue_t *n, int depth) {
+PartialResult* TreeEvaluator::continuestmt(Continue_t* n, int depth) {
     loop_continue = true;
     return n;
 }
 
-PartialResult *TreeEvaluator::inlinestmt(Inline_t *n, int depth) {
+PartialResult* TreeEvaluator::inlinestmt(Inline_t* n, int depth) {
 
-    for(StmtNode* stmt: n->body)
-    {
+    for (StmtNode* stmt: n->body) {
         exec(stmt, depth);
 
         if (has_exceptions()) {
@@ -609,7 +579,7 @@ PartialResult *TreeEvaluator::inlinestmt(Inline_t *n, int depth) {
     return None();
 }
 
-PartialResult *TreeEvaluator::raise(Raise_t *n, int depth) {
+PartialResult* TreeEvaluator::raise(Raise_t* n, int depth) {
 
     if (n->exc.has_value()) {
         exceptions.push_back(exec(n->exc.value(), depth));
@@ -621,11 +591,10 @@ PartialResult *TreeEvaluator::raise(Raise_t *n, int depth) {
 
     exceptions.push_back(None());
     return nullptr;
- }
+}
 
- void TreeEvaluator::execute_loop_body(Array<StmtNode *>& body, int depth) {
-    for(StmtNode* stmt: body)
-    {
+void TreeEvaluator::execute_loop_body(Array<StmtNode*>& body, int depth) {
+    for (StmtNode* stmt: body) {
         exec(stmt, depth);
 
         if (has_exceptions()) {
@@ -640,26 +609,23 @@ PartialResult *TreeEvaluator::raise(Raise_t *n, int depth) {
             continue;
         }
     }
- }
+}
 
- void TreeEvaluator::execute_body(Array<StmtNode *>& body, int depth) {
-    for(StmtNode* stmt: body)
-    {
+void TreeEvaluator::execute_body(Array<StmtNode*>& body, int depth) {
+    for (StmtNode* stmt: body) {
         exec(stmt, depth);
 
         if (has_exceptions()) {
             break;
         }
     }
- }
+}
 
-
-PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
+PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
 
     bool received_exception = false;
 
-    for(StmtNode* stmt: n->body)
-    {
+    for (StmtNode* stmt: n->body) {
         exec(stmt, depth);
 
         if (has_exceptions()) {
@@ -672,10 +638,10 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
         // start handling all the exceptions we received
         auto _ = HandleException(this);
 
-        ExceptHandler const* matched = nullptr;
-        PartialResult* latest_exception = exceptions[exceptions.size() - 1];
+        ExceptHandler const* matched          = nullptr;
+        PartialResult*       latest_exception = exceptions[exceptions.size() - 1];
 
-        for(ExceptHandler const& handler: n->handlers) {
+        for (ExceptHandler const& handler: n->handlers) {
             // match the exception type to the one we received
 
             // catch all
@@ -697,8 +663,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
                 bindings.add(matched->name.value(), latest_exception, nullptr);
             }
 
-            for(StmtNode* stmt: matched->body)
-            {
+            for (StmtNode* stmt: matched->body) {
                 exec(stmt, depth);
 
                 // new exception
@@ -715,8 +680,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
         // leave the exception as is so we continue moving back
 
     } else {
-        for(StmtNode* stmt: n->orelse)
-        {
+        for (StmtNode* stmt: n->orelse) {
             exec(stmt, depth);
 
             if (has_exceptions()) {
@@ -727,8 +691,7 @@ PartialResult *TreeEvaluator::trystmt(Try_t *n, int depth) {
 
     auto _ = HandleException(this);
 
-    for(StmtNode* stmt: n->finalbody)
-    {
+    for (StmtNode* stmt: n->finalbody) {
         exec(stmt, depth);
 
         // New exceptions
@@ -764,11 +727,10 @@ finally:
         exit(manager, None, None, None)
 
 */
-PartialResult *TreeEvaluator::with(With_t *n, int depth)
-{
+PartialResult* TreeEvaluator::with(With_t* n, int depth) {
     // Call enter
-    for(auto& item: n->items) {
-        auto ctx = exec(item.context_expr, depth);
+    for (auto& item: n->items) {
+        auto ctx    = exec(item.context_expr, depth);
         auto result = call_enter(ctx, depth);
 
         if (item.optional_vars.has_value()) {
@@ -776,8 +738,7 @@ PartialResult *TreeEvaluator::with(With_t *n, int depth)
         }
     }
 
-    for(StmtNode* stmt: n->body)
-    {
+    for (StmtNode* stmt: n->body) {
         exec(stmt, depth);
 
         // New exceptions
@@ -789,7 +750,7 @@ PartialResult *TreeEvaluator::with(With_t *n, int depth)
     // Call exit regardless of exception status
     auto _ = HandleException(this);
 
-    for(auto& item: n->items) {
+    for (auto& item: n->items) {
         auto ctx = exec(item.context_expr, depth);
         call_exit(ctx, depth);
     }
@@ -797,84 +758,81 @@ PartialResult *TreeEvaluator::with(With_t *n, int depth)
     return nullptr;
 }
 
-PartialResult *TreeEvaluator::match(Match_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::import(Import_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::importfrom(ImportFrom_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::match(Match_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::import(Import_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) { return nullptr; }
 
-PartialResult *TreeEvaluator::dictexpr(DictExpr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::setexpr(SetExpr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::listcomp(ListComp_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::generateexpr(GeneratorExp_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::setcomp(SetComp_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::dictcomp(DictComp_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::dictexpr(DictExpr_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::setexpr(SetExpr_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::listcomp(ListComp_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::generateexpr(GeneratorExp_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::setcomp(SetComp_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::dictcomp(DictComp_t* n, int depth) { return nullptr; }
 
+PartialResult* TreeEvaluator::yield(Yield_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::yieldfrom(YieldFrom_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::joinedstr(JoinedStr_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::formattedvalue(FormattedValue_t* n, int depth) { return nullptr; }
 
-PartialResult *TreeEvaluator::yield(Yield_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::yieldfrom(YieldFrom_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::joinedstr(JoinedStr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::formattedvalue(FormattedValue_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::starred(Starred_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::listexpr(ListExpr_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::tupleexpr(TupleExpr_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::deletestmt(Delete_t* n, int depth) { return nullptr; }
 
-PartialResult *TreeEvaluator::starred(Starred_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::listexpr(ListExpr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::tupleexpr(TupleExpr_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::deletestmt(Delete_t *n, int depth) { return nullptr; }
-
-PartialResult *TreeEvaluator::await(Await_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::await(Await_t* n, int depth) { return nullptr; }
 
 // Objects
-PartialResult *TreeEvaluator::slice(Slice_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::attribute(Attribute_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::subscript(Subscript_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::slice(Slice_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::subscript(Subscript_t* n, int depth) { return nullptr; }
 
 // Call __next__ for a given object
-PartialResult *TreeEvaluator::get_next(Node *iterator, int depth) {
+PartialResult* TreeEvaluator::get_next(Node* iterator, int depth) {
     // FIXME: implement me
     return nullptr;
 }
 
-PartialResult *TreeEvaluator::call_enter(Node* ctx, int depth) {
+PartialResult* TreeEvaluator::call_enter(Node* ctx, int depth) {
     // Call __enter__
     return nullptr;
 }
-PartialResult *TreeEvaluator::call_exit(Node* ctx, int depth) {
+PartialResult* TreeEvaluator::call_exit(Node* ctx, int depth) {
     // Call __exit__
     return nullptr;
 }
 
 // Types
 // -----
-PartialResult *TreeEvaluator::classdef(ClassDef_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::classdef(ClassDef_t* n, int depth) { return nullptr; }
 
-PartialResult *TreeEvaluator::dicttype(DictType_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::arraytype(ArrayType_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::tupletype(TupleType_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::arrow(Arrow_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::classtype(ClassType_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::settype(SetType_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::builtintype(BuiltinType_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::dicttype(DictType_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::arraytype(ArrayType_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::tupletype(TupleType_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::arrow(Arrow_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::classtype(ClassType_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::settype(SetType_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::builtintype(BuiltinType_t* n, int depth) { return nullptr; }
 
 // Match
 // -----
-PartialResult *TreeEvaluator::matchvalue(MatchValue_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchsingleton(MatchSingleton_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchsequence(MatchSequence_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchmapping(MatchMapping_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchclass(MatchClass_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchstar(MatchStar_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchas(MatchAs_t *n, int depth) { return nullptr; }
-PartialResult *TreeEvaluator::matchor(MatchOr_t *n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchvalue(MatchValue_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchsingleton(MatchSingleton_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchsequence(MatchSequence_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchmapping(MatchMapping_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchclass(MatchClass_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchstar(MatchStar_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchas(MatchAs_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::matchor(MatchOr_t* n, int depth) { return nullptr; }
 
-
-
-PartialResult *TreeEvaluator::global(Global_t *n, int depth) {
+PartialResult* TreeEvaluator::global(Global_t* n, int depth) {
     // we don't really need it right now, we are not enforcing this
     // might be sema business anyway
     return nullptr;
 }
-PartialResult *TreeEvaluator::nonlocal(Nonlocal_t *n, int depth) {
+PartialResult* TreeEvaluator::nonlocal(Nonlocal_t* n, int depth) {
     // we don't really need it right now, we are not enforcing this
     // might be sema business anyway
     return nullptr;
 }
 
-} // namespace lython
+}  // namespace lython

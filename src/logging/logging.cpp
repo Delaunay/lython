@@ -24,14 +24,14 @@ namespace lython {
 static std::regex mangled_name("\\([A-Za-z0-9_]*");
 static std::regex remove_namespaces("(lython::|std::)");
 
-std::string demangle(std::string const &original_str) {
+std::string demangle(std::string const& original_str) {
     std::string matched_str;
     std::string result_str;
 
     auto begin = std::sregex_iterator(original_str.begin(), original_str.end(), mangled_name);
     auto end   = std::sregex_iterator();
 
-    char *buffer = nullptr;
+    char* buffer = nullptr;
 
     int status = 0;
     for (auto i = begin; i != end;) {
@@ -53,7 +53,7 @@ std::string demangle(std::string const &original_str) {
 
 std::vector<std::string> get_backtrace(size_t size = 32) {
     // avoid allocating memory dynamically
-    std::vector<void *> ptrs(size);
+    std::vector<void*> ptrs(size);
     //    static std::vector<std::string> ignore = {
     //        "libstdc++.so",
     //        "lython::get_backtrace[abi:cxx11](unsigned long)",
@@ -61,7 +61,7 @@ std::vector<std::string> get_backtrace(size_t size = 32) {
     //    };
 
     int    real_size = backtrace(ptrs.data(), int(size));
-    char **symbols   = backtrace_symbols(ptrs.data(), int(real_size));
+    char** symbols   = backtrace_symbols(ptrs.data(), int(real_size));
 
     std::vector<std::string> names;
     names.reserve(size_t(real_size));
@@ -92,7 +92,7 @@ std::vector<std::string> get_backtrace(size_t size = 32) {
 void show_backtrace() {
     std::vector<std::string> symbols = get_backtrace(32);
     int                      i       = 0;
-    for (auto &sym: symbols) {
+    for (auto& sym: symbols) {
         i += 1;
         spdlog_log(LogLevel::Error, fmt::format(" TB {:2} -> {}", i, sym));
     }
@@ -106,7 +106,7 @@ void show_backtrace() {
 }
 
 int register_signal_handler() {
-    signal(SIGSEGV, signal_handler); // 11, install our handler
+    signal(SIGSEGV, signal_handler);  // 11, install our handler
     signal(SIGINT, signal_handler);
     signal(SIGQUIT, signal_handler);
     // Sent on exceptions which already print the stack trace
@@ -125,7 +125,7 @@ std::vector<std::string> get_backtrace(size_t size) { return std::vector<std::st
 
 using Logger = std::shared_ptr<spdlog::logger>;
 
-Logger new_logger(char const *name) {
+Logger new_logger(char const* name) {
     // Static so only executed once
     static int _ = register_signal_handler();
 
@@ -150,28 +150,30 @@ Logger root() {
     return log;
 }
 
-static constexpr spdlog::level::level_enum log_level_spd[] = {
-    spdlog::level::level_enum::trace, spdlog::level::level_enum::debug,
-    spdlog::level::level_enum::info,  spdlog::level::level_enum::warn,
-    spdlog::level::level_enum::err,   spdlog::level::level_enum::critical,
-    spdlog::level::level_enum::off};
+static constexpr spdlog::level::level_enum log_level_spd[] = {spdlog::level::level_enum::trace,
+                                                              spdlog::level::level_enum::debug,
+                                                              spdlog::level::level_enum::info,
+                                                              spdlog::level::level_enum::warn,
+                                                              spdlog::level::level_enum::err,
+                                                              spdlog::level::level_enum::critical,
+                                                              spdlog::level::level_enum::off};
 
 void show_log_backtrace() { spdlog::dump_backtrace(); }
 
-void spdlog_log(LogLevel level, std::string const &msg) { root()->log(log_level_spd[level], msg); }
+void spdlog_log(LogLevel level, std::string const& msg) { root()->log(log_level_spd[level], msg); }
 
-const char *log_level_str[] = {"[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN",
-                               "[E] ERROR", "[!] FATAL", ""};
+const char* log_level_str[] = {
+    "[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN", "[E] ERROR", "[!] FATAL", ""};
 
-std::string format_code_loc(const char *file, const char *function, int line) {
+std::string format_code_loc(const char* file, const char* function, int line) {
     return fmt::format("{} {}:{}", file, function, line);
 }
 
-std::string format_code_loc_trace(const char *, const char *function, int line) {
+std::string format_code_loc_trace(const char*, const char* function, int line) {
     return fmt::format("{:>25}:{:4}", function, line);
 }
 
-std::string format_function(std::string const &fun) {
+std::string format_function(std::string const& fun) {
     auto start = fun.find_last_of(':');
     if (start == std::string::npos) {
         return fun;
@@ -181,9 +183,14 @@ std::string format_function(std::string const &fun) {
 
 // instead of setting a single log level for the entire program allow to cherry pick
 // which level is enabled
-std::unordered_map<LogLevel, bool> &log_levels() {
+std::unordered_map<LogLevel, bool>& log_levels() {
     static std::unordered_map<LogLevel, bool> levels{
-        {Info, true}, {Warn, true}, {Debug, true}, {Error, true}, {Fatal, true}, {Trace, true},
+        {Info, true},
+        {Warn, true},
+        {Debug, true},
+        {Error, true},
+        {Fatal, true},
+        {Trace, true},
     };
     return levels;
 }
@@ -192,10 +199,10 @@ void set_log_level(LogLevel level, bool enabled) { log_levels()[level] = enabled
 
 bool is_log_enabled(LogLevel level) { return log_levels()[level]; }
 
-const char *Exception::what() const noexcept {
+const char* Exception::what() const noexcept {
     spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
     show_backtrace();
     return message.c_str();
 }
 
-} // namespace lython
+}  // namespace lython

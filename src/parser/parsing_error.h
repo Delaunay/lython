@@ -13,9 +13,9 @@ class EndOfFileError: public ParsingException {};
 
 class SyntaxError: ParsingException {
     public:
-    SyntaxError(std::string const &message = ""): msg(message) {}
+    SyntaxError(std::string const& message = ""): msg(message) {}
 
-    virtual const char *what() const NOTHROW { return msg.c_str(); }
+    virtual const char* what() const NOTHROW { return msg.c_str(); }
 
     std::string msg;
 };
@@ -23,9 +23,9 @@ class SyntaxError: ParsingException {
 struct ParsingError {
     Array<int>   expected_tokens;
     Token        received_token;
-    StmtNode *   stmt;
-    ExprNode *   expr;
-    Pattern *    pat;
+    StmtNode*    stmt;
+    ExprNode*    expr;
+    Pattern*     pat;
     String       message;
     CodeLocation loc;
 
@@ -34,16 +34,16 @@ struct ParsingError {
     ParsingError(Array<int> expected, Token token, CodeLocation loc_):
         expected_tokens(expected), received_token(token), loc(loc_) {}
 
-    ParsingError(Array<int> expected, Token token, Node *obj, CodeLocation loc);
+    ParsingError(Array<int> expected, Token token, Node* obj, CodeLocation loc);
 
-    static ParsingError syntax_error(String const &message);
+    static ParsingError syntax_error(String const& message);
 
-    void print(std::ostream &out) const;
+    void print(std::ostream& out) const;
 };
 
-void add_wip_expr(ParsingError *err, StmtNode *stmt);
-void add_wip_expr(ParsingError *err, ExprNode *expr);
+void add_wip_expr(ParsingError* err, StmtNode* stmt);
+void add_wip_expr(ParsingError* err, ExprNode* expr);
 
-} // namespace lython
+}  // namespace lython
 
 #endif

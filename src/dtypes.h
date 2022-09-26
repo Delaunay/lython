@@ -62,7 +62,7 @@ using String = std::basic_string<char, std::char_traits<char>, AllocatorCPU<char
 using StringStream = std::basic_stringstream<char, std::char_traits<char>, AllocatorCPU<char>>;
 
 using StringView = std::string_view;
-} // namespace lython
+}  // namespace lython
 
 // ------------
 namespace std {
@@ -72,7 +72,7 @@ template <typename Char, typename Allocator>
 struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
     using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
 
-    std::size_t operator()(Key const &k) const noexcept {
+    std::size_t operator()(Key const& k) const noexcept {
         auto a = std::hash<std::string>();
         // FIXME: find a way to reuse the string hashing without transforming the string
         return a(std::string(k.c_str()));
@@ -80,7 +80,7 @@ struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
 };
 //*/
 
-} // namespace std
+}  // namespace std
 
 // ---------------
 namespace lython {
@@ -105,7 +105,7 @@ using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, AllocatorCPU<V
 
 class LythonException: public std::exception {};
 
-} // namespace lython
+}  // namespace lython
 
 #if __linux__
 #    define NOTHROW _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW

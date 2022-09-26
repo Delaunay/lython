@@ -3,9 +3,9 @@
 
 namespace lython {
 
-ExprNode *None();
-ExprNode *True();
-ExprNode *False();
+ExprNode* None();
+ExprNode* True();
+ExprNode* False();
 
 // --------------------------------------------------------------------
 // to-string
@@ -33,7 +33,7 @@ String str(NodeKind k) {
     return "<invalid>";
 }
 
-void print(BoolOperator const &v, std::ostream &out) {
+void print(BoolOperator const& v, std::ostream& out) {
     switch (v) {
 #define OP(name, kw)           \
     case BoolOperator::name: { \
@@ -46,13 +46,12 @@ void print(BoolOperator const &v, std::ostream &out) {
     }
 }
 
-
-void print(BinaryOperator const &v, std::ostream &out) {
-        switch (v) {
-#define OP(name, kw)           \
+void print(BinaryOperator const& v, std::ostream& out) {
+    switch (v) {
+#define OP(name, kw)             \
     case BinaryOperator::name: { \
-        out << #name;           \
-        return;                \
+        out << #name;            \
+        return;                  \
     }
         BINARY_OPERATORS(OP)
 
@@ -60,13 +59,12 @@ void print(BinaryOperator const &v, std::ostream &out) {
     }
 }
 
-
-void print(UnaryOperator const &v, std::ostream &out) {
-        switch (v) {
-#define OP(name, kw)           \
+void print(UnaryOperator const& v, std::ostream& out) {
+    switch (v) {
+#define OP(name, kw)            \
     case UnaryOperator::name: { \
         out << #name;           \
-        return;                \
+        return;                 \
     }
         UNARY_OPERATORS(OP)
 
@@ -74,12 +72,12 @@ void print(UnaryOperator const &v, std::ostream &out) {
     }
 }
 
-void print(CmpOperator const &v, std::ostream &out) {
-        switch (v) {
-#define OP(name, kw)           \
+void print(CmpOperator const& v, std::ostream& out) {
+    switch (v) {
+#define OP(name, kw)          \
     case CmpOperator::name: { \
-        out << #name;           \
-        return;                \
+        out << #name;         \
+        return;               \
     }
         COMP_OPERATORS(OP)
 
@@ -87,10 +85,9 @@ void print(CmpOperator const &v, std::ostream &out) {
     }
 }
 
-
-void ClassDef::Attr::dump(std::ostream &out) {
+void ClassDef::Attr::dump(std::ostream& out) {
     out << name << ": " << str(type) << " = " << str(stmt);
 }
 
 // ------------------------------------------
-} // namespace lython
+}  // namespace lython

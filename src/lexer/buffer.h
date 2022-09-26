@@ -19,7 +19,7 @@ namespace lython {
 class AbstractBuffer {
     public:
     virtual char          getc()      = 0;
-    virtual const String &file_name() = 0;
+    virtual const String& file_name() = 0;
 
     AbstractBuffer() {}
 
@@ -83,20 +83,20 @@ class AbstractBuffer {
 class FileError: public Exception {
     public:
     template <typename... Args>
-    FileError(const char *fmt, const Args &...args): Exception(fmt, "FileError", args...) {}
+    FileError(const char* fmt, const Args&... args): Exception(fmt, "FileError", args...) {}
 };
 
-String read_file(String const &name);
+String read_file(String const& name);
 
 class FileBuffer: public AbstractBuffer {
     public:
-    FileBuffer(String const &name);
+    FileBuffer(String const& name);
 
     ~FileBuffer() override;
 
     char getc() override { return char(::getc(_file)); }
 
-    const String &file_name() override { return _file_name; }
+    const String& file_name() override { return _file_name; }
 
     void reset() override {
         fseek(_file, 0, SEEK_SET);
@@ -126,12 +126,12 @@ class FileBuffer: public AbstractBuffer {
 
     private:
     String _file_name;
-    FILE * _file{nullptr};
+    FILE*  _file{nullptr};
 };
 
 class StringBuffer: public AbstractBuffer {
     public:
-    StringBuffer(String code, String const &file = "c++ string"):
+    StringBuffer(String code, String const& file = "c++ string"):
         _code(std::move(code)), _file_name(file) {
         init();
     }
@@ -146,7 +146,7 @@ class StringBuffer: public AbstractBuffer {
 
     ~StringBuffer() override;
 
-    const String &file_name() override { return _file_name; }
+    const String& file_name() override { return _file_name; }
 
     private:
     uint32       _pos{0};
@@ -188,7 +188,7 @@ class StringBuffer: public AbstractBuffer {
         } while (c);
     }
 
-    void load_code(const std::string &code) {
+    void load_code(const std::string& code) {
         _code = code;
         _pos  = 0;
     }
@@ -201,7 +201,7 @@ class ConsoleBuffer: public AbstractBuffer {
 
     char getc() override { return char(std::getchar()); }
 
-    const String &file_name() override { return _file_name; }
+    const String& file_name() override { return _file_name; }
 
     ~ConsoleBuffer() override;
 
@@ -209,4 +209,4 @@ class ConsoleBuffer: public AbstractBuffer {
     const String _file_name;
 };
 
-} // namespace lython
+}  // namespace lython

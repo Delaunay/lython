@@ -18,7 +18,7 @@ class Stack {
         meta::type_name<V>();
     }
 
-    void push(V const &value) {
+    void push(V const& value) {
         stack.push_back(value);
         _size += 1;
     }
@@ -30,7 +30,7 @@ class Stack {
         return v;
     }
 
-    V const &peek() const { return stack[_size]; }
+    V const& peek() const { return stack[_size]; }
 
     int size() const { return _size + 1; }
 
@@ -49,6 +49,6 @@ class Stack {
     int      _size = -1;
 };
 
-} // namespace lython
+}  // namespace lython
 
 #endif

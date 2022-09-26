@@ -7,41 +7,41 @@
 namespace lython {
 
 template <typename T>
-void print(T const &obj, std::ostream &out = std::cout) {
+void print(T const& obj, std::ostream& out = std::cout) {
     obj.print(out);
 }
 
 template <>
-inline void print(String const &obj, std::ostream &out) {
+inline void print(String const& obj, std::ostream& out) {
     out << obj;
 }
 
 template <>
-inline void print(int const &obj, std::ostream &out) {
+inline void print(int const& obj, std::ostream& out) {
     out << obj;
 }
 
 template <typename T>
-void print(T *const &obj, std::ostream &out = std::cout) {
+void print(T* const& obj, std::ostream& out = std::cout) {
     obj->print(out);
 }
 
 template <typename T>
-String str(T const &obj) {
+String str(T const& obj) {
     StringStream ss;
     print(obj, ss);
     return ss.str();
 }
 
 template <typename T>
-String str(T *const &obj) {
+String str(T* const& obj) {
     if (obj == nullptr) {
         return "None";
     }
     return obj->__str__();
 }
 
-inline String str(String const &obj) { return obj; }
+inline String str(String const& obj) { return obj; }
 
 #define BINARY(X)                      \
     X(+, __add__(self, other))         \
@@ -84,6 +84,6 @@ inline String str(String const &obj) { return obj; }
     X(+, __pos__(self, other)) \
     X(~, __invert__(self, other))
 
-} // namespace lython
+}  // namespace lython
 
 #endif

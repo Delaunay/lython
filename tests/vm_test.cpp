@@ -3,24 +3,22 @@
 #include "parser/parser.h"
 #include "revision_data.h"
 #include "sema/sema.h"
-#include "vm/tree.h"
 #include "utilities/strings.h"
+#include "vm/tree.h"
 
 #include <catch2/catch.hpp>
 #include <sstream>
 
 #include "logging/logging.h"
 
-
-#include <iostream>
 #include <catch2/catch.hpp>
+#include <iostream>
 
 using namespace lython;
 
-
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
-String eval_it(String code, String expr, Module *&mod) {
+String eval_it(String code, String expr, Module*& mod) {
     StringBuffer reader(code);
     Lexer        lex(reader);
     Parser       parser(lex);
@@ -46,7 +44,7 @@ String eval_it(String code, String expr, Module *&mod) {
 
     info("{}", "Eval");
     TreeEvaluator eval(sema.bindings);
-    auto partial = str(eval.exec(stmt, 0));
+    auto          partial = str(eval.exec(stmt, 0));
 
     delete emod;
     return partial;
@@ -59,92 +57,73 @@ void run_test_case(String code, String expr, String expected) {
 
     delete mod;
     REQUIRE(result == expected);
-
 }
 
 #ifndef EXPERIMENT
 
 TEST_CASE("VM_FunctionDef") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    return a\n",
-        "fun(1)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    return a\n",
+                  "fun(1)",
+                  "1");
 }
 
 TEST_CASE("VM_BinOp_Add_i32") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    return a + 1\n",
-        "fun(1)",
-        "2"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    return a + 1\n",
+                  "fun(1)",
+                  "2");
 }
 
-
 TEST_CASE("VM_IfStmt_True") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    if a > 0:\n"
-        "        return 1\n"
-        "    else:\n"
-        "        return 2\n",
-        "fun(1)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    if a > 0:\n"
+                  "        return 1\n"
+                  "    else:\n"
+                  "        return 2\n",
+                  "fun(1)",
+                  "1");
 }
 
 TEST_CASE("VM_IfStmt_False") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    if a > 0:\n"
-        "        return 1\n"
-        "    else:\n"
-        "        return 2\n",
-        "fun(0)",
-        "2"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    if a > 0:\n"
+                  "        return 1\n"
+                  "    else:\n"
+                  "        return 2\n",
+                  "fun(0)",
+                  "2");
 }
 
-
 TEST_CASE("VM_UnaryOp_USub_i32") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    return - a\n",
-        "fun(-1)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    return - a\n",
+                  "fun(-1)",
+                  "1");
 }
 
 TEST_CASE("VM_assign") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    b = 3\n"
-        "    b = a * b\n"
-        "    return b\n"
-        "",
-        "fun(2)",
-        "6"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    b = 3\n"
+                  "    b = a * b\n"
+                  "    return b\n"
+                  "",
+                  "fun(2)",
+                  "6");
 }
 
 TEST_CASE("VM_pass") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    pass\n",
-        "fun(0)",
-        "None"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    pass\n",
+                  "fun(0)",
+                  "None");
 }
 
 TEST_CASE("VM_inline_stmt") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    a += 1; return a\n",
-        "fun(0)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    a += 1; return a\n",
+                  "fun(0)",
+                  "1");
 }
 
 TEST_CASE("VM_raise") {
@@ -181,111 +160,92 @@ TEST_CASE("VM_Try_AllGood") {
 }
 
 TEST_CASE("VM_Aug_Add_i32") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    a += 1"
-        "    return a\n",
-        "fun(0)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    a += 1"
+                  "    return a\n",
+                  "fun(0)",
+                  "1");
 }
 
 TEST_CASE("VM_While") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    b = 0\n"
-        "    while a > 0:\n"
-        "        a -= 1\n"
-        "        b += 2\n"
-        "    return b\n"
-        "",
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    b = 0\n"
+                  "    while a > 0:\n"
+                  "        a -= 1\n"
+                  "        b += 2\n"
+                  "    return b\n"
+                  "",
 
-        "fun(2)",
-        "4"
-    );
+                  "fun(2)",
+                  "4");
 }
 
 TEST_CASE("VM_While_break") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    b = 0\n"
-        "    while a > 0:\n"
-        "        a -= 1\n"
-        "        b += 1\n"
-        "        break\n"
-        "        b += 1\n"
-        "    return b\n"
-        "",
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    b = 0\n"
+                  "    while a > 0:\n"
+                  "        a -= 1\n"
+                  "        b += 1\n"
+                  "        break\n"
+                  "        b += 1\n"
+                  "    return b\n"
+                  "",
 
-        "fun(10)",
-        "1"
-    );
+                  "fun(10)",
+                  "1");
 }
 
 TEST_CASE("VM_While_continue") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    b = 0\n"
-        "    while a > 0:\n"
-        "        a -= 1\n"
-        "        b += 1\n"
-        "        continue\n"
-        "        b += 1\n"
-        "    return b\n"
-        "",
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    b = 0\n"
+                  "    while a > 0:\n"
+                  "        a -= 1\n"
+                  "        b += 1\n"
+                  "        continue\n"
+                  "        b += 1\n"
+                  "    return b\n"
+                  "",
 
-        "fun(10)",
-        "10"
-    );
+                  "fun(10)",
+                  "10");
 }
-
 
 TEST_CASE("VM_AnnAssign") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    b: i32 = 3\n"
-        "    b: i32 = a * b\n"
-        "    return b\n"
-        "",
-        "fun(2)",
-        "6"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    b: i32 = 3\n"
+                  "    b: i32 = a * b\n"
+                  "    return b\n"
+                  "",
+                  "fun(2)",
+                  "6");
 }
-
 
 TEST_CASE("VM_ifexp_True") {
     // FIXME: wrong syntax
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    return if a > 0: 1 else 0\n"
-        "",
-        "fun(2)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    return if a > 0: 1 else 0\n"
+                  "",
+                  "fun(2)",
+                  "1");
 }
 
 TEST_CASE("VM_ifexp_False") {
     // FIXME: wrong syntax
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    return if a > 0: 1 else 0\n"
-        "",
-        "fun(-2)",
-        "0"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    return if a > 0: 1 else 0\n"
+                  "",
+                  "fun(-2)",
+                  "0");
 }
 
 TEST_CASE("VM_NamedExpr") {
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    if (b := a + 1) > 0:\n"
-        "        return b\n"
-        "    return 0\n"
-        "",
-        "fun(0)",
-        "1"
-    );
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    if (b := a + 1) > 0:\n"
+                  "        return b\n"
+                  "    return 0\n"
+                  "",
+                  "fun(0)",
+                  "1");
 }
 
 #endif
-

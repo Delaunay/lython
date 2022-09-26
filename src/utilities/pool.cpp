@@ -3,7 +3,7 @@
 
 namespace lython {
 
-void worker_loop(ThreadPool *pool, std::size_t n);
+void worker_loop(ThreadPool* pool, std::size_t n);
 
 ThreadPool::ThreadPool(std::size_t thread_count) {
     tasks.reserve(128);
@@ -34,12 +34,12 @@ void ThreadPool::insert_worker() {
 }
 
 void ThreadPool::shutdown(bool wait) {
-    for (auto &state: stats) {
+    for (auto& state: stats) {
         state.running = false;
     }
 
     if (wait) {
-        for (auto &thread: threads) {
+        for (auto& thread: threads) {
             thread.join();
         }
     }
@@ -50,7 +50,7 @@ void ThreadPool::shutdown(bool wait) {
 
 std::size_t ThreadPool::size() const { return threads.size(); }
 
-std::ostream &ThreadPool::print(std::ostream &out) const {
+std::ostream& ThreadPool::print(std::ostream& out) const {
     auto end         = StopWatch<>::Clock::now();
     int  total_tasks = 0;
 
@@ -58,7 +58,7 @@ std::ostream &ThreadPool::print(std::ostream &out) const {
     out << "|------+--------+------+-------|\n";
 
     for (std::size_t i = 0; i < size(); ++i) {
-        Stat_t const &stat  = stats[i];
+        Stat_t const& stat  = stats[i];
         auto          total = float(StopWatch<>::diff(stat.start, end));
         auto          busy  = stat.work_time * 100 / total;
 
@@ -72,7 +72,7 @@ std::ostream &ThreadPool::print(std::ostream &out) const {
     return out;
 }
 
-void worker_loop(ThreadPool *pool, std::size_t n) {
+void worker_loop(ThreadPool* pool, std::size_t n) {
     pool->stats[n].start = StopWatch<>::Clock::now();
 
     while (pool->stats[n].running) {
@@ -94,4 +94,4 @@ void worker_loop(ThreadPool *pool, std::size_t n) {
     }
 }
 
-} // namespace lython
+}  // namespace lython

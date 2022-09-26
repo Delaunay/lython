@@ -29,7 +29,7 @@ struct OpConfig {
     BoolOperator   boolkind         = BoolOperator::None;
     CmpOperator    cmpkind          = CmpOperator::None;
 
-    void print(std::ostream &out) const {
+    void print(std::ostream& out) const {
         out << to_string(type) << "(pred: " << precedence << ") "
             << "(binary: " << int(binarykind) << ") "
             << "(unary: " << int(unarykind) << ") "
@@ -38,21 +38,21 @@ struct OpConfig {
     }
 };
 
-Dict<String, OpConfig> const &default_precedence();
+Dict<String, OpConfig> const& default_precedence();
 
 class LexerOperators {
     public:
     LexerOperators() {
-        for (auto &c: _precedence_table) {
+        for (auto& c: _precedence_table) {
             _operators.insert(c.first);
         }
     }
 
-    Trie<128> const *match(int c) const { return _operators.trie().matching(c); }
+    Trie<128> const* match(int c) const { return _operators.trie().matching(c); }
 
-    Dict<String, OpConfig> const &precedence_table() const { return _precedence_table; }
+    Dict<String, OpConfig> const& precedence_table() const { return _precedence_table; }
 
-    TokenType token_type(String const &str) const { return _precedence_table.at(str).type; }
+    TokenType token_type(String const& str) const { return _precedence_table.at(str).type; }
 
     private:
     CoWTrie<128>           _operators;
@@ -63,17 +63,17 @@ class AbstractLexer {
     public:
     virtual ~AbstractLexer() {}
 
-    virtual Token const &next_token() = 0;
+    virtual Token const& next_token() = 0;
 
-    virtual Token const &peek_token() = 0;
+    virtual Token const& peek_token() = 0;
 
-    virtual Token const &token() = 0;
+    virtual Token const& token() = 0;
 
     // print tokens with their info
-    ::std::ostream &debug_print(::std::ostream &out);
+    ::std::ostream& debug_print(::std::ostream& out);
 
     // print out tokens as they were inputed
-    ::std::ostream &print(::std::ostream &out);
+    ::std::ostream& print(::std::ostream& out);
 
     // extract a token stream into a token vector
     Array<Token> extract_token() {
@@ -84,28 +84,28 @@ class AbstractLexer {
             v.push_back(t);
         } while ((t = next_token()));
 
-        v.push_back(t); // push eof token
+        v.push_back(t);  // push eof token
         return v;
     }
 };
 
 class ReplayLexer: public AbstractLexer {
     public:
-    ReplayLexer(Array<Token> &tokens): tokens(tokens) {
-        Token &last = tokens[tokens.size() - 1];
+    ReplayLexer(Array<Token>& tokens): tokens(tokens) {
+        Token& last = tokens[tokens.size() - 1];
         if (last.type() != tok_eof) {
             tokens.emplace_back(tok_eof, 0, 0);
         }
     }
 
-    Token const &next_token() override final {
+    Token const& next_token() override final {
         if (i + 1 < tokens.size())
             i += 1;
 
         return tokens[i];
     }
 
-    Token const &peek_token() override final {
+    Token const& peek_token() override final {
         auto n = i + 1;
 
         if (n >= tokens.size())
@@ -114,25 +114,25 @@ class ReplayLexer: public AbstractLexer {
         return tokens[n];
     }
 
-    Token const &token() override final { return tokens[i]; }
+    Token const& token() override final { return tokens[i]; }
 
     ~ReplayLexer() {}
 
     private:
     ::std::size_t i = 0;
-    Array<Token> &tokens;
+    Array<Token>& tokens;
 };
 
 class Lexer: public AbstractLexer {
     public:
-    Lexer(AbstractBuffer &reader):
+    Lexer(AbstractBuffer& reader):
         AbstractLexer(), _reader(reader), _cindent(indent()), _oindent(indent()) {}
 
     ~Lexer() {}
 
-    Token const &token() override final { return _token; }
-    Token const &next_token() override final;
-    Token const &peek_token() override final {
+    Token const& token() override final { return _token; }
+    Token const& next_token() override final;
+    Token const& peek_token() override final {
         // we can only peek ahead once
         if (_buffered_token)
             return _buffer;
@@ -145,19 +145,19 @@ class Lexer: public AbstractLexer {
         return _buffer;
     }
 
-    Token const &make_token(int8 t) {
+    Token const& make_token(int8 t) {
         _token = Token(t, line(), col());
         return _token;
     }
 
-    Token const &make_token(int8 t, const String &identifier) {
+    Token const& make_token(int8 t, const String& identifier) {
         _token              = Token(t, line(), col());
         _token.identifier() = identifier;
         return _token;
     }
 
     private:
-    AbstractBuffer &_reader;
+    AbstractBuffer& _reader;
     Token           _token{dummy()};
     int32           _cindent;
     int32           _oindent;
@@ -166,7 +166,7 @@ class Lexer: public AbstractLexer {
     LexerOperators  _operators;
 
     // shortcuts
-    const String &file_name() { return _reader.file_name(); }
+    const String& file_name() { return _reader.file_name(); }
     int32         line() { return _reader.line(); }
     int32         col() { return _reader.col(); }
     int32         indent() { return _reader.indent(); }
@@ -187,4 +187,4 @@ class Lexer: public AbstractLexer {
     }
 };
 
-} // namespace lython
+}  // namespace lython

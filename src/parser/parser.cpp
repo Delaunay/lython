@@ -21,47 +21,47 @@ namespace lython {
 #define AVOID_DUPLICATE_CONST 0
 
 template <typename T, typename N>
-bool in(T const &e, N const &v) {
+bool in(T const& e, N const& v) {
     return e == v;
 }
 
 template <typename T, typename N, typename... Args>
-bool in(T const &e, N const &v, Args... args) {
+bool in(T const& e, N const& v, Args... args) {
     return e == v || in(e, args...);
 }
 
 template <typename T, typename... Args>
-bool in(T const &e, Args... args) {
+bool in(T const& e, Args... args) {
     return in(e, args...);
 }
 
 template <typename Literal>
-ExprNode *parse_literal(Parser *parser, Node *parent, ExprNode *child, char kind, int depth);
+ExprNode* parse_literal(Parser* parser, Node* parent, ExprNode* child, char kind, int depth);
 
-StmtNode *not_implemented_stmt(Node *parent) { return parent->new_object<NotImplementedStmt>(); }
+StmtNode* not_implemented_stmt(Node* parent) { return parent->new_object<NotImplementedStmt>(); }
 
-ExprNode *not_implemented_expr(Node *parent) { return parent->new_object<NotImplementedExpr>(); }
+ExprNode* not_implemented_expr(Node* parent) { return parent->new_object<NotImplementedExpr>(); }
 
-ExprNode *not_allowed_expr(Node *parent) { return parent->new_object<NotAllowedEpxr>(); }
+ExprNode* not_allowed_expr(Node* parent) { return parent->new_object<NotAllowedEpxr>(); }
 
-void Parser::start_code_loc(CommonAttributes *target, Token tok) {
+void Parser::start_code_loc(CommonAttributes* target, Token tok) {
     target->col_offset = tok.begin_col();
     target->lineno     = tok.line();
 }
-void Parser::end_code_loc(CommonAttributes *target, Token tok) {
+void Parser::end_code_loc(CommonAttributes* target, Token tok) {
     target->col_offset = tok.end_col();
     target->end_lineno = tok.line();
 }
 
 // Helpers
 // ---------------------------------------------
-ParsingError *Parser::expect_token(int expected, bool eat, Node *wip_expression,
-                                   CodeLocation const &loc) {
+ParsingError*
+Parser::expect_token(int expected, bool eat, Node* wip_expression, CodeLocation const& loc) {
     return expect_tokens(Array<int>{expected}, eat, wip_expression, loc);
 }
 
-OpConfig Parser::get_operator_config(Token const &tok) const {
-    Dict<String, OpConfig> const &confs = default_precedence();
+OpConfig Parser::get_operator_config(Token const& tok) const {
+    Dict<String, OpConfig> const& confs = default_precedence();
 
     auto result = confs.find(tok.operator_name());
     if (result == confs.end()) {
@@ -70,13 +70,13 @@ OpConfig Parser::get_operator_config(Token const &tok) const {
     return result->second;
 }
 
-bool Parser::is_binary_operator_family(OpConfig const &conf) {
+bool Parser::is_binary_operator_family(OpConfig const& conf) {
     return conf.binarykind != BinaryOperator::None || conf.cmpkind != CmpOperator::None ||
            conf.boolkind != BoolOperator::None;
 }
 
-ParsingError *Parser::expect_operator(String const &op, bool eat, Node *wip_expression,
-                                      CodeLocation const &loc) {
+ParsingError*
+Parser::expect_operator(String const& op, bool eat, Node* wip_expression, CodeLocation const& loc) {
     Token tok = token();
 
     auto err = expect_token(tok_operator, eat, wip_expression, LOC);
@@ -98,11 +98,13 @@ ParsingError *Parser::expect_operator(String const &op, bool eat, Node *wip_expr
     return err;
 }
 
-ParsingError *Parser::expect_tokens(Array<int> const &expected, bool eat, Node *wip_expression,
-                                    CodeLocation const &loc) {
+ParsingError* Parser::expect_tokens(Array<int> const&   expected,
+                                    bool                eat,
+                                    Node*               wip_expression,
+                                    CodeLocation const& loc) {
     auto toktype = token().type();
 
-    for (auto &tok: expected) {
+    for (auto& tok: expected) {
         if (toktype == tok) {
             if (eat) {
                 next_token();
@@ -113,7 +115,7 @@ ParsingError *Parser::expect_tokens(Array<int> const &expected, bool eat, Node *
     // ----
     Array<String> expected_str;
     expected_str.reserve(expected.size());
-    for (auto &ex: expected) {
+    for (auto& ex: expected) {
         expected_str.push_back(str(TokenType(ex)));
     }
 
@@ -122,8 +124,8 @@ ParsingError *Parser::expect_tokens(Array<int> const &expected, bool eat, Node *
     // return write_error(expected, wip_expression, loc);
 }
 
-ParsingError *Parser::write_error(Array<int> const &expected, Node *wip_expression,
-                                  CodeLocation const &loc) {
+ParsingError*
+Parser::write_error(Array<int> const& expected, Node* wip_expression, CodeLocation const& loc) {
     // if the token does not match assume we "had it"
     // and record the error
     // so we can try to parse as much as possible
@@ -139,7 +141,7 @@ ParsingError *Parser::write_error(Array<int> const &expected, Node *wip_expressi
     return err;
 }
 
-Token Parser::parse_body(Node *parent, Array<StmtNode *> &out, int depth) {
+Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     TRACE_START();
     // eat all the newlines until we find something interesting
     while (token().type() == tok_newline) {
@@ -176,7 +178,7 @@ Token Parser::parse_body(Node *parent, Array<StmtNode *> &out, int depth) {
     return last;
 }
 
-void Parser::expect_newline(Node *stmt, CodeLocation const &loc) {
+void Parser::expect_newline(Node* stmt, CodeLocation const& loc) {
     expect_token(tok_newline, true, stmt, LOC);
     while (token().type() == tok_newline) {
         next_token();
@@ -184,17 +186,17 @@ void Parser::expect_newline(Node *stmt, CodeLocation const &loc) {
 }
 
 // Statement_1
-StmtNode *Parser::parse_function_def(Node *parent, bool async, int depth) {
+StmtNode* Parser::parse_function_def(Node* parent, bool async, int depth) {
     TRACE_START();
 
-    FunctionDef *stmt  = nullptr;
+    FunctionDef* stmt  = nullptr;
     auto         start = token();
     async_mode.push_back(async);
 
     if (!async) {
         stmt = parent->new_object<FunctionDef>();
     } else {
-        next_token(); // eat async
+        next_token();  // eat async
         stmt = parent->new_object<AsyncFunctionDef>();
     }
 
@@ -231,7 +233,7 @@ StmtNode *Parser::parse_function_def(Node *parent, bool async, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_class_def(Node *parent, int depth) {
+StmtNode* Parser::parse_class_def(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<ClassDef>();
@@ -268,7 +270,7 @@ StmtNode *Parser::parse_class_def(Node *parent, int depth) {
     end_code_loc(stmt, last);
     return stmt;
 }
-ExprNode *Parser::parse_star_expression(Node *parent, int depth) {
+ExprNode* Parser::parse_star_expression(Node* parent, int depth) {
     // star_expressions:
     //     | star_expression (',' star_expression )+ [',']
     //     | star_expression ','
@@ -279,7 +281,7 @@ ExprNode *Parser::parse_star_expression(Node *parent, int depth) {
     return parse_expression(parent, depth);
 }
 
-ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
+ExprNode* Parser::parse_star_targets(Node* parent, int depth) {
     auto start_tok = token();
 
     // auto kind      = 0;
@@ -290,8 +292,8 @@ ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
         // has_parens = true;
     }
 
-    Array<ExprNode *> elts;
-    auto              r = parse_expression_primary(parent, depth + 1);
+    Array<ExprNode*> elts;
+    auto             r = parse_expression_primary(parent, depth + 1);
     elts.push_back(r);
 
     while (token().type() == tok_comma) {
@@ -336,10 +338,10 @@ ExprNode *Parser::parse_star_targets(Node *parent, int depth) {
     // t_lookahead: '(' | '[' | '.'
 }
 
-StmtNode *Parser::parse_for(Node *parent, int depth) {
+StmtNode* Parser::parse_for(Node* parent, int depth) {
     TRACE_START();
 
-    For *stmt = nullptr;
+    For* stmt = nullptr;
     if (!async()) {
         stmt = parent->new_object<For>();
     } else {
@@ -380,7 +382,7 @@ StmtNode *Parser::parse_for(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_while(Node *parent, int depth) {
+StmtNode* Parser::parse_while(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<While>();
@@ -406,7 +408,7 @@ StmtNode *Parser::parse_while(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_if_alt(Node *parent, int depth) {
+StmtNode* Parser::parse_if_alt(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<If>();
@@ -434,7 +436,7 @@ StmtNode *Parser::parse_if_alt(Node *parent, int depth) {
         expect_newline(stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
 
-        Array<StmtNode *> body;
+        Array<StmtNode*> body;
         last = parse_body(stmt, body, depth + 1);
 
         stmt->tests.push_back(test);
@@ -456,7 +458,7 @@ StmtNode *Parser::parse_if_alt(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_if(Node *parent, int depth) {
+StmtNode* Parser::parse_if(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<If>();
@@ -493,7 +495,7 @@ StmtNode *Parser::parse_if(Node *parent, int depth) {
 }
 
 // [<pattern>, <pattern>, ...]
-Pattern *Parser::parse_match_sequence(Node *parent, int depth) {
+Pattern* Parser::parse_match_sequence(Node* parent, int depth) {
     TRACE_START();
 
     auto pat = parent->new_object<MatchSequence>();
@@ -518,7 +520,7 @@ Pattern *Parser::parse_match_sequence(Node *parent, int depth) {
 }
 
 // *<identifier>
-Pattern *Parser::parse_match_star(Node *parent, int depth) {
+Pattern* Parser::parse_match_star(Node* parent, int depth) {
     TRACE_START();
 
     auto pat = parent->new_object<MatchStar>();
@@ -533,7 +535,7 @@ Pattern *Parser::parse_match_star(Node *parent, int depth) {
 }
 
 // <expr>(<pattern>..., <identifier>=<pattern>)
-Pattern *Parser::parse_match_class(Node *parent, ExprNode *cls, int depth) {
+Pattern* Parser::parse_match_class(Node* parent, ExprNode* cls, int depth) {
     TRACE_START();
 
     auto pat = parent->new_object<MatchClass>();
@@ -580,7 +582,7 @@ Pattern *Parser::parse_match_class(Node *parent, ExprNode *cls, int depth) {
 // {'a': Point(x, y)}
 // { 1 + 1: 2}
 // { <expr>: <pattern> }
-Pattern *Parser::parse_match_mapping(Node *parent, int depth) {
+Pattern* Parser::parse_match_mapping(Node* parent, int depth) {
     TRACE_START();
 
     auto pat = parent->new_object<MatchMapping>();
@@ -617,7 +619,7 @@ Pattern *Parser::parse_match_mapping(Node *parent, int depth) {
 }
 
 // <pattern> | <pattern> | ...
-Pattern *Parser::parse_match_or(Node *parent, Pattern *child, int depth) {
+Pattern* Parser::parse_match_or(Node* parent, Pattern* child, int depth) {
     TRACE_START();
 
     auto pat = parent->new_object<MatchOr>();
@@ -650,7 +652,7 @@ Pattern *Parser::parse_match_or(Node *parent, Pattern *child, int depth) {
 }
 
 // <pattern> as <identifier>
-Pattern *Parser::parse_match_as(Node *parent, Pattern *primary, int depth) {
+Pattern* Parser::parse_match_as(Node* parent, Pattern* primary, int depth) {
     TRACE_START();
 
     auto pat     = parent->new_object<MatchAs>();
@@ -668,15 +670,13 @@ Pattern *Parser::parse_match_as(Node *parent, Pattern *primary, int depth) {
     return pat;
 }
 
-Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
+Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
 
     switch (token().type()) {
-    case tok_square:
-        return parse_match_sequence(parent, depth);
+    case tok_square: return parse_match_sequence(parent, depth);
 
     // TODO: make sure those are correct
-    case tok_curly:
-        return parse_match_mapping(parent, depth);
+    case tok_curly: return parse_match_mapping(parent, depth);
 
     case tok_operator:
     case tok_star:
@@ -708,12 +708,12 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
         //_context.push_back(ExprContext::Store);
         auto value = parse_expression_primary(parent, depth + 1);
         //_context.pop_back();
-        Pattern *pat = nullptr;
+        Pattern* pat = nullptr;
 
         // <expr> if|:
         if (token().type() != '(') {
-            pat                        = parent->new_object<MatchValue>();
-            ((MatchValue *)pat)->value = value;
+            pat                       = parent->new_object<MatchValue>();
+            ((MatchValue*)pat)->value = value;
             set_context(value, ExprContext::Store);
         } else {
             pat = parse_match_class(parent, value, depth + 1);
@@ -724,7 +724,7 @@ Pattern *Parser::parse_pattern_1(Node *parent, int depth) {
     }
 }
 
-Pattern *Parser::parse_pattern(Node *parent, int depth) {
+Pattern* Parser::parse_pattern(Node* parent, int depth) {
     TRACE_START();
 
     auto primary = parse_pattern_1(parent, depth);
@@ -736,15 +736,14 @@ Pattern *Parser::parse_pattern(Node *parent, int depth) {
             return parse_match_or(parent, primary, depth);
         }
 
-    case tok_as:
-        return parse_match_as(parent, primary, depth);
+    case tok_as: return parse_match_as(parent, primary, depth);
     }
     // could be ":" or "if"
     // expect_token(':', false, primary, LOC);
     return primary;
 }
 
-Token Parser::parse_match_case(Node *parent, Array<MatchCase> &out, int depth) {
+Token Parser::parse_match_case(Node* parent, Array<MatchCase>& out, int depth) {
     TRACE_START();
 
     Token last = token();
@@ -779,7 +778,7 @@ Token Parser::parse_match_case(Node *parent, Array<MatchCase> &out, int depth) {
     return last;
 }
 
-StmtNode *Parser::parse_match(Node *parent, int depth) {
+StmtNode* Parser::parse_match(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Match>();
@@ -799,12 +798,12 @@ StmtNode *Parser::parse_match(Node *parent, int depth) {
     return stmt;
 }
 
-void Parser::parse_withitem(Node *parent, Array<WithItem> &out, int depth) {
+void Parser::parse_withitem(Node* parent, Array<WithItem>& out, int depth) {
     TRACE_START();
 
     while (token().type() != ':') {
-        ExprNode *expr = parse_expression(parent, depth + 1);
-        ExprNode *var  = nullptr;
+        ExprNode* expr = parse_expression(parent, depth + 1);
+        ExprNode* var  = nullptr;
 
         if (token().type() == tok_as) {
             next_token();
@@ -821,10 +820,10 @@ void Parser::parse_withitem(Node *parent, Array<WithItem> &out, int depth) {
     }
 }
 
-StmtNode *Parser::parse_with(Node *parent, int depth) {
+StmtNode* Parser::parse_with(Node* parent, int depth) {
     TRACE_START();
 
-    With *stmt = nullptr;
+    With* stmt = nullptr;
     if (!async()) {
         stmt = parent->new_object<With>();
     } else {
@@ -846,7 +845,7 @@ StmtNode *Parser::parse_with(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_raise(Node *parent, int depth) {
+StmtNode* Parser::parse_raise(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Raise>();
@@ -870,7 +869,7 @@ StmtNode *Parser::parse_raise(Node *parent, int depth) {
     return stmt;
 }
 
-Token Parser::parse_except_handler(Node *parent, Array<ExceptHandler> &out, int depth) {
+Token Parser::parse_except_handler(Node* parent, Array<ExceptHandler>& out, int depth) {
     TRACE_START();
 
     while (token().type() == tok_except) {
@@ -899,7 +898,7 @@ Token Parser::parse_except_handler(Node *parent, Array<ExceptHandler> &out, int 
     return token();
 }
 
-StmtNode *Parser::parse_try(Node *parent, int depth) {
+StmtNode* Parser::parse_try(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Try>();
@@ -916,7 +915,7 @@ StmtNode *Parser::parse_try(Node *parent, int depth) {
     parse_except_handler(stmt, stmt->handlers, depth + 1);
 
     if (token().type() == tok_else) {
-        next_token(); // else
+        next_token();  // else
         expect_token(':', true, stmt, LOC);
         expect_newline(stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
@@ -924,7 +923,7 @@ StmtNode *Parser::parse_try(Node *parent, int depth) {
     }
 
     if (token().type() == tok_finally) {
-        next_token(); // finally
+        next_token();  // finally
         expect_token(':', true, stmt, LOC);
         expect_newline(stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
@@ -935,7 +934,7 @@ StmtNode *Parser::parse_try(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_assert(Node *parent, int depth) {
+StmtNode* Parser::parse_assert(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Assert>();
@@ -955,11 +954,11 @@ StmtNode *Parser::parse_assert(Node *parent, int depth) {
     return stmt;
 }
 
-bool is_dot(Token const &tok) {
+bool is_dot(Token const& tok) {
     return (tok.type() == tok_operator && tok.operator_name() == ".") || tok.type() == tok_dot;
 }
 
-String Parser::parse_module_path(Node *parent, int &level, int depth) {
+String Parser::parse_module_path(Node* parent, int& level, int depth) {
     level = 0;
     Array<String> path;
     bool          last_was_dot = false;
@@ -998,7 +997,7 @@ String Parser::parse_module_path(Node *parent, int &level, int depth) {
     return join(".", path);
 }
 
-void Parser::parse_alias(Node *parent, Array<Alias> &out, int depth) {
+void Parser::parse_alias(Node* parent, Array<Alias>& out, int depth) {
     TRACE_START();
 
     while (token().type() != tok_newline && token().type() != tok_eof) {
@@ -1032,7 +1031,7 @@ void Parser::parse_alias(Node *parent, Array<Alias> &out, int depth) {
     }
 }
 
-StmtNode *Parser::parse_import(Node *parent, int depth) {
+StmtNode* Parser::parse_import(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Import>();
@@ -1046,7 +1045,7 @@ StmtNode *Parser::parse_import(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_import_from(Node *parent, int depth) {
+StmtNode* Parser::parse_import_from(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<ImportFrom>();
@@ -1067,7 +1066,7 @@ StmtNode *Parser::parse_import_from(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_global(Node *parent, int depth) {
+StmtNode* Parser::parse_global(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Global>();
@@ -1089,7 +1088,7 @@ StmtNode *Parser::parse_global(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_nonlocal(Node *parent, int depth) {
+StmtNode* Parser::parse_nonlocal(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Nonlocal>();
@@ -1111,7 +1110,7 @@ StmtNode *Parser::parse_nonlocal(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_return(Node *parent, int depth) {
+StmtNode* Parser::parse_return(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Return>();
@@ -1130,7 +1129,7 @@ StmtNode *Parser::parse_return(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_del(Node *parent, int depth) {
+StmtNode* Parser::parse_del(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Delete>();
@@ -1152,7 +1151,7 @@ StmtNode *Parser::parse_del(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_pass(Node *parent, int depth) {
+StmtNode* Parser::parse_pass(Node* parent, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Pass>();
@@ -1162,7 +1161,7 @@ StmtNode *Parser::parse_pass(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_break(Node *parent, int depth) {
+StmtNode* Parser::parse_break(Node* parent, int depth) {
     TRACE_START();
 
 #if AVOID_DUPLICATE_CONST
@@ -1177,7 +1176,7 @@ StmtNode *Parser::parse_break(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_continue(Node *parent, int depth) {
+StmtNode* Parser::parse_continue(Node* parent, int depth) {
     TRACE_START();
 
 #if AVOID_DUPLICATE_CONST
@@ -1193,7 +1192,7 @@ StmtNode *Parser::parse_continue(Node *parent, int depth) {
 }
 
 // Statement_2
-StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
+StmtNode* Parser::parse_assign(Node* parent, ExprNode* expr, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<Assign>();
@@ -1209,7 +1208,7 @@ StmtNode *Parser::parse_assign(Node *parent, ExprNode *expr, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
+StmtNode* Parser::parse_augassign(Node* parent, ExprNode* expr, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<AugAssign>();
@@ -1230,7 +1229,7 @@ StmtNode *Parser::parse_augassign(Node *parent, ExprNode *expr, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_annassign(Node *parent, ExprNode *expr, int depth) {
+StmtNode* Parser::parse_annassign(Node* parent, ExprNode* expr, int depth) {
     TRACE_START();
 
     auto stmt = parent->new_object<AnnAssign>();
@@ -1251,7 +1250,7 @@ StmtNode *Parser::parse_annassign(Node *parent, ExprNode *expr, int depth) {
 }
 
 // parse_expression_1
-ExprNode *Parser::parse_name(Node *parent, int depth) {
+ExprNode* Parser::parse_name(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<Name>();
@@ -1277,20 +1276,17 @@ ConstantValue Parser::get_value() {
     case tok_float: {
         return ConstantValue(token().as_float());
     }
-    case tok_none:
-        return ConstantValue(ConstantValue::none_t());
+    case tok_none: return ConstantValue(ConstantValue::none_t());
 
-    case tok_true:
-        return ConstantValue(true);
+    case tok_true: return ConstantValue(true);
 
-    case tok_false:
-        return ConstantValue(false);
+    case tok_false: return ConstantValue(false);
     }
 
     return ConstantValue();
 }
 
-ExprNode *Parser::parse_constant(Node *parent, int depth) {
+ExprNode* Parser::parse_constant(Node* parent, int depth) {
     TRACE_START();
 
 #if AVOID_DUPLICATE_CONST
@@ -1300,14 +1296,11 @@ ExprNode *Parser::parse_constant(Node *parent, int depth) {
     static Constant falsev = Constant(false);
 
     switch (token().type()) {
-    case tok_none:
-        return none;
+    case tok_none: return none;
 
-    case tok_true:
-        return truev;
+    case tok_true: return truev;
 
-    case tok_false:
-        return falsev;
+    case tok_false: return falsev;
     }
 //
 #endif
@@ -1322,7 +1315,7 @@ ExprNode *Parser::parse_constant(Node *parent, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_await(Node *parent, int depth) {
+ExprNode* Parser::parse_await(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<Await>();
@@ -1334,7 +1327,7 @@ ExprNode *Parser::parse_await(Node *parent, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_yield(Node *parent, int depth) {
+ExprNode* Parser::parse_yield(Node* parent, int depth) {
     TRACE_START();
 
     if (peek_token().type() == tok_from) {
@@ -1354,12 +1347,12 @@ ExprNode *Parser::parse_yield(Node *parent, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_yield_from(Node *parent, int depth) {
+ExprNode* Parser::parse_yield_from(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<YieldFrom>();
     start_code_loc(expr, token());
-    next_token(); // eat yield
+    next_token();  // eat yield
 
     expect_token(tok_from, true, expr, LOC);
     expr->value = parse_expression(expr, depth + 1);
@@ -1367,13 +1360,13 @@ ExprNode *Parser::parse_yield_from(Node *parent, int depth) {
     return expr;
 }
 
-bool is_star(Token const &tok) { return tok.type() == tok_operator && tok.operator_name() == "*"; }
+bool is_star(Token const& tok) { return tok.type() == tok_operator && tok.operator_name() == "*"; }
 
-bool is_starstar(Token const &tok) {
+bool is_starstar(Token const& tok) {
     return tok.type() == tok_operator && tok.operator_name() == "**";
 }
 
-Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
+Arguments Parser::parse_arguments(Node* parent, char kind, int depth) {
     TRACE_START();
 
     Arguments args;
@@ -1382,7 +1375,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
     bool keywords = false;
 
     while (token().type() != kind) {
-        ExprNode *value = nullptr;
+        ExprNode* value = nullptr;
 
         Arg arg;
 
@@ -1441,7 +1434,7 @@ Arguments Parser::parse_arguments(Node *parent, char kind, int depth) {
     return args;
 }
 
-ExprNode *Parser::parse_lambda(Node *parent, int depth) {
+ExprNode* Parser::parse_lambda(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<Lambda>();
@@ -1454,14 +1447,14 @@ ExprNode *Parser::parse_lambda(Node *parent, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_joined_string(Node *parent, int depth) {
+ExprNode* Parser::parse_joined_string(Node* parent, int depth) {
     TRACE_START();
 
     // TODO
     return not_implemented_expr(parent);
 }
 
-ExprNode *Parser::parse_ifexp(Node *parent, int depth) {
+ExprNode* Parser::parse_ifexp(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<IfExp>();
@@ -1481,7 +1474,7 @@ ExprNode *Parser::parse_ifexp(Node *parent, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_starred(Node *parent, int depth) {
+ExprNode* Parser::parse_starred(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<Starred>();
@@ -1491,7 +1484,7 @@ ExprNode *Parser::parse_starred(Node *parent, int depth) {
     return expr;
 }
 
-void Parser::parse_comprehension(Node *parent, Array<Comprehension> &out, char kind, int depth) {
+void Parser::parse_comprehension(Node* parent, Array<Comprehension>& out, char kind, int depth) {
     TRACE_START();
 
     while (token().type() != kind) {
@@ -1515,7 +1508,7 @@ void Parser::parse_comprehension(Node *parent, Array<Comprehension> &out, char k
 }
 
 template <typename Comp>
-ExprNode *parse_comprehension(Parser *parser, Node *parent, ExprNode *child, char kind, int depth) {
+ExprNode* parse_comprehension(Parser* parser, Node* parent, ExprNode* child, char kind, int depth) {
     auto expr = parent->new_object<Comp>();
 
     expr->elt = child;
@@ -1526,8 +1519,8 @@ ExprNode *parse_comprehension(Parser *parser, Node *parent, ExprNode *child, cha
     return expr;
 }
 
-ExprNode *parse_dictcomprehension(Parser *parser, Node *parent, ExprNode *key, ExprNode *value,
-                                  char kind, int depth) {
+ExprNode* parse_dictcomprehension(
+    Parser* parser, Node* parent, ExprNode* key, ExprNode* value, char kind, int depth) {
     auto expr = parent->new_object<DictComp>();
 
     expr->key   = key;
@@ -1540,7 +1533,7 @@ ExprNode *parse_dictcomprehension(Parser *parser, Node *parent, ExprNode *key, E
 }
 
 template <typename Literal>
-ExprNode *parse_literal(Parser *parser, Node *parent, ExprNode *child, char kind, int depth) {
+ExprNode* parse_literal(Parser* parser, Node* parent, ExprNode* child, char kind, int depth) {
     TRACE_START2(parser->token());
 
     // This is a tuple
@@ -1570,8 +1563,8 @@ ExprNode *parse_literal(Parser *parser, Node *parent, ExprNode *child, char kind
     return expr;
 }
 
-ExprNode *parse_dictliteral(Parser *parser, Node *parent, ExprNode *key, ExprNode *value, char kind,
-                            int depth) {
+ExprNode* parse_dictliteral(
+    Parser* parser, Node* parent, ExprNode* key, ExprNode* value, char kind, int depth) {
     // This is a tuple
     auto expr = parent->new_object<DictExpr>();
     expr->keys.push_back(key);
@@ -1597,16 +1590,16 @@ ExprNode *parse_dictliteral(Parser *parser, Node *parent, ExprNode *key, ExprNod
 }
 
 template <typename Comp, typename Literal>
-ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, char kind,
-                                         int depth) {
+ExprNode*
+parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind, int depth) {
     // Save the start token to set the code loc when we know if this is a tuple or a generator
     auto start_tok = parser->token();
     SHOW_TOK(start_tok);
-    auto err = parser->expect_token(tok, true, nullptr, LOC); // eat (  [  {
+    auto err = parser->expect_token(tok, true, nullptr, LOC);  // eat (  [  {
 
     // Warning: the parent is wrong but we need to parse the expression right now
     auto      child      = parser->parse_expression(parent, depth + 1);
-    ExprNode *value      = nullptr;
+    ExprNode* value      = nullptr;
     bool      dictionary = false;
 
     // Dictionary
@@ -1618,7 +1611,7 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
     // ----
 
     //
-    ExprNode *expr = nullptr;
+    ExprNode* expr = nullptr;
     if (parser->token().type() == tok_for) {
         // This is generator comprehension
         if (dictionary) {
@@ -1663,27 +1656,27 @@ ExprNode *parse_comprehension_or_literal(Parser *parser, Node *parent, int tok, 
 }
 
 // [a, b] or [a for b in c]
-ExprNode *Parser::parse_list(Node *parent, int depth) {
+ExprNode* Parser::parse_list(Node* parent, int depth) {
     TRACE_START();
-    return parse_comprehension_or_literal<ListComp, ListExpr>(this, parent, tok_square, ']',
-                                                              depth + 1);
+    return parse_comprehension_or_literal<ListComp, ListExpr>(
+        this, parent, tok_square, ']', depth + 1);
 }
 
 // (a, b) or (a for b in c)
-ExprNode *Parser::parse_tuple_generator(Node *parent, int depth) {
+ExprNode* Parser::parse_tuple_generator(Node* parent, int depth) {
     TRACE_START();
-    return parse_comprehension_or_literal<GeneratorExp, TupleExpr>(this, parent, tok_parens, ')',
-                                                                   depth + 1);
+    return parse_comprehension_or_literal<GeneratorExp, TupleExpr>(
+        this, parent, tok_parens, ')', depth + 1);
 }
 
 // {a, b} or {a for b in c} or {a: b, c: d} or {a: b for a, b in c}
-ExprNode *Parser::parse_set_dict(Node *parent, int depth) {
+ExprNode* Parser::parse_set_dict(Node* parent, int depth) {
     TRACE_START();
     return parse_comprehension_or_literal<SetComp, SetExpr>(this, parent, tok_curly, '}', depth);
 }
 
 // parse_expression_2
-ExprNode *Parser::parse_named_expr(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_named_expr(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
 
     auto expr    = parent->new_object<NamedExpr>();
@@ -1699,24 +1692,24 @@ ExprNode *Parser::parse_named_expr(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_bool_operator(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_bool_operator(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
     return not_implemented_expr(parent);
 }
-ExprNode *Parser::parse_binary_operator(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_binary_operator(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
     return not_implemented_expr(parent);
 }
-ExprNode *Parser::parse_compare_operator(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_compare_operator(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
     return not_implemented_expr(parent);
 }
-ExprNode *Parser::parse_suffix_unary(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_suffix_unary(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
     return not_implemented_expr(parent);
 }
 
-ExprNode *Parser::parse_prefix_unary(Node *parent, int depth) {
+ExprNode* Parser::parse_prefix_unary(Node* parent, int depth) {
     TRACE_START();
     auto expr = parent->new_object<UnaryOp>();
     start_code_loc(expr, token());
@@ -1740,8 +1733,10 @@ ExprNode *Parser::parse_prefix_unary(Node *parent, int depth) {
     return expr;
 }
 
-Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword> &keywords,
-                              int depth) {
+Token Parser::parse_call_args(Node*             expr,
+                              Array<ExprNode*>& args,
+                              Array<Keyword>&   keywords,
+                              int               depth) {
     TRACE_START();
 
     bool keyword = false;
@@ -1760,8 +1755,8 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
             args.push_back(arg);
         } else {
             auto kwarg = Keyword();
-            kwarg.arg  = get_identifier(); // <= NB: this checks for tok_identifier
-                                           // if not returns a dummy identifier
+            kwarg.arg  = get_identifier();  // <= NB: this checks for tok_identifier
+                                            // if not returns a dummy identifier
             expect_token(tok_identifier, true, expr, LOC);
             expect_token(tok_assign, true, expr, LOC);
 
@@ -1781,7 +1776,7 @@ Token Parser::parse_call_args(Node *expr, Array<ExprNode *> &args, Array<Keyword
     return last;
 }
 
-ExprNode *Parser::parse_call(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_call(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<Call>();
@@ -1799,7 +1794,7 @@ ExprNode *Parser::parse_call(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_attribute(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_attribute(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
 
     auto expr   = parent->new_object<Attribute>();
@@ -1818,7 +1813,7 @@ ExprNode *Parser::parse_attribute(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_subscript(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_subscript(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
 
     auto expr   = parent->new_object<Subscript>();
@@ -1836,7 +1831,7 @@ ExprNode *Parser::parse_subscript(Node *parent, ExprNode *primary, int depth) {
     _allow_slice.push_back(true);
 
     // We do not allocate the TupleExpr unless required
-    Array<ExprNode *> elts;
+    Array<ExprNode*> elts;
 
     while (token().type() != ']') {
         elts.push_back(parse_expression(expr, depth + 1));
@@ -1868,7 +1863,7 @@ ExprNode *Parser::parse_subscript(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
-ExprNode *Parser::parse_slice(Node *parent, ExprNode *primary, int depth) {
+ExprNode* Parser::parse_slice(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
 
     if (!allow_slice()) {
@@ -1893,7 +1888,7 @@ ExprNode *Parser::parse_slice(Node *parent, ExprNode *primary, int depth) {
     return expr;
 }
 
-void set_decorators(StmtNode *stmt, Array<ExprNode *> &decorators) {
+void set_decorators(StmtNode* stmt, Array<ExprNode*>& decorators) {
     if (decorators.size() > 0) {
         if (stmt->kind == NodeKind::FunctionDef) {
             auto fun            = cast<FunctionDef>(stmt);
@@ -1906,11 +1901,11 @@ void set_decorators(StmtNode *stmt, Array<ExprNode *> &decorators) {
     }
 }
 
-StmtNode *Parser::parse_statement(Node *parent, int depth) {
+StmtNode* Parser::parse_statement(Node* parent, int depth) {
 
     TRACE_START();
 
-    Array<ExprNode *> decorators;
+    Array<ExprNode*> decorators;
     while (token().type() == tok_decorator) {
         next_token();
         auto fun = parse_expression(parent, depth);
@@ -1929,7 +1924,7 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
         return stmt;
     }
 
-    Array<StmtNode *> body;
+    Array<StmtNode*> body;
     body.push_back(stmt);
 
     while (token().type() == ';') {
@@ -1954,7 +1949,7 @@ StmtNode *Parser::parse_statement(Node *parent, int depth) {
     return inlinestmt;
 }
 
-StmtNode *Parser::parse_yield_stmt(Node *parent, int depth) {
+StmtNode* Parser::parse_yield_stmt(Node* parent, int depth) {
     // yield is an expression in the AST but it can be parsed
     // as simple_statement or an expression
     auto stmt   = parent->new_object<Expr>();
@@ -1962,11 +1957,13 @@ StmtNode *Parser::parse_yield_stmt(Node *parent, int depth) {
     return stmt;
 }
 
-StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
+StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     TRACE_START();
 
     if (previous == token()) {
-        error("Unhandled token {} `{}` previous tok was `{}`", token().type(), str(token()),
+        error("Unhandled token {} `{}` previous tok was `{}`",
+              token().type(),
+              str(token()),
               str(previous));
 
         throw SyntaxError();
@@ -1988,88 +1985,67 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
     //
     // single_target:
     //     | single_subscript_attribute_target
-    //     | NAME 
-    //     | '(' single_target ')' 
+    //     | NAME
+    //     | '(' single_target ')'
     //
     // single_subscript_attribute_target:
-    //     | t_primary '.' NAME !t_lookahead 
-    //     | t_primary '[' slices ']' !t_lookahead 
+    //     | t_primary '.' NAME !t_lookahead
+    //     | t_primary '[' slices ']' !t_lookahead
     //
     // star_targets:
-    //     | star_target !',' 
-    //     | star_target (',' star_target )* [','] 
+    //     | star_target !','
+    //     | star_target (',' star_target )* [',']
 
     // star_target:
-    //     | '*' (!'*' star_target) 
+    //     | '*' (!'*' star_target)
     //     | target_with_star_atom
     // target_with_star_atom:
-    //     | t_primary '.' NAME !t_lookahead 
-    //     | t_primary '[' slices ']' !t_lookahead 
+    //     | t_primary '.' NAME !t_lookahead
+    //     | t_primary '[' slices ']' !t_lookahead
     //     | star_atom
     // star_atom:
-    //     | NAME 
-    //     | '(' target_with_star_atom ')' 
-    //     | '(' [star_targets_tuple_seq] ')' 
-    //     | '[' [star_targets_list_seq] ']' 
-    // star_targets_list_seq: ','.star_target+ [','] 
+    //     | NAME
+    //     | '(' target_with_star_atom ')'
+    //     | '(' [star_targets_tuple_seq] ')'
+    //     | '[' [star_targets_list_seq] ']'
+    // star_targets_list_seq: ','.star_target+ [',']
     // star_targets_tuple_seq:
-    //     | star_target (',' star_target )+ [','] 
-    //     | star_target ',' 
+    //     | star_target (',' star_target )+ [',']
+    //     | star_target ','
 
     // star_expressions
     //
 
     // clang-format on
-    case tok_return:
-        return parse_return(parent, depth);
-    case tok_import:
-        return parse_import(parent, depth);
-    case tok_from:
-        return parse_import_from(parent, depth);
-    case tok_raise:
-        return parse_raise(parent, depth);
-    case tok_pass:
-        return parse_pass(parent, depth);
-    case tok_del:
-        return parse_del(parent, depth);
-    case tok_yield:
-        return parse_yield_stmt(parent, depth);
-    case tok_assert:
-        return parse_assert(parent, depth);
-    case tok_break:
-        return parse_break(parent, depth);
-    case tok_continue:
-        return parse_continue(parent, depth);
-    case tok_global:
-        return parse_global(parent, depth);
-    case tok_nonlocal:
-        return parse_nonlocal(parent, depth);
+    case tok_return: return parse_return(parent, depth);
+    case tok_import: return parse_import(parent, depth);
+    case tok_from: return parse_import_from(parent, depth);
+    case tok_raise: return parse_raise(parent, depth);
+    case tok_pass: return parse_pass(parent, depth);
+    case tok_del: return parse_del(parent, depth);
+    case tok_yield: return parse_yield_stmt(parent, depth);
+    case tok_assert: return parse_assert(parent, depth);
+    case tok_break: return parse_break(parent, depth);
+    case tok_continue: return parse_continue(parent, depth);
+    case tok_global: return parse_global(parent, depth);
+    case tok_nonlocal: return parse_nonlocal(parent, depth);
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     // Compound Statement
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // def <name>(...
-    case tok_def:
-        return parse_function_def(parent, false, depth);
+    case tok_def: return parse_function_def(parent, false, depth);
     // async def <name>(...
-    case tok_async:
-        return parse_function_def(parent, true, depth);
-    case tok_if:
-        return parse_if_alt(parent, depth);
-    case tok_class:
-        return parse_class_def(parent, depth);
-    case tok_with:
-        return parse_with(parent, depth);
+    case tok_async: return parse_function_def(parent, true, depth);
+    case tok_if: return parse_if_alt(parent, depth);
+    case tok_class: return parse_class_def(parent, depth);
+    case tok_with: return parse_with(parent, depth);
 
     // Async for: only valid inside async function
-    case tok_for:
-        return parse_for(parent, depth);
-    case tok_try:
-        return parse_try(parent, depth);
-    case tok_while:
-        return parse_while(parent, depth);
-    case tok_match:
-        return parse_match(parent, depth);
+    case tok_for: return parse_for(parent, depth);
+    case tok_try: return parse_try(parent, depth);
+    case tok_while: return parse_while(parent, depth);
+    case tok_match: return parse_match(parent, depth);
     }
 
     auto expr = parse_expression(parent, depth);
@@ -2084,15 +2060,12 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
 
     switch (token().type()) {
     // <expr> = <>
-    case tok_assign:
-        return parse_assign(parent, expr, depth);
+    case tok_assign: return parse_assign(parent, expr, depth);
     // <expr> += <>
-    case tok_augassign:
-        return parse_augassign(parent, expr, depth);
+    case tok_augassign: return parse_augassign(parent, expr, depth);
     // <expr>: type = <>
     case ':':
-    case tok_annassign:
-        return parse_annassign(parent, expr, depth);
+    case tok_annassign: return parse_annassign(parent, expr, depth);
     }
 
     // fallback to standard expression
@@ -2107,7 +2080,7 @@ StmtNode *Parser::parse_statement_primary(Node *parent, int depth) {
 // but it got issues with some edge cases.
 //
 // https://en.wikipedia.org/wiki/Operator-precedence_parser#:~:text=The%20precedence%20climbing%20method%20is%20a%20compact%2C%20efficient%2C,in%20EBNF%20format%20will%20usually%20look%20like%20this%3A
-ExprNode *Parser::parse_operators(Node *parent, ExprNode *lhs, int min_precedence, int depth) {
+ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedence, int depth) {
     TRACE_START();
 
     while (true) {
@@ -2169,15 +2142,14 @@ ExprNode *Parser::parse_operators(Node *parent, ExprNode *lhs, int min_precedenc
     return lhs;
 }
 
-ExprNode *Parser::parse_expression(Node *parent, int depth, bool comma) {
+ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
     expression_depth += 1;
     // parse primary
     auto primary = parse_expression_primary(parent, depth);
 
     switch (token().type()) {
     // <expr>(args...)
-    case tok_parens:
-        primary = parse_call(parent, primary, depth);
+    case tok_parens: primary = parse_call(parent, primary, depth);
     }
 
     primary = parse_expression_1(parent, primary, 0, depth, comma);
@@ -2187,69 +2159,58 @@ ExprNode *Parser::parse_expression(Node *parent, int depth, bool comma) {
 }
 
 // Expression we can guess rightaway from the current token we are seeing
-ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
+ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
     switch (token().type()) {
     // await <expr>
-    case tok_await:
-        return parse_await(parent, depth);
+    case tok_await: return parse_await(parent, depth);
 
     // yield from <expr>
     // yield <expr>
     case tok_yield_from:
-    case tok_yield:
-        return parse_yield(parent, depth);
+    case tok_yield: return parse_yield(parent, depth);
 
     // atom:
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // Name: <identifier>
-    case tok_identifier:
-        return parse_name(parent, depth);
+    case tok_identifier: return parse_name(parent, depth);
 
     case tok_none:
     case tok_true:
     case tok_false:
     case tok_int:
     case tok_float:
-    case tok_string:
-        return parse_constant(parent, depth);
+    case tok_string: return parse_constant(parent, depth);
 
     // List: [a, b]
     // Comprehension [a for a in b]
-    case tok_square:
-        return parse_list(parent, depth);
+    case tok_square: return parse_list(parent, depth);
 
     // Tuple: (a, b)
     // Generator Comprehension: (a for a in b)
     // can be (1 + b)
-    case tok_parens:
-        return parse_tuple_generator(parent, depth);
+    case tok_parens: return parse_tuple_generator(parent, depth);
 
     // Set: {a, b}
     // Comprehension {a for a in b}
     //      OR
     // Dict: {a : b}
     // Comprehension {a: b for a, b in c}
-    case tok_curly:
-        return parse_set_dict(parent, depth);
+    case tok_curly: return parse_set_dict(parent, depth);
 
     // TODO: add elipsis
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     // lambda <name>:
-    case tok_lambda:
-        return parse_lambda(parent, depth);
+    case tok_lambda: return parse_lambda(parent, depth);
 
     // f"
-    case tok_fstring:
-        return parse_joined_string(parent, depth);
+    case tok_fstring: return parse_joined_string(parent, depth);
     // if <expr> else <expr>
-    case tok_if:
-        return parse_ifexp(parent, depth);
+    case tok_if: return parse_ifexp(parent, depth);
 
     // *<expr>
     case tok_star:
-    case tok_operator:
-        return parse_prefix_unary(parent, depth);
+    case tok_operator: return parse_prefix_unary(parent, depth);
     }
 
     // Left Unary operator
@@ -2258,14 +2219,13 @@ ExprNode *Parser::parse_expression_primary(Node *parent, int depth) {
     throw SyntaxError();
 }
 
-ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_precedence, int depth,
-                                     bool comma) {
+ExprNode* Parser::parse_expression_1(
+    Node* parent, ExprNode* primary, int min_precedence, int depth, bool comma) {
     //
     switch (token().type()) {
     // <expr> := <expr>
     // assign expression instead of the usual assign statement
-    case tok_walrus:
-        return parse_named_expr(parent, primary, depth);
+    case tok_walrus: return parse_named_expr(parent, primary, depth);
 
     // <expr> boolop <expr>
     /*
@@ -2276,19 +2236,15 @@ ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_pr
     case tok_compareop:
         return parse_compare_operator(parent, primary, depth);
     */
-    case tok_unaryop:
-        return parse_suffix_unary(parent, primary, depth);
+    case tok_unaryop: return parse_suffix_unary(parent, primary, depth);
 
     case tok_in:
-    case tok_operator:
-        return parse_operators(parent, primary, min_precedence, depth);
+    case tok_operator: return parse_operators(parent, primary, min_precedence, depth);
 
     // <expr>.<identifier>
-    case tok_dot:
-        return parse_attribute(parent, primary, depth);
+    case tok_dot: return parse_attribute(parent, primary, depth);
     // <expr>[
-    case tok_square:
-        return parse_subscript(parent, primary, depth);
+    case tok_square: return parse_subscript(parent, primary, depth);
 
     // this causes more issues than it solves
     // to allow unpacking we will need to move this to somewhere more specific
@@ -2312,4 +2268,4 @@ ExprNode *Parser::parse_expression_1(Node *parent, ExprNode *primary, int min_pr
     return primary;
 }
 
-} // namespace lython
+}  // namespace lython

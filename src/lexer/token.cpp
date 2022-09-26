@@ -6,8 +6,7 @@ namespace lython {
 String to_string(int8 t) {
     switch (t) {
 #define X(name, nb) \
-    case nb:        \
-        return String(#name);
+    case nb: return String(#name);
 
         LYTHON_TOKEN(X)
 #undef X
@@ -29,13 +28,13 @@ int8 tok_name_size() {
 
     int8 max = 0;
 
-    for (auto &i: v)
+    for (auto& i: v)
         max = std::max(int8(i.size()), max);
 
     return max;
 }
 
-std::ostream &Token::debug_print(std::ostream &out) const {
+std::ostream& Token::debug_print(std::ostream& out) const {
     out << fmt::format("{:>20}", to_string(_type));
 
     out << " =>"
@@ -45,10 +44,10 @@ std::ostream &Token::debug_print(std::ostream &out) const {
 }
 
 // could be used for code formatting
-std::ostream &Token::print(std::ostream &out, int32 indent) const {
+std::ostream& Token::print(std::ostream& out, int32 indent) const {
     // Keep track of some variable for correct printing
     static int32 indent_level = 0;
-    static bool  emptyline    = true; // To generate indent when needed
+    static bool  emptyline    = true;  // To generate indent when needed
     static bool  open_parens  = false;
     static bool  prev_is_op   = false;
 
@@ -96,16 +95,14 @@ std::ostream &Token::print(std::ostream &out, int32 indent) const {
     if (emptyline && indent_level > 0)
         out << String(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
-    String const &str = keyword_as_string()[type()];
+    String const& str = keyword_as_string()[type()];
 
     if (str.size() > 0) {
         emptyline = false;
 
         switch (type()) {
         case tok_arrow:
-        case tok_as:
-            out << " ";
-            break;
+        case tok_as: out << " "; break;
 
         case tok_import:
             if (!emptyline) {
@@ -156,7 +153,7 @@ std::ostream &Token::print(std::ostream &out, int32 indent) const {
     return out;
 }
 
-ReservedKeyword &keywords() {
+ReservedKeyword& keywords() {
     static ReservedKeyword _keywords = {
 #define X(str, tok) {str, tok},
         LYTHON_KEYWORDS(X)
@@ -165,7 +162,7 @@ ReservedKeyword &keywords() {
     return _keywords;
 }
 
-KeywordToString &keyword_as_string() {
+KeywordToString& keyword_as_string() {
     static KeywordToString _keywords = {
 #define X(str, tok) {int(tok), String(str)},
         LYTHON_KEYWORDS(X)
@@ -174,4 +171,4 @@ KeywordToString &keyword_as_string() {
     return _keywords;
 }
 
-} // namespace lython
+}  // namespace lython

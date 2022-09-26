@@ -18,10 +18,10 @@ namespace lython {
 Array<String> python_paths();
 
 struct SemaVisitorTrait {
-    using StmtRet = TypeExpr *;
-    using ExprRet = TypeExpr *;
-    using ModRet  = TypeExpr *;
-    using PatRet  = TypeExpr *;
+    using StmtRet = TypeExpr*;
+    using ExprRet = TypeExpr*;
+    using ModRet  = TypeExpr*;
+    using PatRet  = TypeExpr*;
     using IsConst = std::false_type;
 };
 
@@ -90,14 +90,14 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Bindings                              bindings;
     bool                                  forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
-    Array<StmtNode *>                     nested;
+    Array<StmtNode*>                      nested;
     Dict<StringRef, bool>                 flags;
     Array<String>                         paths = python_paths();
 
     public:
     virtual ~SemanticAnalyser() {}
 
-    StmtNode *current_namespace() {
+    StmtNode* current_namespace() {
         if (nested.size() > 0) {
             return nested[nested.size() - 1];
         }
@@ -106,19 +106,19 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     Tuple<ClassDef*, FunctionDef*> find_method(TypeExpr* class_type, String const& methodname);
 
-    bool typecheck(ExprNode *lhs, TypeExpr *lhs_t, ExprNode *rhs, TypeExpr *rhs_t,
-                   CodeLocation const &loc);
+    bool typecheck(
+        ExprNode* lhs, TypeExpr* lhs_t, ExprNode* rhs, TypeExpr* rhs_t, CodeLocation const& loc);
 
-    bool add_name(ExprNode *expr, ExprNode *value, ExprNode *type);
+    bool add_name(ExprNode* expr, ExprNode* value, ExprNode* type);
 
-    TypeExpr *oneof(Array<TypeExpr *> types) {
+    TypeExpr* oneof(Array<TypeExpr*> types) {
         if (types.size() > 0) {
             return types[0];
         }
         return nullptr;
     }
 
-    ExprNode *make_ref(Node *parent, String const &name) {
+    ExprNode* make_ref(Node* parent, String const& name) {
         auto ref   = parent->new_object<Name>();
         ref->id    = name;
         ref->varid = bindings.get_varid(ref->id);
@@ -127,11 +127,11 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     TypeExpr* resolve_variable(ExprNode* node);
 
-    TypeExpr *attribute_assign(Attribute *n, int depth, TypeExpr *expected);
+    TypeExpr* attribute_assign(Attribute* n, int depth, TypeExpr* expected);
 
-    void add_arguments(Arguments &args, Arrow *, ClassDef *def, int);
+    void add_arguments(Arguments& args, Arrow*, ClassDef* def, int);
 
-#define FUNCTION_GEN(name, fun) virtual TypeExpr *fun(name *n, int depth);
+#define FUNCTION_GEN(name, fun) virtual TypeExpr* fun(name* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)
@@ -152,6 +152,6 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 #undef FUNCTION_GEN
 };
 
-} // namespace lython
+}  // namespace lython
 
 #endif

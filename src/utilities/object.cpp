@@ -3,7 +3,7 @@
 
 namespace lython {
 
-void GCObject::remove_child(GCObject *child, bool dofree) {
+void GCObject::remove_child(GCObject* child, bool dofree) {
     auto elem = std::find(children.rbegin(), children.rend(), child);
     // This is why people hate C++
     //
@@ -23,7 +23,7 @@ void GCObject::remove_child(GCObject *child, bool dofree) {
     }
 }
 
-void GCObject::dump(std::ostream &out, int depth) {
+void GCObject::dump(std::ostream& out, int depth) {
     out << String(depth * 2, ' ') << meta::type_name(class_id) << std::endl;
 
     for (auto obj: children) {
@@ -31,14 +31,14 @@ void GCObject::dump(std::ostream &out, int depth) {
     }
 }
 
-void GCObject::free(GCObject *child) {
+void GCObject::free(GCObject* child) {
     child->~GCObject();
 
     int cclass_id = child->class_id;
 
     // FIXME: this breaks the metadata
     manual_free(cclass_id, 1);
-    device::CPU().free((void *)child, 1);
+    device::CPU().free((void*)child, 1);
 
     // info("freed {}", meta::type_name(cclass_id));
 }
@@ -55,4 +55,4 @@ GCObject::~GCObject() {
     // info("freed {}", meta::type_name(ccclass_id));
 }
 
-} // namespace lython
+}  // namespace lython

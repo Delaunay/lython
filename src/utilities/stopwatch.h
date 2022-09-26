@@ -27,11 +27,11 @@ class StopWatch {
 
     StopWatch operator=(StopWatch p) { return StopWatch(p); }
 
-    StopWatch(const StopWatch &p): start(p.start) {}
+    StopWatch(const StopWatch& p): start(p.start) {}
 
     StopWatch() = default;
 };
 
-} // namespace lython
+}  // namespace lython
 
 #endif

@@ -9,10 +9,10 @@ namespace lython {
 NEW_EXCEPTION(NullPointerError)
 
 struct DefaultVisitorTrait {
-    using StmtRet = StmtNode *;
-    using ExprRet = ExprNode *;
-    using ModRet  = ModNode *;
-    using PatRet  = Pattern *;
+    using StmtRet = StmtNode*;
+    using ExprRet = ExprNode*;
+    using ModRet  = ModNode*;
+    using PatRet  = Pattern*;
 };
 
 /*!
@@ -65,10 +65,10 @@ struct BaseVisitor {
 #undef TYPE_GEN
 
     template <typename U, typename T>
-    Array<U> exec(Array<T> &body, int depth, Args... args) {
+    Array<U> exec(Array<T>& body, int depth, Args... args) {
         int      k = 0;
         Array<U> types;
-        for (auto &stmt: body) {
+        for (auto& stmt: body) {
             types.push_back(exec(stmt, depth, (args)...));
             k += 1;
         }
@@ -76,7 +76,7 @@ struct BaseVisitor {
     };
 
     template <typename U, typename T>
-    Optional<U> exec(Optional<T> &maybe, int depth, Args... args) {
+    Optional<U> exec(Optional<T>& maybe, int depth, Args... args) {
         if (maybe.has_value()) {
             return some<U>(exec(maybe.value(), depth, (args)...));
         }
@@ -84,21 +84,18 @@ struct BaseVisitor {
     };
 
     template <typename T>
-    T exec(Node_t *n, int depth, Args... args) {
+    T exec(Node_t* n, int depth, Args... args) {
         switch (n->family()) {
-        case NodeFamily::Module:
-            return exec(reinterpret_cast<ModNode_t *>(n), depth, (args)...);
-        case NodeFamily::Statement:
-            return exec(reinterpret_cast<StmtNode_t *>(n), depth, (args)...);
+        case NodeFamily::Module: return exec(reinterpret_cast<ModNode_t*>(n), depth, (args)...);
+        case NodeFamily::Statement: return exec(reinterpret_cast<StmtNode_t*>(n), depth, (args)...);
         case NodeFamily::Expression:
-            return exec(reinterpret_cast<ExprNode_t *>(n), depth, (args)...);
-        case NodeFamily::Pattern:
-            return exec(reinterpret_cast<Pattern_t *>(n), depth, (args)...);
+            return exec(reinterpret_cast<ExprNode_t*>(n), depth, (args)...);
+        case NodeFamily::Pattern: return exec(reinterpret_cast<Pattern_t*>(n), depth, (args)...);
         }
         return T();
     }
 
-    ModRet exec(ModNode_t *mod, int depth, Args... args) {
+    ModRet exec(ModNode_t* mod, int depth, Args... args) {
         // clang-format off
         // trace(depth, "{}", mod->kind);
         switch (mod->kind) {
@@ -127,7 +124,7 @@ struct BaseVisitor {
         return ModRet();
     }
 
-    PatRet exec(Pattern_t *pat, int depth, Args... args) {
+    PatRet exec(Pattern_t* pat, int depth, Args... args) {
         if (!pat) {
             return PatRet();
         }
@@ -158,7 +155,7 @@ struct BaseVisitor {
         return PatRet();
     }
 
-    ExprRet exec(ExprNode_t *expr, int depth, Args... args) {
+    ExprRet exec(ExprNode_t* expr, int depth, Args... args) {
         if (!expr) {
             return ExprRet();
         }
@@ -189,7 +186,7 @@ struct BaseVisitor {
         return ExprRet();
     }
 
-    StmtRet exec(StmtNode_t *stmt, int depth, Args... args) {
+    StmtRet exec(StmtNode_t* stmt, int depth, Args... args) {
         if (!stmt) {
             debug("Null statement");
             return StmtRet();
@@ -222,10 +219,10 @@ struct BaseVisitor {
         return StmtRet();
     }
 
-#define FUNCTION_GEN(name, fun, rtype)                                           \
-    rtype fun(name##_t *node, int depth, Args... args) {                         \
-        trace(depth, #name);                                                     \
-        return static_cast<Implementation *>(this)->fun(node, depth, (args)...); \
+#define FUNCTION_GEN(name, fun, rtype)                                          \
+    rtype fun(name##_t* node, int depth, Args... args) {                        \
+        trace(depth, #name);                                                    \
+        return static_cast<Implementation*>(this)->fun(node, depth, (args)...); \
     }
 
 #define X(name, _)
@@ -246,7 +243,7 @@ struct BaseVisitor {
 
 #undef FUNCTION_GEN
 
-}; // namespace lython
+};  // namespace lython
 
-} // namespace lython
+}  // namespace lython
 #endif

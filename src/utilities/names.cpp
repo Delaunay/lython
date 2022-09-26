@@ -3,11 +3,11 @@
 
 namespace lython {
 
-std::ostream &operator<<(std::ostream &out, StringRef ref) {
+std::ostream& operator<<(std::ostream& out, StringRef ref) {
     return out << StringDatabase::instance()[ref.__id__()];
 }
 
-void StringRef::print(std::ostream &out) const {
+void StringRef::print(std::ostream& out) const {
     auto view = StringDatabase::instance()[ref];
     out << String(view);
 }
@@ -16,16 +16,16 @@ StringRef::operator StringView() const { return StringDatabase::instance()[ref];
 
 StringRef::~StringRef() { StringDatabase::instance().dec(ref); }
 
-std::ostream &StringDatabase::report(std::ostream &out) const {
+std::ostream& StringDatabase::report(std::ostream& out) const {
     std::size_t saved    = 0;
     std::size_t saved_up = 0;
     std::size_t size     = 9;
 
-    out << fmt::format("| {:30} | {:4} | {:4} | {:4} | {:4} | {:4} |\n", "str", "#", "use", "cpy",
-                       "low", "upp");
+    out << fmt::format(
+        "| {:30} | {:4} | {:4} | {:4} | {:4} | {:4} |\n", "str", "#", "use", "cpy", "low", "upp");
 
-    for(auto& strings: memory_blocks){
-        for (auto &entry: strings) {
+    for (auto& strings: memory_blocks) {
+        for (auto& entry: strings) {
             size += entry.data.size();
             auto lower = entry.data.size() * (entry.count - 1);
             auto upper = entry.data.size() * (entry.copy - 1);
@@ -36,20 +36,28 @@ std::ostream &StringDatabase::report(std::ostream &out) const {
                 continue;
             }
 
-            out << fmt::format("| {:30} | {:4} | {:4} | {:4} | {:4} | {:4} |\n", entry.data,
-                            entry.count, entry.in_use, entry.copy, lower, upper);
+            out << fmt::format("| {:30} | {:4} | {:4} | {:4} | {:4} | {:4} |\n",
+                               entry.data,
+                               entry.count,
+                               entry.in_use,
+                               entry.copy,
+                               lower,
+                               upper);
         }
     }
 
-    out << fmt::format("Size {}: {} < Saved < {} bytes (x{:6.2f} - {:6.2f})\n", size, saved,
-                    saved_up, float(size + saved) / float(size),
-                    float(size + saved_up) / float(size));
+    out << fmt::format("Size {}: {} < Saved < {} bytes (x{:6.2f} - {:6.2f})\n",
+                       size,
+                       saved,
+                       saved_up,
+                       float(size + saved) / float(size),
+                       float(size + saved_up) / float(size));
     out << fmt::format("Spent {} ms waiting on lock\n", wait_time);
 
     return out;
 }
 
-StringDatabase &StringDatabase::instance() {
+StringDatabase& StringDatabase::instance() {
     static StringDatabase db;
     return db;
 }
@@ -107,17 +115,16 @@ std::size_t StringDatabase::inc(std::size_t i) {
     return i;
 };
 
-
- Array<StringDatabase::StringEntry>& StringDatabase::current_block() {
+Array<StringDatabase::StringEntry>& StringDatabase::current_block() {
     Array<StringEntry>& last = *memory_blocks.rbegin();
 
     if (last.capacity() != last.size())
         return last;
 
     return newblock();
- }
+}
 
-StringRef StringDatabase::string(String const &name) {
+StringRef StringDatabase::string(String const& name) {
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
     wait_time += timer.stop();
@@ -125,9 +132,9 @@ StringRef StringDatabase::string(String const &name) {
     auto val = defined.find(name);
 
     if (val == defined.end()) {
-        std::size_t id = size;
-        auto& strings = current_block();
-         std::size_t n = strings.size();
+        std::size_t id      = size;
+        auto&       strings = current_block();
+        std::size_t n       = strings.size();
 
         strings.push_back({name, 1, 0, 1});
         StringView str = strings[n].data;
@@ -146,9 +153,7 @@ StringRef StringDatabase::string(String const &name) {
     return StringRef(ref);
 }
 
-
-Array<StringDatabase::StringEntry>& StringDatabase::newblock()
-{
+Array<StringDatabase::StringEntry>& StringDatabase::newblock() {
     memory_blocks.push_back(Array<StringEntry>());
     Array<StringEntry>& last = *memory_blocks.rbegin();
     last.reserve(block_size);
@@ -163,7 +168,7 @@ StringDatabase::StringDatabase() {
     StringView str = block[0].data;
 
     defined[str] = {0};
-    size = 1;
+    size         = 1;
 }
 
-} // namespace lython
+}  // namespace lython

@@ -1,18 +1,21 @@
 
+#include "builtin/operators.inc"
 #include "ast/nodes.h"
 #include "utilities/names.h"
-#include "builtin/operators.inc"
 
 namespace lython {
 Dict<StringRef, BinOp::NativeBinaryOp> build_native_binary_operators() {
     // FIXME: add return type, the return type can be different
     Dict<StringRef, BinOp::NativeBinaryOp> map;
 
-    #define JOIN(op, t1, t2) op-t1-t2
-    #define _STR(x) #x
-    #define STR(x) _STR(x)
+    // clang-format off
+#define JOIN(op, t1, t2) op-t1-t2
+#define JOIN1(op, t1) op-t1
+#define _STR(x)          #x
+#define STR(x)           _STR(x)
+    // clang-format on
 
-    #define LAMBDA(op, type) op<type>::vm;
+#define LAMBDA(op, type) op<type>::vm;
 
     // clang-format off
     // Float
@@ -151,14 +154,13 @@ Dict<StringRef, BinOp::NativeBinaryOp> build_native_binary_operators() {
     return map;
 }
 
-
-template<typename K, typename V>
-V get(Dict<K, V>const & map, K key, V value) {
+template <typename K, typename V>
+V get(Dict<K, V> const& map, K key, V value) {
     using Iterator = typename Dict<K, V>::const_iterator;
 
     Iterator maybe = map.find(key);
 
-    if (maybe == map.end()){
+    if (maybe == map.end()) {
         return value;
     }
 
@@ -171,13 +173,8 @@ Dict<StringRef, BinOp::NativeBinaryOp> const& native_binary_operators() {
 }
 
 BinOp::NativeBinaryOp get_native_binary_operation(StringRef signature) {
-    return get(
-        native_binary_operators(),
-        signature,
-        BinOp::NativeBinaryOp()
-    );
+    return get(native_binary_operators(), signature, BinOp::NativeBinaryOp());
 }
-
 
 // Bool
 Dict<StringRef, BoolOp::NativeBoolyOp> build_native_bool_operators() {
@@ -190,25 +187,18 @@ Dict<StringRef, BoolOp::NativeBoolyOp> build_native_bool_operators() {
     return map;
 }
 
-Dict<StringRef, BoolOp::NativeBoolyOp> const& native_bool_operators(){
+Dict<StringRef, BoolOp::NativeBoolyOp> const& native_bool_operators() {
     static auto ops = build_native_bool_operators();
     return ops;
 }
 
-BoolOp::NativeBoolyOp get_native_bool_operation(StringRef signature){
-     return get(
-        native_bool_operators(),
-        signature,
-        BoolOp::NativeBoolyOp()
-    );
+BoolOp::NativeBoolyOp get_native_bool_operation(StringRef signature) {
+    return get(native_bool_operators(), signature, BoolOp::NativeBoolyOp());
 }
 
-
 // Unary
-Dict<StringRef, UnaryOp::NativeUnaryOp> build_native_unary_operators(){
+Dict<StringRef, UnaryOp::NativeUnaryOp> build_native_unary_operators() {
     Dict<StringRef, UnaryOp::NativeUnaryOp> map;
-
-    #define JOIN1(op, t1) op-t1
 
     // clang-format off
     map[StringRef(STR(JOIN1(Invert, u8)))]  = LAMBDA(Invert, uint8);
@@ -262,22 +252,17 @@ Dict<StringRef, UnaryOp::NativeUnaryOp> build_native_unary_operators(){
     return map;
 }
 
-Dict<StringRef, UnaryOp::NativeUnaryOp> const& native_unary_operators(){
+Dict<StringRef, UnaryOp::NativeUnaryOp> const& native_unary_operators() {
     static auto ops = build_native_unary_operators();
     return ops;
 }
 
-UnaryOp::NativeUnaryOp get_native_unary_operation(StringRef signature){
-     return get(
-        native_unary_operators(),
-        signature,
-        UnaryOp::NativeUnaryOp()
-    );
+UnaryOp::NativeUnaryOp get_native_unary_operation(StringRef signature) {
+    return get(native_unary_operators(), signature, UnaryOp::NativeUnaryOp());
 }
 
-
 // Cmp
-Dict<StringRef, Compare::NativeCompOp> build_native_cmp_operators(){
+Dict<StringRef, Compare::NativeCompOp> build_native_cmp_operators() {
     Dict<StringRef, Compare::NativeCompOp> map;
 
     // clang-format off
@@ -375,17 +360,13 @@ Dict<StringRef, Compare::NativeCompOp> build_native_cmp_operators(){
     return map;
 }
 
-Dict<StringRef, Compare::NativeCompOp> const& native_cmp_operators(){
+Dict<StringRef, Compare::NativeCompOp> const& native_cmp_operators() {
     static auto ops = build_native_cmp_operators();
     return ops;
 }
 
-Compare::NativeCompOp get_native_cmp_operation(StringRef signature){
-     return get(
-        native_cmp_operators(),
-        signature,
-        Compare::NativeCompOp()
-    );
+Compare::NativeCompOp get_native_cmp_operation(StringRef signature) {
+    return get(native_cmp_operators(), signature, Compare::NativeCompOp());
 }
 
-}
+}  // namespace lython

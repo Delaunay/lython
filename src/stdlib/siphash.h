@@ -15,8 +15,7 @@
    <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
-#include <inttypes.h>
 #include <cstring>
+#include <inttypes.h>
 
-int siphash(const void *in, const size_t inlen, const void *k, uint8_t *out,
-            const size_t outlen);
+int siphash(const void* in, const size_t inlen, const void* k, uint8_t* out, const size_t outlen);

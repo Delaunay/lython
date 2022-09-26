@@ -15,10 +15,10 @@ namespace lython {
 using PartialResult = Node;
 
 struct TreeEvaluatorTrait {
-    using StmtRet = PartialResult *;
-    using ExprRet = PartialResult *;
-    using ModRet  = PartialResult *;
-    using PatRet  = PartialResult *;
+    using StmtRet = PartialResult*;
+    using ExprRet = PartialResult*;
+    using ModRet  = PartialResult*;
+    using PatRet  = PartialResult*;
 };
 
 /* Tree evaluator is a very simple interpreter that is also very slow.
@@ -70,11 +70,11 @@ struct TreeEvaluatorTrait {
 struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     public:
-    TreeEvaluator(Bindings &bindings): bindings(bindings) {}
+    TreeEvaluator(Bindings& bindings): bindings(bindings) {}
 
     virtual ~TreeEvaluator() {}
 
-#define FUNCTION_GEN(name, fun) virtual PartialResult *fun(name##_t *n, int depth);
+#define FUNCTION_GEN(name, fun) virtual PartialResult* fun(name##_t* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)
@@ -97,50 +97,42 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     // this some clean up code, acknowledge we have exceptions
     // but this code needs to run regardless, it will stop if new exceptions are raised
     struct HandleException {
-        HandleException(TreeEvaluator* self):
-            self(self)
-        {
+        HandleException(TreeEvaluator* self): self(self) {
             self->handling_exceptions = int(self->exceptions.size());
         }
 
-        ~HandleException() {
-            self->handling_exceptions = 0;
-        }
+        ~HandleException() { self->handling_exceptions = 0; }
 
         TreeEvaluator* self;
     };
 
-
     Expression root;
-    Bindings &bindings;
+    Bindings&  bindings;
 
     // `Registers`
     PartialResult* return_value;
-    bool loop_break = false;
-    bool loop_continue = false;
+    bool           loop_break    = false;
+    bool           loop_continue = false;
 
     Array<PartialResult*> exceptions;
-    PartialResult* cause = nullptr;
-    int handling_exceptions = 0;
-
+    PartialResult*        cause               = nullptr;
+    int                   handling_exceptions = 0;
 
     // Helpers
-    PartialResult *get_next(Node *iterator, int depth);
-    PartialResult *call_enter(Node* ctx, int depth);
-    PartialResult *call_exit(Node* ctx, int depth);
+    PartialResult* get_next(Node* iterator, int depth);
+    PartialResult* call_enter(Node* ctx, int depth);
+    PartialResult* call_exit(Node* ctx, int depth);
 
-    void execute_body(Array<StmtNode *>& body, int depth);
-    void execute_loop_body(Array<StmtNode *>& body, int depth);
+    void execute_body(Array<StmtNode*>& body, int depth);
+    void execute_loop_body(Array<StmtNode*>& body, int depth);
 
     // Only returns true when new exceptions pop up
     // we usually expect 0 exceptions,
     // during exceptions handling we will execpt n and this will only be true
     // if new exceptions are raised during the previous exceptions handling
-    bool has_exceptions() const {
-        return int(exceptions.size()) > handling_exceptions;
-    }
+    bool has_exceptions() const { return int(exceptions.size()) > handling_exceptions; }
 };
 
-} // namespace lython
+}  // namespace lython
 
 #endif

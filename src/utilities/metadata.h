@@ -23,18 +23,18 @@ namespace lython {
 namespace meta {
 #define DEFINE_METADATA(type, tname)                                 \
     template <>                                                      \
-    inline const char *type_name<type>() {                           \
-        static const char *name = meta::register_type<type>(#tname); \
+    inline const char* type_name<type>() {                           \
+        static const char* name = meta::register_type<type>(#tname); \
         return name;                                                 \
     }
 
 TYPES_METADATA(DEFINE_METADATA)
-} // namespace meta
+}  // namespace meta
 
 void metadata_init_names();
 
 void track_static();
 
-} // namespace lython
+}  // namespace lython
 
 #endif

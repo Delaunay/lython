@@ -20,20 +20,21 @@ struct LispSexpTrait {
 struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
     using Super = BaseVisitor<LispSexp, true, LispSexpTrait, int>;
 
-    ReturnType sexp_body(Array<StmtNode *> const &body, int depth, int level, bool print_last = false) {
+    ReturnType
+    sexp_body(Array<StmtNode*> const& body, int depth, int level, bool print_last = false) {
         // (
         //      (stmt)
         //      (stmt)
         // )
         Array<Sexp> items;
-        for (auto &stmt: body) {
+        for (auto& stmt: body) {
             items.push_back(exec(stmt, depth, level));
         }
 
         return Sexp::list(items);
     }
 
-    ReturnType excepthandler(ExceptHandler const &self, int depth, int level) {
+    ReturnType excepthandler(ExceptHandler const& self, int depth, int level) {
         out << '\n' << indent(level) << "except ";
 
         if (self.type.has_value()) {
@@ -49,7 +50,7 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
         return sexp_body(self.body, depth, level + 1);
     }
 
-    ReturnType matchcase(MatchCase const &self, int depth, int level) {
+    ReturnType matchcase(MatchCase const& self, int depth, int level) {
         out << indent(level) << "case ";
         exec(self.pattern, depth, level);
 
@@ -62,12 +63,12 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
         return sexp_body(self.body, depth, level + 1);
     }
 
-    void arguments(Arguments const &self, int depth, int level);
-    void withitem(WithItem const &self, int depth, int level);
-    void alias(Alias const &self, int depth, int level);
-    void keyword(Keyword const &self, int depth, int level);
+    void arguments(Arguments const& self, int depth, int level);
+    void withitem(WithItem const& self, int depth, int level);
+    void alias(Alias const& self, int depth, int level);
+    void keyword(Keyword const& self, int depth, int level);
 
-    void arg(Arg const &self, int depth, int level) {
+    void arg(Arg const& self, int depth, int level) {
         out << self.arg;
 
         if (self.annotation.has_value()) {
@@ -75,7 +76,7 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
             exec(self.annotation.value(), depth, level);
         }
     }
-#define FUNCTION_GEN(name, fun, rtype) rtype fun(const name *node, int depth, int level);
+#define FUNCTION_GEN(name, fun, rtype) rtype fun(const name* node, int depth, int level);
 
 #define X(name, _)
 #define SECTION(name)
@@ -96,45 +97,34 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
 #undef FUNCTION_GEN
 };
 
-void comprehension(LispSexp &p, Comprehension const &self, int depth, int level);
+void comprehension(LispSexp& p, Comprehension const& self, int depth, int level);
 
-ReturnType LispSexp::attribute(Attribute const *self, int depth, int level) {
+ReturnType LispSexp::attribute(Attribute const* self, int depth, int level) {
     // obj.attr
     // (getattr obj "attr")
     return Sexp::list(
-        Sexp::symbol("getattr"),
-        exec(self->value, depth, level),
-        Sexp::string(self->attr)
-    );
+        Sexp::symbol("getattr"), exec(self->value, depth, level), Sexp::string(self->attr));
 }
 
-ReturnType LispSexp::subscript(Subscript const *self, int depth, int level) {
+ReturnType LispSexp::subscript(Subscript const* self, int depth, int level) {
     // obj[i]
     // (getitem obj i)
     return Sexp::list(
-        Sexp::symbol("getitem"),
-        exec(self->value, depth, level),
-        Sexp::string(self->attr)
-    );
+        Sexp::symbol("getitem"), exec(self->value, depth, level), Sexp::string(self->attr));
 }
 
-ReturnType LispSexp::starred(Starred const *self, int depth, int level) {
+ReturnType LispSexp::starred(Starred const* self, int depth, int level) {
     // *expr
     // (star expr)
-    return Sexp::list(
-        Sexp::symbol("star"),
-        exec(self->value, depth, level)
-    );
+    return Sexp::list(Sexp::symbol("star"), exec(self->value, depth, level));
 }
 
-ReturnType LispSexp::module(Module const *self, int depth, int level) {
+ReturnType LispSexp::module(Module const* self, int depth, int level) {
     return sexp_body(self->body, depth, level);
 }
 
-ReturnType LispSexp::raise(Raise const *self, int depth, int level) {
-    Array<Sexp> frags = {
-        Sexp::symbol("raise")
-    };
+ReturnType LispSexp::raise(Raise const* self, int depth, int level) {
+    Array<Sexp> frags = {Sexp::symbol("raise")};
 
     if (self->exc.has_value()) {
         frags.push_back(exec(self->exc.value(), depth, level));
@@ -147,10 +137,8 @@ ReturnType LispSexp::raise(Raise const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::assertstmt(Assert const *self, int depth, int level) {
-    Array<Sexp> frags = {
-        Sexp::symbol("assert")
-    };
+ReturnType LispSexp::assertstmt(Assert const* self, int depth, int level) {
+    Array<Sexp> frags = {Sexp::symbol("assert")};
 
     frags.push_back(exec(exec(self->test, depth, level));
 
@@ -163,17 +151,15 @@ ReturnType LispSexp::assertstmt(Assert const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::with(With const *self, int depth, int level) {
+ReturnType LispSexp::with(With const* self, int depth, int level) {
     // (with ((as a b) c) (
     //      body
     // ))
 
-    Array<Sexp> frags = {
-        Sexp::symbol("with")
-    };
+    Array<Sexp> frags = {Sexp::symbol("with")};
 
     Array<Sexp> items;
-    for (auto &item: self->items) {
+    for (auto& item: self->items) {
 
         auto expr = exec(item.context_expr, depth, level);
 
@@ -190,21 +176,15 @@ ReturnType LispSexp::with(With const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::import(Import const *self, int depth, int level) {
+ReturnType LispSexp::import(Import const* self, int depth, int level) {
     // (import (as longname short))
-    Array<Sexp> frags = {
-        Sexp::symbol("import")
-    };
+    Array<Sexp> frags = {Sexp::symbol("import")};
 
-    for (auto &alias: self->names) {
+    for (auto& alias: self->names) {
         auto name = Sexp::symbol(alias.name);
 
         if (alias.asname.has_value()) {
-            frags.push_back(Sexp::list(
-                Sexp::symbol("as"),
-                name,
-                alias.asname.value())
-            );
+            frags.push_back(Sexp::list(Sexp::symbol("as"), name, alias.asname.value()));
         } else {
             frags.push_back(name);
         }
@@ -212,31 +192,23 @@ ReturnType LispSexp::import(Import const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::importfrom(ImportFrom const *self, int depth, int level) {
+ReturnType LispSexp::importfrom(ImportFrom const* self, int depth, int level) {
     // (from abc (import ((as abc cdf) abc)))
 
-    Array<Sexp> frags = {
-        Sexp::symbol("from")
-    };
+    Array<Sexp> frags = {Sexp::symbol("from")};
 
     if (self->module.has_value()) {
         frags.push_back(Sexp::symbol(self->module.value())
     }
 
-    Array<Sexp> imports = {
-        Sexp::symbol("import")
-    };
+    Array<Sexp> imports = {Sexp::symbol("import")};
 
     int i = 0;
-    for (auto &alias: self->names) {
+    for (auto& alias: self->names) {
         auto name = Sexp::symbol(alias.name);
 
         if (alias.asname.has_value()) {
-            import.push_back(Sexp::list(
-                Sexp::symbol("as"),
-                name,
-                alias.asname.value())
-            );
+            import.push_back(Sexp::list(Sexp::symbol("as"), name, alias.asname.value()));
         } else {
             import.push_back(name);
         }
@@ -246,11 +218,9 @@ ReturnType LispSexp::importfrom(ImportFrom const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::slice(Slice const *self, int depth, int level) {
+ReturnType LispSexp::slice(Slice const* self, int depth, int level) {
     // (slice start end step)
-    Array<Sexp> frags = {
-        Sexp::symbol("slice")
-    };
+    Array<Sexp> frags = {Sexp::symbol("slice")};
 
     if (self->lower.has_value()) {
         frags.push_back(exec(self->lower.value(), depth, level));
@@ -267,50 +237,42 @@ ReturnType LispSexp::slice(Slice const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::tupleexpr(TupleExpr const *self, int depth, int level) {
+ReturnType LispSexp::tupleexpr(TupleExpr const* self, int depth, int level) {
     // (tuple ets...)
-    Array<Sexp> frags = {
-        Sexp::symbol("tuple")
-    };
+    Array<Sexp> frags = {Sexp::symbol("tuple")};
 
-    for(auto& elem: self->elts) {
+    for (auto& elem: self->elts) {
         frags.push_back(exec(elem, depth, level));
     }
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::listexpr(ListExpr const *self, int depth, int level) {
+ReturnType LispSexp::listexpr(ListExpr const* self, int depth, int level) {
     // (list ets...)
-    Array<Sexp> frags = {
-        Sexp::symbol("list")
-    };
+    Array<Sexp> frags = {Sexp::symbol("list")};
 
-    for(auto& elem: self->elts) {
+    for (auto& elem: self->elts) {
         frags.push_back(exec(elem, depth, level));
     }
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::setexpr(SetExpr const *self, int depth, int level) {
+ReturnType LispSexp::setexpr(SetExpr const* self, int depth, int level) {
     // (set ets...)
-    Array<Sexp> frags = {
-        Sexp::symbol("set")
-    };
+    Array<Sexp> frags = {Sexp::symbol("set")};
 
-    for(auto& elem: self->elts) {
+    for (auto& elem: self->elts) {
         frags.push_back(exec(elem, depth, level));
     }
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::dictexpr(DictExpr const *self, int depth, int level) {
+ReturnType LispSexp::dictexpr(DictExpr const* self, int depth, int level) {
     // (dict (k v)...)
-    Array<Sexp> frags = {
-        Sexp::symbol("dict")
-    };
+    Array<Sexp> frags = {Sexp::symbol("dict")};
 
     for (int i = 0; i < self->keys.size(); i++) {
-        auto key = exec(elem, depth, level);
+        auto key   = exec(elem, depth, level);
         auto value = exec(elem, depth, level);
 
         frags.push_back(Sexp::list(key, value));
@@ -318,22 +280,22 @@ ReturnType LispSexp::dictexpr(DictExpr const *self, int depth, int level) {
     return Sexp::list(frags);
 }
 
-ReturnType LispSexp::matchvalue(MatchValue const *self, int depth, int level) {
+ReturnType LispSexp::matchvalue(MatchValue const* self, int depth, int level) {
     return exec(self->value, depth, level);
 }
 
-ReturnType LispSexp::matchsingleton(MatchSingleton const *self, int depth, int level) {
+ReturnType LispSexp::matchsingleton(MatchSingleton const* self, int depth, int level) {
     self->value.print(out);
     return false;
 }
 
-ReturnType LispSexp::matchsequence(MatchSequence const *self, int depth, int level) {
+ReturnType LispSexp::matchsequence(MatchSequence const* self, int depth, int level) {
     auto result = join(", ", self->patterns);
     out << "[" << result << "]";
     return false;
 }
 
-ReturnType LispSexp::matchmapping(MatchMapping const *self, int depth, int level) {
+ReturnType LispSexp::matchmapping(MatchMapping const* self, int depth, int level) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -354,7 +316,7 @@ ReturnType LispSexp::matchmapping(MatchMapping const *self, int depth, int level
     return false;
 }
 
-ReturnType LispSexp::matchclass(MatchClass const *self, int depth, int level) {
+ReturnType LispSexp::matchclass(MatchClass const* self, int depth, int level) {
     exec(self->cls, depth, level);
     out << "(" << join(", ", self->patterns);
 
@@ -376,7 +338,7 @@ ReturnType LispSexp::matchclass(MatchClass const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::matchstar(MatchStar const *self, int depth, int level) {
+ReturnType LispSexp::matchstar(MatchStar const* self, int depth, int level) {
     out << "*";
 
     if (self->name.has_value()) {
@@ -385,7 +347,7 @@ ReturnType LispSexp::matchstar(MatchStar const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::matchas(MatchAs const *self, int depth, int level) {
+ReturnType LispSexp::matchas(MatchAs const* self, int depth, int level) {
     if (self->pattern.has_value()) {
         exec(self->pattern.value(), depth, level);
     }
@@ -396,12 +358,12 @@ ReturnType LispSexp::matchas(MatchAs const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::matchor(MatchOr const *self, int depth, int level) {
+ReturnType LispSexp::matchor(MatchOr const* self, int depth, int level) {
     out << join(" | ", self->patterns);
     return false;
 }
 
-ReturnType LispSexp::ifstmt(If const *self, int depth, int level) {
+ReturnType LispSexp::ifstmt(If const* self, int depth, int level) {
     // (cond
     //      (pred result)
     //      (_    result)
@@ -412,8 +374,8 @@ ReturnType LispSexp::ifstmt(If const *self, int depth, int level) {
     sexp_body(self->body, depth, level + 1);
 
     for (int i = 0; i < self->tests.size(); i++) {
-        auto &eliftest = self->tests[i];
-        auto &elifbody = self->bodies[i];
+        auto& eliftest = self->tests[i];
+        auto& elifbody = self->bodies[i];
 
         out << "\n" << indent(level) << "elif ";
 
@@ -429,7 +391,7 @@ ReturnType LispSexp::ifstmt(If const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::match(Match const *self, int depth, int level) {
+ReturnType LispSexp::match(Match const* self, int depth, int level) {
     // (match target (
     //      (pattern result)
     // ))
@@ -438,7 +400,7 @@ ReturnType LispSexp::match(Match const *self, int depth, int level) {
     out << ":\n";
 
     int i = 0;
-    for (auto &case_: self->cases) {
+    for (auto& case_: self->cases) {
         matchcase(case_, depth, level + 1);
 
         if (i + 1 < self->cases.size()) {
@@ -448,7 +410,7 @@ ReturnType LispSexp::match(Match const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::lambda(Lambda const *self, int depth, int level) {
+ReturnType LispSexp::lambda(Lambda const* self, int depth, int level) {
     // (lambda (x y) body)
     //
     out << "lambda ";
@@ -458,7 +420,7 @@ ReturnType LispSexp::lambda(Lambda const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::ifexp(IfExp const *self, int depth, int level) {
+ReturnType LispSexp::ifexp(IfExp const* self, int depth, int level) {
     // (if cond return else)
     out << "if ";
     exec(self->test, depth, level);
@@ -469,7 +431,7 @@ ReturnType LispSexp::ifexp(IfExp const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::listcomp(ListComp const *self, int depth, int level) {
+ReturnType LispSexp::listcomp(ListComp const* self, int depth, int level) {
     // (map (filter generator lambda) lambda)
     out << "[";
     exec(self->elt, depth, level);
@@ -480,7 +442,7 @@ ReturnType LispSexp::listcomp(ListComp const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::setcomp(SetComp const *self, int depth, int level) {
+ReturnType LispSexp::setcomp(SetComp const* self, int depth, int level) {
     // (map (filter generator lambda) lambda)
     out << "{";
     exec(self->elt, depth, level);
@@ -491,7 +453,7 @@ ReturnType LispSexp::setcomp(SetComp const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::generateexpr(GeneratorExp const *self, int depth, int level) {
+ReturnType LispSexp::generateexpr(GeneratorExp const* self, int depth, int level) {
     // (map (filter generator lambda) lambda)
     out << "(";
     exec(self->elt, depth, level);
@@ -502,7 +464,7 @@ ReturnType LispSexp::generateexpr(GeneratorExp const *self, int depth, int level
     return false;
 }
 
-ReturnType LispSexp::dictcomp(DictComp const *self, int depth, int level) {
+ReturnType LispSexp::dictcomp(DictComp const* self, int depth, int level) {
     // (map (filter generator lambda) lambda)
     out << "{";
     exec(self->key, depth, level);
@@ -514,14 +476,14 @@ ReturnType LispSexp::dictcomp(DictComp const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::await(Await const *self, int depth, int level) {
+ReturnType LispSexp::await(Await const* self, int depth, int level) {
     // (await value)
     out << "await ";
     exec(self->value, depth, level);
     return false;
 }
 
-ReturnType LispSexp::yield(Yield const *self, int depth, int level) {
+ReturnType LispSexp::yield(Yield const* self, int depth, int level) {
     // (yield value)
     out << "yield ";
     if (self->value.has_value()) {
@@ -530,15 +492,14 @@ ReturnType LispSexp::yield(Yield const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::yieldfrom(YieldFrom const *self, int depth, int level) {
+ReturnType LispSexp::yieldfrom(YieldFrom const* self, int depth, int level) {
     // (yield (from value))
     out << "yield from ";
     exec(self->value, depth, level);
     return false;
 }
 
-
-ReturnType LispSexp::call(Call const *self, int depth, int level) {
+ReturnType LispSexp::call(Call const* self, int depth, int level) {
     // (function args...)
     exec(self->func, depth, level);
     out << "(";
@@ -551,7 +512,7 @@ ReturnType LispSexp::call(Call const *self, int depth, int level) {
     }
 
     for (int i = 0; i < self->keywords.size(); i++) {
-        auto &key = self->keywords[i];
+        auto& key = self->keywords[i];
 
         out << self->keywords[i].arg;
         out << "=";
@@ -566,19 +527,19 @@ ReturnType LispSexp::call(Call const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::constant(Constant const *self, int depth, int level) {
+ReturnType LispSexp::constant(Constant const* self, int depth, int level) {
     self->value.print(out);
     return false;
 }
 
-ReturnType LispSexp::namedexpr(NamedExpr const *self, int depth, int level) {
+ReturnType LispSexp::namedexpr(NamedExpr const* self, int depth, int level) {
     exec(self->target, depth, level);
     out << " := ";
     exec(self->value, depth, level);
     return false;
 }
 
-ReturnType LispSexp::classdef(ClassDef const *self, int depth, int level) {
+ReturnType LispSexp::classdef(ClassDef const* self, int depth, int level) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -600,7 +561,7 @@ ReturnType LispSexp::classdef(ClassDef const *self, int depth, int level) {
         out << '(';
     }
 
-    out << join<ExprNode *>(", ", self->bases);
+    out << join<ExprNode*>(", ", self->bases);
 
     if (self->bases.size() > 0 && self->keywords.size() > 0) {
         out << ", ";
@@ -628,7 +589,7 @@ ReturnType LispSexp::classdef(ClassDef const *self, int depth, int level) {
 
     int assign = 1;
     k          = 0;
-    for (auto &stmt: self->body) {
+    for (auto& stmt: self->body) {
 
         assign = stmt->kind == NodeKind::Assign || stmt->kind == NodeKind::AnnAssign ||
                  stmt->kind == NodeKind::Pass;
@@ -646,7 +607,7 @@ ReturnType LispSexp::classdef(ClassDef const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::functiondef(FunctionDef const *self, int depth, int level) {
+ReturnType LispSexp::functiondef(FunctionDef const* self, int depth, int level) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -684,11 +645,11 @@ ReturnType LispSexp::functiondef(FunctionDef const *self, int depth, int level) 
     return false;
 }
 
-ReturnType LispSexp::inlinestmt(Inline const *self, int depth, int level) {
+ReturnType LispSexp::inlinestmt(Inline const* self, int depth, int level) {
     out << indent(level);
 
     int k = 0;
-    for (auto &stmt: self->body) {
+    for (auto& stmt: self->body) {
         exec(stmt, depth, level);
 
         if (k + 1 < self->body.size()) {
@@ -701,7 +662,7 @@ ReturnType LispSexp::inlinestmt(Inline const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::forstmt(For const *self, int depth, int level) {
+ReturnType LispSexp::forstmt(For const* self, int depth, int level) {
     out << "for ";
     exec(self->target, depth, -1);
     out << " in ";
@@ -718,11 +679,11 @@ ReturnType LispSexp::forstmt(For const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::trystmt(Try const *self, int depth, int level) {
+ReturnType LispSexp::trystmt(Try const* self, int depth, int level) {
     out << "try:\n";
     sexp_body(self->body, depth, level + 1);
 
-    for (auto &handler: self->handlers) {
+    for (auto& handler: self->handlers) {
         excepthandler(handler, depth, level);
     }
 
@@ -739,7 +700,7 @@ ReturnType LispSexp::trystmt(Try const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::compare(Compare const *self, int depth, int level) {
+ReturnType LispSexp::compare(Compare const* self, int depth, int level) {
     exec(self->left, depth, level);
 
     for (int i = 0; i < self->ops.size(); i++) {
@@ -750,7 +711,7 @@ ReturnType LispSexp::compare(Compare const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::binop(BinOp const *self, int depth, int level) {
+ReturnType LispSexp::binop(BinOp const* self, int depth, int level) {
     auto sself   = get_precedence(self);
     auto lhspred = get_precedence(self->left) < sself;
     auto rhspred = get_precedence(self->right) < sself;
@@ -776,14 +737,14 @@ ReturnType LispSexp::binop(BinOp const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::boolop(BoolOp const *self, int depth, int level) {
+ReturnType LispSexp::boolop(BoolOp const* self, int depth, int level) {
     exec(self->values[0], depth, level);
     print_op(out, self->op);
     exec(self->values[1], depth, level);
     return false;
 }
 
-ReturnType LispSexp::unaryop(UnaryOp const *self, int depth, int level) {
+ReturnType LispSexp::unaryop(UnaryOp const* self, int depth, int level) {
     print_op(out, self->op);
     out << " ";
     exec(self->operand, depth, level);
@@ -791,7 +752,7 @@ ReturnType LispSexp::unaryop(UnaryOp const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::whilestmt(While const *self, int depth, int level) {
+ReturnType LispSexp::whilestmt(While const* self, int depth, int level) {
     out << "while ";
     exec(self->test, depth, level);
     out << ":\n";
@@ -805,7 +766,7 @@ ReturnType LispSexp::whilestmt(While const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::returnstmt(Return const *self, int depth, int level) {
+ReturnType LispSexp::returnstmt(Return const* self, int depth, int level) {
     out << "return ";
 
     if (self->value.has_value()) {
@@ -815,7 +776,7 @@ ReturnType LispSexp::returnstmt(Return const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::deletestmt(Delete const *self, int depth, int level) {
+ReturnType LispSexp::deletestmt(Delete const* self, int depth, int level) {
     out << "del ";
 
     for (int i = 0; i < self->targets.size(); i++) {
@@ -828,7 +789,7 @@ ReturnType LispSexp::deletestmt(Delete const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::augassign(AugAssign const *self, int depth, int level) {
+ReturnType LispSexp::augassign(AugAssign const* self, int depth, int level) {
     exec(self->target, depth, -1);
     print_op(out, self->op, true);
     out << "= ";
@@ -836,14 +797,14 @@ ReturnType LispSexp::augassign(AugAssign const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::assign(Assign const *self, int depth, int level) {
+ReturnType LispSexp::assign(Assign const* self, int depth, int level) {
     exec(self->targets[0], depth, -1);
     out << " = ";
     exec(self->value, depth, -1);
     return false;
 }
 
-ReturnType LispSexp::annassign(AnnAssign const *self, int depth, int level) {
+ReturnType LispSexp::annassign(AnnAssign const* self, int depth, int level) {
     exec(self->target, depth, level);
     out << ": ";
 
@@ -856,45 +817,45 @@ ReturnType LispSexp::annassign(AnnAssign const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::pass(Pass const *self, int depth, int level) {
+ReturnType LispSexp::pass(Pass const* self, int depth, int level) {
     out << "pass";
     return false;
 }
 
-ReturnType LispSexp::breakstmt(Break const *self, int depth, int level) {
+ReturnType LispSexp::breakstmt(Break const* self, int depth, int level) {
     out << "break";
     return false;
 }
 
-ReturnType LispSexp::continuestmt(Continue const *self, int depth, int level) {
+ReturnType LispSexp::continuestmt(Continue const* self, int depth, int level) {
     out << "continue";
     return false;
 }
 
-ReturnType LispSexp::exprstmt(Expr const *self, int depth, int level) {
+ReturnType LispSexp::exprstmt(Expr const* self, int depth, int level) {
     if (self->value != nullptr)
         exec(self->value, depth, -1);
 
     return false;
 }
 
-ReturnType LispSexp::global(Global const *self, int depth, int level) {
+ReturnType LispSexp::global(Global const* self, int depth, int level) {
     out << "global " << join(", ", self->names);
     return false;
 }
 
-ReturnType LispSexp::nonlocal(Nonlocal const *self, int depth, int level) {
+ReturnType LispSexp::nonlocal(Nonlocal const* self, int depth, int level) {
     out << "nonlocal " << join(", ", self->names);
     return false;
 }
 
-ReturnType LispSexp::arrow(Arrow const *self, int depth, int level) {
-    out << '(' << join<ExprNode *>(", ", self->args) << ") -> ";
+ReturnType LispSexp::arrow(Arrow const* self, int depth, int level) {
+    out << '(' << join<ExprNode*>(", ", self->args) << ") -> ";
     out << str(self->returns);
     return false;
 }
 
-ReturnType LispSexp::dicttype(DictType const *self, int depth, int level) {
+ReturnType LispSexp::dicttype(DictType const* self, int depth, int level) {
     out << "Dict[";
     out << str(self->key);
     out << ", ";
@@ -902,45 +863,45 @@ ReturnType LispSexp::dicttype(DictType const *self, int depth, int level) {
     return false;
 }
 
-ReturnType LispSexp::settype(SetType const *self, int depth, int level) {
+ReturnType LispSexp::settype(SetType const* self, int depth, int level) {
     out << "Set[";
     out << str(self->value) << "]";
     return false;
 }
 
-ReturnType LispSexp::name(Name const *self, int depth, int level) {
+ReturnType LispSexp::name(Name const* self, int depth, int level) {
     out << self->id;
     return false;
 }
 
-ReturnType LispSexp::arraytype(ArrayType const *self, int depth, int level) {
+ReturnType LispSexp::arraytype(ArrayType const* self, int depth, int level) {
     out << "Array[";
     out << str(self->value) << "]";
     return false;
 }
 
-ReturnType LispSexp::tupletype(TupleType const *self, int depth, int level) {
+ReturnType LispSexp::tupletype(TupleType const* self, int depth, int level) {
     out << "Tuple[";
-    out << join<ExprNode *>(", ", self->types) << "]";
+    out << join<ExprNode*>(", ", self->types) << "]";
     return false;
 }
 
-ReturnType LispSexp::builtintype(BuiltinType const *self, int depth, int level) {
+ReturnType LispSexp::builtintype(BuiltinType const* self, int depth, int level) {
     out << self->name;
     return false;
 }
 
-ReturnType LispSexp::joinedstr(JoinedStr const *self, int depth, int level) {
+ReturnType LispSexp::joinedstr(JoinedStr const* self, int depth, int level) {
     out << "JoinedStr";
     return false;
 }
 
-ReturnType LispSexp::formattedvalue(FormattedValue const *self, int depth, int indent) {
+ReturnType LispSexp::formattedvalue(FormattedValue const* self, int depth, int indent) {
     out << "FormattedValue";
     return false;
 }
 
-ReturnType LispSexp::classtype(ClassType const *self, int depth, int level) {
+ReturnType LispSexp::classtype(ClassType const* self, int depth, int level) {
     out << self->def->name;
     return false;
 }
@@ -948,7 +909,7 @@ ReturnType LispSexp::classtype(ClassType const *self, int depth, int level) {
 // Helper
 // ==================================================
 
-void ConstantValue::print(std::ostream &out) const {
+void ConstantValue::print(std::ostream& out) const {
     switch (kind) {
     case TInvalid: out << "<Constant:Invalid>"; break;
 
@@ -991,7 +952,7 @@ String Node::__str__() const {
 //     out << ">";
 // }
 
-void print_op(std::ostream &out, BoolOperator op) {
+void print_op(std::ostream& out, BoolOperator op) {
     // clang-format off
     switch (op) {
     case BoolOperator::And:   out << " and "; return;
@@ -1001,7 +962,7 @@ void print_op(std::ostream &out, BoolOperator op) {
     // clang-format on
 }
 
-void print_op(std::ostream &out, BinaryOperator op, bool aug) {
+void print_op(std::ostream& out, BinaryOperator op, bool aug) {
     // clang-format off
     switch (op) {
     case BinaryOperator::Add:       out << " +"; break;
@@ -1028,7 +989,7 @@ void print_op(std::ostream &out, BinaryOperator op, bool aug) {
     }
 }
 
-void print_op(std::ostream &out, CmpOperator op) {
+void print_op(std::ostream& out, CmpOperator op) {
     // clang-format off
     switch (op) {
     case CmpOperator::None:     out << " <Cmp:None> "; return;
@@ -1046,7 +1007,7 @@ void print_op(std::ostream &out, CmpOperator op) {
     // clang-format on
 }
 
-void print_op(std::ostream &out, UnaryOperator op) {
+void print_op(std::ostream& out, UnaryOperator op) {
     // clang-format off
     switch (op) {
     case UnaryOperator::None:   out << "<Unary:None>"; return;
@@ -1058,7 +1019,7 @@ void print_op(std::ostream &out, UnaryOperator op) {
     // clang-format on
 }
 
-void comprehension(LispSexp &p, Comprehension const &self, int depth, int level) {
+void comprehension(LispSexp& p, Comprehension const& self, int depth, int level) {
     out << " for ";
     p.exec(self.target, depth, level);
     out << " in ";
@@ -1070,7 +1031,7 @@ void comprehension(LispSexp &p, Comprehension const &self, int depth, int level)
     }
 }
 
-void LispSexp::keyword(Keyword const &self, int depth, int level) {
+void LispSexp::keyword(Keyword const& self, int depth, int level) {
     out << self.arg;
     if (self.value != nullptr) {
         out << " = ";
@@ -1078,20 +1039,20 @@ void LispSexp::keyword(Keyword const &self, int depth, int level) {
     }
 }
 
-void LispSexp::alias(Alias const &self, int depth, int level) {
+void LispSexp::alias(Alias const& self, int depth, int level) {
     out << self.name;
     if (self.asname.has_value()) {
         out << " as " << self.asname.value();
     }
 }
 
-ReturnType LispSexp::functiontype(FunctionType const *self, int depth, int indent) { return true; }
+ReturnType LispSexp::functiontype(FunctionType const* self, int depth, int indent) { return true; }
 
-ReturnType LispSexp::expression(Expression const *self, int depth, int level) { return true; }
+ReturnType LispSexp::expression(Expression const* self, int depth, int level) { return true; }
 
-ReturnType LispSexp::interactive(Interactive const *self, int depth, int level) { return true; }
+ReturnType LispSexp::interactive(Interactive const* self, int depth, int level) { return true; }
 
-void LispSexp::withitem(WithItem const &self, int depth, int level) {
+void LispSexp::withitem(WithItem const& self, int depth, int level) {
     exec(self.context_expr, depth, level);
     if (self.optional_vars.has_value()) {
         out << " as ";
@@ -1099,10 +1060,10 @@ void LispSexp::withitem(WithItem const &self, int depth, int level) {
     }
 }
 
-void LispSexp::arguments(Arguments const &self, int depth, int level) {
+void LispSexp::arguments(Arguments const& self, int depth, int level) {
     int i = 0;
 
-    for (auto &arg: self.args) {
+    for (auto& arg: self.args) {
         out << arg.arg;
 
         if (arg.annotation.has_value()) {
@@ -1139,7 +1100,7 @@ void LispSexp::arguments(Arguments const &self, int depth, int level) {
     }
 
     i = 0;
-    for (auto &kw: self.kwonlyargs) {
+    for (auto& kw: self.kwonlyargs) {
         out << kw.arg;
 
         if (kw.annotation.has_value()) {
@@ -1171,9 +1132,9 @@ void LispSexp::arguments(Arguments const &self, int depth, int level) {
     }
 }
 
-int get_precedence(Node const *node) {
+int get_precedence(Node const* node) {
     if (node->kind == NodeKind::BinOp) {
-        BinOp *op = (BinOp *)(node);
+        BinOp* op = (BinOp*)(node);
         // clang-format off
         switch (op->op) {
             case BinaryOperator::Add: return 1;
@@ -1189,25 +1150,25 @@ int get_precedence(Node const *node) {
     return 1000;
 }
 
-void lispsexp(Node const *obj) {
+void lispsexp(Node const* obj) {
     LispSexp p;
     p.exec<bool>(obj, 0);
 }
-void lispsexp(ExprNode const *obj) {
+void lispsexp(ExprNode const* obj) {
     LispSexp p;
     p.exec(obj, 0, 0);
 }
-void lispsexp(Pattern const *obj) {
+void lispsexp(Pattern const* obj) {
     LispSexp p;
     p.exec(obj, 0, 0);
 }
-void lispsexp(StmtNode const *obj) {
+void lispsexp(StmtNode const* obj) {
     LispSexp p;
     p.exec(obj, 0, 0);
 }
-void lispsexp(ModNode const *obj) {
+void lispsexp(ModNode const* obj) {
     LispSexp p;
     p.exec(obj, 0, 0);
 }
 
-} // namespace lython
+}  // namespace lython

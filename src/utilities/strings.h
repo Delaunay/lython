@@ -6,30 +6,32 @@
 
 namespace lython {
 
-String join(String const &sep, Array<String> const &strs);
+String join(String const& sep, Array<String> const& strs);
 
-Set<char> const &strip_defaults();
+Set<char> const& strip_defaults();
 
-String strip(String const &v);
+String strip(String const& v);
 
-String join(String const &sep, Array<struct ExprNode *> const &exprs);
+String join(String const& sep, Array<struct ExprNode*> const& exprs);
 
 template <typename T>
-String join(String const &sep, Array<T> const &exprs) {
+String join(String const& sep, Array<T> const& exprs) {
     Array<String> strs;
     strs.reserve(exprs.size());
 
-    ::std::transform(::std::begin(exprs), ::std::end(exprs), std::back_inserter(strs),
-                     [](T const &e) -> String { return str(e); });
+    ::std::transform(::std::begin(exprs),
+                     ::std::end(exprs),
+                     std::back_inserter(strs),
+                     [](T const& e) -> String { return str(e); });
 
     return join(sep, strs);
 }
 
-Array<String> split(char sep, String const &text);
+Array<String> split(char sep, String const& text);
 
 // Replace a by b in t
 template <typename T>
-T replace(T const &t, char a, T const &b) {
+T replace(T const& t, char a, T const& b) {
     int n = int(t.size());
     // auto iter = t.rbegin();
     // while (iter != t.rend() && *iter == a){
@@ -62,10 +64,10 @@ T replace(T const &t, char a, T const &b) {
 }
 
 template <typename T>
-inline void print(Array<T> const &obj, std::ostream &out) {
+inline void print(Array<T> const& obj, std::ostream& out) {
     out << '[' << join(", ", obj) << ']';
 }
 
-} // namespace lython
+}  // namespace lython
 
 #endif

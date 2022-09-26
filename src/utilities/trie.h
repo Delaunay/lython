@@ -19,14 +19,14 @@ template <size_t size>
 class Trie {
     public:
     Trie() {
-        for (auto &child: children) {
+        for (auto& child: children) {
             child = nullptr;
         }
     }
 
-    Trie(Trie const &trie) {
+    Trie(Trie const& trie) {
         for (size_t i = 0; i < size; i++) {
-            auto &child = trie.children[i];
+            auto& child = trie.children[i];
 
             if (child != nullptr) {
                 // call copy constructor recursively
@@ -35,9 +35,9 @@ class Trie {
         }
     }
 
-    Trie operator=(Trie const &trie) {
+    Trie operator=(Trie const& trie) {
         for (size_t i = 0; i < size; i++) {
-            auto &child = trie.children[i];
+            auto& child = trie.children[i];
 
             if (child != nullptr) {
                 // call copy constructor recursively
@@ -49,8 +49,8 @@ class Trie {
     }
 
     //! Returns if the the value was inserted of not
-    bool insert(std::string_view const &name) {
-        Trie *ptr = this;
+    bool insert(std::string_view const& name) {
+        Trie* ptr = this;
         for (auto c: name) {
             if (ptr->children[c] == nullptr) {
                 ptr->children[c] = std::make_unique<Trie>();
@@ -71,8 +71,8 @@ class Trie {
 
     //! return the last Trie that match the given string
     //! for autocompletion for example
-    Trie const *matching(std::string_view const &name) const {
-        Trie const *ptr = this;
+    Trie const* matching(std::string_view const& name) const {
+        Trie const* ptr = this;
 
         for (auto c: name) {
             ptr = ptr->matching(int(c));
@@ -84,7 +84,7 @@ class Trie {
         return ptr;
     }
 
-    Trie const *matching(int c) const {
+    Trie const* matching(int c) const {
         if (c >= size) {
             return nullptr;
         }
@@ -92,14 +92,14 @@ class Trie {
         return children.at(c).get();
     }
 
-    bool has(std::string_view const &name) const {
-        Trie const *ptr = matching(name);
+    bool has(std::string_view const& name) const {
+        Trie const* ptr = matching(name);
         return ptr != nullptr && ptr->leaf();
     }
 
     int has_children() const {
         int count = 0;
-        for (auto &child: children) {
+        for (auto& child: children) {
             count += child != nullptr;
         }
         return count;
@@ -119,27 +119,27 @@ class Trie {
 template <size_t size>
 class CoWTrie {
     public:
-    CoWTrie(Trie<size> const *original): original(original) {}
+    CoWTrie(Trie<size> const* original): original(original) {}
 
     // if no original is provided just use the copy
     CoWTrie(): was_copied(true), original(nullptr) {}
 
-    bool insert(std::string_view const &name) { return trie().insert(name); }
+    bool insert(std::string_view const& name) { return trie().insert(name); }
 
     bool leaf() const { return trie().leaf(); }
 
     int has_children() const { return trie().has_children(); }
 
-    bool has(std::string_view const &name) const { return trie().has(name); }
+    bool has(std::string_view const& name) const { return trie().has(name); }
 
-    Trie<size> const *matching(std::string_view const &name) const { return trie().matching(name); }
+    Trie<size> const* matching(std::string_view const& name) const { return trie().matching(name); }
 
-    Trie<size> const *matching(int c) const { return trie().matching(c); }
+    Trie<size> const* matching(int c) const { return trie().matching(c); }
 
-    Trie<size> const &trie() const { return was_copied ? copy : *original; }
+    Trie<size> const& trie() const { return was_copied ? copy : *original; }
 
     private:
-    Trie<size> &trie() {
+    Trie<size>& trie() {
         if (!was_copied) {
             copy = Trie<size>(*original);
         }
@@ -147,9 +147,9 @@ class CoWTrie {
     }
 
     bool              was_copied = false;
-    Trie<size> const *original;
+    Trie<size> const* original;
     Trie<size>        copy;
 };
-} // namespace lython
+}  // namespace lython
 
 #endif

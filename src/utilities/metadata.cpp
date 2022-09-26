@@ -25,7 +25,7 @@ template <typename T>
 using SharedPtrInternal = std::shared_ptr<T>;
 
 template <typename T, bool cache>
-using HashNodeInternal = std::_List_node<T, void *__ptr64>;
+using HashNodeInternal = std::_List_node<T, void* __ptr64>;
 
 template <typename T, bool cache>
 using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<T>>>;
@@ -39,10 +39,10 @@ bool _metadata_init_names() {
     meta::register_type<lython::StringRef>("StringRef");
     meta::register_type<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");
 
-    meta::register_type<lython::Node *>("Node*");
-    meta::register_type<lython::GCObject *>("GCObject*");
-    meta::register_type<lython::ExprNode *>("ExprNode*");
-    meta::register_type<lython::StmtNode *>("StmtNode*");
+    meta::register_type<lython::Node*>("Node*");
+    meta::register_type<lython::GCObject*>("GCObject*");
+    meta::register_type<lython::ExprNode*>("ExprNode*");
+    meta::register_type<lython::StmtNode*>("StmtNode*");
     meta::register_type<lython::ConstantValue>("ConstantValue");
     meta::register_type<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
 
@@ -57,13 +57,13 @@ bool _metadata_init_names() {
     meta::register_type<lython::CmpOperator>("CmpOperator");
     meta::register_type<lython::Keyword>("Keyword");
     meta::register_type<lython::MatchCase>("MatchCase");
-    meta::register_type<lython::Pattern *>("Pattern*");
+    meta::register_type<lython::Pattern*>("Pattern*");
     meta::register_type<lython::BindingEntry>("BindingEntry");
-    meta::register_type<Array<StmtNode *>>("Array<StmtNode*>");
+    meta::register_type<Array<StmtNode*>>("Array<StmtNode*>");
 
 #define REGISTER_TYPE(type)                   \
     meta::register_type<lython::type>(#type); \
-    meta::register_type<lython::type *>(#type "*");
+    meta::register_type<lython::type*>(#type "*");
 
 #define X(name, _)
 #define SECTION(name)
@@ -103,7 +103,8 @@ bool _metadata_init_names() {
     meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, true>>(
         "Pair[String, ExprNode*]");
 
-    meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, true>>(
+    meta::register_type<
+        HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, true>>(
         "Pair[String, NativeBinaryOp]");
 
 #if !__linux__
@@ -124,7 +125,8 @@ bool _metadata_init_names() {
     meta::register_type<ListIterator<std::pair<const String, TokenType>, false>>(
         "Iterator[Pair[String, TokenType]]");
 
-    meta::register_type<ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
+    meta::register_type<
+        ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
         "Iterator[Pair[StringRef, NativeBinaryOp]]");
 
     meta::register_type<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
@@ -164,12 +166,12 @@ void track_static() {
     // so we can try to ignore static variables
     // this will only work if `metadata_init_names` is called
     // after the static variables got initialized
-    auto &stat = meta::stats();
-    for (auto &s: stat) {
+    auto& stat = meta::stats();
+    for (auto& s: stat) {
         s.startup_count = s.allocated - s.deallocated;
     }
 }
 
 void metadata_init_names() { static bool _ = _metadata_init_names(); }
 
-} // namespace lython
+}  // namespace lython

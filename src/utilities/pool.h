@@ -10,7 +10,7 @@
 namespace lython {
 
 class ThreadPool;
-void worker_loop(ThreadPool *pool, std::size_t n);
+void worker_loop(ThreadPool* pool, std::size_t n);
 
 // Linux std::async does not like when you spawn too many threads at once
 class ThreadPool {
@@ -18,7 +18,7 @@ class ThreadPool {
     using Task_t = std::function<void()>;
     using PopFun = std::function<std::optional<Task_t>()>;
 
-    friend void worker_loop(ThreadPool *pool, std::size_t n);
+    friend void worker_loop(ThreadPool* pool, std::size_t n);
 
     //! Instantiate a new thread pool
     //! use system default as the number of threads
@@ -35,7 +35,7 @@ class ThreadPool {
 
     //! Queue a new Task
     template <typename Fun, typename... Args>
-    std::future<Return_t<Fun, Args...>> queue_task(Fun &&fun, Args &&...args) {
+    std::future<Return_t<Fun, Args...>> queue_task(Fun&& fun, Args&&... args) {
         std::lock_guard lock(mux);
 
         // Make an exception for that
@@ -70,18 +70,18 @@ class ThreadPool {
     std::size_t size() const;
 
     //! Print a usage report of the thread pool
-    std::ostream &print(std::ostream &out) const;
+    std::ostream& print(std::ostream& out) const;
 
     ~ThreadPool() { shutdown(true); }
 
     private:
     struct Stat_t {
-        StopWatch<>::TimePoint start;            // time when the worker was instantiated
-        float                  work_time = 0;    // time delta the worker was busy with a task
-        int                    task      = 0;    // number of task the worker has completed
-        int                    error     = 0;    // number of errors
-        bool                   running   = true; // used to shutdown the worker
-        bool                   sleeping  = true; // is the worker processing a task
+        StopWatch<>::TimePoint start;             // time when the worker was instantiated
+        float                  work_time = 0;     // time delta the worker was busy with a task
+        int                    task      = 0;     // number of task the worker has completed
+        int                    error     = 0;     // number of errors
+        bool                   running   = true;  // used to shutdown the worker
+        bool                   sleeping  = true;  // is the worker processing a task
     };
 
     std::mutex               mux;
@@ -89,4 +89,4 @@ class ThreadPool {
     std::vector<Stat_t>      stats;
     std::vector<Task_t>      tasks;
 };
-} // namespace lython
+}  // namespace lython

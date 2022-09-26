@@ -5,13 +5,13 @@
 #include "utilities/pool.h"
 #include "utilities/stopwatch.h"
 
-lython::ThreadPool &pool() {
+lython::ThreadPool& pool() {
     static lython::ThreadPool pool;
     return pool;
 }
 
 struct Memory {
-    float *ptr = nullptr;
+    float* ptr = nullptr;
 };
 
 struct Strides {
@@ -22,10 +22,8 @@ struct Strides {
     int operator[](int i) {
         switch (i) {
         default:
-        case 0:
-            return x;
-        case 1:
-            return y;
+        case 0: return x;
+        case 1: return y;
         }
     }
 };
@@ -36,7 +34,7 @@ struct Matrix {
         // RowMajor (1, n)
         row(n), col(m), stride({n, 1, n * m}) {}
 
-    float &operator()(int x, int y) { return mem.ptr[x * stride.x + y * stride.y]; }
+    float& operator()(int x, int y) { return mem.ptr[x * stride.x + y * stride.y]; }
 
     int row;
     int col;
@@ -45,7 +43,7 @@ struct Matrix {
     Memory  mem;
 };
 
-void gemm_single_friendly(Matrix *a, Matrix *b, Matrix *c) {
+void gemm_single_friendly(Matrix* a, Matrix* b, Matrix* c) {
     // (n x m) . (m x p) => (n x p)
     assert(a->col == b->row, "");
     assert(c->row == a->row && c->col == b->col, "");
@@ -64,7 +62,7 @@ void gemm_single_friendly(Matrix *a, Matrix *b, Matrix *c) {
     }
 }
 
-void gemm_single_bad(Matrix *a, Matrix *b, Matrix *c) {
+void gemm_single_bad(Matrix* a, Matrix* b, Matrix* c) {
     // (n x m) . (m x p) => (n x p)
     assert(a->col == b->row, "");
     assert(c->row == a->row && c->col == b->col, "");
@@ -113,7 +111,7 @@ void gemm_parallel(Matrix a, Matrix b, Matrix c) {
         tasks.emplace_back(pool().queue_task(fun, n));
     }
 
-    for (auto &future: tasks) {
+    for (auto& future: tasks) {
         future.wait();
     }
 }
@@ -148,7 +146,7 @@ void gemm_parallel_block(Matrix a, Matrix b, Matrix c) {
         tasks.emplace_back(pool().queue_task(fun, n));
     }
 
-    for (auto &future: tasks) {
+    for (auto& future: tasks) {
         future.wait();
     }
 }

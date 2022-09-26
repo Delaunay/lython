@@ -14,7 +14,7 @@
 namespace lython {
 
 Array<String> python_paths() {
-    const char *value = getenv("PYTHONPATH");
+    const char* value = getenv("PYTHONPATH");
     if (value == nullptr) {
         return {};
     }
@@ -22,7 +22,7 @@ Array<String> python_paths() {
     return split(':', path);
 }
 
-String lookup_module(StringRef const &module_path, Array<String> const &paths) {
+String lookup_module(StringRef const& module_path, Array<String> const& paths) {
     // Look for the module in the path
     // env/3.9.7/lib/python39.zip
     // env/3.9.7/lib/python3.9
@@ -50,8 +50,8 @@ String lookup_module(StringRef const &module_path, Array<String> const &paths) {
         fspath_frags.reserve(module_frags.size());
 
         // <path>/<module_frags>
-        std::copy(std::begin(module_frags), std::end(module_frags),
-                  std::back_inserter(fspath_frags));
+        std::copy(
+            std::begin(module_frags), std::end(module_frags), std::back_inserter(fspath_frags));
 
         auto fspath = join("/", fspath_frags);
         stat        = fs::status(fspath);
@@ -81,7 +81,7 @@ String lookup_module(StringRef const &module_path, Array<String> const &paths) {
     return "";
 }
 
-Module *process_file(StringRef const &modulepath, Array<String> const &paths) {
+Module* process_file(StringRef const& modulepath, Array<String> const& paths) {
     String filepath = lookup_module(modulepath, paths);
     if (filepath == "") {
         return nullptr;
@@ -90,14 +90,14 @@ Module *process_file(StringRef const &modulepath, Array<String> const &paths) {
     FileBuffer buffer(filepath);
     Lexer      lexer(buffer);
     Parser     parser(lexer);
-    Module *   mod = parser.parse_module();
+    Module*    mod = parser.parse_module();
     return mod;
 }
 
-TypeExpr *SemanticAnalyser::import(Import *n, int depth) {
+TypeExpr* SemanticAnalyser::import(Import* n, int depth) {
     // import datetime, time
     // import math as m
-    for (auto &name: n->names) {
+    for (auto& name: n->names) {
         StringRef nm  = name.name;
         auto      mod = process_file(name.name, paths);
 
@@ -129,7 +129,7 @@ TypeExpr *SemanticAnalyser::import(Import *n, int depth) {
     return nullptr;
 }
 
-StringRef get_name(ExprNode *target) {
+StringRef get_name(ExprNode* target) {
     auto name = cast<Name>(target);
     if (!name) {
         return StringRef();
@@ -138,7 +138,7 @@ StringRef get_name(ExprNode *target) {
     return name->id;
 }
 
-StmtNode *find(Array<StmtNode *> const &body, StringRef name) {
+StmtNode* find(Array<StmtNode*> const& body, StringRef name) {
     for (auto stmt: body) {
         switch (stmt->kind) {
         case NodeKind::ClassDef: {
@@ -169,16 +169,15 @@ StmtNode *find(Array<StmtNode *> const &body, StringRef name) {
             }
             continue;
         }
-        default:
-            continue;
+        default: continue;
         }
     }
 
     return nullptr;
 }
 
-TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {
-    Module *mod = nullptr;
+TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
+    Module* mod = nullptr;
 
     // Regular import using system path
     if (n->module.has_value() && !n->level.has_value()) {
@@ -204,13 +203,13 @@ TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {
     SemanticAnalyser sema;
     sema.exec(mod, 0);
 
-    for (auto &name: n->names) {
+    for (auto& name: n->names) {
         StringRef nm = name.name;
 
         // lookup name.name inside module;
         // functions, classes are stmt
         // but variable could also be imported which are expressions
-        StmtNode *value = find(mod->body, nm);
+        StmtNode* value = find(mod->body, nm);
 
         if (value == nullptr) {
             debug("{} not found", nm);
@@ -237,4 +236,4 @@ TypeExpr *SemanticAnalyser::importfrom(ImportFrom *n, int depth) {
     return nullptr;
 }
 
-} // namespace lython
+}  // namespace lython

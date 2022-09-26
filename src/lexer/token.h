@@ -144,13 +144,13 @@ enum TokenType
 String to_string(int8 t);
 ;
 
-inline void print(TokenType const &t, std::ostream &out) { out << to_string(t); }
+inline void print(TokenType const& t, std::ostream& out) { out << to_string(t); }
 
 using ReservedKeyword = Dict<String, TokenType>;
 using KeywordToString = Dict<int, String>;
 
-ReservedKeyword &keywords();
-KeywordToString &keyword_as_string();
+ReservedKeyword& keywords();
+KeywordToString& keyword_as_string();
 
 int8 tok_name_size();
 
@@ -170,16 +170,16 @@ class Token {
     int32 end_line() const { return col(); }
     int32 begin_line() const { return col() - int32(identifier().size()); }
 
-    String &      operator_name() { return _identifier; }
-    String const &operator_name() const { return _identifier; }
-    String &      identifier() { return _identifier; }
-    String const &identifier() const { return _identifier; }
+    String&       operator_name() { return _identifier; }
+    String const& operator_name() const { return _identifier; }
+    String&       identifier() { return _identifier; }
+    String const& identifier() const { return _identifier; }
     float64       as_float() const { return std::stod(_identifier.c_str()); }
     int32         as_integer() const { return std::stoi(_identifier.c_str()); }
 
     operator bool() const { return _type != tok_eof; }
 
-    bool operator==(Token const &tok) const {
+    bool operator==(Token const& tok) const {
         return (_type == tok._type) && (_line == tok._line) && (_col == tok._col);
     }
 
@@ -193,24 +193,24 @@ class Token {
 
     public:
     // print all tokens and their info
-    std::ostream &debug_print(std::ostream &out) const;
+    std::ostream& debug_print(std::ostream& out) const;
 
     // TODO: move this elsewhere
     // NB: it is important to be able to generate the code as is
     // from the tokens since when handling with bad code in an interactive environemtn
     // we will save the WIP code as a list of tokens
     // could be used for code formatting
-    std::ostream &print(std::ostream &out, int32 indent = 0) const;
+    std::ostream& print(std::ostream& out, int32 indent = 0) const;
 };
 
-inline Token &dummy() {
+inline Token& dummy() {
     static Token dy = Token(tok_incorrect, 0, 0);
     return dy;
 }
 
 // Make something that look like clang's error underlining.
 // offset is used if you need to print multiple underline on a same line
-inline std::ostream &underline(std::ostream &out, Token &t, int32 offset = 0) {
+inline std::ostream& underline(std::ostream& out, Token& t, int32 offset = 0) {
     int32 start = t.begin_line() - offset;
     if (start > 0) {
         out << std::string(uint32(start), ' ');
@@ -224,4 +224,4 @@ inline std::ostream &underline(std::ostream &out, Token &t, int32 offset = 0) {
     return out;
 }
 
-} // namespace lython
+}  // namespace lython

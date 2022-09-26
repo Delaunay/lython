@@ -19,8 +19,10 @@ constexpr char __source_dir[] = _SOURCE_DIRECTORY;
 constexpr int __size_src_dir = sizeof(_SOURCE_DIRECTORY) / sizeof(char);
 
 struct CodeLocation {
-    CodeLocation(std::string const &file, std::string const &fun, int line,
-                 std::string const &fun_long):
+    CodeLocation(std::string const& file,
+                 std::string const& fun,
+                 int                line,
+                 std::string const& fun_long):
         filename(file.substr(__size_src_dir)),
         function_name(fun), line(line), function_long(fun_long) {}
 
@@ -49,11 +51,11 @@ enum LogLevel
     Off
 };
 
-void spdlog_log(LogLevel level, const std::string &msg);
+void spdlog_log(LogLevel level, const std::string& msg);
 
-extern const char *log_level_str[];
-extern const char *trace_start;
-extern const char *trace_end;
+extern const char* log_level_str[];
+extern const char* trace_start;
+extern const char* trace_end;
 
 void set_log_level(LogLevel level, bool enabled);
 
@@ -65,34 +67,41 @@ void show_log_backtrace();
 // Show backtrace using execinfo
 void show_backtrace();
 
-std::string demangle(std::string const &original_str);
+std::string demangle(std::string const& original_str);
 
 // retrieve backtrace using execinfo
 std::vector<std::string> get_backtrace(size_t size);
 
 // remove namespace info
-std::string format_function(std::string const &);
+std::string format_function(std::string const&);
 
 template <typename... Args>
-void log(LogLevel level, CodeLocation const &loc, const char *fmt, const Args &...args) {
+void log(LogLevel level, CodeLocation const& loc, const char* fmt, const Args&... args) {
     if (!is_log_enabled(level)) {
         return;
     }
 
-    auto msg = fmt::format("{}:{} {} - {}", loc.filename, loc.line,
-                           format_function(loc.function_name), fmt::format(fmt, args...));
+    auto msg = fmt::format("{}:{} {} - {}",
+                           loc.filename,
+                           loc.line,
+                           format_function(loc.function_name),
+                           fmt::format(fmt, args...));
 
     spdlog_log(level, msg);
 }
 
 template <typename... Args>
-void log_trace(LogLevel level, size_t depth, bool end, CodeLocation const &loc, const char *fmt,
-               const Args &...args) {
+void log_trace(LogLevel            level,
+               size_t              depth,
+               bool                end,
+               CodeLocation const& loc,
+               const char*         fmt,
+               const Args&... args) {
     if (!is_log_enabled(level)) {
         return;
     }
 
-    const char *msg_fmt = "{:>30}:{:4} {}+-> {}";
+    const char* msg_fmt = "{:>30}:{:4} {}+-> {}";
     if (end) {
         msg_fmt = "{:>30}:{:4} {}+-< {}";
     }
@@ -102,8 +111,8 @@ void log_trace(LogLevel level, size_t depth, bool end, CodeLocation const &loc, 
         str[i] = i % 2 ? '|' : ':';
     }
 
-    auto msg = fmt::format(msg_fmt, format_function(loc.function_name), loc.line, str,
-                           fmt::format(fmt, args...));
+    auto msg = fmt::format(
+        msg_fmt, format_function(loc.function_name), loc.line, str, fmt::format(fmt, args...));
 
     spdlog_log(level, msg);
 }
@@ -112,28 +121,32 @@ void log_trace(LogLevel level, size_t depth, bool end, CodeLocation const &loc, 
 class Exception: public std::exception {
     public:
     template <typename... Args>
-    Exception(const char *fmt, std::string const &name, const Args &...args):
+    Exception(const char* fmt, std::string const& name, const Args&... args):
         message(fmt::format(fmt, name, args...)) {}
 
-    const char *what() const noexcept final;
+    const char* what() const noexcept final;
 
     private:
     std::string message;
 };
 
-inline void assert_true(bool cond, char const *message, char const *assert_expr,
-                        lython::CodeLocation const &loc) {
+inline void assert_true(bool                        cond,
+                        char const*                 message,
+                        char const*                 assert_expr,
+                        lython::CodeLocation const& loc) {
     if (!cond) {
-        lython::log(lython::LogLevel::Error, loc,
+        lython::log(lython::LogLevel::Error,
+                    loc,
                     "Assertion errror: {}\n"
                     "  - expr: {}",
-                    message, assert_expr);
+                    message,
+                    assert_expr);
 
         // lython::show_backtrace();
         assert(cond);
     }
 }
-} // namespace lython
+}  // namespace lython
 
 #endif
 
@@ -142,7 +155,7 @@ inline void assert_true(bool cond, char const *message, char const *assert_expr,
     class name: public Exception {                                                                 \
         public:                                                                                    \
         template <typename... Args>                                                                \
-        name(const char *fmt, const Args &...args): Exception(fmt, std::string(#name), args...) {} \
+        name(const char* fmt, const Args&... args): Exception(fmt, std::string(#name), args...) {} \
     };
 
 #define SYM_LOG_HELPER(level, ...) lython::log(level, LOC, __VA_ARGS__)
@@ -165,4 +178,4 @@ inline void assert_true(bool cond, char const *message, char const *assert_expr,
 #    undef assert
 #endif
 
-#define assert(expr, message) assert_true((bool)(expr), message, #expr, LOC)
+#define assert(expr, message) assert_true(((bool)(expr)), (message), #expr, LOC)

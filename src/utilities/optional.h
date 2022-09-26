@@ -6,11 +6,11 @@ namespace lython {
 template <typename T>
 class Optional {
     public:
-    Optional(const T &data): _has_data(true) { new (&holder.data.value) T(data); }
+    Optional(const T& data): _has_data(true) { new (&holder.data.value) T(data); }
 
     Optional(): _has_data(false) {}
 
-    Optional(const Optional &opt) {
+    Optional(const Optional& opt) {
         if (opt._has_data) {
             set_data(opt.holder.data.value);
         }
@@ -25,19 +25,19 @@ class Optional {
     //     return;
     // }
 
-    Optional &operator=(const T &data) {
+    Optional& operator=(const T& data) {
         set_data(data);
         return *this;
     }
 
-    Optional &operator=(Optional const &opt) {
+    Optional& operator=(Optional const& opt) {
         if (opt._has_data) {
             set_data(opt.holder.data.value);
         }
         return *this;
     }
 
-    bool operator==(Optional const &opt) const {
+    bool operator==(Optional const& opt) const {
         if (opt.has_value() == has_value()) {
             if (opt.has_value()) {
                 return opt.value() == value();
@@ -54,12 +54,12 @@ class Optional {
 
     bool has_value() const { return _has_data; }
 
-    T const &value() const { return holder.data.value; }
+    T const& value() const { return holder.data.value; }
 
-    T &value() { return holder.data.value; }
+    T& value() { return holder.data.value; }
 
     private:
-    void set_data(const T &data) {
+    void set_data(const T& data) {
         if (!_has_data) {
             new (&holder.data.value) T(data);
         } else {
@@ -91,12 +91,12 @@ Optional<T> none() {
 }
 
 template <typename T>
-Optional<T> some(const T &value) {
+Optional<T> some(const T& value) {
     return Optional<T>(value);
 }
 
 template <typename T>
-String str(Optional<T> const &obj) {
+String str(Optional<T> const& obj) {
     if (obj.has_value()) {
         return "Some(" + str(obj.value()) + ")";
     }
@@ -104,4 +104,4 @@ String str(Optional<T> const &obj) {
     return "None";
 }
 
-} // namespace lython
+}  // namespace lython

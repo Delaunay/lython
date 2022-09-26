@@ -13,30 +13,32 @@
 
 namespace easyfs {
 
-const char *SALT = "dW8(2!?GTfDFJ@Le";
+const char* SALT = "dW8(2!?GTfDFJ@Le";
 
-template <typename T> struct Hash {
-    static uint64_t hash(T const &k) noexcept {
+template <typename T>
+struct Hash {
+    static uint64_t hash(T const& k) noexcept {
         uint64_t value = 0;
-        siphash((const void *)&k, (size_t)sizeof(T), SALT, (uint8_t *)&value,
-                (size_t)sizeof(uint64_t));
+        siphash(
+            (const void*)&k, (size_t)sizeof(T), SALT, (uint8_t*)&value, (size_t)sizeof(uint64_t));
         return value;
     }
 };
 
-template <> struct Hash<std::string> {
-    static uint64_t hash(std::string const &k) noexcept {
+template <>
+struct Hash<std::string> {
+    static uint64_t hash(std::string const& k) noexcept {
         uint64_t value = 0;
-        siphash((const void *)&k[0], (size_t)k.size(), SALT, (uint8_t *)&value,
-                (size_t)sizeof(uint64_t));
+        siphash(
+            (const void*)&k[0], (size_t)k.size(), SALT, (uint8_t*)&value, (size_t)sizeof(uint64_t));
 
         return value;
     }
 };
 
 #define FAST_MOD(i, mod) ((i < mod) * i + (i - mod) * (i > mod))
-#define REG_MOD(i, mod) i % mod
-#define P2_MOD(i, mod) (i & (mod - 1))
+#define REG_MOD(i, mod)  i % mod
+#define P2_MOD(i, mod)   (i & (mod - 1))
 
 inline uint64_t fast_mod(uint64_t i, uint64_t mod) { return FAST_MOD(i, mod); }
 
@@ -66,11 +68,10 @@ inline bool is_power2(uint64_t x) { return (x != 0) && ((x & (x - 1)) == 0); }
 template <typename Key, typename Value, typename H = Hash<Key>>
 struct HashTable {
     private:
-
     struct _Item {
-        Item() : key(Key()) {}
+        Item(): key(Key()) {}
 
-        Item(Key const &k, Value const &v) : key(k), value(v), used(true) {}
+        Item(Key const& k, Value const& v): key(k), value(v), used(true) {}
 
         Key const key;
         Value     value;
@@ -79,12 +80,10 @@ struct HashTable {
 
         inline void set_hash(uint64_t) {}
 
-        inline uint64_t hash() const {
-            return H::hash(key);
-        }
+        inline uint64_t hash() const { return H::hash(key); }
 
-        Item &operator=(Item const &i) {
-            Key &mutkey = (Key &)key;
+        Item& operator=(Item const& i) {
+            Key& mutkey = (Key&)key;
             mutkey      = i.key;
             value       = i.value;
             used        = true;
@@ -95,11 +94,9 @@ struct HashTable {
 
     // Save the Hash next to the key-value pair
     struct _ItemCached: public _Item {
-        uint64_t  hash_value = 0;
+        uint64_t hash_value = 0;
 
-        inline void set_hash(uint64_t h) {
-            hash_value = h;
-        }
+        inline void set_hash(uint64_t h) { hash_value = h; }
 
         inline uint64_t hash() const {
             if (hash_value == 0) {
@@ -109,27 +106,27 @@ struct HashTable {
         }
     }
 
-    using Item = _ItemCached;
+    using Item    = _ItemCached;
     using Storage = std::vector<Item>;
 
     // Makes sure we always use a power of 2 as size
     static int round_size(int x) {
         int size = 1;
-        while(size < x) {
+        while (size < x) {
             size *= 2;
         }
         return size;
     }
 
     public:
-    HashTable(int buckets = 128) : _storage(Storage(round_size(buckets))) {}
+    HashTable(int buckets = 128): _storage(Storage(round_size(buckets))) {}
 
     float load_factor() const { return float(used) / float(_storage.size()); }
 
-    bool get(const Key &name, Value &v) const {
-        Item const *item = _find(name);
+    bool get(const Key& name, Value& v) const {
+        Item const* item = _find(name);
 
-        if(item == nullptr) {
+        if (item == nullptr) {
             return false;
         }
 
@@ -137,14 +134,14 @@ struct HashTable {
         return true;
     }
 
-    bool insert(const Key &name, const Value &value) { return track_insert(name, value, false); }
+    bool insert(const Key& name, const Value& value) { return track_insert(name, value, false); }
 
-    bool upsert(const Key &name, const Value &value) { return track_insert(name, value, true); }
+    bool upsert(const Key& name, const Value& value) { return track_insert(name, value, true); }
 
-    bool remove(const Key &name) {
-        Item *item = (Item *)_find(name);
+    bool remove(const Key& name) {
+        Item* item = (Item*)_find(name);
 
-        if(item == nullptr) {
+        if (item == nullptr) {
             return false;
         }
 
@@ -160,12 +157,12 @@ struct HashTable {
         bool              comma = false;
         bool              all   = false;
         ss << "{";
-        for(auto i = 0; i < _storage.size(); i++) {
+        for (auto i = 0; i < _storage.size(); i++) {
 
-            auto &item = _storage[i];
+            auto& item = _storage[i];
 
-            if(item.used && !item.deleted) {
-                if(comma) {
+            if (item.used && !item.deleted) {
+                if (comma) {
                     ss << ", ";
                 }
 
@@ -185,8 +182,8 @@ struct HashTable {
         int     a = 0;
         int     b = 0;
 
-        for(auto &item : _storage) {
-            if(!item.used || item.deleted) {
+        for (auto& item: _storage) {
+            if (!item.used || item.deleted) {
                 continue;
             }
             insert(storage, item, false, a, b);
@@ -205,23 +202,23 @@ struct HashTable {
     private:
     // this cannot be exposed because it returns a pointer
     // that could change once rehash is called
-    Item const *_find(const Key &name) const {
+    Item const* _find(const Key& name) const {
         assert(is_power2(_storage.size()));
         uint64_t i = H::hash(name);
 
         // linear probing
-        for(uint64_t offset = 0; offset < _storage.size(); offset++) {
+        for (uint64_t offset = 0; offset < _storage.size(); offset++) {
             // for(int m = -1; m < 2; m += 2) {
-            auto &item = _storage[P2_MOD((i + offset), _storage.size())];
+            auto& item = _storage[P2_MOD((i + offset), _storage.size())];
 
             // item was not used, so we know there was no collision
             // and no linear probe insert was done after this
-            if(!item.used) {
+            if (!item.used) {
                 return nullptr;
             }
 
             // Item is not deleted and key matches
-            if(!item.deleted && item.key == name) {
+            if (!item.deleted && item.key == name) {
                 return &item;
             }
             //}
@@ -232,8 +229,8 @@ struct HashTable {
 
     // insert a key value pair
     // if the key already exist does not insert
-    bool track_insert(const Key &name, const Value &value, bool upsert) {
-        if(load_factor() >= 0.75) {
+    bool track_insert(const Key& name, const Value& value, bool upsert) {
+        if (load_factor() >= 0.75) {
             rehash();
         }
 
@@ -242,23 +239,23 @@ struct HashTable {
     }
 
     // insert is slower than std::unordered_map
-    static bool insert(Storage &data, Item const &inserted_item, bool upsert, int &used,
-                       int &collision) {
+    static bool
+    insert(Storage& data, Item const& inserted_item, bool upsert, int& used, int& collision) {
 
         assert(is_power2(data.size()));
         uint64_t i = inserted_item.hash();
 
-        for(uint64_t offset = 0; offset < data.size(); offset++) {
-            Item &item = data[P2_MOD((i + offset), data.size())];
+        for (uint64_t offset = 0; offset < data.size(); offset++) {
+            Item& item = data[P2_MOD((i + offset), data.size())];
 
-            if(!item.used || item.deleted) {
+            if (!item.used || item.deleted) {
                 item = inserted_item;
                 used += 1;
                 return true;
             }
 
-            if(item.key == inserted_item.key) {
-                if(upsert) {
+            if (item.key == inserted_item.key) {
+                if (upsert) {
                     item.value = inserted_item.value;
                     item.set_hash(i);
                     return true;
@@ -280,6 +277,6 @@ struct HashTable {
     public:
     int collided() const { return collision; }
 };
-} // namespace easyfs
+}  // namespace easyfs
 
 #endif

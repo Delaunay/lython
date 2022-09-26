@@ -15,6 +15,7 @@
    <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 
+// clang-format off
 #include "siphash.h"
 
 #include <cassert>
@@ -174,3 +175,5 @@ int siphash(const void *in, const size_t inlen, const void *k, uint8_t *out,
 
     return 0;
 }
+
+// clang-format on

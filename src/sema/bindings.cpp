@@ -5,7 +5,7 @@
 
 namespace lython {
 
-void Bindings::dump(std::ostream &out) const {
+void Bindings::dump(std::ostream& out) const {
     auto big   = String(40, '-');
     auto small = String(20, '-');
     auto sep   = fmt::format("{:>40}-+-{:>20}-+-{}", big, small, small);
@@ -13,13 +13,13 @@ void Bindings::dump(std::ostream &out) const {
     out << sep << '\n';
     out << fmt::format("{:40} | {:20} | {}", "name", "type", "value") << "\n";
     out << sep << '\n';
-    for (auto &e: bindings) {
+    for (auto& e: bindings) {
         print(out, e);
     }
     out << sep << '\n';
 }
 
-inline std::ostream &print(std::ostream &out, BindingEntry const &entry) {
+inline std::ostream& print(std::ostream& out, BindingEntry const& entry) {
     String n = str(entry.name);
     String v = str(entry.value);
     String t = str(entry.type);
@@ -36,4 +36,4 @@ inline std::ostream &print(std::ostream &out, BindingEntry const &entry) {
     return out;
 }
 
-} // namespace lython
+}  // namespace lython

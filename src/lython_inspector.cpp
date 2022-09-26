@@ -19,7 +19,7 @@
 
 using namespace lython;
 
-bool compare(String const &a, String const &b) {
+bool compare(String const& a, String const& b) {
     auto size = std::min(a.size(), b.size());
 
     for (size_t i = 0; i < size; ++i) {
@@ -32,7 +32,7 @@ bool compare(String const &a, String const &b) {
     return a.size() == b.size();
 }
 
-String strip2(String const &v) {
+String strip2(String const& v) {
     int i = int(v.size()) - 1;
 
     while (i > 0 && v[size_t(i)] == '\n') {
@@ -53,11 +53,11 @@ struct Args {
 
 template <typename T>
 struct ArgumentsParser {
-    using Handler = std::function<void(T &args, std::string const &value)>;
+    using Handler = std::function<void(T& args, std::string const& value)>;
 
-    void add_argument(std::string const &name, Handler fun) { parser[name] = fun; }
+    void add_argument(std::string const& name, Handler fun) { parser[name] = fun; }
 
-    T parse_args(int argc, const char *argv[]) {
+    T parse_args(int argc, const char* argv[]) {
         T args;
 
         for (int i = 1; i < argc;) {
@@ -79,7 +79,7 @@ struct ArgumentsParser {
     std::unordered_map<std::string, Handler> parser;
 };
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char* argv[]) {
     {
         metadata_init_names();
         // Static globals
@@ -95,12 +95,12 @@ int main(int argc, const char *argv[]) {
     }
 
     ArgumentsParser<Args> argparser;
-    argparser.add_argument("--file", [](Args &arg, std::string const &value) { arg.file = value; });
-    argparser.add_argument("--debug-lexer", [](Args &arg, std::string const &value) {
+    argparser.add_argument("--file", [](Args& arg, std::string const& value) { arg.file = value; });
+    argparser.add_argument("--debug-lexer", [](Args& arg, std::string const& value) {
         std::stringstream ss(value);
         ss >> arg.dump_lexer;
     });
-    argparser.add_argument("--lexer-format", [](Args &arg, std::string const &value) {
+    argparser.add_argument("--lexer-format", [](Args& arg, std::string const& value) {
         std::stringstream ss(value);
         ss >> arg.lexer_format;
     });
@@ -152,7 +152,7 @@ int main(int argc, const char *argv[]) {
             std::cout << std::string(80, '-') << '\n';
         }
 
-        Module *mod = nullptr;
+        Module* mod = nullptr;
 
         try {
 
@@ -174,7 +174,7 @@ int main(int argc, const char *argv[]) {
                 std::cout << std::string(80, '-') << '\n';
                 std::cout << "Parsing Diag\n";
                 std::cout << std::string(80, '-') << '\n';
-                for (auto &diag: parser.get_errors()) {
+                for (auto& diag: parser.get_errors()) {
                     diag.print(std::cout);
                 }
                 std::cout << std::string(80, '-') << '\n';
@@ -210,7 +210,7 @@ int main(int argc, const char *argv[]) {
                 // ---------------
                 {
                     std::stringstream ss;
-                    for (auto &diag: sema.errors) {
+                    for (auto& diag: sema.errors) {
                         ss << "  - " << diag->what() << "\n";
                     }
 

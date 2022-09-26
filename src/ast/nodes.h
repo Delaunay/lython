@@ -6,7 +6,6 @@
 #include "../dtypes.h"
 #include "ast/nodekind.h"
 #include "constant.h"
-
 #include "logging/logging.h"
 #include "utilities/names.h"
 #include "utilities/object.h"
@@ -78,7 +77,6 @@ struct ExprNode: public CommonAttributes, public Node {
     NodeFamily family() const override { return NodeFamily::Expression; }
 };
 
-
 enum class ConversionKind : int8_t
 {
     None           = -1,
@@ -89,23 +87,23 @@ enum class ConversionKind : int8_t
 
 enum class BinaryOperator : int8_t
 {
-#define BINARY_OPERATORS(OP)\
-    OP(None, "")\
-    OP(Add, "+")\
-    OP(Sub, "-")\
-    OP(Mult, "*")\
-    OP(MatMult, "@")\
-    OP(Div, "/")\
-    OP(Mod, "%")\
-    OP(Pow, "^")\
-    OP(LShift, "<<")\
-    OP(RShift, ">>")\
-    OP(BitOr, "|")\
-    OP(BitXor, "^")\
-    OP(BitAnd, "&")\
-    OP(FloorDiv, "//")\
-    OP(EltMult, ".*")\
-    OP(EltDiv, "./")\
+#define BINARY_OPERATORS(OP) \
+    OP(None, "")             \
+    OP(Add, "+")             \
+    OP(Sub, "-")             \
+    OP(Mult, "*")            \
+    OP(MatMult, "@")         \
+    OP(Div, "/")             \
+    OP(Mod, "%")             \
+    OP(Pow, "^")             \
+    OP(LShift, "<<")         \
+    OP(RShift, ">>")         \
+    OP(BitOr, "|")           \
+    OP(BitXor, "^")          \
+    OP(BitAnd, "&")          \
+    OP(FloorDiv, "//")       \
+    OP(EltMult, ".*")        \
+    OP(EltDiv, "./")
 
 #define OP(name, _) name,
     BINARY_OPERATORS(OP)
@@ -126,11 +124,11 @@ enum class BoolOperator : int8_t
 
 enum class UnaryOperator : int8_t
 {
-#define UNARY_OPERATORS(OP)\
-    OP(None, "")\
-    OP(Invert, "~")\
-    OP(Not,  "!")\
-    OP(UAdd, "+")\
+#define UNARY_OPERATORS(OP) \
+    OP(None, "")            \
+    OP(Invert, "~")         \
+    OP(Not, "!")            \
+    OP(UAdd, "+")           \
     OP(USub, "-")
 
 #define OP(name, kw) name,
@@ -141,17 +139,17 @@ enum class UnaryOperator : int8_t
 enum class CmpOperator : int8_t
 {
 
-#define COMP_OPERATORS(OP)\
-    OP(None, "")\
-    OP(Eq, "==")\
-    OP(NotEq, "!=")\
-    OP(Lt, "<")\
-    OP(LtE, "<=")\
-    OP(Gt, ">")\
-    OP(GtE, ">=")\
-    OP(Is, "is")\
-    OP(IsNot, "is not")\
-    OP(In, "int")\
+#define COMP_OPERATORS(OP) \
+    OP(None, "")           \
+    OP(Eq, "==")           \
+    OP(NotEq, "!=")        \
+    OP(Lt, "<")            \
+    OP(LtE, "<=")          \
+    OP(Gt, ">")            \
+    OP(GtE, ">=")          \
+    OP(Is, "is")           \
+    OP(IsNot, "is not")    \
+    OP(In, "int")          \
     OP(NotIn, "not in")
 
 #define OP(name, _) name,
@@ -165,51 +163,50 @@ enum class ExprContext : int8_t
     Store,
     Del
 };
-void print(BoolOperator const &, std::ostream &out);
-void print(BinaryOperator const &, std::ostream &out);
-void print(CmpOperator const &, std::ostream &out);
-void print(UnaryOperator const &, std::ostream &out);
-
+void print(BoolOperator const&, std::ostream& out);
+void print(BinaryOperator const&, std::ostream& out);
+void print(CmpOperator const&, std::ostream& out);
+void print(UnaryOperator const&, std::ostream& out);
 
 struct Comprehension {
-    ExprNode *        target = nullptr;
-    ExprNode *        iter   = nullptr;
-    Array<ExprNode *> ifs;
-    int               is_async : 1;
+    ExprNode*        target = nullptr;
+    ExprNode*        iter   = nullptr;
+    Array<ExprNode*> ifs;
+    int              is_async : 1;
 };
 
 struct ExceptHandler: public CommonAttributes {
-    Optional<ExprNode *> type;
+    Optional<ExprNode*>  type;
     Optional<Identifier> name;
-    Array<StmtNode *>    body;
+    Array<StmtNode*>     body;
 };
 
 struct Arg: public CommonAttributes {
-    Identifier           arg;
-    Optional<ExprNode *> annotation;
-    Optional<String>     type_comment;
+    Identifier          arg;
+    Optional<ExprNode*> annotation;
+    Optional<String>    type_comment;
 };
 
 struct Arguments {
     Arguments() = default;
 
-    Arguments(Arguments const &) = default;
+    Arguments(Arguments const&) = default;
 
-    Array<Arg>        posonlyargs;
-    Array<Arg>        args;
-    Optional<Arg>     vararg; // *args
-    Array<Arg>        kwonlyargs;
-    Array<ExprNode *> kw_defaults;
-    Optional<Arg>     kwarg; // **kwargs
-    Array<ExprNode *> defaults;
+    Array<Arg>       posonlyargs;
+    Array<Arg>       args;
+    Optional<Arg>    vararg;  // *args
+    Array<Arg>       kwonlyargs;
+    Array<ExprNode*> kw_defaults;
+    Optional<Arg>    kwarg;  // **kwargs
+    Array<ExprNode*> defaults;
 
     int size() const { return int(posonlyargs.size() + args.size() + kwonlyargs.size()); }
 };
 
 struct Keyword: public CommonAttributes {
-    Identifier arg; // why is this optional ?
-                    // it is marked as optional in the python AST
-    ExprNode *value = nullptr;
+    Identifier arg;  // why is this optional ?
+                     // it is marked as optional in the python AST
+    ExprNode* value = nullptr;
 };
 
 struct Alias {
@@ -218,8 +215,8 @@ struct Alias {
 };
 
 struct WithItem {
-    ExprNode *           context_expr = nullptr;
-    Optional<ExprNode *> optional_vars;
+    ExprNode*           context_expr = nullptr;
+    Optional<ExprNode*> optional_vars;
 };
 
 struct TypeIgnore {
@@ -234,7 +231,7 @@ struct Pattern: public CommonAttributes, public Node {
 };
 
 struct MatchValue: public Pattern {
-    ExprNode *value;
+    ExprNode* value;
 
     MatchValue(): Pattern(NodeKind::MatchValue) {}
 };
@@ -246,25 +243,25 @@ struct MatchSingleton: public Pattern {
 };
 
 struct MatchSequence: public Pattern {
-    Array<Pattern *> patterns;
+    Array<Pattern*> patterns;
 
     MatchSequence(): Pattern(NodeKind::MatchSequence) {}
 };
 
 // The optional "rest" MatchMapping parameter handles capturing extra mapping keys
 struct MatchMapping: public Pattern {
-    Array<ExprNode *>    keys;
-    Array<Pattern *>     patterns;
+    Array<ExprNode*>     keys;
+    Array<Pattern*>      patterns;
     Optional<Identifier> rest;
 
     MatchMapping(): Pattern(NodeKind::MatchMapping) {}
 };
 
 struct MatchClass: public Pattern {
-    ExprNode *        cls;
-    Array<Pattern *>  patterns;
+    ExprNode*         cls;
+    Array<Pattern*>   patterns;
     Array<Identifier> kwd_attrs;
-    Array<Pattern *>  kwd_patterns;
+    Array<Pattern*>   kwd_patterns;
 
     MatchClass(): Pattern(NodeKind::MatchClass) {}
 };
@@ -276,22 +273,22 @@ struct MatchStar: public Pattern {
 };
 
 struct MatchAs: public Pattern {
-    Optional<Pattern *>  pattern;
+    Optional<Pattern*>   pattern;
     Optional<Identifier> name;
 
     MatchAs(): Pattern(NodeKind::MatchAs) {}
 };
 
 struct MatchOr: public Pattern {
-    Array<Pattern *> patterns;
+    Array<Pattern*> patterns;
 
     MatchOr(): Pattern(NodeKind::MatchOr) {}
 };
 
 struct MatchCase {
-    Pattern *            pattern;
-    Optional<ExprNode *> guard;
-    Array<StmtNode *>    body;
+    Pattern*            pattern;
+    Optional<ExprNode*> guard;
+    Array<StmtNode*>    body;
 };
 
 // Expressions
@@ -302,20 +299,20 @@ struct Constant: public ExprNode {
     Optional<String> kind;
 
     template <typename T>
-    Constant(T const &v): ExprNode(NodeKind::Constant), value(v) {}
+    Constant(T const& v): ExprNode(NodeKind::Constant), value(v) {}
 
     Constant(): Constant(ConstantValue::invalid_t()) {}
 };
 
 struct BoolOp: public ExprNode {
-    using NativeBoolyOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+    using NativeBoolyOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
 
-    BoolOperator      op;
-    Array<ExprNode *> values;
+    BoolOperator     op;
+    Array<ExprNode*> values;
 
     // Function to apply, resolved by the sema
-    StmtNode* resolved_operator = nullptr;
-    NativeBoolyOp native_operator = nullptr;
+    StmtNode*     resolved_operator = nullptr;
+    NativeBoolyOp native_operator   = nullptr;
 
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
 };
@@ -323,105 +320,105 @@ struct BoolOp: public ExprNode {
 // need sequences for compare to distinguish between
 // x < 4 < 3 and (x < 4) < 3
 struct Compare: public ExprNode {
-    using NativeCompOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+    using NativeCompOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
 
-    ExprNode *         left = nullptr;
+    ExprNode*          left = nullptr;
     Array<CmpOperator> ops;
-    Array<ExprNode *>  comparators;
+    Array<ExprNode*>   comparators;
 
     // Function to apply, resolved by the sema
-    Array<StmtNode*> resolved_operator;
+    Array<StmtNode*>    resolved_operator;
     Array<NativeCompOp> native_operator;
 
     Compare(): ExprNode(NodeKind::Compare) {}
 };
 
 struct NamedExpr: public ExprNode {
-    ExprNode *target = nullptr;
-    ExprNode *value  = nullptr;
+    ExprNode* target = nullptr;
+    ExprNode* value  = nullptr;
 
     NamedExpr(): ExprNode(NodeKind::NamedExpr) {}
 };
 
 struct BinOp: public ExprNode {
-    using NativeBinaryOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+    using NativeBinaryOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
 
-    ExprNode *     left = nullptr;
+    ExprNode*      left = nullptr;
     BinaryOperator op;
-    ExprNode *     right = nullptr;
+    ExprNode*      right = nullptr;
 
     // Function to apply, resolved by the sema
-    StmtNode* resolved_operator = nullptr;
-    NativeBinaryOp native_operator = nullptr;
+    StmtNode*      resolved_operator = nullptr;
+    NativeBinaryOp native_operator   = nullptr;
 
     BinOp(): ExprNode(NodeKind::BinOp) {}
 };
 
 struct UnaryOp: public ExprNode {
-    using NativeUnaryOp = ConstantValue(*)(ConstantValue const&);
+    using NativeUnaryOp = ConstantValue (*)(ConstantValue const&);
 
     UnaryOperator op;
-    ExprNode *    operand;
+    ExprNode*     operand;
 
     // Function to apply, resolved by the sema
-    StmtNode* resolved_operator = nullptr;
-    NativeUnaryOp native_operator = nullptr;
+    StmtNode*     resolved_operator = nullptr;
+    NativeUnaryOp native_operator   = nullptr;
 
     UnaryOp(): ExprNode(NodeKind::UnaryOp) {}
 };
 
 struct Lambda: public ExprNode {
     Arguments args;
-    ExprNode *body = nullptr;
+    ExprNode* body = nullptr;
 
     Lambda(): ExprNode(NodeKind::Lambda) {}
 };
 
 struct IfExp: public ExprNode {
-    ExprNode *test   = nullptr;
-    ExprNode *body   = nullptr;
-    ExprNode *orelse = nullptr;
+    ExprNode* test   = nullptr;
+    ExprNode* body   = nullptr;
+    ExprNode* orelse = nullptr;
 
     IfExp(): ExprNode(NodeKind::IfExp) {}
 };
 
 struct DictExpr: public ExprNode {
-    Array<ExprNode *> keys;
-    Array<ExprNode *> values;
+    Array<ExprNode*> keys;
+    Array<ExprNode*> values;
 
     DictExpr(): ExprNode(NodeKind::DictExpr) {}
 };
 
 struct SetExpr: public ExprNode {
-    Array<ExprNode *> elts;
+    Array<ExprNode*> elts;
 
     SetExpr(): ExprNode(NodeKind::SetExpr) {}
 };
 
 struct ListComp: public ExprNode {
-    ExprNode *           elt = nullptr;
+    ExprNode*            elt = nullptr;
     Array<Comprehension> generators;
 
     ListComp(): ExprNode(NodeKind::ListComp) {}
 };
 
 struct GeneratorExp: public ExprNode {
-    ExprNode *           elt = nullptr;
+    ExprNode*            elt = nullptr;
     Array<Comprehension> generators;
 
     GeneratorExp(): ExprNode(NodeKind::GeneratorExp) {}
 };
 
 struct SetComp: public ExprNode {
-    ExprNode *           elt = nullptr;
+    ExprNode*            elt = nullptr;
     Array<Comprehension> generators;
 
     SetComp(): ExprNode(NodeKind::SetComp) {}
 };
 
 struct DictComp: public ExprNode {
-    ExprNode *           key   = nullptr;
-    ExprNode *           value = nullptr;
+    ExprNode*            key   = nullptr;
+    ExprNode*            value = nullptr;
     Array<Comprehension> generators;
 
     DictComp(): ExprNode(NodeKind::DictComp) {}
@@ -429,40 +426,40 @@ struct DictComp: public ExprNode {
 
 // the grammar constrains where yield expressions can occur
 struct Await: public ExprNode {
-    ExprNode *value;
+    ExprNode* value;
 
     Await(): ExprNode(NodeKind::Await) {}
 };
 
 #undef Yield
 struct Yield: public ExprNode {
-    Optional<ExprNode *> value;
+    Optional<ExprNode*> value;
 
     Yield(): ExprNode(NodeKind::Yield) {}
 };
 
 struct YieldFrom: public ExprNode {
-    ExprNode *value = nullptr;
+    ExprNode* value = nullptr;
 
     YieldFrom(): ExprNode(NodeKind::YieldFrom) {}
 };
 
 struct Call: public ExprNode {
-    ExprNode *        func = nullptr;
-    Array<ExprNode *> args;
-    Array<Keyword>    keywords;
+    ExprNode*        func = nullptr;
+    Array<ExprNode*> args;
+    Array<Keyword>   keywords;
 
     Call(): ExprNode(NodeKind::Call) {}
 };
 
 struct JoinedStr: public ExprNode {
-    Array<ExprNode *> values;
+    Array<ExprNode*> values;
 
     JoinedStr(): ExprNode(NodeKind::JoinedStr) {}
 };
 
 struct FormattedValue: public ExprNode {
-    ExprNode *               value      = nullptr;
+    ExprNode*                value      = nullptr;
     Optional<ConversionKind> conversion = ConversionKind::None;
     // defined as ExprNode*
     JoinedStr format_spec;
@@ -472,7 +469,7 @@ struct FormattedValue: public ExprNode {
 
 // the following expression can appear in assignment context
 struct Attribute: public ExprNode {
-    ExprNode *  value = nullptr;
+    ExprNode*   value = nullptr;
     Identifier  attr;
     ExprContext ctx;
 
@@ -480,15 +477,15 @@ struct Attribute: public ExprNode {
 };
 
 struct Subscript: public ExprNode {
-    ExprNode *  value = nullptr;
-    ExprNode *  slice = nullptr;
+    ExprNode*   value = nullptr;
+    ExprNode*   slice = nullptr;
     ExprContext ctx;
 
     Subscript(): ExprNode(NodeKind::Subscript) {}
 };
 
 struct Starred: public ExprNode {
-    ExprNode *  value = nullptr;
+    ExprNode*   value = nullptr;
     ExprContext ctx;
 
     Starred(): ExprNode(NodeKind::Starred) {}
@@ -505,24 +502,24 @@ struct Name: public ExprNode {
 };
 
 struct ListExpr: public ExprNode {
-    Array<ExprNode *> elts;
-    ExprContext       ctx;
+    Array<ExprNode*> elts;
+    ExprContext      ctx;
 
     ListExpr(): ExprNode(NodeKind::ListExpr) {}
 };
 
 struct TupleExpr: public ExprNode {
-    Array<ExprNode *> elts;
-    ExprContext       ctx;
+    Array<ExprNode*> elts;
+    ExprContext      ctx;
 
     TupleExpr(): ExprNode(NodeKind::TupleExpr) {}
 };
 
 // can appear only in Subscript
 struct Slice: public ExprNode {
-    Optional<ExprNode *> lower;
-    Optional<ExprNode *> upper;
-    Optional<ExprNode *> step;
+    Optional<ExprNode*> lower;
+    Optional<ExprNode*> upper;
+    Optional<ExprNode*> step;
 
     Slice(): ExprNode(NodeKind::Slice) {}
 };
@@ -530,7 +527,7 @@ struct Slice: public ExprNode {
 // Modules
 // -------
 struct Module: public ModNode {
-    Array<StmtNode *> body;
+    Array<StmtNode*> body;
 
     Optional<String> docstring;
 
@@ -538,20 +535,20 @@ struct Module: public ModNode {
 };
 
 struct Interactive: public ModNode {
-    Array<StmtNode *> body;
+    Array<StmtNode*> body;
 
     Interactive(): ModNode(NodeKind::Interactive) {}
 };
 
 struct Expression: public ModNode {
-    ExprNode *body = nullptr;
+    ExprNode* body = nullptr;
 
     Expression(): ModNode(NodeKind::Expression) {}
 };
 
 struct FunctionType: public ModNode {
-    Array<ExprNode *> argtypes;
-    ExprNode *        returns = nullptr;
+    Array<ExprNode*> argtypes;
+    ExprNode*        returns = nullptr;
 
     FunctionType(): ModNode(NodeKind::FunctionType) {}
 };
@@ -560,19 +557,19 @@ struct FunctionType: public ModNode {
 // ----------
 struct Inline: public StmtNode {
     // <stmt>; <stmt>
-    Array<StmtNode *> body;
+    Array<StmtNode*> body;
 
     Inline(): StmtNode(NodeKind::Inline) {}
 };
 
 struct FunctionDef: public StmtNode {
-    Identifier           name;
-    Arguments            args;
-    Array<StmtNode *>    body;
-    Array<ExprNode *>    decorator_list = {};
-    Optional<ExprNode *> returns;
-    String               type_comment;
-    struct Arrow *       type = nullptr; // cached SEMA result
+    Identifier          name;
+    Arguments           args;
+    Array<StmtNode*>    body;
+    Array<ExprNode*>    decorator_list = {};
+    Optional<ExprNode*> returns;
+    String              type_comment;
+    struct Arrow*       type = nullptr;  // cached SEMA result
 
     Optional<String> docstring;
     bool             async : 1 = false;
@@ -583,11 +580,11 @@ struct FunctionDef: public StmtNode {
 struct AsyncFunctionDef: public FunctionDef {};
 
 struct ClassDef: public StmtNode {
-    Identifier        name;
-    Array<ExprNode *> bases;
-    Array<Keyword>    keywords;
-    Array<StmtNode *> body;
-    Array<ExprNode *> decorator_list = {};
+    Identifier       name;
+    Array<ExprNode*> bases;
+    Array<Keyword>   keywords;
+    Array<StmtNode*> body;
+    Array<ExprNode*> decorator_list = {};
 
     Optional<String> docstring;
 
@@ -600,25 +597,25 @@ struct ClassDef: public StmtNode {
     struct Attr {
         StringRef name;
         int       offset = -1;
-        StmtNode *stmt   = nullptr;
-        ExprNode *type   = nullptr;
+        StmtNode* stmt   = nullptr;
+        ExprNode* type   = nullptr;
 
         operator bool() { return name != StringRef(); }
 
-        void dump(std::ostream &out);
+        void dump(std::ostream& out);
     };
     Dict<StringRef, Attr> attributes;
 
-    void dump(std::ostream &out) {
+    void dump(std::ostream& out) {
         out << "Attributes:\n";
-        for (auto &item: attributes) {
+        for (auto& item: attributes) {
             out << "`" << item.first << "` ";
             item.second.dump(out);
             out << "\n";
         }
     }
 
-    bool get_attribute(StringRef name, Attr &out) {
+    bool get_attribute(StringRef name, Attr& out) {
         auto result = attributes.find(name);
 
         if (result != attributes.end()) {
@@ -629,7 +626,7 @@ struct ClassDef: public StmtNode {
         return false;
     }
 
-    bool insert_attribute(StringRef name, StmtNode *stmt, ExprNode *type = nullptr) {
+    bool insert_attribute(StringRef name, StmtNode* stmt, ExprNode* type = nullptr) {
         auto v = attributes[name];
 
         if (v.name == StringRef()) {
@@ -645,13 +642,13 @@ struct ClassDef: public StmtNode {
 };
 
 struct Return: public StmtNode {
-    Optional<ExprNode *> value;
+    Optional<ExprNode*> value;
 
     Return(): StmtNode(NodeKind::Return) {}
 };
 
 struct Delete: public StmtNode {
-    Array<ExprNode *> targets;
+    Array<ExprNode*> targets;
 
     Delete(): StmtNode(NodeKind::Delete) {}
 };
@@ -662,44 +659,44 @@ struct Assign: public StmtNode {
     // a, b = c
     // Tuple(a, b) = c
     //
-    Array<ExprNode *> targets;
-    ExprNode *        value = nullptr;
-    Optional<String>  type_comment;
+    Array<ExprNode*> targets;
+    ExprNode*        value = nullptr;
+    Optional<String> type_comment;
 
     Assign(): StmtNode(NodeKind::Assign) {}
 };
 
 struct AugAssign: public StmtNode {
-    using NativeBinaryOp = ConstantValue(*)(ConstantValue const&, ConstantValue const&);
+    using NativeBinaryOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
 
-    ExprNode *     target = nullptr;
+    ExprNode*      target = nullptr;
     BinaryOperator op;
-    ExprNode *     value = nullptr;
+    ExprNode*      value = nullptr;
 
     // Function to apply, resolved by the sema
-    StmtNode* resolved_operator = nullptr;
-    NativeBinaryOp native_operator = nullptr;
+    StmtNode*      resolved_operator = nullptr;
+    NativeBinaryOp native_operator   = nullptr;
 
     AugAssign(): StmtNode(NodeKind::AugAssign) {}
 };
 
 // 'simple' indicates that we annotate simple name without parens
 struct AnnAssign: public StmtNode {
-    ExprNode *           target     = nullptr;
-    ExprNode *           annotation = nullptr;
-    Optional<ExprNode *> value;
-    int                  simple;
+    ExprNode*           target     = nullptr;
+    ExprNode*           annotation = nullptr;
+    Optional<ExprNode*> value;
+    int                 simple;
 
     AnnAssign(): StmtNode(NodeKind::AnnAssign) {}
 };
 
 // use 'orelse' because else is a keyword in target languages
 struct For: public StmtNode {
-    ExprNode *        target = nullptr;
-    ExprNode *        iter   = nullptr;
-    Array<StmtNode *> body;
-    Array<StmtNode *> orelse;
-    Optional<String>  type_comment;
+    ExprNode*        target = nullptr;
+    ExprNode*        iter   = nullptr;
+    Array<StmtNode*> body;
+    Array<StmtNode*> orelse;
+    Optional<String> type_comment;
 
     bool async = false;
 
@@ -710,30 +707,30 @@ struct For: public StmtNode {
 struct AsyncFor: public For {};
 
 struct While: public StmtNode {
-    ExprNode *        test = nullptr;
-    Array<StmtNode *> body;
-    Array<StmtNode *> orelse;
+    ExprNode*        test = nullptr;
+    Array<StmtNode*> body;
+    Array<StmtNode*> orelse;
 
     While(): StmtNode(NodeKind::While) {}
 };
 
 struct If: public StmtNode {
-    ExprNode *        test = nullptr;
-    Array<StmtNode *> body;
-    Array<StmtNode *> orelse;
+    ExprNode*        test = nullptr;
+    Array<StmtNode*> body;
+    Array<StmtNode*> orelse;
 
     // alternative representation that diverges from
     // the python ast
-    Array<ExprNode *>        tests;
-    Array<Array<StmtNode *>> bodies;
+    Array<ExprNode*>        tests;
+    Array<Array<StmtNode*>> bodies;
 
     If(): StmtNode(NodeKind::If) {}
 };
 
 struct With: public StmtNode {
-    Array<WithItem>   items;
-    Array<StmtNode *> body;
-    Optional<String>  type_comment;
+    Array<WithItem>  items;
+    Array<StmtNode*> body;
+    Optional<String> type_comment;
 
     bool async = false;
 
@@ -744,24 +741,24 @@ struct With: public StmtNode {
 struct AsyncWith: public With {};
 
 struct Raise: public StmtNode {
-    Optional<ExprNode *> exc;
-    Optional<ExprNode *> cause;
+    Optional<ExprNode*> exc;
+    Optional<ExprNode*> cause;
 
     Raise(): StmtNode(NodeKind::Raise) {}
 };
 
 struct Try: public StmtNode {
-    Array<StmtNode *>    body;
+    Array<StmtNode*>     body;
     Array<ExceptHandler> handlers;
-    Array<StmtNode *>    orelse;
-    Array<StmtNode *>    finalbody;
+    Array<StmtNode*>     orelse;
+    Array<StmtNode*>     finalbody;
 
     Try(): StmtNode(NodeKind::Try) {}
 };
 
 struct Assert: public StmtNode {
-    ExprNode *           test = nullptr;
-    Optional<ExprNode *> msg;
+    ExprNode*           test = nullptr;
+    Optional<ExprNode*> msg;
 
     Assert(): StmtNode(NodeKind::Assert) {}
 };
@@ -793,7 +790,7 @@ struct Nonlocal: public StmtNode {
 };
 
 struct Expr: public StmtNode {
-    ExprNode *value = nullptr;
+    ExprNode* value = nullptr;
 
     Expr(): StmtNode(NodeKind::Expr) {}
 };
@@ -814,7 +811,7 @@ struct Continue: public StmtNode {
 };
 
 struct Match: public StmtNode {
-    ExprNode *       subject;
+    ExprNode*        subject;
     Array<MatchCase> cases;
 
     Match(): StmtNode(NodeKind::Match) {}
@@ -840,35 +837,35 @@ struct NotAllowedEpxr: public ExprNode {
 struct Arrow: public ExprNode {
     Arrow(): ExprNode(NodeKind::Arrow) {}
 
-    Array<ExprNode *>     args;
-    Array<StringRef>      names;    // Allow the names to be there as well
-    Dict<StringRef, bool> defaults; //
-    ExprNode *            returns = nullptr;
+    Array<ExprNode*>      args;
+    Array<StringRef>      names;     // Allow the names to be there as well
+    Dict<StringRef, bool> defaults;  //
+    ExprNode*             returns = nullptr;
 };
 
 struct DictType: public ExprNode {
     DictType(): ExprNode(NodeKind::DictType) {}
 
-    ExprNode *key   = nullptr;
-    ExprNode *value = nullptr;
+    ExprNode* key   = nullptr;
+    ExprNode* value = nullptr;
 };
 
 struct SetType: public ExprNode {
     SetType(): ExprNode(NodeKind::SetType) {}
 
-    ExprNode *value = nullptr;
+    ExprNode* value = nullptr;
 };
 
 struct ArrayType: public ExprNode {
     ArrayType(): ExprNode(NodeKind::ArrayType) {}
 
-    ExprNode *value = nullptr;
+    ExprNode* value = nullptr;
 };
 
 struct TupleType: public ExprNode {
     TupleType(): ExprNode(NodeKind::TupleType) {}
 
-    Array<ExprNode *> types;
+    Array<ExprNode*> types;
 };
 
 struct BuiltinType: public ExprNode {
@@ -883,7 +880,7 @@ struct BuiltinType: public ExprNode {
 //
 struct ClassType: public ExprNode {
     ClassType(): ExprNode(NodeKind::ClassType) {}
-    ClassDef *def;
+    ClassDef* def;
 };
 
 // This is essentially compile time lookup
@@ -915,22 +912,22 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 // Safe cast
 template <typename T>
-T *cast(Node *obj) {
+T* cast(Node* obj) {
     if (obj == nullptr) {
         return nullptr;
     }
     if (obj->is_instance<T>()) {
-        return (T *)obj;
+        return (T*)obj;
     }
     return nullptr;
 }
 
 template <typename T>
-T *checked_cast(Node *obj) {
+T* checked_cast(Node* obj) {
     assert(obj->is_instance<T>(),
            fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
     return cast<T>(obj);
 }
 
-} // namespace lython
+}  // namespace lython
 #endif

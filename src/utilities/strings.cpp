@@ -7,7 +7,7 @@
 namespace lython {
 
 template <typename Iterator>
-String join(String const &sep, Iterator const &start, Iterator const &end) {
+String join(String const& sep, Iterator const& start, Iterator const& end) {
     int count = int(end - start);
 
     if (count == 1)
@@ -25,7 +25,7 @@ String join(String const &sep, Iterator const &start, Iterator const &end) {
 
     size = 0;
     for (auto i = start; i != end; ++i) {
-        StringView const &str = *i;
+        StringView const& str = *i;
         std::copy(std::begin(str), std::end(str), result.begin() + size);
         size += str.size();
 
@@ -38,28 +38,28 @@ String join(String const &sep, Iterator const &start, Iterator const &end) {
     return result;
 }
 
-String join(String const &sep, Array<String> const &strs) {
+String join(String const& sep, Array<String> const& strs) {
     return join(sep, std::begin(strs), std::end(strs));
 }
 
-String join(String const &sep, Array<StringView> const &strs) {
+String join(String const& sep, Array<StringView> const& strs) {
     return join(sep, std::begin(strs), std::end(strs));
 }
 
-String join(String const &sep, Array<StringRef> const &strs) {
+String join(String const& sep, Array<StringRef> const& strs) {
     return join(sep, std::begin(strs), std::end(strs));
 }
 
-template String join(String const &sep, Array<ExprNode *> const &exprs);
-template String join(String const &sep, Array<Pattern *> const &exprs);
+template String join(String const& sep, Array<ExprNode*> const& exprs);
+template String join(String const& sep, Array<Pattern*> const& exprs);
 
-Set<char> const &strip_defaults() {
+Set<char> const& strip_defaults() {
     static Set<char> char_set = {'\n', ' ', '\t'};
     return char_set;
 }
 
-String strip(String const &v) {
-    Set<char> const &char_set = strip_defaults();
+String strip(String const& v) {
+    Set<char> const& char_set = strip_defaults();
 
     // remove trailing from the left
     auto k = 0ul;
@@ -86,7 +86,7 @@ String strip(String const &v) {
     return result;
 }
 
-Array<String> split(char sep, String const &text) {
+Array<String> split(char sep, String const& text) {
     int count = 1;
     for (auto c: text) {
         if (c == sep) {
@@ -113,4 +113,4 @@ Array<String> split(char sep, String const &text) {
     return frags;
 }
 
-} // namespace lython
+}  // namespace lython

@@ -6,19 +6,19 @@
 namespace lython {
 
 struct BindingEntry {
-    BindingEntry(StringRef a = StringRef(), Node *b = nullptr, TypeExpr *c = nullptr):
+    BindingEntry(StringRef a = StringRef(), Node* b = nullptr, TypeExpr* c = nullptr):
         name(a), value(b), type(c) {}
 
-    bool operator==(BindingEntry const &b) const {
+    bool operator==(BindingEntry const& b) const {
         return name == b.name && value == b.value && type == b.type;
     }
 
     StringRef name;
-    Node *    value = nullptr;
-    TypeExpr *type  = nullptr;
+    Node*     value = nullptr;
+    TypeExpr* type  = nullptr;
 };
 
-std::ostream &print(std::ostream &out, BindingEntry const &entry);
+std::ostream& print(std::ostream& out, BindingEntry const& entry);
 
 struct Bindings {
     Bindings() {
@@ -37,30 +37,28 @@ struct Bindings {
     }
 
     // returns the varid it was inserted as
-    inline int add(StringRef const &name, Node *value, TypeExpr *type) {
+    inline int add(StringRef const& name, Node* value, TypeExpr* type) {
         auto size = int(bindings.size());
         bindings.push_back({name, value, type});
         return size;
     }
 
-    inline void set_type(int varid, TypeExpr *type) {
+    inline void set_type(int varid, TypeExpr* type) {
         if (varid < 0 && varid > bindings.size())
             return;
 
         bindings[varid].type = type;
     }
 
-    inline void set_value(int varid, Node* value) {
-        bindings[varid].value = value;
-    }
+    inline void set_value(int varid, Node* value) { bindings[varid].value = value; }
 
-    inline TypeExpr *get_type(int varid) const {
+    inline TypeExpr* get_type(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return nullptr;
         return bindings[varid].type;
     }
 
-    inline Node *get_value(int varid) const {
+    inline Node* get_value(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return nullptr;
         return bindings[varid].value;
@@ -93,48 +91,48 @@ struct Bindings {
         return ss.str();
     }
 
-    void dump(std::ostream &out) const;
+    void dump(std::ostream& out) const;
 
     Array<BindingEntry> bindings;
 };
 
 template <typename T, typename U>
 struct PopGuard {
-    PopGuard(T &array, U const &v): array(array), oldsize(array.size()) { array.push_back(v); }
+    PopGuard(T& array, U const& v): array(array), oldsize(array.size()) { array.push_back(v); }
 
     ~PopGuard() { array.pop_back(); }
 
-    U const &last(int offset, U const &default_value) const {
+    U const& last(int offset, U const& default_value) const {
         if (oldsize >= offset) {
             return array[oldsize - offset];
         }
         return default_value;
     }
 
-    T &         array;
+    T&          array;
     std::size_t oldsize;
 };
 
 struct Scope {
-    Scope(Bindings &array): bindings(array), oldsize(bindings.bindings.size()) {}
+    Scope(Bindings& array): bindings(array), oldsize(bindings.bindings.size()) {}
 
     ~Scope() { bindings.bindings.resize(oldsize); }
 
-    Bindings &  bindings;
+    Bindings&   bindings;
     std::size_t oldsize;
 };
 
 struct ScopedFlag {
-    ScopedFlag(Dict<StringRef, bool> &array, StringRef flag): flags(array), flag(flag) {
+    ScopedFlag(Dict<StringRef, bool>& array, StringRef flag): flags(array), flag(flag) {
         flags[flag] = true;
     }
 
     ~ScopedFlag() { flags.erase(flag); }
 
-    Dict<StringRef, bool> &flags;
+    Dict<StringRef, bool>& flags;
     StringRef              flag;
 };
 
-} // namespace lython
+}  // namespace lython
 
 #endif

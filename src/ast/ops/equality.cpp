@@ -9,59 +9,56 @@ struct Equality {
     using Return_t = bool;
 
     template <typename T>
-    bool exec(T const &a, T const &b, int depth) {
+    bool exec(T const& a, T const& b, int depth) {
         return a == b;
     }
 
-    bool exec(MatchCase const &a, MatchCase const &b, int depth) {
+    bool exec(MatchCase const& a, MatchCase const& b, int depth) {
         trace(depth, "MatchCase");
         return exec(a.pattern, b.pattern, depth) && exec(a.guard, b.guard, depth) &&
                exec(a.body, b.body, depth);
     }
 
-    bool exec(ExceptHandler const &a, ExceptHandler const &b, int depth) {
+    bool exec(ExceptHandler const& a, ExceptHandler const& b, int depth) {
         return exec(a.type, b.type, depth) && exec(a.name, b.name, depth) &&
                exec(a.body, b.body, depth);
     }
 
-    bool exec(JoinedStr const &a, JoinedStr const &b, int depth) {
+    bool exec(JoinedStr const& a, JoinedStr const& b, int depth) {
         return exec(a.values, b.values, depth);
     }
 
-    bool exec(WithItem const &a, WithItem const &b, int depth) {
+    bool exec(WithItem const& a, WithItem const& b, int depth) {
         return exec(a.context_expr, b.context_expr, depth) &&
                exec(a.optional_vars, b.optional_vars, depth);
     }
 
-    bool exec(Comprehension const &a, Comprehension const &b, int depth) {
+    bool exec(Comprehension const& a, Comprehension const& b, int depth) {
         return exec(a.target, b.target, depth) && exec(a.iter, b.iter, depth) &&
                exec(a.ifs, b.ifs, depth);
     }
 
-    bool exec(Alias const &a, Alias const &b, int depth) {
+    bool exec(Alias const& a, Alias const& b, int depth) {
         return a.asname == b.asname && a.name == b.name;
     }
 
-    bool exec(Arg const &a, Arg const &b, int depth) {
+    bool exec(Arg const& a, Arg const& b, int depth) {
         return a.arg == b.arg && exec(a.annotation, b.annotation, depth);
     }
 
-    bool exec(Keyword const &a, Keyword const &b, int depth) {
+    bool exec(Keyword const& a, Keyword const& b, int depth) {
         return a.arg == b.arg && exec(a.value, b.value, depth);
     }
 
-    bool exec(Arguments const &a, Arguments const &b, int depth) {
-        return exec(a.posonlyargs, b.posonlyargs, depth)
-            && exec(a.args, b.args, depth)
-            && exec(a.vararg, b.vararg, depth)
-            && exec(a.kwonlyargs, b.kwonlyargs, depth)
-            && exec(a.kw_defaults, b.kw_defaults, depth)
-            && exec(a.kwarg, b.kwarg, depth)
-            && exec(a.defaults, b.defaults, depth);
+    bool exec(Arguments const& a, Arguments const& b, int depth) {
+        return exec(a.posonlyargs, b.posonlyargs, depth) && exec(a.args, b.args, depth) &&
+               exec(a.vararg, b.vararg, depth) && exec(a.kwonlyargs, b.kwonlyargs, depth) &&
+               exec(a.kw_defaults, b.kw_defaults, depth) && exec(a.kwarg, b.kwarg, depth) &&
+               exec(a.defaults, b.defaults, depth);
     }
 
     template <typename T>
-    bool exec(Optional<T> const &a, Optional<T> const &b, int depth) {
+    bool exec(Optional<T> const& a, Optional<T> const& b, int depth) {
         if (a.has_value() == b.has_value()) {
             if (a.has_value()) {
                 return exec(a.value(), b.value(), depth);
@@ -73,7 +70,7 @@ struct Equality {
     }
 
     template <typename T>
-    bool exec(Array<T> const &a, Array<T> const &b, int depth) {
+    bool exec(Array<T> const& a, Array<T> const& b, int depth) {
         if (a.size() != b.size()) {
             return false;
         }
@@ -85,7 +82,7 @@ struct Equality {
         return true;
     }
 
-    bool exec(Node *a, Node *b) {
+    bool exec(Node* a, Node* b) {
         if (a->kind != b->kind) {
             return false;
         }
@@ -104,7 +101,7 @@ struct Equality {
         return false;
     }
 
-    bool exec(ModNode *a, ModNode *b, int depth) {
+    bool exec(ModNode* a, ModNode* b, int depth) {
         trace(depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
@@ -137,7 +134,7 @@ struct Equality {
         return false;
     }
 
-    bool exec(Pattern *a, Pattern *b, int depth) {
+    bool exec(Pattern* a, Pattern* b, int depth) {
         trace(depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
@@ -169,7 +166,7 @@ struct Equality {
         return false;
     }
 
-    bool exec(ExprNode *a, ExprNode *b, int depth) {
+    bool exec(ExprNode* a, ExprNode* b, int depth) {
         if (a == nullptr && b == nullptr) {
             return true;
         }
@@ -207,7 +204,7 @@ struct Equality {
         return false;
     }
 
-    bool exec(StmtNode *a, StmtNode *b, int depth) {
+    bool exec(StmtNode* a, StmtNode* b, int depth) {
         trace(depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
@@ -240,7 +237,7 @@ struct Equality {
     }
 
     // >>>>>>>>>>>> Types
-    bool functiontype(FunctionType *a, FunctionType *b, int depth) {
+    bool functiontype(FunctionType* a, FunctionType* b, int depth) {
         if (a->argtypes.size() != b->argtypes.size()) {
             return false;
         }
@@ -256,193 +253,193 @@ struct Equality {
 
         return exec(a->returns, b->returns, depth);
     }
-    bool dicttype(DictType *a, DictType *b, int depth) {
+    bool dicttype(DictType* a, DictType* b, int depth) {
         return exec(a->key, b->key, depth) && exec(a->value, b->value, depth);
     }
-    bool arraytype(ArrayType *a, ArrayType *b, int depth) {
+    bool arraytype(ArrayType* a, ArrayType* b, int depth) {
         return exec(a->value, b->value, depth);
     }
-    bool settype(SetType *a, SetType *b, int depth) { return exec(a->value, b->value, depth); }
-    bool tupletype(TupleType *a, TupleType *b, int depth) {
+    bool settype(SetType* a, SetType* b, int depth) { return exec(a->value, b->value, depth); }
+    bool tupletype(TupleType* a, TupleType* b, int depth) {
         return exec(a->types, b->types, depth);
     }
 
-    bool arrow(Arrow *a, Arrow *b, int depth) {
+    bool arrow(Arrow* a, Arrow* b, int depth) {
         return exec(a->args, b->args, depth) && exec(a->returns, b->returns, depth);
     }
 
-    bool builtintype(BuiltinType *a, BuiltinType *b, int depth) {
+    bool builtintype(BuiltinType* a, BuiltinType* b, int depth) {
         debug("{} {} {}", a->name, b->name, exec(a->name, b->name, depth));
         return exec(a->name, b->name, depth);
     }
-    bool functiondef(FunctionDef *a, FunctionDef *b, int depth) {
+    bool functiondef(FunctionDef* a, FunctionDef* b, int depth) {
         // TODO check full module path
         return exec(a->name, b->name, depth);
     }
-    bool classdef(ClassDef *a, ClassDef *b, int depth) {
+    bool classdef(ClassDef* a, ClassDef* b, int depth) {
         // TODO check full module path
         return exec(a->name, b->name, depth);
     }
 
-    bool classtype(ClassType *a, ClassType *b, int depth) { return bool(); }
+    bool classtype(ClassType* a, ClassType* b, int depth) { return bool(); }
     // Types <<<<<<<<<<<<<<<<<<<<
 
-    bool module(Module *a, Module *b, int depth) { return exec(a->body, b->body, depth); }
-    bool interactive(Interactive *a, Interactive *b, int depth) {
+    bool module(Module* a, Module* b, int depth) { return exec(a->body, b->body, depth); }
+    bool interactive(Interactive* a, Interactive* b, int depth) {
         return exec(a->body, b->body, depth);
     }
-    bool expression(Expression *a, Expression *b, int depth) {
+    bool expression(Expression* a, Expression* b, int depth) {
         return exec(a->body, b->body, depth);
     }
 
-    bool pass(Pass *a, Pass *b, int depth) { return true; }
-    bool breakstmt(Break *a, Break *b, int depth) { return true; }
-    bool continuestmt(Continue *a, Continue *b, int depth) { return true; }
+    bool pass(Pass* a, Pass* b, int depth) { return true; }
+    bool breakstmt(Break* a, Break* b, int depth) { return true; }
+    bool continuestmt(Continue* a, Continue* b, int depth) { return true; }
 
-    bool constant(Constant *a, Constant *b, int depth) { return a->value == b->value; }
-    bool exprstmt(Expr *a, Expr *b, int depth) { return exec(a->value, b->value, depth); }
-    bool returnstmt(Return *a, Return *b, int depth) { return exec(a->value, b->value, depth); }
-    bool await(Await *a, Await *b, int depth) { return exec(a->value, b->value, depth); }
-    bool yield(Yield *a, Yield *b, int depth) { return exec(a->value, b->value, depth); }
-    bool yieldfrom(YieldFrom *a, YieldFrom *b, int depth) {
+    bool constant(Constant* a, Constant* b, int depth) { return a->value == b->value; }
+    bool exprstmt(Expr* a, Expr* b, int depth) { return exec(a->value, b->value, depth); }
+    bool returnstmt(Return* a, Return* b, int depth) { return exec(a->value, b->value, depth); }
+    bool await(Await* a, Await* b, int depth) { return exec(a->value, b->value, depth); }
+    bool yield(Yield* a, Yield* b, int depth) { return exec(a->value, b->value, depth); }
+    bool yieldfrom(YieldFrom* a, YieldFrom* b, int depth) {
         return exec(a->value, b->value, depth);
     }
 
-    bool boolop(BoolOp *a, BoolOp *b, int depth) {
+    bool boolop(BoolOp* a, BoolOp* b, int depth) {
         return a->op == b->op && exec(a->values, b->values, depth);
     }
-    bool namedexpr(NamedExpr *a, NamedExpr *b, int depth) {
+    bool namedexpr(NamedExpr* a, NamedExpr* b, int depth) {
         return exec(a->target, b->target, depth) && exec(a->value, b->value, depth);
     }
-    bool binop(BinOp *a, BinOp *b, int depth) {
+    bool binop(BinOp* a, BinOp* b, int depth) {
         return a->op == b->op && exec(a->left, b->left, depth) && exec(a->right, b->right, depth);
     }
-    bool unaryop(UnaryOp *a, UnaryOp *b, int depth) {
+    bool unaryop(UnaryOp* a, UnaryOp* b, int depth) {
         return a->op == b->op && exec(a->operand, b->operand, depth);
     }
-    bool lambda(Lambda *a, Lambda *b, int depth) {
+    bool lambda(Lambda* a, Lambda* b, int depth) {
         return exec(a->args, b->args, depth) && exec(a->body, b->body, depth);
     }
-    bool ifexp(IfExp *a, IfExp *b, int depth) {
+    bool ifexp(IfExp* a, IfExp* b, int depth) {
         return exec(a->test, b->test, depth) && exec(a->body, b->body, depth) &&
                exec(a->orelse, b->orelse, depth);
     }
-    bool dictexpr(DictExpr *a, DictExpr *b, int depth) {
+    bool dictexpr(DictExpr* a, DictExpr* b, int depth) {
         return exec(a->keys, b->keys, depth) && exec(a->values, b->values, depth);
     }
-    bool setexpr(SetExpr *a, SetExpr *b, int depth) { return exec(a->elts, b->elts, depth); }
-    bool listcomp(ListComp *a, ListComp *b, int depth) {
+    bool setexpr(SetExpr* a, SetExpr* b, int depth) { return exec(a->elts, b->elts, depth); }
+    bool listcomp(ListComp* a, ListComp* b, int depth) {
         return exec(a->elt, b->elt, depth) && exec(a->generators, b->generators, depth);
     }
-    bool generateexpr(GeneratorExp *a, GeneratorExp *b, int depth) {
+    bool generateexpr(GeneratorExp* a, GeneratorExp* b, int depth) {
         return exec(a->elt, b->elt, depth) && exec(a->generators, b->generators, depth);
     }
-    bool setcomp(SetComp *a, SetComp *b, int depth) {
+    bool setcomp(SetComp* a, SetComp* b, int depth) {
         return exec(a->elt, b->elt, depth) && exec(a->generators, b->generators, depth);
     }
-    bool dictcomp(DictComp *a, DictComp *b, int depth) {
+    bool dictcomp(DictComp* a, DictComp* b, int depth) {
         return exec(a->key, b->key, depth) && exec(a->value, b->value, depth) &&
                exec(a->generators, b->generators, depth);
     }
 
-    bool compare(Compare *a, Compare *b, int depth) {
+    bool compare(Compare* a, Compare* b, int depth) {
         return exec(a->left, b->left, depth) && exec(a->ops, b->ops, depth) &&
                exec(a->comparators, b->comparators, depth);
     }
-    bool call(Call *a, Call *b, int depth) {
+    bool call(Call* a, Call* b, int depth) {
         return exec(a->func, b->func, depth) && exec(a->args, b->args, depth) &&
                exec(a->keywords, b->keywords, depth);
     }
-    bool joinedstr(JoinedStr *a, JoinedStr *b, int depth) {
+    bool joinedstr(JoinedStr* a, JoinedStr* b, int depth) {
         return exec(a->values, b->values, depth);
     }
-    bool formattedvalue(FormattedValue *a, FormattedValue *b, int depth) {
+    bool formattedvalue(FormattedValue* a, FormattedValue* b, int depth) {
         return exec(a->value, b->value, depth) && exec(a->conversion, b->conversion, depth) &&
                exec(a->format_spec, b->format_spec, depth);
     }
-    bool attribute(Attribute *a, Attribute *b, int depth) {
+    bool attribute(Attribute* a, Attribute* b, int depth) {
         return exec(a->value, b->value, depth) && exec(a->attr, b->attr, depth) /* &&
                exec(a->ctx, b->ctx, depth) */
             ;
     }
-    bool subscript(Subscript *a, Subscript *b, int depth) {
+    bool subscript(Subscript* a, Subscript* b, int depth) {
 
         return exec(a->value, b->value, depth) && exec(a->slice, b->slice, depth); /*&&
                exec(a->ctx, b->ctx, depth) */
         ;
     }
-    bool starred(Starred *a, Starred *b, int depth) {
+    bool starred(Starred* a, Starred* b, int depth) {
         return exec(a->value, b->value, depth) /*&& exec(a->ctx, b->ctx, depth) */;
     }
-    bool name(Name *a, Name *b, int depth) { return exec(a->id, b->id, depth); }
-    bool listexpr(ListExpr *a, ListExpr *b, int depth) { return exec(a->elts, b->elts, depth); }
-    bool tupleexpr(TupleExpr *a, TupleExpr *b, int depth) { return exec(a->elts, b->elts, depth); }
-    bool slice(Slice *a, Slice *b, int depth) {
+    bool name(Name* a, Name* b, int depth) { return exec(a->id, b->id, depth); }
+    bool listexpr(ListExpr* a, ListExpr* b, int depth) { return exec(a->elts, b->elts, depth); }
+    bool tupleexpr(TupleExpr* a, TupleExpr* b, int depth) { return exec(a->elts, b->elts, depth); }
+    bool slice(Slice* a, Slice* b, int depth) {
         return exec(a->lower, b->lower, depth) && exec(a->upper, b->upper, depth) &&
                exec(a->step, b->step, depth);
     }
-    bool deletestmt(Delete *a, Delete *b, int depth) { return exec(a->targets, b->targets, depth); }
-    bool assign(Assign *a, Assign *b, int depth) {
+    bool deletestmt(Delete* a, Delete* b, int depth) { return exec(a->targets, b->targets, depth); }
+    bool assign(Assign* a, Assign* b, int depth) {
         return exec(a->targets, b->targets, depth) && exec(a->value, b->value, depth);
     }
-    bool augassign(AugAssign *a, AugAssign *b, int depth) {
+    bool augassign(AugAssign* a, AugAssign* b, int depth) {
         return exec(a->target, b->target, depth) && exec(a->value, b->value, depth);
     }
-    bool annassign(AnnAssign *a, AnnAssign *b, int depth) {
+    bool annassign(AnnAssign* a, AnnAssign* b, int depth) {
         return exec(a->target, b->target, depth) && exec(a->value, b->value, depth) &&
                exec(a->annotation, b->annotation, depth);
     }
-    bool forstmt(For *a, For *b, int depth) {
+    bool forstmt(For* a, For* b, int depth) {
         return exec(a->target, b->target, depth) && exec(a->iter, b->iter, depth) &&
                exec(a->body, b->body, depth) && exec(a->orelse, b->orelse, depth);
     }
-    bool whilestmt(While *a, While *b, int depth) {
+    bool whilestmt(While* a, While* b, int depth) {
         return exec(a->test, b->test, depth) && exec(a->body, b->body, depth) &&
                exec(a->orelse, b->orelse, depth);
     }
-    bool ifstmt(If *a, If *b, int depth) {
+    bool ifstmt(If* a, If* b, int depth) {
         return exec(a->test, b->test, depth) && exec(a->body, b->body, depth) &&
                exec(a->orelse, b->orelse, depth) && exec(a->tests, b->tests, depth) &&
                exec(a->bodies, b->bodies, depth);
     }
-    bool with(With *a, With *b, int depth) {
+    bool with(With* a, With* b, int depth) {
         return exec(a->items, b->items, depth) && exec(a->body, b->body, depth) &&
                exec(a->async, b->async, depth);
     }
-    bool raise(Raise *a, Raise *b, int depth) {
+    bool raise(Raise* a, Raise* b, int depth) {
         return exec(a->exc, b->exc, depth) && exec(a->cause, b->cause, depth);
     }
-    bool trystmt(Try *a, Try *b, int depth) {
+    bool trystmt(Try* a, Try* b, int depth) {
         return exec(a->body, b->body, depth) && exec(a->handlers, b->handlers, depth) &&
                exec(a->orelse, b->orelse, depth) && exec(a->finalbody, b->finalbody, depth);
     }
-    bool assertstmt(Assert *a, Assert *b, int depth) {
+    bool assertstmt(Assert* a, Assert* b, int depth) {
         return exec(a->test, b->test, depth) && exec(a->msg, b->msg, depth);
     }
-    bool import(Import *a, Import *b, int depth) { return exec(a->names, b->names, depth); }
-    bool importfrom(ImportFrom *a, ImportFrom *b, int depth) {
+    bool import(Import* a, Import* b, int depth) { return exec(a->names, b->names, depth); }
+    bool importfrom(ImportFrom* a, ImportFrom* b, int depth) {
         return exec(a->module, b->module, depth) && exec(a->names, b->names, depth) &&
                exec(a->level, b->level, depth);
     }
 
-    bool global(Global *a, Global *b, int depth) { return exec(a->names, b->names, depth); }
-    bool nonlocal(Nonlocal *a, Nonlocal *b, int depth) { return exec(a->names, b->names, depth); }
-    bool inlinestmt(Inline *a, Inline *b, int depth) { return exec(a->body, b->body, depth); }
+    bool global(Global* a, Global* b, int depth) { return exec(a->names, b->names, depth); }
+    bool nonlocal(Nonlocal* a, Nonlocal* b, int depth) { return exec(a->names, b->names, depth); }
+    bool inlinestmt(Inline* a, Inline* b, int depth) { return exec(a->body, b->body, depth); }
 
     // Patterns
-    bool match(Match *a, Match *b, int depth) {
+    bool match(Match* a, Match* b, int depth) {
         return exec(a->subject, b->subject, depth) && exec(a->cases, b->cases, depth);
     }
-    bool matchvalue(MatchValue *a, MatchValue *b, int depth) {
+    bool matchvalue(MatchValue* a, MatchValue* b, int depth) {
         return exec(a->value, b->value, depth);
     }
-    bool matchsingleton(MatchSingleton *a, MatchSingleton *b, int depth) {
+    bool matchsingleton(MatchSingleton* a, MatchSingleton* b, int depth) {
         return exec(a->value, b->value, depth);
     }
-    bool matchsequence(MatchSequence *a, MatchSequence *b, int depth) {
+    bool matchsequence(MatchSequence* a, MatchSequence* b, int depth) {
         return exec(a->patterns, b->patterns, depth);
     }
-    bool matchmapping(MatchMapping *a, MatchMapping *b, int depth) {
+    bool matchmapping(MatchMapping* a, MatchMapping* b, int depth) {
         if (a->patterns.size() != b->patterns.size()) {
             return false;
         }
@@ -456,7 +453,7 @@ struct Equality {
         }
         return exec(a->rest, b->rest, depth);
     }
-    bool matchclass(MatchClass *a, MatchClass *b, int depth) {
+    bool matchclass(MatchClass* a, MatchClass* b, int depth) {
         if (!exec(a->cls, b->cls, depth)) {
             return false;
         }
@@ -480,16 +477,16 @@ struct Equality {
 
         return true;
     }
-    bool matchstar(MatchStar *a, MatchStar *b, int depth) { return exec(a->name, b->name, depth); }
-    bool matchas(MatchAs *a, MatchAs *b, int depth) {
+    bool matchstar(MatchStar* a, MatchStar* b, int depth) { return exec(a->name, b->name, depth); }
+    bool matchas(MatchAs* a, MatchAs* b, int depth) {
         return exec(a->pattern, b->pattern, depth) && exec(a->name, b->name, depth);
     }
-    bool matchor(MatchOr *a, MatchOr *b, int depth) {
+    bool matchor(MatchOr* a, MatchOr* b, int depth) {
         return exec(a->patterns, b->patterns, depth);
     }
 };
 
-bool equal(Node *a, Node *b) {
+bool equal(Node* a, Node* b) {
     int n = (a == nullptr) + (b == nullptr);
     if (n > 0) {
         return n == 2;
@@ -498,7 +495,7 @@ bool equal(Node *a, Node *b) {
     return eq.exec(a, b);
 }
 
-bool equal(ExprNode *a, ExprNode *b) {
+bool equal(ExprNode* a, ExprNode* b) {
     int n = (a == nullptr) + (b == nullptr);
     if (n > 0) {
         return n == 2;
@@ -507,7 +504,7 @@ bool equal(ExprNode *a, ExprNode *b) {
     return eq.exec(a, b);
 }
 
-bool equal(Pattern *a, Pattern *b) {
+bool equal(Pattern* a, Pattern* b) {
     int n = (a == nullptr) + (b == nullptr);
     if (n > 0) {
         return n == 2;
@@ -516,7 +513,7 @@ bool equal(Pattern *a, Pattern *b) {
     return eq.exec(a, b);
 }
 
-bool equal(StmtNode *a, StmtNode *b) {
+bool equal(StmtNode* a, StmtNode* b) {
     int n = (a == nullptr) + (b == nullptr);
     if (n > 0) {
         return n == 2;
@@ -525,7 +522,7 @@ bool equal(StmtNode *a, StmtNode *b) {
     return eq.exec(a, b);
 }
 
-bool equal(ModNode *a, ModNode *b) {
+bool equal(ModNode* a, ModNode* b) {
     int n = (a == nullptr) + (b == nullptr);
     if (n > 0) {
         return n == 2;
@@ -534,4 +531,4 @@ bool equal(ModNode *a, ModNode *b) {
     return eq.exec(a, b);
 }
 
-} // namespace lython
+}  // namespace lython
