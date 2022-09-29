@@ -452,6 +452,10 @@ PartialResult* TreeEvaluator::forstmt(For_t* n, int depth) {
 
     for (StmtNode* stmt: n->orelse) {
         exec(stmt, depth);
+
+        if (has_exceptions()) {
+            return None();
+        }
     }
 
     return None();
@@ -496,6 +500,10 @@ PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
 
     for (StmtNode* stmt: n->orelse) {
         exec(stmt, depth);
+
+        if (has_exceptions()) {
+            return None();
+        }
     }
     return None();
 }

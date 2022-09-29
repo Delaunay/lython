@@ -109,6 +109,21 @@ TEST_CASE("VM_IfStmt_True") {
                   "1");
 }
 
+TEST_CASE("VM_assert_True") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    assert True, \"all good\"\n",
+                  "fun(0)",
+                  "None");
+}
+
+// FIXME: tree should raise exception
+TEST_CASE("VM_assert_False") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    assert False, \"Very bad\"\n",
+                  "fun(0)",
+                  "None");
+}
+
 TEST_CASE("VM_IfStmt_False") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    if a > 0:\n"
