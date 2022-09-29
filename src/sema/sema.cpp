@@ -47,6 +47,25 @@ Tuple<ClassDef*, FunctionDef*> SemanticAnalyser::find_method(TypeExpr*     class
     return std::make_tuple(cls, cast<FunctionDef>(getattr(cls, methodname, op_type)));
 }
 
+// classname.__and__
+String SemanticAnalyser::operator_function(TypeExpr* expr_t, String op) {
+    auto cls_ref = cast<Name>(expr_t);
+
+    ClassDef* expr_cls = nullptr;
+
+    if (cls_ref) {
+        expr_cls = cast<ClassDef>(bindings.get_value(cls_ref->varid));
+    } else {
+        expr_cls = cast<ClassDef>(expr_t);
+    }
+
+    if (expr_cls) {
+        return join(".", Array<String>{expr_cls->cls_namespace, op});
+    }
+
+    return "";
+}
+
 TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
     auto   bool_type        = make_ref(n, "bool");
     bool   and_implemented  = false;
@@ -64,15 +83,65 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
         rmagic = "__ror__";
     }
 
-    auto lhs_t = exec(n->values[0], depth);
+    ExprNode* lhs    = n->values[0];
+    TypeExpr* lhs_t  = exec(lhs, depth);
+    String    lhs_op = operator_function(lhs_t, magic);
+
+    ExprNode* rhs   = nullptr;
+    TypeExpr* rhs_t = nullptr;
+    String    rhs_op;
+
     for (int i = 1; i < n->values.size(); i++) {
-        auto rhs_t = exec(n->values[i], depth);
+        rhs   = n->values[i];
+        rhs_t = exec(rhs, depth);
 
-        StringRef signature = join("-", Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
+        String signature = join("-", Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
+        auto   handler   = get_native_bool_operation(signature);
 
-        auto handler       = get_native_bool_operation(signature);
-        n->native_operator = handler;
+        if (handler) {
+            n->native_operator = handler;
+        } else {
+            // Not a native operator
+            int lhs_op_varid = bindings.get_varid(lhs_op);
+            if (lhs_op_varid > 0) {
+                // found the function we are calling
+                n->varid = lhs_op_varid;
 
+                Arrow* operator_type = cast<Arrow>(bindings.get_type(lhs_op_varid));
+
+                assert(operator_type, "Bool operator needs to be Callable");
+                assert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
+
+                typecheck(lhs, lhs_t, nullptr, operator_type->args[0], LOC);
+                typecheck(rhs, rhs_t, nullptr, operator_type->args[1], LOC);
+                typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool"), LOC);
+            } else {
+                int rhs_op_varid = bindings.get_varid(rhs_op);
+                if (rhs_op_varid > 0) {
+                    // found the function we are calling
+                    n->varid = rhs_op_varid;
+
+                    Arrow* operator_type = cast<Arrow>(bindings.get_type(rhs_op_varid));
+
+                    assert(operator_type, "Bool operator needs to be Callable");
+                    assert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
+
+                    typecheck(lhs, lhs_t, nullptr, operator_type->args[1], LOC);
+                    typecheck(rhs, rhs_t, nullptr, operator_type->args[0], LOC);
+                    typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool"), LOC);
+                }
+
+                if (lhs_op_varid == -1 && rhs_op_varid == -1) {
+                    SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
+                }
+            }
+        }
+
+        lhs_t  = rhs_t;
+        lhs    = rhs;
+        lhs_op = operator_function(lhs_t, magic);
+
+        /*
         //
         //  TODO: we could create a builtin file that define
         //  bool as a class that has the __and__ attribute
@@ -106,6 +175,7 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
             typecheck(n, got, nullptr, arrow, LOC);
             lhs_t = arrow->returns;
         }
+        */
     }
 
     return return_t;
@@ -139,8 +209,6 @@ TypeExpr* SemanticAnalyser::compare(Compare* n, int depth) {
 
         // Check if we have a native function to handle this
         String signature = join(String("-"), Array<String>{str(op), str(prev_t), str(cmp_t)});
-
-        StringRef _ = signature;
 
         // TODO: get return type
         auto handler = get_native_cmp_operation(signature);
@@ -713,6 +781,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     }
 
     PopGuard nested_stmt(nested, (StmtNode*)n);
+    PopGuard _(namespaces, str(n->name));
 
     // Add the function name first to handle recursive calls
     auto  id = bindings.add(n->name, n, nullptr);
@@ -888,6 +957,7 @@ Arrow* record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* 
 }
 TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     PopGuard _(nested, n);
+    PopGuard _n(namespaces, str(n->name));
 
     int id = bindings.add(n->name, n, Type_t());
 
@@ -904,15 +974,12 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     Array<StmtNode*> methods;
     FunctionDef*     ctor = nullptr;
 
-    // TODO: insert methods as functions
-    //  #<class>_<method>_#uid:()
-    //
-    //  class = '_'.join(nested)
-    //
-    //  this makes lookup easy and binding can now become the main module
-    //  with the AST Module being the syntax owner and binding being the
-    //  semantic owner.
-    //
+    // we insert methods as regular functions
+    // this makes the structure flat and makes lookup O(1)
+    // instead of possible O(n) if the method is netested n times
+
+    String cls_namespace = join(".", namespaces);
+    n->cls_namespace     = cls_namespace;
 
     // Do a first pass to look for special methods such as __init__
     // the attributes here are also static
@@ -931,23 +998,29 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
             ctor_t->args[0] = class_t;
             ctor_t->returns = class_t;
         }
+
+        String name = fmtstr("{}.{}", cls_namespace, ctor->name);
+        bindings.add(name, ctor, ctor_t);
     }
     // -----------------------------
 
     // Process the remaining methods;
     for (auto& stmt: methods) {
-        Scope scope(bindings);
 
         // fun_t is the arrow that is saved in the context
         // populate self type
         auto fun   = cast<FunctionDef>(stmt);
         auto fun_t = cast<Arrow>(exec(stmt, depth));
+
         if (fun_t != nullptr) {
             fun_t->args[0] = class_t;
         }
 
         if (fun != nullptr) {
-            fun->type = fun_t;
+            // class_name.class_name.function_name._function_name
+            fun->type   = fun_t;
+            String name = fmtstr("{}.{}", n->cls_namespace, fun->name);
+            bindings.add(name, fun, fun_t);
         }
     }
 

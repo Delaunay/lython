@@ -91,6 +91,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     bool                                  forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
     Array<StmtNode*>                      nested;
+    Array<String>                         namespaces;
     Dict<StringRef, bool>                 flags;
     Array<String>                         paths = python_paths();
 
@@ -110,6 +111,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         ExprNode* lhs, TypeExpr* lhs_t, ExprNode* rhs, TypeExpr* rhs_t, CodeLocation const& loc);
 
     bool add_name(ExprNode* expr, ExprNode* value, ExprNode* type);
+
+    String operator_function(TypeExpr* expr_t, String op);
 
     TypeExpr* oneof(Array<TypeExpr*> types) {
         if (types.size() > 0) {

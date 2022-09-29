@@ -19,6 +19,7 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
     bool bnative   = n->native_operator.size() > 0;
     bool full_eval = true;
+    bool result    = true;
 
     for (int i = 0; i < n->comparators.size(); i++) {
         PartialResult* right = exec(n->comparators[i], depth);
@@ -40,13 +41,13 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
             } else if (bnative) {
                 auto native = n->native_operator[i];
                 assert(native, "Operator needs to be set");
-                value = root.new_object<Constant>(native(left_const->value, right_const->value));
+
+                ConstantValue v = native(left_const->value, right_const->value);
+                result          = result && v.get<bool>();
             }
 
-            assert(value != nullptr, "Must return a value if all arguments are set");
-
-            // Should we force full_eval to shortcut ?
-            if (!value->value.get<bool>()) {
+            // One comparison is false so the entire thing does not work
+            if (!result) {
                 return False();
             }
 
@@ -86,7 +87,14 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
     partials.reserve(n->values.size());
     partials.push_back(first_value);
 
-    bool full_eval = true;
+    bool                            full_eval = true;
+    bool                            result    = false;
+    std::function<bool(bool, bool)> reduce    = [](bool a, bool b) -> bool { return a || b; };
+
+    if (n->op == BoolOperator::And) {
+        result = true;
+        reduce = [](bool a, bool b) -> bool { return a && b; };
+    }
 
     for (int i = 1; i < n->values.size(); i++) {
         PartialResult* second_value = exec(n->values[i], depth);
@@ -105,15 +113,20 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
 
                 value = cast<Constant>(exec(n->resolved_operator, depth));
 
+                result = reduce(result, value->value.get<bool>());
+
             } else if (n->native_operator) {
-                value = root.new_object<Constant>(n->native_operator(first->value, second->value));
+                ConstantValue v = n->native_operator(first->value, second->value);
+                result          = reduce(result, v.get<bool>());
             }
 
-            assert(value != nullptr, "Must return a value if all arguments are set");
-
-            // Should we force full_eval to shortcut ?
-            if (!value->value.get<bool>()) {
+            // Shortcut
+            if (n->op == BoolOperator::And && result == false) {
                 return False();
+            }
+
+            if (n->op == BoolOperator::Or && result == true) {
+                return True();
             }
 
             first       = second;
@@ -124,8 +137,10 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
         }
     }
 
-    if (full_eval) {
+    if (result) {
         return True();
+    } else {
+        return False();
     }
 
     BoolOp* boolop = root.new_object<BoolOp>();

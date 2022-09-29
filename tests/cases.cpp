@@ -2,31 +2,31 @@
 
 #include "sema/sema.h"
 
-String NE(String const &name) { return String(NameError(nullptr, name).message().c_str()); }
+String NE(String const& name) { return String(NameError(nullptr, name).message().c_str()); }
 
-String NC(std::string const &name) {
+String NC(std::string const& name) {
     return String(fmt::format("{} is not callable", name).c_str());
 }
 
-String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String const &rhs_t) {
+String TE(String const& lhs_v, String const& lhs_t, String const& rhs_v, String const& rhs_t) {
     return String(TypeError::message(lhs_v, lhs_t, rhs_v, rhs_t));
 }
 
-String AE(String const &name, String const &attr) {
+String AE(String const& name, String const& attr) {
     return String(AttributeError::message(name, attr));
 }
 
-String UO(String const &op, String const &lhs, String const &rhs) {
+String UO(String const& op, String const& lhs, String const& rhs) {
     return String(UnsupportedOperand::message(op, lhs, rhs));
 }
 
-String IE(String const &module, String const &name) {
+String IE(String const& module, String const& name) {
     return String(ImportError::message(module, name));
 }
 
-String MNFE(String const &module) { return String(ModuleNotFoundError::message(module)); }
+String MNFE(String const& module) { return String(ModuleNotFoundError::message(module)); }
 
-Array<TestCase> const &Match_examples() {
+Array<TestCase> const& Match_examples() {
     static Array<TestCase> ex = {
         // TODO: check this test case on python
         // not sure about i
@@ -68,33 +68,33 @@ Array<TestCase> const &Match_examples() {
     return ex;
 }
 
-Array<TestCase> const &Continue_examples() {
+Array<TestCase> const& Continue_examples() {
     static Array<TestCase> ex = {
         {"continue"},
     };
     return ex;
 }
 
-Array<TestCase> const &Break_examples() {
+Array<TestCase> const& Break_examples() {
     static Array<TestCase> ex = {
         {"break"},
     };
     return ex;
 }
 
-Array<TestCase> const &Pass_examples() {
+Array<TestCase> const& Pass_examples() {
     static Array<TestCase> ex = {
         {"pass"},
     };
     return ex;
 }
 
-Array<TestCase> const &StmtNode_examples() {
+Array<TestCase> const& StmtNode_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Nonlocal_examples() {
+Array<TestCase> const& Nonlocal_examples() {
     static Array<TestCase> ex = {
         {"nonlocal a",
          {
@@ -104,7 +104,7 @@ Array<TestCase> const &Nonlocal_examples() {
     return ex;
 }
 
-Array<TestCase> const &Global_examples() {
+Array<TestCase> const& Global_examples() {
     static Array<TestCase> ex = {
         {"global a",
          {
@@ -114,7 +114,7 @@ Array<TestCase> const &Global_examples() {
     return ex;
 }
 
-Array<TestCase> const &ImportFrom_examples() {
+Array<TestCase> const& ImportFrom_examples() {
     static Array<TestCase> ex = {
         {
             "from aa.b import c as d, e.f as g",
@@ -130,7 +130,7 @@ Array<TestCase> const &ImportFrom_examples() {
     return ex;
 }
 
-Array<TestCase> const &Import_examples() {
+Array<TestCase> const& Import_examples() {
     static Array<TestCase> ex = {
         {
             "import aa as b, c as d, e.f as g",
@@ -149,7 +149,7 @@ Array<TestCase> const &Import_examples() {
     return ex;
 }
 
-Array<TestCase> const &Assert_examples() {
+Array<TestCase> const& Assert_examples() {
     static Array<TestCase> ex = {
         {"assert a",
          {
@@ -163,7 +163,7 @@ Array<TestCase> const &Assert_examples() {
     return ex;
 }
 
-Array<TestCase> const &Try_examples() {
+Array<TestCase> const& Try_examples() {
     static Array<TestCase> ex = {
         {"try:\n"
          "    pass\n"
@@ -177,7 +177,7 @@ Array<TestCase> const &Try_examples() {
     return ex;
 }
 
-Array<TestCase> const &Raise_examples() {
+Array<TestCase> const& Raise_examples() {
     static Array<TestCase> ex = {
         {"raise a from b",
          {
@@ -192,7 +192,7 @@ Array<TestCase> const &Raise_examples() {
     return ex;
 }
 
-Array<TestCase> const &With_examples() {
+Array<TestCase> const& With_examples() {
     static Array<TestCase> ex = {
         {"with a as b, c as d:\n"
          "    pass\n",
@@ -204,7 +204,7 @@ Array<TestCase> const &With_examples() {
     return ex;
 }
 
-Array<TestCase> const &If_examples() {
+Array<TestCase> const& If_examples() {
     static Array<TestCase> ex = {
         {"if a:\n"
          "    pass\n"
@@ -220,7 +220,7 @@ Array<TestCase> const &If_examples() {
     return ex;
 }
 
-Array<TestCase> const &While_examples() {
+Array<TestCase> const& While_examples() {
     static Array<TestCase> ex = {
         {"while a:\n"
          "    pass\n"
@@ -233,7 +233,7 @@ Array<TestCase> const &While_examples() {
     return ex;
 }
 
-Array<TestCase> const &For_examples() {
+Array<TestCase> const& For_examples() {
     static Array<TestCase> ex = {
         {"for a in b:\n"
          "    pass\n"
@@ -251,7 +251,7 @@ Array<TestCase> const &For_examples() {
     return ex;
 }
 
-Array<TestCase> const &AnnAssign_examples() {
+Array<TestCase> const& AnnAssign_examples() {
     static Array<TestCase> ex = {
         {"a: bool = True", {}},
         // TODO: those a lexer tests!
@@ -277,7 +277,7 @@ Array<TestCase> const &AnnAssign_examples() {
     return ex;
 }
 
-Array<TestCase> const &AugAssign_examples() {
+Array<TestCase> const& AugAssign_examples() {
     static Array<TestCase> ex = {
         {"a += b",
          {
@@ -295,7 +295,7 @@ Array<TestCase> const &AugAssign_examples() {
     return ex;
 }
 
-Array<TestCase> const &Assign_examples() {
+Array<TestCase> const& Assign_examples() {
     static Array<TestCase> ex = {
         // Undefined variables
         {"a = b",
@@ -329,7 +329,7 @@ Array<TestCase> const &Assign_examples() {
     return ex;
 }
 
-Array<TestCase> const &Delete_examples() {
+Array<TestCase> const& Delete_examples() {
     static Array<TestCase> ex = {
         {"del a, b",
          {
@@ -340,7 +340,7 @@ Array<TestCase> const &Delete_examples() {
     return ex;
 }
 
-Array<TestCase> const &Return_examples() {
+Array<TestCase> const& Return_examples() {
     static Array<TestCase> ex = {
         {
             "return a",
@@ -356,7 +356,7 @@ Array<TestCase> const &Return_examples() {
     return ex;
 }
 
-Array<TestCase> const &ClassDef_examples() {
+Array<TestCase> const& ClassDef_examples() {
     static Array<TestCase> ex = {
         {"@e(g, h, i=j)\n"
          "@f\n"
@@ -391,7 +391,7 @@ Array<TestCase> const &ClassDef_examples() {
     return ex;
 }
 
-Array<TestCase> const &FunctionDef_examples() {
+Array<TestCase> const& FunctionDef_examples() {
     static Array<TestCase> ex = {
         {"@j\n"
          "def a(b, c=d, *e, f=g, **h) -> bool:\n"
@@ -419,7 +419,7 @@ Array<TestCase> const &FunctionDef_examples() {
     return ex;
 }
 
-Array<TestCase> const &Inline_examples() {
+Array<TestCase> const& Inline_examples() {
     static Array<TestCase> ex = {
         {
             "a = 2; b = c; d = e",
@@ -433,27 +433,27 @@ Array<TestCase> const &Inline_examples() {
     return ex;
 }
 
-Array<TestCase> const &FunctionType_examples() {
+Array<TestCase> const& FunctionType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Expression_examples() {
+Array<TestCase> const& Expression_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Interactive_examples() {
+Array<TestCase> const& Interactive_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Module_examples() {
+Array<TestCase> const& Module_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Slice_examples() {
+Array<TestCase> const& Slice_examples() {
     static Array<TestCase> ex = {
         {"a[b:c:d]",
          {
@@ -466,7 +466,7 @@ Array<TestCase> const &Slice_examples() {
     return ex;
 }
 
-Array<TestCase> const &TupleExpr_examples() {
+Array<TestCase> const& TupleExpr_examples() {
     static Array<TestCase> ex = {
         {"a, b, c",
          {
@@ -491,7 +491,7 @@ Array<TestCase> const &TupleExpr_examples() {
     return ex;
 }
 
-Array<TestCase> const &ListExpr_examples() {
+Array<TestCase> const& ListExpr_examples() {
     static Array<TestCase> ex = {
         {"[a, b, c]",
          {
@@ -503,7 +503,7 @@ Array<TestCase> const &ListExpr_examples() {
     return ex;
 }
 
-Array<TestCase> const &Name_examples() {
+Array<TestCase> const& Name_examples() {
     static Array<TestCase> ex = {
         {"a",
          {
@@ -513,7 +513,7 @@ Array<TestCase> const &Name_examples() {
     return ex;
 }
 
-Array<TestCase> const &Starred_examples() {
+Array<TestCase> const& Starred_examples() {
     static Array<TestCase> ex = {
         {"*a",
          {
@@ -523,7 +523,7 @@ Array<TestCase> const &Starred_examples() {
     return ex;
 }
 
-Array<TestCase> const &Subscript_examples() {
+Array<TestCase> const& Subscript_examples() {
     static Array<TestCase> ex = {
         {"a[b]",
          {
@@ -534,7 +534,7 @@ Array<TestCase> const &Subscript_examples() {
     return ex;
 }
 
-Array<TestCase> const &Attribute_examples() {
+Array<TestCase> const& Attribute_examples() {
     static Array<TestCase> ex = {
         {"a.b",
          {
@@ -545,7 +545,7 @@ Array<TestCase> const &Attribute_examples() {
     return ex;
 }
 
-Array<TestCase> const &Constant_examples() {
+Array<TestCase> const& Constant_examples() {
     static Array<TestCase> ex = {
         {"1", {}},
         {"2.1", {}},
@@ -558,17 +558,17 @@ Array<TestCase> const &Constant_examples() {
     return ex;
 }
 
-Array<TestCase> const &FormattedValue_examples() {
+Array<TestCase> const& FormattedValue_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &JoinedStr_examples() {
+Array<TestCase> const& JoinedStr_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Call_examples() {
+Array<TestCase> const& Call_examples() {
     static Array<TestCase> ex = {
         {
             "fun(a, b, c=d)",
@@ -585,7 +585,7 @@ Array<TestCase> const &Call_examples() {
     return ex;
 }
 
-Array<TestCase> const &Compare_examples() {
+Array<TestCase> const& Compare_examples() {
     static Array<TestCase> ex = {
         {"a < b > c != d",
          {
@@ -625,7 +625,7 @@ Array<TestCase> const &Compare_examples() {
     return ex;
 }
 
-Array<TestCase> const &YieldFrom_examples() {
+Array<TestCase> const& YieldFrom_examples() {
     static Array<TestCase> ex = {
         {
             "yield from a",
@@ -638,7 +638,7 @@ Array<TestCase> const &YieldFrom_examples() {
     return ex;
 }
 
-Array<TestCase> const &Yield_examples() {
+Array<TestCase> const& Yield_examples() {
     static Array<TestCase> ex = {
         {
             "yield a",
@@ -656,7 +656,7 @@ Array<TestCase> const &Yield_examples() {
     return ex;
 }
 
-Array<TestCase> const &Await_examples() {
+Array<TestCase> const& Await_examples() {
     static Array<TestCase> ex = {
         {"await a",
          {
@@ -666,7 +666,7 @@ Array<TestCase> const &Await_examples() {
     return ex;
 }
 
-Array<TestCase> const &DictComp_examples() {
+Array<TestCase> const& DictComp_examples() {
     static Array<TestCase> ex = {
         {"{a: c for a in b if a > c}",
          {
@@ -679,7 +679,7 @@ Array<TestCase> const &DictComp_examples() {
     return ex;
 }
 
-Array<TestCase> const &SetComp_examples() {
+Array<TestCase> const& SetComp_examples() {
     static Array<TestCase> ex = {
         {"{a for a in b if a > c}",
          {
@@ -691,7 +691,7 @@ Array<TestCase> const &SetComp_examples() {
     return ex;
 }
 
-Array<TestCase> const &GeneratorExp_examples() {
+Array<TestCase> const& GeneratorExp_examples() {
     static Array<TestCase> ex = {
         {"(a for a in b if a > c)",
          {
@@ -703,7 +703,7 @@ Array<TestCase> const &GeneratorExp_examples() {
     return ex;
 }
 
-Array<TestCase> const &ListComp_examples() {
+Array<TestCase> const& ListComp_examples() {
     static Array<TestCase> ex = {
         {"[a for a in b if a > c]",
          {
@@ -715,7 +715,7 @@ Array<TestCase> const &ListComp_examples() {
     return ex;
 }
 
-Array<TestCase> const &SetExpr_examples() {
+Array<TestCase> const& SetExpr_examples() {
     static Array<TestCase> ex = {
         {"{a, b}",
          {
@@ -726,7 +726,7 @@ Array<TestCase> const &SetExpr_examples() {
     return ex;
 }
 
-Array<TestCase> const &DictExpr_examples() {
+Array<TestCase> const& DictExpr_examples() {
     static Array<TestCase> ex = {
         {"{a: b, c: d}",
          {
@@ -739,7 +739,7 @@ Array<TestCase> const &DictExpr_examples() {
     return ex;
 }
 
-Array<TestCase> const &IfExp_examples() {
+Array<TestCase> const& IfExp_examples() {
     static Array<TestCase> ex = {
         {"a = if True: c else d",
          {
@@ -752,7 +752,7 @@ Array<TestCase> const &IfExp_examples() {
     return ex;
 }
 
-Array<TestCase> const &Lambda_examples() {
+Array<TestCase> const& Lambda_examples() {
     static Array<TestCase> ex = {
         {"lambda a: b",
          {
@@ -762,7 +762,7 @@ Array<TestCase> const &Lambda_examples() {
     return ex;
 }
 
-Array<TestCase> const &UnaryOp_examples() {
+Array<TestCase> const& UnaryOp_examples() {
     static Array<TestCase> ex = {
         {"+ a",
          {
@@ -788,7 +788,7 @@ Array<TestCase> const &UnaryOp_examples() {
     return ex;
 }
 
-Array<TestCase> const &BinOp_examples() {
+Array<TestCase> const& BinOp_examples() {
     static Array<TestCase> ex = {
         {"a + b",
          {
@@ -819,7 +819,7 @@ Array<TestCase> const &BinOp_examples() {
     return ex;
 }
 
-Array<TestCase> const &NamedExpr_examples() {
+Array<TestCase> const& NamedExpr_examples() {
     static Array<TestCase> ex = {
         {"a = b := c",
          {
@@ -829,7 +829,7 @@ Array<TestCase> const &NamedExpr_examples() {
     return ex;
 }
 
-Array<TestCase> const &BoolOp_examples() {
+Array<TestCase> const& BoolOp_examples() {
     static Array<TestCase> ex = {
         {"a and b",
          {
@@ -843,46 +843,54 @@ Array<TestCase> const &BoolOp_examples() {
              NE("b"),
              UO("or", "None", "None"),
          }},
+        {"a or b or c",
+         {
+             NE("a"),
+             NE("b"),
+             NE("c"),
+             UO("or", "None", "None"),
+             UO("or", "None", "bool"),
+         }},
     };
     return ex;
 }
 
-Array<TestCase> const &DictType_examples() {
+Array<TestCase> const& DictType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &ArrayType_examples() {
+Array<TestCase> const& ArrayType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &TupleType_examples() {
+Array<TestCase> const& TupleType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Arrow_examples() {
+Array<TestCase> const& Arrow_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &ClassType_examples() {
+Array<TestCase> const& ClassType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &SetType_examples() {
+Array<TestCase> const& SetType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &BuiltinType_examples() {
+Array<TestCase> const& BuiltinType_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }
 
-Array<TestCase> const &Expr_examples() {
+Array<TestCase> const& Expr_examples() {
     static Array<TestCase> ex = {};
     return ex;
 }

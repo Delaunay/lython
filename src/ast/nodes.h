@@ -304,6 +304,21 @@ struct Constant: public ExprNode {
     Constant(): Constant(ConstantValue::invalid_t()) {}
 };
 
+/*
+    >>> print(ast.dump(ast.parse("1 < 2 < 3"), indent=4))
+    Module(
+        body=[
+            Expr(
+                value=Compare(
+                    left=Constant(value=1),
+                    ops=[
+                        Lt(),
+                        Lt()],
+                    comparators=[
+                        Constant(value=2),
+                        Constant(value=3)]))],
+        type_ignores=[])
+ */
 struct BoolOp: public ExprNode {
     using NativeBoolyOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
 
@@ -313,6 +328,7 @@ struct BoolOp: public ExprNode {
     // Function to apply, resolved by the sema
     StmtNode*     resolved_operator = nullptr;
     NativeBoolyOp native_operator   = nullptr;
+    int           varid             = -1;
 
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
 };
@@ -350,6 +366,7 @@ struct BinOp: public ExprNode {
     // Function to apply, resolved by the sema
     StmtNode*      resolved_operator = nullptr;
     NativeBinaryOp native_operator   = nullptr;
+    int            varid             = -1;
 
     BinOp(): ExprNode(NodeKind::BinOp) {}
 };
@@ -589,6 +606,9 @@ struct ClassDef: public StmtNode {
     Optional<String> docstring;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
+
+    // Sema populates this, this is for nested classes
+    String cls_namespace;
 
     // To match python AST the body of the class is a simple Array of statement
     // but this is not very convenient for semantic analysis

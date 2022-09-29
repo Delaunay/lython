@@ -75,6 +75,30 @@ TEST_CASE("VM_BinOp_Add_i32") {
                   "2");
 }
 
+TEST_CASE("VM_BoolAnd_True") {
+    run_test_case("def fun() -> bool:\n"
+                  "    return (1 < 2) and (2 < 3)\n",
+                  "fun()",
+                  "True");
+}
+
+TEST_CASE("VM_BoolAnd_False") {
+    run_test_case("def fun() -> bool:\n"
+                  "    return (1 > 2) and (2 > 3)\n",
+                  "fun()",
+                  "False");
+}
+
+// This does not work because of a parsing issue
+// it reads this as (1 < 2) < 3
+// but it should read (< 1 2 3)
+// TEST_CASE("VM_Compare_True") {
+//     run_test_case("def fun() -> bool:\n"
+//                   "    return 1 < 2 < 3\n",
+//                   "fun()",
+//                   "False");
+// }
+
 TEST_CASE("VM_IfStmt_True") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    if a > 0:\n"

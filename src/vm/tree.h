@@ -43,7 +43,6 @@ struct TreeEvaluatorTrait {
  * Additionally, this can be used to generate code at compile time by
  * creating function with types as arguments.
  *
- *
  * .. code-block::
  *
  *    def Point(type: Type):

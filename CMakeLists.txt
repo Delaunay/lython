@@ -12,12 +12,14 @@ SET(CMAKE_DEBUG_POSTFIX "-debug")
 IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     MESSAGE(STATUS "Building Debug Version")
     ADD_DEFINITIONS(-O0)
+
     IF(UNIX)
         ADD_LINK_OPTIONS(-rdynamic)
     ENDIF(UNIX)
 ELSE()
     MESSAGE(STATUS "Building Release Version")
-    #  causes: nvcc fatal   : redefinition of argument 'optimize'
+
+    # causes: nvcc fatal   : redefinition of argument 'optimize'
     # ADD_DEFINITIONS(-O2)
 ENDIF()
 
@@ -31,13 +33,39 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Project's Options
 # ====================================
+OPTION(BUILD_TESTING "Enable tests" ON)
+OPTION(BUILD_BENCHMARK "Build Benchmarks" ON)
+OPTION(BUILD_DOCUMENTATION "Build docs" OFF)
+OPTION(BUILD_DOXYGEN "Build Doxygen docs" ON)
+OPTION(BUILD_SPHINX "Build Sphinx docs" ON)
+option(CLANG_TIDY "Run clang-tidy" OFF)
+OPTION(BUILD_WEBASSEMBLY "Webassembly" OFF)
 
-OPTION(BUILD_TESTING        "Enable tests"       ON)
-OPTION(BUILD_BENCHMARK      "Build Benchmarks"   ON)
-OPTION(BUILD_DOCUMENTATION  "Build docs"         OFF)
-OPTION(BUILD_DOXYGEN        "Build Doxygen docs" ON)
-OPTION(BUILD_SPHINX         "Build Sphinx docs"  ON)
-option(CLANG_TIDY           "Run clang-tidy"     OFF)
+IF(BUILD_WEBASSEMBLY)
+    # Looks like I have to use emacscripten
+    # maybe I could use things like:
+    # - https://github.com/WebAssembly/wasi-libc
+    #
+    # set(CMAKE_SYSTEM_NAME Linux)
+    # set(CMAKE_SYSTEM_PROCESSOR wasm32)
+
+    # set(CMAKE_C_COMPILER clang)
+    # set(CMAKE_CXX_COMPILER clang++)
+
+    # set(triple)
+    # set(CMAKE_C_COMPILER_TARGET ${triple})
+    # set(CMAKE_CXX_COMPILER_TARGET ${triple})
+
+    # -Wall
+    # --target=wasm32
+    # -Os
+    # -flto
+    # -nostdlib
+    # -fvisibility=hidden
+    # -std=c++14
+    # -ffunction-sections
+    # -fdata-sections
+ENDIF(BUILD_WEBASSEMBLY)
 
 # Binary/pre-compiled Dependencies
 # ====================================
@@ -53,12 +81,12 @@ FIND_PACKAGE(Git REQUIRED)
 # Find revision ID and hash of the sourcetree
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
+
 IF(UNIX)
     INCLUDE(CodeCoverage)
     append_coverage_compiler_flags()
     SET(COVERAGE_EXCLUDES "${PROJECT_SOURCE_DIR}/dependencies/*")
-ENDIF (UNIX)
-
+ENDIF(UNIX)
 
 IF(CLANG_TIDY)
     FILE(SHA1 ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy clang_tidy_sha1)
@@ -67,7 +95,6 @@ IF(CLANG_TIDY)
     UNSET(clang_tidy_sha1)
     SET(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=${CLANG_TIDY_CHECKS};-header-filter='${CMAKE_SOURCE_DIR}/src/*'")
 ENDIF(CLANG_TIDY)
-
 
 # Subdirectories
 # ====================================
@@ -85,24 +112,21 @@ IF(BUILD_TESTING)
     ADD_SUBDIRECTORY(tests)
 ENDIF(BUILD_TESTING)
 
-
-#IF (BUILD_BENCHMARK)
-#    MESSAGE(STATUS "Building Benchmarks")
-#    ADD_SUBDIRECTORY(benchmark)
-#ENDIF(BUILD_BENCHMARK)
+# IF (BUILD_BENCHMARK)
+# MESSAGE(STATUS "Building Benchmarks")
+# ADD_SUBDIRECTORY(benchmark)
+# ENDIF(BUILD_BENCHMARK)
 
 # Gen doc ?
-#IF (BUILD_DOCUMENTATION)
-#    MESSAGE(STATUS "Documentation building is enabled")
-#    ADD_SUBDIRECTORY(docs)
-#ENDIF (BUILD_DOCUMENTATION)
-
+# IF (BUILD_DOCUMENTATION)
+# MESSAGE(STATUS "Documentation building is enabled")
+# ADD_SUBDIRECTORY(docs)
+# ENDIF (BUILD_DOCUMENTATION)
 
 # Helper commands
 # ====================================
 # so you do not have to leave the command line
 # or remember the exact arguments
-
 ADD_CUSTOM_TARGET(enable-examples
     cmake -DBUILD_EXAMPLES=ON ${CMAKE_SOURCE_DIR})
 
@@ -127,7 +151,6 @@ ADD_CUSTOM_TARGET(enable-test
 # Resource Files
 # ====================================
 # Some IDEs need the files to be inside a cmake target to be displayed
-
 ADD_CUSTOM_TARGET(zothers ALL SOURCES
     README.rst
     .gitignore

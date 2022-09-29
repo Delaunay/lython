@@ -181,8 +181,8 @@ Dict<StringRef, BoolOp::NativeBoolyOp> build_native_bool_operators() {
     Dict<StringRef, BoolOp::NativeBoolyOp> map;
 
     // clang-format off
-    map[StringRef(STR(JOIN(And, bool, bool)))] = LAMBDA(And, bool);
-    map[StringRef(STR(JOIN(Or, bool, bool)))] = LAMBDA(Or, bool);
+    map[StringRef(STR(JOIN(and, bool, bool)))] = LAMBDA(And, bool);
+    map[StringRef(STR(JOIN(or, bool, bool)))] = LAMBDA(Or, bool);
     // clang-format on
     return map;
 }
