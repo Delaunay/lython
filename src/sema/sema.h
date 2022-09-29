@@ -112,7 +112,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     bool add_name(ExprNode* expr, ExprNode* value, ExprNode* type);
 
-    String operator_function(TypeExpr* expr_t, String op);
+    String operator_function(TypeExpr* expr_t, StringRef op);
 
     TypeExpr* oneof(Array<TypeExpr*> types) {
         if (types.size() > 0) {

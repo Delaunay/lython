@@ -57,21 +57,15 @@ struct GCObject {
     void remove_child(GCObject* child, bool dofree);
 
     void move(GCObject* newparent) {
-        if (parent)
+        if (parent) {
             parent->remove_child(this, false);
+        }
         newparent->add_child(this);
     }
 
-    void free(GCObject* child);
+    static void free(GCObject* child);
 
     void dump(std::ostream&, int depth = 0);
-
-    void destroy() {
-        if (parent)
-            parent->remove_child(this, false);
-
-        this->~GCObject();
-    }
 
     virtual ~GCObject();
 
@@ -87,6 +81,8 @@ struct GCObject {
     private:
     Array<GCObject*> children;
     GCObject*        parent = nullptr;
+
+    static void private_free(GCObject* child);
 };
 
 }  // namespace lython

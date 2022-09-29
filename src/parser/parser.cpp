@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
+#include "utilities/guard.h"
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
@@ -60,12 +61,14 @@ Parser::expect_token(int expected, bool eat, Node* wip_expression, CodeLocation 
     return expect_tokens(Array<int>{expected}, eat, wip_expression, loc);
 }
 
-OpConfig Parser::get_operator_config(Token const& tok) const {
+OpConfig const& Parser::get_operator_config(Token const& tok) const {
+    static OpConfig nothing;
+
     Dict<String, OpConfig> const& confs = default_precedence();
 
     auto result = confs.find(tok.operator_name());
     if (result == confs.end()) {
-        return OpConfig();
+        return nothing;
     }
     return result->second;
 }
@@ -473,7 +476,7 @@ StmtNode* Parser::parse_if(Node* parent, int depth) {
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
-    // The else belongs to the last ifexpr if any
+    // The else belongs to the last if if any
     if (token().type() == tok_else) {
         next_token();
 
@@ -1454,7 +1457,7 @@ ExprNode* Parser::parse_joined_string(Node* parent, int depth) {
     return not_implemented_expr(parent);
 }
 
-ExprNode* Parser::parse_ifexp(Node* parent, int depth) {
+ExprNode* Parser::parse_ifexp_ext(Node* parent, int depth) {
     TRACE_START();
 
     auto expr = parent->new_object<IfExp>();
@@ -1486,6 +1489,8 @@ ExprNode* Parser::parse_starred(Node* parent, int depth) {
 
 void Parser::parse_comprehension(Node* parent, Array<Comprehension>& out, char kind, int depth) {
     TRACE_START();
+
+    PopGuard _(parsing_context, ParsingContext::Comprehension);
 
     while (token().type() != kind) {
         expect_token(tok_for, true, parent, LOC);
@@ -1675,6 +1680,31 @@ ExprNode* Parser::parse_set_dict(Node* parent, int depth) {
     return parse_comprehension_or_literal<SetComp, SetExpr>(this, parent, tok_curly, '}', depth);
 }
 
+ExprNode* Parser::parse_ifexp(Node* parent, ExprNode* primary, int depth) {
+
+    // if is part of the comprehension
+    if (parsing_context.size() > 0 &&
+        parsing_context[parsing_context.size() - 1] == ParsingContext::Comprehension) {
+        return primary;
+    }
+
+    // body if test else body
+    IfExp* expr = parent->new_object<IfExp>();
+    start_code_loc(expr, token());
+    next_token();
+
+    primary->move(expr);
+    expr->body = primary;
+
+    expr->test = parse_expression(expr, depth + 1);
+
+    expect_token(tok_else, true, expr, LOC);
+    expr->orelse = parse_expression(expr, depth + 1);
+
+    end_code_loc(expr, token());
+    return expr;
+}
+
 // parse_expression_2
 ExprNode* Parser::parse_named_expr(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
@@ -1823,27 +1853,28 @@ ExprNode* Parser::parse_subscript(Node* parent, ExprNode* primary, int depth) {
     start_code_loc(expr, token());
     expect_token(tok_square, true, expr, LOC);
 
+    // We do not allocate the TupleExpr unless required
+    Array<ExprNode*> elts;
+
     // a[2:3]       => Slice(2, 3)
     // a[1:2, 2:3]  => Tuple(Slice(1, 2), Slice(2, 3))
     // a[1:2, 2:3]  => Tuple(Slice(1, 2), Slice(2, 3))
     // a[1, 2, 3]   => Tuple(1, 2, 3)
     //
-    _allow_slice.push_back(true);
+    {
+        PopGuard _(parsing_context, ParsingContext::Slice);
 
-    // We do not allocate the TupleExpr unless required
-    Array<ExprNode*> elts;
+        while (token().type() != ']') {
+            elts.push_back(parse_expression(expr, depth + 1));
 
-    while (token().type() != ']') {
-        elts.push_back(parse_expression(expr, depth + 1));
-
-        if (token().type() == ',') {
-            next_token();
-        } else {
-            expect_token(']', true, expr, LOC);
-            break;
+            if (token().type() == ',') {
+                next_token();
+            } else {
+                expect_token(']', true, expr, LOC);
+                break;
+            }
         }
     }
-    _allow_slice.push_back(false);
 
     if (elts.size() == 0) {
         errors.push_back(ParsingError::syntax_error("Substript needs at least one argument"));
@@ -2084,9 +2115,9 @@ ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedenc
     TRACE_START();
 
     while (true) {
-        auto lookahead = token();
-        auto op_conf   = get_operator_config(lookahead);
-        auto oppred    = op_conf.precedence;
+        Token           lookahead = token();
+        OpConfig const& op_conf   = get_operator_config(lookahead);
+        int             oppred    = op_conf.precedence;
 
         if (op_conf.type == tok_eof) {
             return lhs;
@@ -2098,6 +2129,8 @@ ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedenc
         }
 
         next_token();
+        // in the case of 1 < 2 < 3
+
         auto rhs  = parse_expression(parent, depth);
         lookahead = token();
 
@@ -2122,17 +2155,43 @@ ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedenc
             result->right = rhs;
             lhs           = result;
         } else if (op_conf.cmpkind != CmpOperator::None) {
-            auto result  = parent->new_object<Compare>();
-            result->left = lhs;
-            result->ops.push_back(op_conf.cmpkind);
-            result->comparators.push_back(rhs);
-            lhs = result;
+            // Compare can combine comparison in a single node
+            // 1 < 2 < 3 gets parsed as 1 < (2 < (3 < (4 < 5)))
+            Compare* rhs_comp = cast<Compare>(rhs);
+
+            // TODO: would be better if comparators and ops were reversed
+            if (rhs_comp) {
+                ExprNode* old  = rhs_comp->left;
+                rhs_comp->left = lhs;
+                lhs->move(rhs_comp);
+
+                rhs_comp->comparators.insert(std::begin(rhs_comp->comparators), old);
+                rhs_comp->ops.insert(std::begin(rhs_comp->ops), op_conf.cmpkind);
+
+                lhs = rhs;
+            } else {
+                auto result  = parent->new_object<Compare>();
+                result->left = lhs;
+                result->ops.push_back(op_conf.cmpkind);
+                result->comparators.push_back(rhs);
+
+                lhs = result;
+            }
+
         } else if (op_conf.boolkind != BoolOperator::None) {
-            // TODO: check why is this not a binary node ?
-            auto result    = parent->new_object<BoolOp>();
-            result->op     = op_conf.boolkind;
-            result->values = {lhs, rhs};
-            lhs            = result;
+            BoolOp* rhs_bool = cast<BoolOp>(rhs);
+
+            if (rhs_bool && rhs_bool->op == op_conf.boolkind) {
+                rhs_bool->values.insert(std::begin(rhs_bool->values), lhs);
+
+                lhs = rhs;
+            } else {
+                auto result    = parent->new_object<BoolOp>();
+                result->op     = op_conf.boolkind;
+                result->values = {lhs, rhs};
+
+                lhs = result;
+            }
         } else {
             error("unknow operator {}", str(op_conf));
         }
@@ -2205,8 +2264,10 @@ ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
 
     // f"
     case tok_fstring: return parse_joined_string(parent, depth);
+
+    // not python syntax
     // if <expr> else <expr>
-    case tok_if: return parse_ifexp(parent, depth);
+    // case tok_if: return parse_ifexp_ext(parent, depth);
 
     // *<expr>
     case tok_star:
@@ -2238,6 +2299,7 @@ ExprNode* Parser::parse_expression_1(
     */
     case tok_unaryop: return parse_suffix_unary(parent, primary, depth);
 
+    case tok_if: return parse_ifexp(parent, primary, depth);
     case tok_in:
     case tok_operator: return parse_operators(parent, primary, min_precedence, depth);
 

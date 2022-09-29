@@ -13,6 +13,13 @@
 
 namespace lython {
 
+enum class ParsingContext
+{
+    None,
+    Comprehension,
+    Slice,
+};
+
 /**
  * The parser is responsible for transforming the source code into the AST.
  * notifying the users of any syntax error that could prevent it from completing
@@ -105,7 +112,8 @@ class Parser {
     ExprNode* parse_lambda(Node* parent, int depth);
     ExprNode* parse_constant(Node* parent, int depth);
     ExprNode* parse_joined_string(Node* parent, int depth);
-    ExprNode* parse_ifexp(Node* parent, int depth);
+    ExprNode* parse_ifexp_ext(Node* parent, int depth);
+
     ExprNode* parse_starred(Node* parent, int depth);
     ExprNode* parse_list(Node* parent, int depth);
     ExprNode* parse_tuple_generator(Node* parent, int depth);
@@ -131,6 +139,7 @@ class Parser {
     ExprNode* parse_subscript(Node* parent, ExprNode* primary, int depth);
     ExprNode* parse_slice(Node* parent, ExprNode* primary, int depth);
     ExprNode* parse_star_expression(Node* parent, int depth);
+    ExprNode* parse_ifexp(Node* parent, ExprNode* primary, int depth);
 
     // Expression Dispatcher
     // ---------------------
@@ -152,7 +161,7 @@ class Parser {
 
     ConstantValue get_value();
 
-    OpConfig get_operator_config(Token const& tok) const;
+    OpConfig const& get_operator_config(Token const& tok) const;
 
     bool is_binary_operator_family(OpConfig const& conf);
 
@@ -208,13 +217,15 @@ class Parser {
         return _context[int(_context.size()) - 1];
     }
 
-    bool allow_slice() const {
-        if (_allow_slice.size() <= 0) {
-            return false;
-        }
+    ParsingContext parsing_ctx() const {
+        int n = int(parsing_context.size());
+        if (n == 0)
+            return ParsingContext::None;
 
-        return _allow_slice[int(_allow_slice.size()) - 1];
+        return parsing_context[n - 1];
     }
+
+    bool allow_slice() const { return parsing_ctx() == ParsingContext::Slice; }
 
     Array<ParsingError> const& get_errors() const { return errors; }
 
@@ -232,11 +243,11 @@ class Parser {
     int expression_depth = 0;
 
     private:
-    std::vector<bool>        _allow_slice;
-    std::vector<ExprContext> _context;
-    std::vector<bool>        async_mode;
-    AbstractLexer&           _lex;
-    Array<ParsingError>      errors;
+    std::vector<ExprContext>    _context;
+    std::vector<bool>           async_mode;
+    std::vector<ParsingContext> parsing_context;
+    AbstractLexer&              _lex;
+    Array<ParsingError>         errors;
 };
 
 }  // namespace lython

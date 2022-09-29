@@ -13,11 +13,15 @@ void GCObject::remove_child(GCObject* child, bool dofree) {
     // erase is not specialized to take reverse iterator
     // so we need to convert ifreet ourselves and KNOW that this is what is
     // expected but nobody could have guessed that
-    auto n = children.size();
-    children.erase(std::next(elem).base());
+    auto n     = children.size();
+    auto found = std::next(elem).base();
+
+    assert(*found == child, "Child should match");
+    children.erase(found);
     assert(n > children.size(), "Child was not removed");
 
     child->parent = nullptr;
+
     if (dofree) {
         free(child);
     }
@@ -31,28 +35,45 @@ void GCObject::dump(std::ostream& out, int depth) {
     }
 }
 
-void GCObject::free(GCObject* child) {
-    child->~GCObject();
-
+void GCObject::private_free(GCObject* child) {
     int cclass_id = child->class_id;
 
-    // FIXME: this breaks the metadata
+    child->~GCObject();
+
     manual_free(cclass_id, 1);
     device::CPU().free((void*)child, 1);
+}
 
-    // info("freed {}", meta::type_name(cclass_id));
+void GCObject::free(GCObject* child) {
+    if (child == nullptr) {
+        return;
+    }
+
+    // Remove from parent right away
+    if (child->parent != nullptr) {
+        child->parent->remove_child(child, false);
+        assert(child->parent == nullptr, "parent should be null");
+    }
+
+    private_free(child);
 }
 
 GCObject::~GCObject() {
-    // logging here generate:
-    // info("freeing {}: {}", (void *)this, meta::type_name(class_id));
-    int ccclass_id = class_id;
+    // free children
+    int n = int(children.size());
 
-    for (auto obj: children) {
-        free(obj);
+    while (n > 0) {
+        n -= 1;
+
+        GCObject* obj = children[n];
+        obj->parent   = nullptr;
+        children.pop_back();
+
+        private_free(obj);
     }
 
-    // info("freed {}", meta::type_name(ccclass_id));
+    assert(children.size() == 0,
+           "Makes sure nobody added more nodes while we were busy destroying them");
 }
 
 }  // namespace lython

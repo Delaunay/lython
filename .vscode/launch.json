@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
             "args": [
-                "VM_Compare_True"
+                "VM_ifexp_*"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

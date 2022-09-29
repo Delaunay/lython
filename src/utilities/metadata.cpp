@@ -107,6 +107,10 @@ bool _metadata_init_names() {
         HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, true>>(
         "Pair[String, NativeBinaryOp]");
 
+    meta::register_type<
+        HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, true>>(
+        "Pair[String, NativeUnaryOp]");
+
 #if !__linux__
     // hashtable internal stuff
     // windows only
@@ -128,6 +132,10 @@ bool _metadata_init_names() {
     meta::register_type<
         ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
         "Iterator[Pair[StringRef, NativeBinaryOp]]");
+
+    meta::register_type<
+        ListIterator<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
+        "Iterator[Pair[StringRef, NativeUnaryOp]]");
 
     meta::register_type<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
         "Iterator[Pair[StringRef, ExprNode*]]");

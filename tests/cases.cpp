@@ -172,7 +172,11 @@ Array<TestCase> const& Try_examples() {
          "else:\n"
          "    pass\n"
          "finally:\n"
-         "    pass\n"},
+         "    pass\n",
+         {
+             NE("Exception"),
+             TE("Exception", "", "", "type"),
+         }},
     };
     return ex;
 }
@@ -591,11 +595,11 @@ Array<TestCase> const& Compare_examples() {
          {
              NE("a"),
              NE("b"),
+             UO("Lt", "None", "None"),
              NE("c"),
+             UO("Gt", "None", "None"),
              NE("d"),
              UO("NotEq", "None", "None"),
-             UO("Gt", "None", "bool"),
-             UO("Lt", "None", "bool"),
          }},
         {"a not in b",
          {
@@ -741,7 +745,7 @@ Array<TestCase> const& DictExpr_examples() {
 
 Array<TestCase> const& IfExp_examples() {
     static Array<TestCase> ex = {
-        {"a = if True: c else d",
+        {"a = c if True else d",
          {
              NE("c"),
              NE("d"),
@@ -847,9 +851,9 @@ Array<TestCase> const& BoolOp_examples() {
          {
              NE("a"),
              NE("b"),
+             UO("or", "None", "None"),
              NE("c"),
              UO("or", "None", "None"),
-             UO("or", "None", "bool"),
          }},
     };
     return ex;

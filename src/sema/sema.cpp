@@ -1,8 +1,8 @@
 #include "sema/sema.h"
 #include "ast/magic.h"
-#include "utilities/strings.h"
-
 #include "builtin/operators.h"
+#include "utilities/guard.h"
+#include "utilities/strings.h"
 
 namespace lython {
 ClassDef* get_class(Bindings const& bindings, ExprNode* classref);
@@ -48,7 +48,7 @@ Tuple<ClassDef*, FunctionDef*> SemanticAnalyser::find_method(TypeExpr*     class
 }
 
 // classname.__and__
-String SemanticAnalyser::operator_function(TypeExpr* expr_t, String op) {
+String SemanticAnalyser::operator_function(TypeExpr* expr_t, StringRef op) {
     auto cls_ref = cast<Name>(expr_t);
 
     ClassDef* expr_cls = nullptr;
@@ -60,29 +60,22 @@ String SemanticAnalyser::operator_function(TypeExpr* expr_t, String op) {
     }
 
     if (expr_cls) {
-        return join(".", Array<String>{expr_cls->cls_namespace, op});
+        return join(".", Array<String>{expr_cls->cls_namespace, String(StringView(op))});
     }
 
     return "";
 }
 
 TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
-    auto   bool_type        = make_ref(n, "bool");
-    bool   and_implemented  = false;
-    bool   rand_implemented = false;
-    auto   return_t         = bool_type;
-    String magic            = "";
-    String rmagic           = "";
+    auto bool_type        = make_ref(n, "bool");
+    bool and_implemented  = false;
+    bool rand_implemented = false;
+    auto return_t         = bool_type;
 
-    if (n->op == BoolOperator::And) {
-        magic  = "__and__";
-        rmagic = "__rand__";
-    }
-    if (n->op == BoolOperator::Or) {
-        magic  = "__or__";
-        rmagic = "__ror__";
-    }
+    StringRef magic  = operator_magic_name(n->op, false);
+    StringRef rmagic = operator_magic_name(n->op, true);
 
+    // TODO: what about inheritance ?
     ExprNode* lhs    = n->values[0];
     TypeExpr* lhs_t  = exec(lhs, depth);
     String    lhs_op = operator_function(lhs_t, magic);
@@ -1203,11 +1196,42 @@ TypeExpr* SemanticAnalyser::raise(Raise* n, int depth) {
     return nullptr;
 }
 TypeExpr* SemanticAnalyser::trystmt(Try* n, int depth) {
+
+    Array<TypeExpr*> return_t1;
+    Array<TypeExpr*> return_t2;
+    Array<TypeExpr*> return_t3;
+    Array<TypeExpr*> return_t4;
+
+    return_t1 = exec<TypeExpr*>(n->body, depth);
+
+    for (ExceptHandler& handler: n->handlers) {
+        Scope _(bindings);
+
+        TypeExpr* exception_type = nullptr;
+
+        if (handler.type.has_value()) {
+            exception_type = handler.type.value();
+
+            TypeExpr* type = exec(exception_type, depth);
+            typecheck(exception_type, type, nullptr, make_ref(n, "type"), LOC);
+        }
+
+        if (handler.name.has_value()) {
+            bindings.add(handler.name.value(), nullptr, exception_type);
+        }
+
+        return_t2 = exec<TypeExpr*>(handler.body, depth);
+    }
+
+    return_t3 = exec<TypeExpr*>(n->orelse, depth);
+    return_t4 = exec<TypeExpr*>(n->orelse, depth);
+
     // TODO:
-    return nullptr;
+    return oneof(return_t1);
 }
 TypeExpr* SemanticAnalyser::assertstmt(Assert* n, int depth) {
     // TODO:
+    // we need to build the AssertionError exception
     exec(n->test, depth);
     exec<TypeExpr*>(n->msg, depth + 1);
     return nullptr;
@@ -1234,8 +1258,14 @@ TypeExpr* SemanticAnalyser::nonlocal(Nonlocal* n, int depth) {
 }
 TypeExpr* SemanticAnalyser::exprstmt(Expr* n, int depth) { return exec(n->value, depth); }
 TypeExpr* SemanticAnalyser::pass(Pass* n, int depth) { return None_t(); }
-TypeExpr* SemanticAnalyser::breakstmt(Break* n, int depth) { return nullptr; }
-TypeExpr* SemanticAnalyser::continuestmt(Continue* n, int depth) { return nullptr; }
+TypeExpr* SemanticAnalyser::breakstmt(Break* n, int depth) {
+    // check that we are inside a loop
+    return nullptr;
+}
+TypeExpr* SemanticAnalyser::continuestmt(Continue* n, int depth) {
+    // check that we are inside a loop
+    return nullptr;
+}
 TypeExpr* SemanticAnalyser::match(Match* n, int depth) {
     exec(n->subject, depth);
 

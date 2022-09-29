@@ -16,4 +16,21 @@ Guard<Exit> guard(Exit fun) {
     return Guard(fun);
 }
 
+template <typename T, typename U>
+struct PopGuard {
+    PopGuard(T& array, U const& v): array(array), oldsize(array.size()) { array.push_back(v); }
+
+    ~PopGuard() { array.pop_back(); }
+
+    U const& last(int offset, U const& default_value) const {
+        if (oldsize >= offset) {
+            return array[oldsize - offset];
+        }
+        return default_value;
+    }
+
+    T&          array;
+    std::size_t oldsize;
+};
+
 #endif

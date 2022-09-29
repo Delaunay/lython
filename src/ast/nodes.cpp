@@ -35,7 +35,7 @@ String str(NodeKind k) {
 
 void print(BoolOperator const& v, std::ostream& out) {
     switch (v) {
-#define OP(name, kw)           \
+#define OP(name, kw, _)        \
     case BoolOperator::name: { \
         out << #kw;            \
         return;                \
@@ -48,7 +48,7 @@ void print(BoolOperator const& v, std::ostream& out) {
 
 void print(BinaryOperator const& v, std::ostream& out) {
     switch (v) {
-#define OP(name, kw)             \
+#define OP(name, kw, _)          \
     case BinaryOperator::name: { \
         out << #name;            \
         return;                  \
@@ -61,7 +61,7 @@ void print(BinaryOperator const& v, std::ostream& out) {
 
 void print(UnaryOperator const& v, std::ostream& out) {
     switch (v) {
-#define OP(name, kw)            \
+#define OP(name, kw, _)         \
     case UnaryOperator::name: { \
         out << #name;           \
         return;                 \
@@ -74,7 +74,7 @@ void print(UnaryOperator const& v, std::ostream& out) {
 
 void print(CmpOperator const& v, std::ostream& out) {
     switch (v) {
-#define OP(name, kw)          \
+#define OP(name, kw, _)       \
     case CmpOperator::name: { \
         out << #name;         \
         return;               \
@@ -87,6 +87,98 @@ void print(CmpOperator const& v, std::ostream& out) {
 
 void ClassDef::Attr::dump(std::ostream& out) {
     out << name << ": " << str(type) << " = " << str(stmt);
+}
+
+StringRef operator_magic_name(BinaryOperator const& v, bool reverse) {
+
+#define OP(name, kw, magic)                                \
+    static StringRef m_##name  = String("__" #magic "__"); \
+    static StringRef mr_##name = String("__r" #magic "__");
+
+    BINARY_OPERATORS(OP)
+
+#undef OP
+
+    switch (v) {
+#define OP(name, kw, _)                        \
+    case BinaryOperator::name: {               \
+        return reverse ? mr_##name : m_##name; \
+    }
+        BINARY_OPERATORS(OP)
+
+#undef OP
+    }
+
+    return StringRef("");
+}
+
+StringRef operator_magic_name(BoolOperator const& v, bool reverse) {
+
+#define OP(name, kw, magic)                                \
+    static StringRef m_##name  = String("__" #magic "__"); \
+    static StringRef mr_##name = String("__r" #magic "__");
+
+    BOOL_OPERATORS(OP)
+
+#undef OP
+
+    switch (v) {
+#define OP(name, kw, _)                        \
+    case BoolOperator::name: {                 \
+        return reverse ? mr_##name : m_##name; \
+    }
+        BOOL_OPERATORS(OP)
+
+#undef OP
+    }
+
+    return StringRef("");
+}
+
+StringRef operator_magic_name(UnaryOperator const& v, bool reverse) {
+
+#define OP(name, kw, magic)                                \
+    static StringRef m_##name  = String("__" #magic "__"); \
+    static StringRef mr_##name = String("__r" #magic "__");
+
+    UNARY_OPERATORS(OP)
+
+#undef OP
+
+    switch (v) {
+#define OP(name, kw, _)                        \
+    case UnaryOperator::name: {                \
+        return reverse ? mr_##name : m_##name; \
+    }
+        UNARY_OPERATORS(OP)
+
+#undef OP
+    }
+
+    return StringRef("");
+}
+
+StringRef operator_magic_name(CmpOperator const& v, bool reverse) {
+
+#define OP(name, kw, magic)                                \
+    static StringRef m_##name  = String("__" #magic "__"); \
+    static StringRef mr_##name = String("__r" #magic "__");
+
+    COMP_OPERATORS(OP)
+
+#undef OP
+
+    switch (v) {
+#define OP(name, kw, _)                        \
+    case CmpOperator::name: {                  \
+        return reverse ? mr_##name : m_##name; \
+    }
+        COMP_OPERATORS(OP)
+
+#undef OP
+    }
+
+    return StringRef("");
 }
 
 // ------------------------------------------

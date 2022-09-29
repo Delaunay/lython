@@ -7,6 +7,13 @@
 
 namespace lython {
 
+void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cause) {
+    // Create the exception object
+    Array<StackTrace> excepttrace = traces;
+
+    // exceptions.push_back();
+}
+
 PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
     // a and b and c and d
@@ -562,7 +569,8 @@ PartialResult* TreeEvaluator::assertstmt(Assert_t* n, int depth) {
     Constant*      value = cast<Constant>(btest);
     if (value) {
         if (!value->value.get<bool>()) {
-            // raise AssertionError with the assertion message
+            // make_ref(n, "AssertionError") n->msg
+            raise_exception(nullptr, nullptr);
             return None();
         }
 
@@ -605,13 +613,18 @@ PartialResult* TreeEvaluator::inlinestmt(Inline_t* n, int depth) {
 PartialResult* TreeEvaluator::raise(Raise_t* n, int depth) {
 
     if (n->exc.has_value()) {
-        exceptions.push_back(exec(n->exc.value(), depth));
+        // create a new exceptins
+        auto obj = exec(n->exc.value(), depth);
 
         if (n->cause.has_value()) {
-            cause = n->cause.value();
+            cause = exec(n->cause.value(), depth);
         }
+
+        raise_exception(obj, cause);
     }
 
+    // FIXME: this re-reraise current exception
+    // check what happens if no exception exists
     exceptions.push_back(None());
     return nullptr;
 }

@@ -431,10 +431,9 @@ ReturnType Printer::lambda(Lambda const* self, int depth, std::ostream& out, int
 }
 
 ReturnType Printer::ifexp(IfExp const* self, int depth, std::ostream& out, int level) {
-    out << "if ";
-    exec(self->test, depth, out, level);
-    out << ": ";
     exec(self->body, depth, out, level);
+    out << " if ";
+    exec(self->test, depth, out, level);
     out << " else ";
     exec(self->orelse, depth, out, level);
     return false;
@@ -740,9 +739,16 @@ ReturnType Printer::binop(BinOp const* self, int depth, std::ostream& out, int l
 }
 
 ReturnType Printer::boolop(BoolOp const* self, int depth, std::ostream& out, int level) {
-    exec(self->values[0], depth, out, level);
-    print_op(out, self->op);
-    exec(self->values[1], depth, out, level);
+
+    int n = int(self->values.size());
+    for (int i = 0; i < n; i++) {
+        exec(self->values[i], depth, out, level);
+
+        if (i < n - 1) {
+            print_op(out, self->op);
+        }
+    }
+
     return false;
 }
 

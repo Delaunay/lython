@@ -43,9 +43,9 @@ Dict<String, OpConfig> const& default_precedence() {
         {"not",     {40, true , tok_operator, BinaryOperator::None, UnaryOperator::Not}},
         // Comparison
         {"==",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None, CmpOperator::Eq}},
-        {"!=",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,CmpOperator::NotEq}},
-        {">=",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,CmpOperator::GtE}},
-        {"<=",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None,CmpOperator::LtE}},
+        {"!=",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None, CmpOperator::NotEq}},
+        {">=",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None, CmpOperator::GtE}},
+        {"<=",      {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None, CmpOperator::LtE}},
         {">",       {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None, CmpOperator::Gt}},
         {"<",       {40, true , tok_operator, BinaryOperator::None, UnaryOperator::None, BoolOperator::None, CmpOperator::Lt}},
         // membership

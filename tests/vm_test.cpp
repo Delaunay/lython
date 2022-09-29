@@ -46,6 +46,7 @@ String eval_it(String code, String expr, Module*& mod) {
     TreeEvaluator eval(sema.bindings);
     auto          partial = str(eval.exec(stmt, 0));
 
+    emod->dump(std::cout);
     delete emod;
     return partial;
 }
@@ -89,15 +90,19 @@ TEST_CASE("VM_BoolAnd_False") {
                   "False");
 }
 
-// This does not work because of a parsing issue
-// it reads this as (1 < 2) < 3
-// but it should read (< 1 2 3)
-// TEST_CASE("VM_Compare_True") {
-//     run_test_case("def fun() -> bool:\n"
-//                   "    return 1 < 2 < 3\n",
-//                   "fun()",
-//                   "False");
-// }
+TEST_CASE("VM_Compare_True") {
+    run_test_case("def fun() -> bool:\n"
+                  "    return 1 < 2 < 3 < 4 < 5\n",
+                  "fun()",
+                  "True");
+}
+
+TEST_CASE("VM_Compare_False") {
+    run_test_case("def fun() -> bool:\n"
+                  "    return 1 > 2 > 3 > 4 > 5\n",
+                  "fun()",
+                  "False");
+}
 
 TEST_CASE("VM_IfStmt_True") {
     run_test_case("def fun(a: i32) -> i32:\n"
@@ -262,7 +267,7 @@ TEST_CASE("VM_AnnAssign") {
 TEST_CASE("VM_ifexp_True") {
     // FIXME: wrong syntax
     run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return if a > 0: 1 else 0\n"
+                  "    return 1 if a > 0 else 0\n"
                   "",
                   "fun(2)",
                   "1");
@@ -271,11 +276,29 @@ TEST_CASE("VM_ifexp_True") {
 TEST_CASE("VM_ifexp_False") {
     // FIXME: wrong syntax
     run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return if a > 0: 1 else 0\n"
+                  "    return 1 if a > 0 else 0\n"
                   "",
                   "fun(-2)",
                   "0");
 }
+
+// TEST_CASE("VM_ifexp_ext_True") {
+//     // FIXME: wrong syntax
+//     run_test_case("def fun(a: i32) -> i32:\n"
+//                   "    return if a > 0: 1 else 0\n"
+//                   "",
+//                   "fun(2)",
+//                   "1");
+// }
+
+// TEST_CASE("VM_ifexp_ext_False") {
+//     // FIXME: wrong syntax
+//     run_test_case("def fun(a: i32) -> i32:\n"
+//                   "    return if a > 0: 1 else 0\n"
+//                   "",
+//                   "fun(-2)",
+//                   "0");
+// }
 
 TEST_CASE("VM_NamedExpr") {
     run_test_case("def fun(a: i32) -> i32:\n"

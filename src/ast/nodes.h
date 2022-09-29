@@ -87,25 +87,25 @@ enum class ConversionKind : int8_t
 
 enum class BinaryOperator : int8_t
 {
-#define BINARY_OPERATORS(OP) \
-    OP(None, "")             \
-    OP(Add, "+")             \
-    OP(Sub, "-")             \
-    OP(Mult, "*")            \
-    OP(MatMult, "@")         \
-    OP(Div, "/")             \
-    OP(Mod, "%")             \
-    OP(Pow, "^")             \
-    OP(LShift, "<<")         \
-    OP(RShift, ">>")         \
-    OP(BitOr, "|")           \
-    OP(BitXor, "^")          \
-    OP(BitAnd, "&")          \
-    OP(FloorDiv, "//")       \
-    OP(EltMult, ".*")        \
-    OP(EltDiv, "./")
+#define BINARY_OPERATORS(OP)     \
+    OP(None, "", na)             \
+    OP(Add, "+", add)            \
+    OP(Sub, "-", sub)            \
+    OP(Mult, "*", mul)           \
+    OP(MatMult, "@", matmul)     \
+    OP(Div, "/", truediv)        \
+    OP(Mod, "%", divmod)         \
+    OP(Pow, "^", pow)            \
+    OP(LShift, "<<", lshift)     \
+    OP(RShift, ">>", rshift)     \
+    OP(BitOr, "|", or)           \
+    OP(BitXor, "^", xor)         \
+    OP(BitAnd, "&", and)         \
+    OP(FloorDiv, "//", floordiv) \
+    OP(EltMult, ".*", eltmult)   \
+    OP(EltDiv, "./", eltiv)
 
-#define OP(name, _) name,
+#define OP(name, _, n) name,
     BINARY_OPERATORS(OP)
 #undef OP
 };
@@ -114,10 +114,10 @@ enum class BoolOperator : int8_t
 {
     None,
 #define BOOL_OPERATORS(OP) \
-    OP(And, and)           \
-    OP(Or, or)
+    OP(And, and, and)      \
+    OP(Or, or, or)
 
-#define OP(name, kw) name,
+#define OP(name, kw, _) name,
     BOOL_OPERATORS(OP)
 #undef OP
 };
@@ -125,13 +125,24 @@ enum class BoolOperator : int8_t
 enum class UnaryOperator : int8_t
 {
 #define UNARY_OPERATORS(OP) \
-    OP(None, "")            \
-    OP(Invert, "~")         \
-    OP(Not, "!")            \
-    OP(UAdd, "+")           \
-    OP(USub, "-")
+    OP(None, "", na)        \
+    OP(Invert, "~", invert) \
+    OP(Not, "!", not )      \
+    OP(UAdd, "+", pos)      \
+    OP(USub, "-", neg)
 
-#define OP(name, kw) name,
+#define CONV(OP)                    \
+    OP(abs, "abs", abs)             \
+    OP(int, "int", int)             \
+    OP(float, "float", float)       \
+    OP(index, "index", index)       \
+    OP(complex, "complex", complex) \
+    OP(round, "round", round)       \
+    OP(trunc, "trunc", trunc)       \
+    OP(floor, "floor", floor)       \
+    OP(ceil, "ceil", ceil)
+
+#define OP(name, kw, n) name,
     UNARY_OPERATORS(OP)
 #undef OP
 };
@@ -139,20 +150,20 @@ enum class UnaryOperator : int8_t
 enum class CmpOperator : int8_t
 {
 
-#define COMP_OPERATORS(OP) \
-    OP(None, "")           \
-    OP(Eq, "==")           \
-    OP(NotEq, "!=")        \
-    OP(Lt, "<")            \
-    OP(LtE, "<=")          \
-    OP(Gt, ">")            \
-    OP(GtE, ">=")          \
-    OP(Is, "is")           \
-    OP(IsNot, "is not")    \
-    OP(In, "int")          \
-    OP(NotIn, "not in")
+#define COMP_OPERATORS(OP)     \
+    OP(None, "", na)           \
+    OP(Eq, "==", eq)           \
+    OP(NotEq, "!=", nq)        \
+    OP(Lt, "<", lt)            \
+    OP(LtE, "<=", lte)         \
+    OP(Gt, ">", gt)            \
+    OP(GtE, ">=", gte)         \
+    OP(Is, "is", is)           \
+    OP(IsNot, "is not", isnot) \
+    OP(In, "in", in)           \
+    OP(NotIn, "not in", notin)
 
-#define OP(name, _) name,
+#define OP(name, _, n) name,
     COMP_OPERATORS(OP)
 #undef OP
 };
@@ -167,6 +178,13 @@ void print(BoolOperator const&, std::ostream& out);
 void print(BinaryOperator const&, std::ostream& out);
 void print(CmpOperator const&, std::ostream& out);
 void print(UnaryOperator const&, std::ostream& out);
+
+// stp
+StringRef operator_magic_name(BoolOperator const& v, bool reverse = false);
+StringRef operator_magic_name(BinaryOperator const& v, bool reverse = false);
+StringRef operator_magic_name(CmpOperator const& v, bool reverse = false);
+StringRef operator_magic_name(UnaryOperator const& v, bool reverse = false);
+// test
 
 struct Comprehension {
     ExprNode*        target = nullptr;
