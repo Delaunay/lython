@@ -20,7 +20,7 @@ struct ConstantValue {
         return n;
     }
 
-    ;  // clang-format off
+    // clang-format off
     #define ConstantType(POC, CPX)       \
         POD(Invalid, ConstantValue::invalid_t, invalid) \
         POD(i8,  int8, i8)            \
