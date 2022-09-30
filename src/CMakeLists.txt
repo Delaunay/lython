@@ -56,6 +56,7 @@ SET(ADD_SOURCE
     lexer/buffer.cpp
     lexer/token.cpp
     parser/parser.cpp
+    parser/parser_ext.cpp
     parser/parsing_error.cpp
     lowering/lowering.cpp
     vm/tree.cpp

@@ -36,6 +36,8 @@ TEST_CASE("Parser") {
     IMPORT_TEST(TEST_PARSING);
 }
 
+TEST_CASE("Parser_Ext_IfExp") { REQUIRE(parse_it("d = if a: b else c") == "d = b if a else c"); }
+
 struct AllowEntry {
     String name;
     int    j;

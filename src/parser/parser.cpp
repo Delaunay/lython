@@ -1457,26 +1457,6 @@ ExprNode* Parser::parse_joined_string(Node* parent, int depth) {
     return not_implemented_expr(parent);
 }
 
-ExprNode* Parser::parse_ifexp_ext(Node* parent, int depth) {
-    TRACE_START();
-
-    auto expr = parent->new_object<IfExp>();
-    start_code_loc(expr, token());
-    next_token();
-
-    expr->test = parse_expression(expr, depth + 1);
-    expect_token(':', true, expr, LOC);
-
-    expr->body = parse_expression(expr, depth + 1);
-
-    expect_token(tok_else, true, expr, LOC);
-
-    expr->orelse = parse_expression(expr, depth + 1);
-
-    end_code_loc(expr, token());
-    return expr;
-}
-
 ExprNode* Parser::parse_starred(Node* parent, int depth) {
     TRACE_START();
 
@@ -2267,7 +2247,10 @@ ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
 
     // not python syntax
     // if <expr> else <expr>
-    // case tok_if: return parse_ifexp_ext(parent, depth);
+    case tok_if: {
+        if (with_extension)
+            return parse_ifexp_ext(parent, depth);
+    }
 
     // *<expr>
     case tok_star:

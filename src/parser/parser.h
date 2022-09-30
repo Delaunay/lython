@@ -243,6 +243,7 @@ class Parser {
     int expression_depth = 0;
 
     private:
+    bool                        with_extension = true;
     std::vector<ExprContext>    _context;
     std::vector<bool>           async_mode;
     std::vector<ParsingContext> parsing_context;
