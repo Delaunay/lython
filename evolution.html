@@ -73,6 +73,12 @@
                         <td id="branches-covered"></td>
                         <td id="branch-rate"></td>
                     </tr>
+                    <tr>
+                        <td>Function</td>
+                        <td id="function-valid"></td>
+                        <td id="function-covered"></td>
+                        <td id="function-rate"></td>
+                    </tr>
                 </table>
             </div>
         </div>
@@ -315,7 +321,10 @@
                 ["line-rate", 100],
                 ["lines-covered", 1],
                 ["branch-rate", 100],
-                ["branches-covered", 1]
+                ["branches-covered", 1],
+                ["function-valid", 1],
+                ["function-rate", 100],
+                ["function-covered", 1]
             ]
             stats.forEach(function (d) {
                 [name, scale] = d;
