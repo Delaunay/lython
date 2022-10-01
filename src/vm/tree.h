@@ -123,6 +123,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     PartialResult* get_next(Node* iterator, int depth);
     PartialResult* call_enter(Node* ctx, int depth);
     PartialResult* call_exit(Node* ctx, int depth);
+    PartialResult* call_native(Call_t* call, BuiltinType_t* n, int depth);
+    PartialResult* call_script(Call_t* call, FunctionDef_t* n, int depth);
 
     void execute_body(Array<StmtNode*>& body, int depth);
     void execute_loop_body(Array<StmtNode*>& body, int depth);

@@ -273,25 +273,74 @@ PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
     return exec(n->orelse, depth);
 }
 
-PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
+PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function, int depth) {
+    Array<PartialResult*> args;
+    Array<Constant*>      value_args;
+    args.reserve(call->args.size());
+    value_args.reserve(call->args.size());
+
+    bool compile_time = true;
+
+    for (int i = 0; i < call->args.size(); i++) {
+        PartialResult* arg = exec(call->args[i], depth);
+        args.push_back(arg);
+
+        Constant* value = cast<Constant>(arg);
+        if (value) {
+            value_args.push_back(value);
+        }
+        compile_time = compile_time && value != nullptr;
+    }
+
+    if (compile_time) {
+        ConstantValue result = function->native_function(value_args);
+        return root.new_object<Constant>(result);
+    } else {
+        // FIXME: we probably need the context here
+        return function->native_macro(args);
+    }
+}
+PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function, int depth) {
     Scope scope(bindings);
+
+    // insert arguments to the context
+    for (int i = 0; i < call->args.size(); i++) {
+        PartialResult* arg = exec(call->args[i], depth);
+        bindings.add(StringRef(), arg, nullptr);
+    }
+
+    for (StmtNode* stmt: function->body) {
+        exec(stmt, depth + 1);
+
+        if (has_exceptions()) {
+            return None();
+        }
+
+        // We are returning
+        if (return_value != nullptr) {
+            break;
+        }
+    }
+
+    return return_value;
+}
+
+PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
 
     // fetch the function we need to call
     auto function = exec(n->func, depth);
     assert(function, "Function should be found");
 
-    // TODO: if function is a FunctionDef/Lambda/Callable we can populate the binding name
-
-    // insert arguments to the context
-    for (int i = 0; i < n->args.size(); i++) {
-        PartialResult* arg = exec(n->args[i], depth);
-        bindings.add(StringRef(), arg, nullptr);
+    if (FunctionDef_t* fun = cast<FunctionDef>(function)) {
+        return call_script(n, fun, depth);
+    }
+    if (BuiltinType_t* fun = cast<BuiltinType>(function)) {
+        return call_native(n, fun, depth);
     }
 
-    // execute function
-    // NB: function can both be a Statement and and Expression (lambda)
-    auto returned = exec<PartialResult*>(function, depth);
-    return returned;
+    // function could not be resolved at compile time
+    // return self ?
+    return nullptr;
 }
 
 PartialResult* TreeEvaluator::constant(Constant_t* n, int depth) {
@@ -847,7 +896,10 @@ PartialResult* TreeEvaluator::tupletype(TupleType_t* n, int depth) { return null
 PartialResult* TreeEvaluator::arrow(Arrow_t* n, int depth) { return nullptr; }
 PartialResult* TreeEvaluator::classtype(ClassType_t* n, int depth) { return nullptr; }
 PartialResult* TreeEvaluator::settype(SetType_t* n, int depth) { return nullptr; }
-PartialResult* TreeEvaluator::builtintype(BuiltinType_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::builtintype(BuiltinType_t* n, int depth) {
+    // return self because it also holds the native function to use
+    return n;
+}
 
 // Match
 // -----

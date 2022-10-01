@@ -8,6 +8,8 @@ from __future__ import annotations
 import math
 from typing import Callable
 
+from lython import *
+
 #
 # Runtime reflection can be removed at link time
 # it will require a small runtime overhead
@@ -41,10 +43,14 @@ from typing import Callable
 # With runtime-reflection
 # Generate data to reply to runtime type query
 Position_reflection = Object(
-    Property(cls_name, Position),
-    Property(x, float),
-    Property(y, float),
+    Property('__name__', 'Position'),
+    Property('x', float),
+    Property('y', float),
 )
+
+Shape_reflection = None
+Circle_reflection  = None
+Rectangle_reflection = None
 
 Module_Type = [
     Position_reflection,

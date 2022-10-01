@@ -153,11 +153,11 @@ enum class CmpOperator : int8_t
 #define COMP_OPERATORS(OP)     \
     OP(None, "", na)           \
     OP(Eq, "==", eq)           \
-    OP(NotEq, "!=", nq)        \
+    OP(NotEq, "!=", ne)        \
     OP(Lt, "<", lt)            \
-    OP(LtE, "<=", lte)         \
+    OP(LtE, "<=", le)          \
     OP(Gt, ">", gt)            \
-    OP(GtE, ">=", gte)         \
+    OP(GtE, ">=", ge)          \
     OP(Is, "is", is)           \
     OP(IsNot, "is not", isnot) \
     OP(In, "in", in)           \
@@ -907,8 +907,15 @@ struct TupleType: public ExprNode {
 };
 
 struct BuiltinType: public ExprNode {
-    BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
+    using NativeFunction = ConstantValue (*)(Array<Constant*> const& args);
+    using NativeMacro    = ExprNode* (*)(Array<Node*> const& args);
+
+    BuiltinType(): ExprNode(NodeKind::BuiltinType), native_function(nullptr) {}
     StringRef name;
+
+    // Maybe I need a native function Expr/Stmt instead ?
+    NativeFunction native_function;
+    NativeMacro    native_macro;
 };
 
 // we need that to convert ClassDef which is a statement

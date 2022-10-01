@@ -11,6 +11,7 @@ struct ConstantValue {
     struct invalid_t {
         bool operator==(invalid_t const& t) const { return true; }
     };
+
     struct none_t {
         bool operator==(none_t const& t) const { return true; }
     };
@@ -20,22 +21,28 @@ struct ConstantValue {
         return n;
     }
 
+    //
     // clang-format off
-    #define ConstantType(POC, CPX)       \
+    #define ConstantType(POC, CPX)                      \
         POD(Invalid, ConstantValue::invalid_t, invalid) \
-        POD(i8,  int8, i8)            \
-        POD(i16, int16, i16)          \
-        POD(i32, int32, i32)          \
-        POD(i64, int64, i64)          \
-        POD(u8,  uint8, u8)           \
-        POD(u16, uint16, u16)         \
-        POD(u32, uint32, u32)         \
-        POD(u64, uint64, u64)         \
-        POD(f32, float32, f32)        \
-        POD(f64, float64, f64)        \
-        CPX(String, String, string)      \
-        POD(Bool, bool, boolean)         \
+        POD(i8,  int8, i8)                              \
+        POD(i16, int16, i16)                            \
+        POD(i32, int32, i32)                            \
+        POD(i64, int64, i64)                            \
+        POD(u8,  uint8, u8)                             \
+        POD(u16, uint16, u16)                           \
+        POD(u32, uint32, u32)                           \
+        POD(u64, uint64, u64)                           \
+        POD(f32, float32, f32)                          \
+        POD(f64, float64, f64)                          \
+        CPX(String, String, string)                     \
+        POD(Bool, bool, boolean)                        \
         POD(None, ConstantValue::none_t, none)
+
+// what if I do this
+// invididual methods still need to be added to the bindings
+//
+//        CPX(NativeObject, obj, object)
 
 
     #define NUMERIC_CONSTANT(NUM)     \

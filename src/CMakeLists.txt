@@ -20,6 +20,7 @@ AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 SET(ADD_HEADERS
     ast/nodes.h
     ast/ops.h
+    ast/native.h
     utilities/names.h
     utilities/object.h
     ast/magic.h
@@ -47,6 +48,7 @@ SET(ADD_HEADERS
 
 SET(ADD_SOURCE
     ast/nodes.cpp
+    ast/native.cpp
     ast/ops/context.cpp
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
