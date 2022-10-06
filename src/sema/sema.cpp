@@ -403,6 +403,8 @@ TypeExpr* SemanticAnalyser::dictcomp(DictComp* n, int depth) {
 }
 TypeExpr* SemanticAnalyser::await(Await* n, int depth) { return exec(n->value, depth); }
 TypeExpr* SemanticAnalyser::yield(Yield* n, int depth) {
+    get_context().yield = true;
+
     auto r = exec<TypeExpr*>(n->value, depth);
     if (r.has_value()) {
         return r.value();
@@ -775,6 +777,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
 
     PopGuard nested_stmt(nested, (StmtNode*)n);
     PopGuard _(namespaces, str(n->name));
+    PopGuard ctx(semactx, SemaContext());
 
     // Add the function name first to handle recursive calls
     auto  id = bindings.add(n->name, n, nullptr);
@@ -807,7 +810,8 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     }
 
     // bindings.dump(std::cout);
-    n->type = type;
+    n->type      = type;
+    n->generator = get_context().yield;
     return type;
 }
 

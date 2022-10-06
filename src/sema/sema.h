@@ -25,6 +25,10 @@ struct SemaVisitorTrait {
     using IsConst = std::false_type;
 };
 
+struct SemaContext {
+    bool yield = false;
+};
+
 /* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
  * syntactically correct its job is to detect issues that could prevent a succesful compilation.
  *
@@ -94,6 +98,17 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Array<String>                         namespaces;
     Dict<StringRef, bool>                 flags;
     Array<String>                         paths = python_paths();
+
+    // maybe conbine the semacontext with samespace
+    Array<SemaContext> semactx;
+
+    SemaContext& get_context() {
+        static SemaContext global_ctx;
+        if (semactx.size() == 0) {
+            return global_ctx;
+        }
+        return semactx[semactx.size() - 1];
+    }
 
     public:
     virtual ~SemanticAnalyser() {}

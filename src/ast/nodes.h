@@ -604,10 +604,12 @@ struct FunctionDef: public StmtNode {
     Array<ExprNode*>    decorator_list = {};
     Optional<ExprNode*> returns;
     String              type_comment;
-    struct Arrow*       type = nullptr;  // cached SEMA result
+    Optional<String>    docstring;
 
-    Optional<String> docstring;
-    bool             async : 1 = false;
+    bool async : 1 = false;
+    // SEMA
+    bool          generator : 1 = false;
+    struct Arrow* type          = nullptr;
 
     FunctionDef(): StmtNode(NodeKind::FunctionDef) {}
 };

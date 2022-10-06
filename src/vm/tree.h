@@ -75,6 +75,11 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     virtual ~TreeEvaluator() {}
 
+    template <typename Exception, typename... Args>
+    ConstantValue raise(Args... args) {
+        return ConstantValue::none();
+    }
+
 #define FUNCTION_GEN(name, fun) virtual PartialResult* fun(name##_t* n, int depth);
 
 #define X(name, _)
@@ -111,9 +116,10 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     Bindings&  bindings;
 
     // `Registers`
-    PartialResult* return_value;
+    PartialResult* return_value  = nullptr;
     bool           loop_break    = false;
     bool           loop_continue = false;
+    bool           yielding      = false;
 
     Array<PartialResult*> exceptions;
     PartialResult*        cause               = nullptr;
@@ -125,6 +131,7 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     PartialResult* call_exit(Node* ctx, int depth);
     PartialResult* call_native(Call_t* call, BuiltinType_t* n, int depth);
     PartialResult* call_script(Call_t* call, FunctionDef_t* n, int depth);
+    PartialResult* make_generator(Call_t* call, FunctionDef_t* n, int depth);
 
     void execute_body(Array<StmtNode*>& body, int depth);
     void execute_loop_body(Array<StmtNode*>& body, int depth);

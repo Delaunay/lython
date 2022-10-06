@@ -32,7 +32,7 @@ NativeObject trunc(NativeObject& self) { return self.__trunc__(); }
 NativeObject cvt_int(NativeObject& self) { return self.__int__(); }
 NativeObject cvt_long(NativeObject& self) { return self.__long__(); }
 NativeObject cvt_float(NativeObject& self) { return self.__float__(); }
-NativeObject cvt_complex(NativeObject& self) { return self.__complex__(); }
+NativeObject cvt_complex(NativeObject& self) { return self.__komplex__(); }
 NativeObject cvt_oct(NativeObject& self) { return self.__oct__(); }
 NativeObject cvt_hex(NativeObject& self) { return self.__hex__(); }
 NativeObject cvt_index(NativeObject& self) { return self.__index__(); }
@@ -67,6 +67,7 @@ NativeObject iter(NativeObject& self) { return self.__iter__(); }
 NativeObject reversed(NativeObject& self) { return self.__reversed__(); }
 bool contains(NativeObject& self, NativeObject const& item) { return self.__contains__(item); }
 NativeObject missing(NativeObject& self, NativeObject key) { return self.__missing__(key); }
+NativeObject next(NativeObject& self) { return self.__next__(); }
 
 // types
 NativeObject instancecheck(NativeObject& self, NativeObject key) {
@@ -210,7 +211,7 @@ NativeObject NativeObject::__trunc__() { return raise<NotImplemented>(); }
 NativeObject NativeObject::__int__() { return raise<NotImplemented>(); }
 NativeObject NativeObject::__long__() { return raise<NotImplemented>(); }
 NativeObject NativeObject::__float__() { return raise<NotImplemented>(); }
-NativeObject NativeObject::__complex__() { return raise<NotImplemented>(); }
+NativeObject NativeObject::__komplex__() { return raise<NotImplemented>(); }
 NativeObject NativeObject::__oct__() { return raise<NotImplemented>(); }
 NativeObject NativeObject::__hex__() { return raise<NotImplemented>(); }
 NativeObject NativeObject::__index__() { return raise<NotImplemented>(); }
@@ -247,6 +248,7 @@ bool         NativeObject::__contains__(NativeObject item) {
     return false;
 }
 NativeObject NativeObject::__missing__(NativeObject key) { return raise<NotImplemented>(); }
+NativeObject NativeObject::__next__() { return raise<StopIteration>(); }
 
 // types
 NativeObject NativeObject::__instancecheck__(NativeObject key) { return raise<NotImplemented>(); }

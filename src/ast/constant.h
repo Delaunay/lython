@@ -4,7 +4,11 @@
 #include "dtypes.h"
 #include <iostream>
 
+#define CLANG_FMT_FIX
+
 namespace lython {
+
+struct NativeObject;
 
 struct ConstantValue {
     public:
@@ -21,43 +25,37 @@ struct ConstantValue {
         return n;
     }
 
-    //
+#define ConstantType(POC, CPX)                      \
+    POD(Invalid, ConstantValue::invalid_t, invalid) \
+    POD(i8, int8, i8)                               \
+    POD(i16, int16, i16)                            \
+    POD(i32, int32, i32)                            \
+    POD(i64, int64, i64)                            \
+    POD(u8, uint8, u8)                              \
+    POD(u16, uint16, u16)                           \
+    POD(u32, uint32, u32)                           \
+    POD(u64, uint64, u64)                           \
+    POD(f32, float32, f32)                          \
+    POD(f64, float64, f64)                          \
+    POD(Bool, bool, boolean)                        \
+    POD(None, ConstantValue::none_t, none)          \
+    POD(Object, NativeObject*, object)              \
+    CPX(String, String, string)
+
+#define NUMERIC_CONSTANT(NUM) \
+    NUM(i8, int8, i8)         \
+    NUM(i16, int16, i16)      \
+    NUM(i32, int32, i32)      \
+    NUM(i64, int64, i64)      \
+    NUM(u8, uint8, u8)        \
+    NUM(u16, uint16, u16)     \
+    NUM(u32, uint32, u32)     \
+    NUM(u64, uint64, u64)     \
+    NUM(f32, float32, f32)    \
+    NUM(f64, float64, f64)    \
+    NUM(Bool, bool, boolean)
+
     // clang-format off
-    #define ConstantType(POC, CPX)                      \
-        POD(Invalid, ConstantValue::invalid_t, invalid) \
-        POD(i8,  int8, i8)                              \
-        POD(i16, int16, i16)                            \
-        POD(i32, int32, i32)                            \
-        POD(i64, int64, i64)                            \
-        POD(u8,  uint8, u8)                             \
-        POD(u16, uint16, u16)                           \
-        POD(u32, uint32, u32)                           \
-        POD(u64, uint64, u64)                           \
-        POD(f32, float32, f32)                          \
-        POD(f64, float64, f64)                          \
-        CPX(String, String, string)                     \
-        POD(Bool, bool, boolean)                        \
-        POD(None, ConstantValue::none_t, none)
-
-// what if I do this
-// invididual methods still need to be added to the bindings
-//
-//        CPX(NativeObject, obj, object)
-
-
-    #define NUMERIC_CONSTANT(NUM)     \
-        NUM(i8,  int8, i8)            \
-        NUM(i16, int16, i16)          \
-        NUM(i32, int32, i32)          \
-        NUM(i64, int64, i64)          \
-        NUM(u8,  uint8, u8)           \
-        NUM(u16, uint16, u16)         \
-        NUM(u32, uint32, u32)         \
-        NUM(u64, uint64, u64)         \
-        NUM(f32, float32, f32)        \
-        NUM(f64, float64, f64)        \
-        NUM(Bool, bool, boolean)
-
     enum Type {
         #define ENUM(a)      T##a,
         #define POD(a, b, c) ENUM(a)

@@ -325,6 +325,16 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
     return return_value;
 }
 
+PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
+
+    for (int i = 0; i < call->args.size(); i++) {
+        PartialResult* arg = exec(call->args[i], depth);
+        bindings.add(StringRef(), arg, nullptr);
+    }
+
+    return nullptr;
+}
+
 PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
 
     // fetch the function we need to call
@@ -332,11 +342,21 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     assert(function, "Function should be found");
 
     if (FunctionDef_t* fun = cast<FunctionDef>(function)) {
+        if (fun->generator) {
+            return make_generator(n, fun, depth);
+        }
+
         return call_script(n, fun, depth);
     }
     if (BuiltinType_t* fun = cast<BuiltinType>(function)) {
         return call_native(n, fun, depth);
     }
+
+    /*
+    if (Coroutine_t* fun = cast<Coroutine>(function)) {
+        return call_coroutine(n, fun, depth);
+    }
+    */
 
     // function could not be resolved at compile time
     // return self ?
@@ -854,7 +874,16 @@ PartialResult* TreeEvaluator::generateexpr(GeneratorExp_t* n, int depth) { retur
 PartialResult* TreeEvaluator::setcomp(SetComp_t* n, int depth) { return nullptr; }
 PartialResult* TreeEvaluator::dictcomp(DictComp_t* n, int depth) { return nullptr; }
 
-PartialResult* TreeEvaluator::yield(Yield_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::yield(Yield_t* n, int depth) {
+    if (n->value.has_value()) {
+        auto value = exec(n->value.value(), depth);
+        // Get the top level functions and create a lambda
+        yielding     = true;
+        return_value = value;
+        return value;
+    }
+    return None();
+}
 PartialResult* TreeEvaluator::yieldfrom(YieldFrom_t* n, int depth) { return nullptr; }
 PartialResult* TreeEvaluator::joinedstr(JoinedStr_t* n, int depth) { return nullptr; }
 PartialResult* TreeEvaluator::formattedvalue(FormattedValue_t* n, int depth) { return nullptr; }

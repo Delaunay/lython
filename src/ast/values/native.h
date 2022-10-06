@@ -8,6 +8,7 @@
 
 namespace lython {
 
+struct StopIteration;
 struct NotImplemented;
 struct NativeObject;
 
@@ -69,6 +70,7 @@ NativeObject getitem(NativeObject& self, NativeObject key);
 NativeObject setitem(NativeObject& self, NativeObject key, NativeObject value);
 NativeObject delitem(NativeObject& self, NativeObject key);
 NativeObject iter(NativeObject& self);
+NativeObject next(NativeObject& self);
 NativeObject reversed(NativeObject& self);
 bool         contains(NativeObject& self, NativeObject const& other);
 NativeObject missing(NativeObject& self, NativeObject key);
@@ -177,7 +179,7 @@ struct NativeObject {
     virtual NativeObject __int__();
     virtual NativeObject __long__();
     virtual NativeObject __float__();
-    virtual NativeObject __complex__();
+    virtual NativeObject __komplex__();
     virtual NativeObject __oct__();
     virtual NativeObject __hex__();
     virtual NativeObject __index__();
@@ -204,6 +206,7 @@ struct NativeObject {
     virtual NativeObject __setitem__(NativeObject key, NativeObject value);
     virtual NativeObject __delitem__(NativeObject key);
     virtual NativeObject __iter__();
+    virtual NativeObject __next__();
     virtual NativeObject __reversed__();
     virtual bool         __contains__(NativeObject item);
     virtual NativeObject __missing__(NativeObject key);

@@ -22,9 +22,9 @@ TEST_CASE("Trie") {
     REQUIRE(base.matching("ab")->leaf() == false);
     REQUIRE(base.matching("abcd")->leaf() == true);
 
-    REQUIRE(base.matching("a")->has_children() == true);
-    REQUIRE(base.matching("ab")->has_children() == true);
-    REQUIRE(base.matching("abcd")->has_children() == false);
+    REQUIRE(base.matching("a")->has_children() >= 1);
+    REQUIRE(base.matching("ab")->has_children() >= 1);
+    REQUIRE(base.matching("abcd")->has_children() == 0);
 
     base.insert("abce");
     auto lookup = base.matching("abc");

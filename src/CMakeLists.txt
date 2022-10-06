@@ -20,7 +20,8 @@ AUX_SOURCE_DIRECTORY(parser SRC_LIST)
 SET(ADD_HEADERS
     ast/nodes.h
     ast/ops.h
-    ast/native.h
+    ast/values/native.h
+    ast/values/generator.h
     utilities/names.h
     utilities/object.h
     ast/magic.h
@@ -48,7 +49,8 @@ SET(ADD_HEADERS
 
 SET(ADD_SOURCE
     ast/nodes.cpp
-    ast/native.cpp
+    ast/values/native.cpp
+    ast/values/generator.cpp
     ast/ops/context.cpp
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
@@ -115,6 +117,9 @@ TARGET_LINK_LIBRARIES(liblython spdlog::spdlog mimalloc-static)
 ADD_EXECUTABLE(lython-inspector lython_inspector.cpp)
 TARGET_LINK_LIBRARIES(lython-inspector spdlog::spdlog liblython liblogging)
 SET_PROPERTY(TARGET lython-inspector PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+
+ADD_LIBRARY(stblyb stdlib/siphash.cpp)
+SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD 20)
 
 IF(UNIX)
     setup_target_for_coverage_gcovr_html(

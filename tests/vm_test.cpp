@@ -224,6 +224,25 @@ TEST_CASE("VM_While") {
                   "4");
 }
 
+// TEST_CASE("VM_yield_for_generator") {
+//     run_test_case("def range(a: i32) -> i32:\n"
+//                   "    b = 0\n"
+//                   "    while b < a:\n"
+//                   "        yield b\n"
+//                   "        b += 1\n"
+//                   "    \n"
+//                   "\n"
+//                   "def fun(a: i32) -> i32:\n"
+//                   "    s = 0\n"
+//                   "    for i in range(a):\n"
+//                   "        s += i\n"
+//                   "    return s\n"
+//                   "",
+
+//                   "fun(2)",
+//                   "3");
+// }
+
 TEST_CASE("VM_While_break") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    b = 0\n"

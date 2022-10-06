@@ -1,6 +1,6 @@
 
-#ifndef EASYFS_HASHTABLE_HEADER
-#define EASYFS_HASHTABLE_HEADER
+#ifndef LYTHON_HASHTABLE_HEADER
+#define LYTHON_HASHTABLE_HEADER
 
 #include <functional>
 #include <sstream>
@@ -9,9 +9,9 @@
 
 #include <iostream>
 
-#include "stdlib/siphash.h"
+#include "siphash.h"
 
-namespace easyfs {
+namespace lython {
 
 const char* SALT = "dW8(2!?GTfDFJ@Le";
 
@@ -69,9 +69,9 @@ template <typename Key, typename Value, typename H = Hash<Key>>
 struct HashTable {
     private:
     struct _Item {
-        Item(): key(Key()) {}
+        _Item(): key(Key()) {}
 
-        Item(Key const& k, Value const& v): key(k), value(v), used(true) {}
+        _Item(Key const& k, Value const& v): key(k), value(v), used(true) {}
 
         Key const key;
         Value     value;
@@ -82,7 +82,7 @@ struct HashTable {
 
         inline uint64_t hash() const { return H::hash(key); }
 
-        Item& operator=(Item const& i) {
+        _Item& operator=(_Item const& i) {
             Key& mutkey = (Key&)key;
             mutkey      = i.key;
             value       = i.value;
@@ -94,17 +94,21 @@ struct HashTable {
 
     // Save the Hash next to the key-value pair
     struct _ItemCached: public _Item {
-        uint64_t hash_value = 0;
+        _ItemCached(): _Item() {}
+
+        _ItemCached(Key const& k, Value const& v): _Item(k, v) {}
+
+        mutable uint64_t hash_value = 0;
 
         inline void set_hash(uint64_t h) { hash_value = h; }
 
         inline uint64_t hash() const {
             if (hash_value == 0) {
-                hash_value = H::hash(key);
+                hash_value = H::hash(_Item::key);
             }
             return hash_value;
         }
-    }
+    };
 
     using Item    = _ItemCached;
     using Storage = std::vector<Item>;
@@ -152,6 +156,14 @@ struct HashTable {
 
     int size() const { return used; }
 
+    void clear() {
+        for (auto& item: _storage) {
+            item.used = false;
+        }
+    }
+
+    void reserve(std::size_t n) { resize(n); }
+
     std::string __str__() const {
         std::stringstream ss;
         bool              comma = false;
@@ -178,7 +190,7 @@ struct HashTable {
 
     // force a full resize with all the entries being reinserted
     void resize_force(std::size_t n) {
-        Storage storage(round_size(n));
+        Storage storage(round_size(int(n)));
         int     a = 0;
         int     b = 0;
 
@@ -234,7 +246,7 @@ struct HashTable {
             rehash();
         }
 
-        auto item = Item(name, value);
+        Item item(name, value);
         return insert(_storage, item, upsert, this->used, this->collision);
     }
 
@@ -277,6 +289,6 @@ struct HashTable {
     public:
     int collided() const { return collision; }
 };
-}  // namespace easyfs
+}  // namespace lython
 
 #endif
