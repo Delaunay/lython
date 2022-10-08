@@ -235,9 +235,6 @@ TypeExpr* SemanticAnalyser::binop(BinOp* n, int depth) {
     TypeExpr*    type = resolve_variable(lhs_t);
     BuiltinType* blt  = cast<BuiltinType>(type);
 
-    debug("signature: {} {}", str(lhs_t), str(type));
-    String signature = join(String("-"), Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
-
     // Builtin type, all the operations are known
     if (blt) {
         String signature = join(String("-"), Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
@@ -628,8 +625,9 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         debug("Storing value for {} ({})", n->id, n->varid);
     } else {
         // Both delete & Load requires the variable to be defined first
-        n->varid   = bindings.get_varid(n->id);
-        n->offset  = int(bindings.bindings.size()) - n->varid;
+        n->varid  = bindings.get_varid(n->id);
+        n->offset = int(bindings.bindings.size()) - n->varid;
+
         n->dynamic = bindings.is_dynamic(n->varid);
 
         if (n->varid == -1) {
@@ -727,7 +725,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
 
         // we could populate the default value here
         // but we would not want sema to think this is a constant
-        bindings.add(arg.arg, nullptr, type, true);
+        bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->names.push_back(arg.arg);
@@ -767,7 +765,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
             type = dvalue_t;
         }
 
-        bindings.add(arg.arg, nullptr, type, true);
+        bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->names.push_back(arg.arg);

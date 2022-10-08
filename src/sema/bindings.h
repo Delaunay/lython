@@ -43,9 +43,15 @@ struct Bindings {
     }
 
     // returns the varid it was inserted as
-    inline int add(StringRef const& name, Node* value, TypeExpr* type, bool dynamic = false) {
+    inline int add(StringRef const& name, Node* value, TypeExpr* type) {
         auto size = int(bindings.size());
+
+        bool dynamic = !nested;
         bindings.push_back({name, value, type, dynamic});
+
+        if (!nested) {
+            global_index += 1;
+        }
         return size;
     }
 
@@ -76,11 +82,7 @@ struct Bindings {
         return bindings[varid].name;
     }
 
-    bool is_dynamic(int varid) const {
-        if (varid < 0 && varid > bindings.size())
-            return true;
-        return bindings[varid].dynamic;
-    }
+    bool is_dynamic(int varid) const { return varid >= global_index; }
 
     int get_varid(StringRef name) const {
         auto start = std::rbegin(bindings);
@@ -106,12 +108,22 @@ struct Bindings {
     void dump(std::ostream& out) const;
 
     Array<BindingEntry> bindings;
+
+    // We keep track of when the global binding starts
+    // so we know when we need to do a dynamic lookup of a static one
+    int  global_index = 0;
+    bool nested       = false;
 };
 
 struct Scope {
-    Scope(Bindings& array): bindings(array), oldsize(bindings.bindings.size()) {}
+    Scope(Bindings& array): bindings(array), oldsize(bindings.bindings.size()) {
+        bindings.nested = true;
+    }
 
-    ~Scope() { bindings.bindings.resize(oldsize); }
+    ~Scope() {
+        bindings.bindings.resize(oldsize);
+        bindings.nested = false;
+    }
 
     Bindings&   bindings;
     std::size_t oldsize;

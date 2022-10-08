@@ -69,6 +69,16 @@ TEST_CASE("VM_FunctionDef") {
                   "1");
 }
 
+TEST_CASE("VM_FunctionDef_with_temporaries") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    b = a + 1\n"
+                  "    if b == 0:\n"
+                  "        return 0\n"
+                  "    return fun(a - 1) + 1\n",
+                  "fun(10)",
+                  "11");
+}
+
 TEST_CASE("VM_FunctionDef_recursive") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    if a == 0:\n"
@@ -144,15 +154,6 @@ TEST_CASE("VM_assert_False") {
                   "None");
 }
 
-TEST_CASE("VM_assert_False_2") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    if a == 0:\n"
-                  "        assert False, \"Very bad\"\n"
-                  "    return fun(a - 1)\n",
-                  "fun(2)",
-                  "None");
-}
-
 TEST_CASE("VM_IfStmt_False") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    if a > 0:\n"
@@ -192,6 +193,33 @@ TEST_CASE("VM_inline_stmt") {
                   "    a += 1; return a\n",
                   "fun(0)",
                   "1");
+}
+
+// Traceback (most recent call last):
+//   File "<input>", line -2, in fun(2)
+//     fun(2)
+//   File "<input>", line 4, in fun
+//     return fun(a - 1)
+//   File "<input>", line 4, in fun
+//     return fun(a - 1)
+//   File "<input>", line 3, in fun
+//     assert False, "Very bad"
+// AssertionError: Very bad
+TEST_CASE("VM_exception_stop_recursion") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    if a == 0:\n"
+                  "        assert False, \"Very bad\"\n"
+                  "    return fun(a - 1)\n",
+                  "fun(2)",
+                  "None");
+}
+
+TEST_CASE("VM_exception_stop_loop") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    while True:\n"
+                  "        assert False, \"Very bad\"\n",
+                  "fun(2)",
+                  "None");
 }
 
 TEST_CASE("VM_raise") {
