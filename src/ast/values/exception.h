@@ -6,12 +6,17 @@
 
 #include "dtypes.h"
 #include "native.h"
+#include "vm/tree.h"
 
 namespace lython {
 
-struct Exception: public NativeObject {
-    public:
-    virtual NativeObject __next__();
+// Here we make exception hold the stack trace but the stack trace should be held by the VM
+// the Exception object is just going to hold some user specified info
+struct lyException: public NativeObject {
+
+    lyException(Array<StackTrace> const& traces): traces(traces) {}
+
+    Array<StackTrace> traces;
 };
 }  // namespace lython
 

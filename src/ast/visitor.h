@@ -9,6 +9,7 @@ namespace lython {
 NEW_EXCEPTION(NullPointerError)
 
 struct DefaultVisitorTrait {
+    using Trace   = std::true_type;
     using StmtRet = StmtNode*;
     using ExprRet = ExprNode*;
     using ModRet  = ModNode*;
@@ -33,6 +34,7 @@ struct BaseVisitor {
     using ExprRet = typename VisitorTrait::ExprRet;
     using ModRet  = typename VisitorTrait::ModRet;
     using PatRet  = typename VisitorTrait::PatRet;
+    using Trace   = typename VisitorTrait::Trace;
 
 #define SELECT_TYPE(T) typename std::conditional<isConst, T const, T>::type;
 
@@ -221,7 +223,9 @@ struct BaseVisitor {
 
 #define FUNCTION_GEN(name, fun, rtype)                                          \
     rtype fun(name##_t* node, int depth, Args... args) {                        \
-        trace(depth, #name);                                                    \
+        if (Trace::value) {                                                     \
+            trace(depth, #name);                                                \
+        }                                                                       \
         return static_cast<Implementation*>(this)->fun(node, depth, (args)...); \
     }
 

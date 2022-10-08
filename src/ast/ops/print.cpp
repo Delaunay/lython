@@ -7,6 +7,7 @@
 namespace lython {
 
 struct PrintTrait {
+    using Trace   = std::false_type;
     using StmtRet = bool;
     using ExprRet = bool;
     using ModRet  = bool;

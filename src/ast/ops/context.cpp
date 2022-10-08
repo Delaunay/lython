@@ -9,6 +9,7 @@ struct TraverseTrait {
     using ExprRet = void_t;
     using ModRet  = void_t;
     using PatRet  = void_t;
+    using Trace   = std::false_type;
 };
 
 // Generic visitor for simple tree operation

@@ -1,7 +1,8 @@
 
-
 #include "../dtypes.h"
+#include "ast/values/exception.h"
 #include "logging/logging.h"
+#include "utilities/guard.h"
 
 #include "vm/tree.h"
 
@@ -9,9 +10,19 @@ namespace lython {
 
 void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cause) {
     // Create the exception object
-    Array<StackTrace> excepttrace = traces;
 
-    // exceptions.push_back();
+    // Constant* cause_value = cast<Constant>(cause);
+    // // cause should be an exception
+    // NativeObject* cause_except = cause_value->value.get<NativeObject*>();
+
+    // if (cause != nullptr && cause_except) {
+    //     // TODO:
+    // }
+
+    lyException* except = root.new_object<lyException>(traces);
+    // Constant*  except_value = root.new_object<Constant>(except);
+
+    exceptions.push_back(except);
 }
 
 PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
@@ -336,6 +347,14 @@ PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int
 }
 
 PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
+
+    using TraceGuard = PopGuard<Array<StackTrace>, StackTrace>;
+
+    // Populate current stack with the expression that will branch out
+    get_trace().expr = n;
+
+    TraceGuard  _(traces);
+    StackTrace& trace = traces.emplace_back();
 
     // fetch the function we need to call
     auto function = exec(n->func, depth);
@@ -694,7 +713,7 @@ PartialResult* TreeEvaluator::raise(Raise_t* n, int depth) {
 
     // FIXME: this re-reraise current exception
     // check what happens if no exception exists
-    exceptions.push_back(None());
+    exceptions.push_back(nullptr);
     return nullptr;
 }
 
@@ -744,7 +763,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
         auto _ = HandleException(this);
 
         ExceptHandler const* matched          = nullptr;
-        PartialResult*       latest_exception = exceptions[exceptions.size() - 1];
+        PartialResult*       latest_exception = nullptr;  // exceptions[exceptions.size() - 1];
 
         for (ExceptHandler const& handler: n->handlers) {
             // match the exception type to the one we received
@@ -950,6 +969,61 @@ PartialResult* TreeEvaluator::nonlocal(Nonlocal_t* n, int depth) {
     // we don't really need it right now, we are not enforcing this
     // might be sema business anyway
     return nullptr;
+}
+
+#define PRINT(msg) std::cout << msg << "\n";
+
+String shortprint(Node const* node) {
+    if (node->kind == NodeKind::FunctionDef) {
+        FunctionDef const* fun = static_cast<FunctionDef const*>(node);
+        return str(fun->name);
+    }
+
+    return str(node);
+}
+
+void printtrace(StackTrace& trace) {
+
+    String file   = "<input>";
+    int    line   = -1;
+    String parent = "<module>";
+    String expr   = "";
+
+    if (trace.stmt) {
+        line   = trace.stmt->lineno;
+        parent = shortprint(trace.stmt->get_parent());
+        expr   = shortprint(trace.stmt);
+    }
+
+    else if (trace.expr) {
+        line   = trace.expr->lineno;
+        parent = shortprint(trace.expr->get_parent());
+        expr   = shortprint(trace.expr);
+    }
+
+    fmt::print("  File \"{}\", line {}, in {}\n", file, line, parent);
+    fmt::print("    {}\n", expr);
+}
+
+PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
+    auto result = exec(stmt, 0);
+
+    if (has_exceptions()) {
+        lyException* except = exceptions[exceptions.size() - 1];
+
+        assert(except != nullptr, "Exception is null");
+
+        fmt::print("Traceback (most recent call last):\n");
+        for (StackTrace& st: except->traces) {
+            printtrace(st);
+        }
+
+        String exception_type = "AssertionError";
+        String exception_msg  = "Very bad";
+        fmt::print("{}: {}\n", exception_type, exception_msg);
+    }
+
+    return result;
 }
 
 }  // namespace lython

@@ -23,6 +23,7 @@ struct SemaVisitorTrait {
     using ModRet  = TypeExpr*;
     using PatRet  = TypeExpr*;
     using IsConst = std::false_type;
+    using Trace   = std::true_type;
 };
 
 struct SemaContext {

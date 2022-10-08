@@ -9,6 +9,7 @@
 namespace lython {
 
 struct LispSexpTrait {
+    using Trace   = std::false_type;
     using StmtRet = Sexp;
     using ExprRet = Sexp;
     using ModRet  = Sexp;

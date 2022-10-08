@@ -44,7 +44,7 @@ String eval_it(String code, String expr, Module*& mod) {
 
     info("{}", "Eval");
     TreeEvaluator eval(sema.bindings);
-    auto          partial = str(eval.exec(stmt, 0));
+    auto          partial = str(eval.eval(stmt));
 
     emod->dump(std::cout);
     delete emod;
@@ -122,6 +122,12 @@ TEST_CASE("VM_assert_True") {
 }
 
 // FIXME: tree should raise exception
+// Traceback (most recent call last):
+//   File "main.py", line 7, in <module>
+//     fun(0)
+//   File "main.py", line 5, in fun
+//     assert False, "false"
+// AssertionError: false
 TEST_CASE("VM_assert_False") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    assert False, \"Very bad\"\n",

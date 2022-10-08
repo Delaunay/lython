@@ -27,8 +27,8 @@ enum class NodeFamily : int8_t
 
 // col_offset is the byte offset in the utf8 string the parser uses
 struct CommonAttributes {
-    int           lineno;
-    int           col_offset;
+    int           lineno     = -2;
+    int           col_offset = -2;
     Optional<int> end_lineno;
     Optional<int> end_col_offset;
 };
@@ -57,6 +57,8 @@ struct Node: public GCObject {
     bool is_instance() const {
         return kind == nodekind<T>();
     }
+
+    Node const* get_parent() const { return static_cast<Node*>(parent); }
 };
 
 struct ModNode: public Node {
@@ -965,6 +967,17 @@ T* cast(Node* obj) {
     }
     if (obj->is_instance<T>()) {
         return (T*)obj;
+    }
+    return nullptr;
+}
+
+template <typename T>
+T const* cast(Node const* obj) {
+    if (obj == nullptr) {
+        return nullptr;
+    }
+    if (obj->is_instance<T>()) {
+        return (T const*)obj;
     }
     return nullptr;
 }

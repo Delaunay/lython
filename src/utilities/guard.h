@@ -1,6 +1,7 @@
 #ifndef LYTHON_UTILITIES_GUARD_HEADER
 #define LYTHON_UTILITIES_GUARD_HEADER
 
+namespace lython {
 // Execute function upon destruction
 template <typename Exit>
 struct Guard {
@@ -20,6 +21,8 @@ template <typename T, typename U>
 struct PopGuard {
     PopGuard(T& array, U const& v): array(array), oldsize(array.size()) { array.push_back(v); }
 
+    PopGuard(T& array): array(array), oldsize(array.size()) {}
+
     ~PopGuard() { array.pop_back(); }
 
     U const& last(int offset, U const& default_value) const {
@@ -32,5 +35,6 @@ struct PopGuard {
     T&          array;
     std::size_t oldsize;
 };
+}  // namespace lython
 
 #endif

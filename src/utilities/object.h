@@ -78,7 +78,7 @@ struct GCObject {
         return alloc;
     }
 
-    private:
+    protected:
     Array<GCObject*> children;
     GCObject*        parent = nullptr;
 
