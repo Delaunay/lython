@@ -6,16 +6,22 @@
 namespace lython {
 
 struct BindingEntry {
-    BindingEntry(StringRef a = StringRef(), Node* b = nullptr, TypeExpr* c = nullptr):
-        name(a), value(b), type(c) {}
+    BindingEntry(StringRef a       = StringRef(),
+                 Node*     b       = nullptr,
+                 TypeExpr* c       = nullptr,
+                 bool      dynamic = false):
+        name(a),
+        value(b), type(c), dynamic(dynamic) {}
 
     bool operator==(BindingEntry const& b) const {
         return name == b.name && value == b.value && type == b.type;
     }
 
     StringRef name;
-    Node*     value = nullptr;
-    TypeExpr* type  = nullptr;
+    Node*     value   = nullptr;
+    TypeExpr* type    = nullptr;
+    bool      dynamic = false;  // used to specify that this entry is dynamic
+                                // and its address can change at runtime
 };
 
 std::ostream& print(std::ostream& out, BindingEntry const& entry);
@@ -37,9 +43,9 @@ struct Bindings {
     }
 
     // returns the varid it was inserted as
-    inline int add(StringRef const& name, Node* value, TypeExpr* type) {
+    inline int add(StringRef const& name, Node* value, TypeExpr* type, bool dynamic = false) {
         auto size = int(bindings.size());
-        bindings.push_back({name, value, type});
+        bindings.push_back({name, value, type, dynamic});
         return size;
     }
 
@@ -68,6 +74,12 @@ struct Bindings {
         if (varid < 0 && varid > bindings.size())
             return StringRef();
         return bindings[varid].name;
+    }
+
+    bool is_dynamic(int varid) const {
+        if (varid < 0 && varid > bindings.size())
+            return true;
+        return bindings[varid].dynamic;
     }
 
     int get_varid(StringRef name) const {

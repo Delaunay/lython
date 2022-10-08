@@ -533,7 +533,11 @@ struct Name: public ExprNode {
     ExprContext ctx;
 
     // Variable id, resolved by SEMA
-    int varid = -1;
+    int  varid   = -1;
+    int  size    = -1;     // size of the context when it was defined
+    int  offset  = -1;     // reverse offset to use for lookup
+    bool dynamic = false;  // if true we will do a reverse lookup to take into account that
+                           // recursive call make the binding table offset
 
     Name(): ExprNode(NodeKind::Name) {}
 };

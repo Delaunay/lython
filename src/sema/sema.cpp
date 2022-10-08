@@ -184,6 +184,7 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
     Name* name = cast<Name>(node);
 
     if (name) {
+        assert(name->varid >= 0, "Type need to be resolved");
         return static_cast<TypeExpr*>(bindings.get_value(name->varid));
     }
 
@@ -233,6 +234,9 @@ TypeExpr* SemanticAnalyser::binop(BinOp* n, int depth) {
 
     TypeExpr*    type = resolve_variable(lhs_t);
     BuiltinType* blt  = cast<BuiltinType>(type);
+
+    debug("signature: {} {}", str(lhs_t), str(type));
+    String signature = join(String("-"), Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
 
     // Builtin type, all the operations are known
     if (blt) {
@@ -619,11 +623,15 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
     if (n->ctx == ExprContext::Store) {
         auto id  = bindings.add(n->id, n, nullptr);
         n->varid = id;
+        n->size  = int(bindings.bindings.size());
 
         debug("Storing value for {} ({})", n->id, n->varid);
     } else {
         // Both delete & Load requires the variable to be defined first
-        n->varid = bindings.get_varid(n->id);
+        n->varid   = bindings.get_varid(n->id);
+        n->offset  = int(bindings.bindings.size()) - n->varid;
+        n->dynamic = bindings.is_dynamic(n->varid);
+
         if (n->varid == -1) {
             debug("Value {} not found", n->id);
             SEMA_ERROR(NameError(n, n->id));
@@ -680,7 +688,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
         class_t = make_ref(arrow, str(def->name));
     }
     for (int i = 0, n = int(args.args.size()); i < n; i++) {
-        auto      arg      = args.args[i];
+        Arg       arg      = args.args[i];
         ExprNode* dvalue   = nullptr;
         TypeExpr* dvalue_t = nullptr;
 
@@ -719,7 +727,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
 
         // we could populate the default value here
         // but we would not want sema to think this is a constant
-        bindings.add(arg.arg, nullptr, type);
+        bindings.add(arg.arg, nullptr, type, true);
 
         if (arrow) {
             arrow->names.push_back(arg.arg);
@@ -759,7 +767,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
             type = dvalue_t;
         }
 
-        bindings.add(arg.arg, nullptr, type);
+        bindings.add(arg.arg, nullptr, type, true);
 
         if (arrow) {
             arrow->names.push_back(arg.arg);
@@ -779,24 +787,34 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     PopGuard _(namespaces, str(n->name));
     PopGuard ctx(semactx, SemaContext());
 
-    // Add the function name first to handle recursive calls
-    auto  id = bindings.add(n->name, n, nullptr);
-    Scope scope(bindings);
+    // Set the type right away
+    TypeExpr* return_t = nullptr;
+    auto      type     = n->new_object<Arrow>();
 
-    auto type = n->new_object<Arrow>();
-    auto lst  = nested_stmt.last(1, nullptr);
+    if (n->returns.has_value()) {
+        return_t      = n->returns.value();
+        auto typetype = exec(return_t, depth);
+        typecheck(return_t, typetype, nullptr, Type_t(), LOC);
+
+        type->returns = n->returns.value();
+    }
+
+    // Add the function name first to handle recursive calls
+    auto id = bindings.add(n->name, n, type);
+
+    auto lst = nested_stmt.last(1, nullptr);
+
+    // Add the arguments to the context
+    Scope scope(bindings);
     add_arguments(n->args, type, cast<ClassDef>(lst), depth);
+    // --
+
+    bindings.dump(std::cout);
 
     auto return_effective = exec<TypeExpr*>(n->body, depth);
 
     if (n->returns.has_value()) {
         // Annotated type takes precedence
-        auto return_t = n->returns.value();
-        auto typetype = exec(return_t, depth);
-
-        typecheck(return_t, typetype, nullptr, Type_t(), LOC);
-
-        type->returns = return_t;
         typecheck(n->returns.value(), return_t, nullptr, oneof(return_effective), LOC);
     }
 

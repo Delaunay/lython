@@ -69,6 +69,15 @@ TEST_CASE("VM_FunctionDef") {
                   "1");
 }
 
+TEST_CASE("VM_FunctionDef_recursive") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    if a == 0:\n"
+                  "        return 0\n"
+                  "    return fun(a - 1) + 1\n",
+                  "fun(10)",
+                  "10");
+}
+
 TEST_CASE("VM_BinOp_Add_i32") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    return a + 1\n",
@@ -132,6 +141,15 @@ TEST_CASE("VM_assert_False") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    assert False, \"Very bad\"\n",
                   "fun(0)",
+                  "None");
+}
+
+TEST_CASE("VM_assert_False_2") {
+    run_test_case("def fun(a: i32) -> i32:\n"
+                  "    if a == 0:\n"
+                  "        assert False, \"Very bad\"\n"
+                  "    return fun(a - 1)\n",
+                  "fun(2)",
                   "None");
 }
 

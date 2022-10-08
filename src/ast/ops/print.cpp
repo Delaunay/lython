@@ -1158,6 +1158,9 @@ void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int
 }
 
 int get_precedence(Node const* node) {
+    if (node == nullptr) {
+        return 1000;
+    }
     if (node->kind == NodeKind::BinOp) {
         BinOp* op = (BinOp*)(node);
         // clang-format off

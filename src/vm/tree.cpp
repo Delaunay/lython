@@ -388,14 +388,38 @@ PartialResult* TreeEvaluator::constant(Constant_t* n, int depth) {
 }
 
 PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
-    Node* result = bindings.get_value(n->varid);
+
+    Node* result = nullptr;
+    int   varid  = -1;
+
+    if (n->dynamic) {
+        // Local variables | Arguments
+        assert(n->offset != -1, "Reference should have a reverse lookup offset");
+        varid  = int(bindings.bindings.size()) - n->offset;
+        result = bindings.get_value(varid);
+    } else {
+        // Global variables
+        result = bindings.get_value(n->varid);
+    }
+
     assert(result != nullptr, "Could not find variable");
+    // bindings.dump(std::cout);
 
     String kindstr = "";
     if (result) {
         kindstr = str(result->kind);
     }
-    debug("Looked for {} (id: {}) found {}", n->id, n->varid, kindstr);
+
+    String strresult;
+    if (result && result->kind == NodeKind::Constant) {
+        strresult = str(result);
+    }
+    debug("Name (varid: {}), (size: {}) (offset: {}) resolved: {}",
+          n->varid,
+          n->size,
+          n->offset,
+          varid);
+    debug("Looked for {} (id: {}) found {}: {}", n->id, n->varid, kindstr, strresult);
     return result;
 }
 
@@ -419,7 +443,7 @@ PartialResult* TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
 }
 
 PartialResult* TreeEvaluator::returnstmt(Return_t* n, int depth) {
-    debug("Returning {}", str(n));
+    debug("Compute return {}", str(n));
 
     if (n->value.has_value()) {
         return_value = exec(n->value.value(), depth);
@@ -646,6 +670,10 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
 
         if (has_exceptions()) {
             return None();
+        }
+
+        if (return_value != nullptr) {
+            break;
         }
     }
 
