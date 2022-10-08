@@ -27,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-10-06 22:17:34</td>
+      <td>2022-10-08 15:28:46</td>
     </tr>
   </table>
 </div>
@@ -41,15 +41,15 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>0</td>
-      <td>2</td>
-      <td class="coverage-none">0.0%</td>
+      <td>6</td>
+      <td>7</td>
+      <td class="coverage-medium">85.7%</td>
     </tr>
     <tr>
       <th scope="row">Functions:</th>
-      <td>1</td>
-      <td>6</td>
-      <td class="coverage-low">16.7%</td>
+      <td>4</td>
+      <td>7</td>
+      <td class="coverage-low">57.1%</td>
     </tr>
     <tr>
       <th scope="row">Branches:</th>
@@ -75,68 +75,79 @@
     </tr>
     <tr>
       <td>
-        <a href="#l79">lython::ConstantValue lython::TreeEvaluator::raise&lt;lython::StopIteration&gt;()</a>
+        <a href="#l114">lython::TreeEvaluator::HandleException::HandleException(lython::TreeEvaluator*)</a>
       </td>
       <td>
-        <a href="#l79">79</a>
+        <a href="#l114">114</a>
       </td>
       <td>
-        <a href="#l79"> not called</a>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <a href="#l106">lython::TreeEvaluator::HandleException::HandleException(lython::TreeEvaluator*)</a>
-      </td>
-      <td>
-        <a href="#l106">106</a>
-      </td>
-      <td>
-        <a href="#l106"> not called</a>
+        <a href="#l114"> not called</a>
       </td>
     </tr>
     <tr>
       <td>
-        <a href="#l110">lython::TreeEvaluator::HandleException::~HandleException()</a>
+        <a href="#l118">lython::TreeEvaluator::HandleException::~HandleException()</a>
       </td>
       <td>
-        <a href="#l110">110</a>
+        <a href="#l118">118</a>
       </td>
       <td>
-        <a href="#l110"> not called</a>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <a href="#l74">lython::TreeEvaluator::TreeEvaluator(lython::Bindings&amp;)</a>
-      </td>
-      <td>
-        <a href="#l74">74</a>
-      </td>
-      <td>
-        <a href="#l74"> not called</a>
+        <a href="#l118"> not called</a>
       </td>
     </tr>
     <tr>
       <td>
-        <a href="#l145">lython::TreeEvaluator::has_exceptions() const</a>
+        <a href="#l151">lython::TreeEvaluator::exec(lython::ExprNode*, int)</a>
+      </td>
+      <td>
+        <a href="#l151">151</a>
+      </td>
+      <td>
+        <a href="#l151"> called 242 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l145">lython::TreeEvaluator::exec(lython::StmtNode*, int)</a>
       </td>
       <td>
         <a href="#l145">145</a>
       </td>
       <td>
-        <a href="#l145"> called 75 times</a>
+        <a href="#l145"> called 97 times</a>
       </td>
     </tr>
     <tr>
       <td>
-        <a href="#l76">lython::TreeEvaluator::~TreeEvaluator()</a>
+        <a href="#l157">lython::TreeEvaluator::get_trace()</a>
       </td>
       <td>
-        <a href="#l76">76</a>
+        <a href="#l157">157</a>
       </td>
       <td>
-        <a href="#l76"> not called</a>
+        <a href="#l157"> called 361 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l140">lython::TreeEvaluator::has_exceptions() const</a>
+      </td>
+      <td>
+        <a href="#l140">140</a>
+      </td>
+      <td>
+        <a href="#l140"> called 97 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l84">lython::TreeEvaluator::~TreeEvaluator()</a>
+      </td>
+      <td>
+        <a href="#l84">84</a>
+      </td>
+      <td>
+        <a href="#l84"> not called</a>
       </td>
     </tr>
   </table>
@@ -327,7 +338,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">using</span><span class="w"> </span><span class="n">Trace</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">true_type</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -335,7 +346,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -343,7 +354,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">StackTrace</span><span class="w"> </span><span class="p">{};</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -351,7 +362,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">StackTrace</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -359,7 +370,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">/* Tree evaluator is a very simple interpreter that is also very slow.</span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// The statement point to the line</span></td>
     </tr>
 
     <tr class="source-line">
@@ -367,7 +378,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * It takes as input the binding array generated by the semantic analysis</span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// while the expression points to a specific location in the line</span></td>
     </tr>
 
     <tr class="source-line">
@@ -375,7 +386,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * i.e the evaluation context and the expression to evaluate given the context</span></td>
+      <td class="src "><span class="w">    </span><span class="n">StmtNode</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -383,7 +394,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="w">    </span><span class="n">ExprNode</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">expr</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -391,7 +402,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * The expression to evaluate is often a call to a function, for a standard</span></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -399,7 +410,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * program that function will be main.</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -407,7 +418,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm">/* Tree evaluator is a very simple interpreter that is also very slow.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -415,7 +426,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * While being slow this evaluator has the advantage or returning an AST</span></td>
+      <td class="src "><span class="cm"> * It takes as input the binding array generated by the semantic analysis</span></td>
     </tr>
 
     <tr class="source-line">
@@ -423,7 +434,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * as result which makes it perfect for compile-time usage.</span></td>
+      <td class="src "><span class="cm"> * i.e the evaluation context and the expression to evaluate given the context</span></td>
     </tr>
 
     <tr class="source-line">
@@ -439,7 +450,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * We can call the evaluator on standard declaration which will result in</span></td>
+      <td class="src "><span class="cm"> * The expression to evaluate is often a call to a function, for a standard</span></td>
     </tr>
 
     <tr class="source-line">
@@ -447,7 +458,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * constant folding everything it can. Note that because we are able to represent</span></td>
+      <td class="src "><span class="cm"> * program that function will be main.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -455,7 +466,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * complex types at compile time, string/list/dict even object operations can be folded.</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -463,7 +474,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> * While being slow this evaluator has the advantage or returning an AST</span></td>
     </tr>
 
     <tr class="source-line">
@@ -471,7 +482,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * .. code-block:: python</span></td>
+      <td class="src "><span class="cm"> * as result which makes it perfect for compile-time usage.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -487,7 +498,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    value = &#39;.&#39;.join([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])     # &lt;= Everything is known at compile time</span></td>
+      <td class="src "><span class="cm"> * We can call the evaluator on standard declaration which will result in</span></td>
     </tr>
 
     <tr class="source-line">
@@ -495,7 +506,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *                                          #    It can be folded</span></td>
+      <td class="src "><span class="cm"> * constant folding everything it can. Note that because we are able to represent</span></td>
     </tr>
 
     <tr class="source-line">
@@ -503,7 +514,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> * complex types at compile time, string/list/dict even object operations can be folded.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -511,7 +522,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * Additionally, this can be used to generate code at compile time by</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -519,7 +530,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * creating function with types as arguments.</span></td>
+      <td class="src "><span class="cm"> * .. code-block:: python</span></td>
     </tr>
 
     <tr class="source-line">
@@ -535,7 +546,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * .. code-block::</span></td>
+      <td class="src "><span class="cm"> *    value = &#39;.&#39;.join([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])     # &lt;= Everything is known at compile time</span></td>
     </tr>
 
     <tr class="source-line">
@@ -543,7 +554,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> *                                          #    It can be folded</span></td>
     </tr>
 
     <tr class="source-line">
@@ -551,7 +562,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    def Point(type: Type):</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -559,7 +570,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *        class point:</span></td>
+      <td class="src "><span class="cm"> * Additionally, this can be used to generate code at compile time by</span></td>
     </tr>
 
     <tr class="source-line">
@@ -567,7 +578,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *            x: type</span></td>
+      <td class="src "><span class="cm"> * creating function with types as arguments.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -575,7 +586,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *            y: type</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -583,7 +594,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> * .. code-block::</span></td>
     </tr>
 
     <tr class="source-line">
@@ -591,7 +602,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *        return point</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -599,7 +610,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> *    def Point(type: Type):</span></td>
     </tr>
 
     <tr class="source-line">
@@ -607,7 +618,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    Pointi = Point(int)</span></td>
+      <td class="src "><span class="cm"> *        class point:</span></td>
     </tr>
 
     <tr class="source-line">
@@ -615,7 +626,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    Pointf = Point(float)                # &lt;= Generate new types at compile time</span></td>
+      <td class="src "><span class="cm"> *            x: type</span></td>
     </tr>
 
     <tr class="source-line">
@@ -623,7 +634,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> *            y: type</span></td>
     </tr>
 
     <tr class="source-line">
@@ -639,7 +650,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * Evaluation Implementation</span></td>
+      <td class="src "><span class="cm"> *        return point</span></td>
     </tr>
 
     <tr class="source-line">
@@ -647,7 +658,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * -------------------------</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -655,7 +666,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> *    Pointi = Point(int)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -663,7 +674,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * 1. Reuse as much as possible from the sema context</span></td>
+      <td class="src "><span class="cm"> *    Pointf = Point(float)                # &lt;= Generate new types at compile time</span></td>
     </tr>
 
     <tr class="source-line">
@@ -671,7 +682,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    Save the context inside each statement so we can use it</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -679,7 +690,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    during evaluation.</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -687,7 +698,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *    Because the context is copied, it is easy to do parallel executions</span></td>
+      <td class="src "><span class="cm"> * Evaluation Implementation</span></td>
     </tr>
 
     <tr class="source-line">
@@ -695,7 +706,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> *</span></td>
+      <td class="src "><span class="cm"> * -------------------------</span></td>
     </tr>
 
     <tr class="source-line">
@@ -703,7 +714,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> * 2. Create a different context for evaluation only</span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -711,7 +722,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm"> */</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> * 1. Reuse as much as possible from the sema context</span></td>
     </tr>
 
     <tr class="source-line">
@@ -719,7 +730,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">TreeEvaluator</span><span class="o">:</span><span class="w"> </span><span class="n">BaseVisitor</span><span class="o">&lt;</span><span class="n">TreeEvaluator</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">TreeEvaluatorTrait</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *    Save the context inside each statement so we can use it</span></td>
     </tr>
 
     <tr class="source-line">
@@ -727,7 +738,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> *    during evaluation.</span></td>
     </tr>
 
     <tr class="source-line">
@@ -735,7 +746,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">public</span><span class="o">:</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *    Because the context is copied, it is easy to do parallel executions</span></td>
     </tr>
 
     <tr class="source-line">
@@ -743,7 +754,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">TreeEvaluator</span><span class="p">(</span><span class="n">Bindings</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">bindings</span><span class="p">(</span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> *</span></td>
     </tr>
 
     <tr class="source-line">
@@ -751,7 +762,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cm"> * 2. Create a different context for evaluation only</span></td>
     </tr>
 
     <tr class="source-line">
@@ -759,7 +770,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">TreeEvaluator</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
+      <td class="src "><span class="cm"> */</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -767,7 +778,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">TreeEvaluator</span><span class="o">:</span><span class="w"> </span><span class="n">BaseVisitor</span><span class="o">&lt;</span><span class="n">TreeEvaluator</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">TreeEvaluatorTrait</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -775,7 +786,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">Exception</span><span class="p">,</span><span class="w"> </span><span class="n">typename</span><span class="p">...</span><span class="w"> </span><span class="n">Args</span><span class="o">&gt;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -783,15 +794,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">ConstantValue</span><span class="w"> </span><span class="n">raise</span><span class="p">(</span><span class="n">Args</span><span class="p">...</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">public</span><span class="o">:</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l80" href="#l80">80</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ConstantValue</span><span class="o">::</span><span class="n">none</span><span class="p">();</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">using</span><span class="w"> </span><span class="n">Super</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">BaseVisitor</span><span class="o">&lt;</span><span class="n">TreeEvaluator</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">TreeEvaluatorTrait</span><span class="o">&gt;</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -799,7 +810,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -807,7 +818,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">TreeEvaluator</span><span class="p">(</span><span class="n">Bindings</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">bindings</span><span class="p">(</span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">traces</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">StackTrace</span><span class="p">());</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -815,7 +826,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define FUNCTION_GEN(name, fun) virtual PartialResult* fun(name##_t* n, int depth);</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -823,7 +834,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">TreeEvaluator</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -831,7 +842,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define X(name, _)</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -839,7 +850,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define SSECTION(name)</span></td>
+      <td class="src "><span class="w">    </span><span class="n">template</span><span class="w"> </span><span class="o">&lt;</span><span class="n">typename</span><span class="w"> </span><span class="n">Exception</span><span class="p">,</span><span class="w"> </span><span class="n">typename</span><span class="p">...</span><span class="w"> </span><span class="n">Args</span><span class="o">&gt;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -847,7 +858,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define MOD(name, fun)</span></td>
+      <td class="src "><span class="w">    </span><span class="n">ConstantValue</span><span class="w"> </span><span class="n">raise</span><span class="p">(</span><span class="n">Args</span><span class="p">...</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -855,7 +866,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define EXPR(name, fun)  FUNCTION_GEN(name, fun)</span></td>
+      <td class="src "><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">ConstantValue</span><span class="o">::</span><span class="n">none</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -863,7 +874,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define STMT(name, fun)  FUNCTION_GEN(name, fun)</span></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -871,7 +882,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#define MATCH(name, fun) FUNCTION_GEN(name, fun)</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -879,7 +890,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#define FUNCTION_GEN(name, fun) virtual PartialResult* fun(name##_t* n, int depth);</span></td>
     </tr>
 
     <tr class="source-line">
@@ -887,7 +898,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">NODEKIND_ENUM</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">SSECTION</span><span class="p">,</span><span class="w"> </span><span class="n">EXPR</span><span class="p">,</span><span class="w"> </span><span class="n">STMT</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">,</span><span class="w"> </span><span class="n">MATCH</span><span class="p">)</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -895,7 +906,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#define X(name, _)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -903,7 +914,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef X</span></td>
+      <td class="src "><span class="cp">#define SSECTION(name)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -911,7 +922,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef SSECTION</span></td>
+      <td class="src "><span class="cp">#define MOD(name, fun)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -919,7 +930,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef EXPR</span></td>
+      <td class="src "><span class="cp">#define EXPR(name, fun)  FUNCTION_GEN(name, fun)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -927,7 +938,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef STMT</span></td>
+      <td class="src "><span class="cp">#define STMT(name, fun)  FUNCTION_GEN(name, fun)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -935,7 +946,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef MOD</span></td>
+      <td class="src "><span class="cp">#define MATCH(name, fun) FUNCTION_GEN(name, fun)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -943,7 +954,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef MATCH</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -951,7 +962,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">NODEKIND_ENUM</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">SSECTION</span><span class="p">,</span><span class="w"> </span><span class="n">EXPR</span><span class="p">,</span><span class="w"> </span><span class="n">STMT</span><span class="p">,</span><span class="w"> </span><span class="n">MOD</span><span class="p">,</span><span class="w"> </span><span class="n">MATCH</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -959,7 +970,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#undef FUNCTION_GEN</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -967,7 +978,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#undef X</span></td>
     </tr>
 
     <tr class="source-line">
@@ -975,7 +986,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// this some clean up code, acknowledge we have exceptions</span></td>
+      <td class="src "><span class="cp">#undef SSECTION</span></td>
     </tr>
 
     <tr class="source-line">
@@ -983,7 +994,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// but this code needs to run regardless, it will stop if new exceptions are raised</span></td>
+      <td class="src "><span class="cp">#undef EXPR</span></td>
     </tr>
 
     <tr class="source-line">
@@ -991,7 +1002,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">HandleException</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cp">#undef STMT</span></td>
     </tr>
 
     <tr class="source-line">
@@ -999,15 +1010,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="n">HandleException</span><span class="p">(</span><span class="n">TreeEvaluator</span><span class="o">*</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">self</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="cp">#undef MOD</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l107" href="#l107">107</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">            </span><span class="n">self</span><span class="o">-&gt;</span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">size</span><span class="p">());</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "><span class="cp">#undef MATCH</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1015,7 +1026,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1023,7 +1034,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#undef FUNCTION_GEN</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1031,7 +1042,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="o">~</span><span class="n">HandleException</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">self</span><span class="o">-&gt;</span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1039,7 +1050,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// this some clean up code, acknowledge we have exceptions</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1047,7 +1058,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="n">TreeEvaluator</span><span class="o">*</span><span class="w"> </span><span class="n">self</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// but this code needs to run regardless, it will stop if new exceptions are raised</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1055,7 +1066,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="p">};</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">HandleException</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1063,15 +1074,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">        </span><span class="n">HandleException</span><span class="p">(</span><span class="n">TreeEvaluator</span><span class="o">*</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">self</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l115" href="#l115">115</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Expression</span><span class="w"> </span><span class="n">root</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="n">self</span><span class="o">-&gt;</span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">size</span><span class="p">());</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1079,7 +1090,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Bindings</span><span class="o">&amp;</span><span class="w">  </span><span class="n">bindings</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1095,7 +1106,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// `Registers`</span></td>
+      <td class="src "><span class="w">        </span><span class="o">~</span><span class="n">HandleException</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">self</span><span class="o">-&gt;</span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1103,7 +1114,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">return_value</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1111,7 +1122,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">           </span><span class="n">loop_break</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">        </span><span class="n">TreeEvaluator</span><span class="o">*</span><span class="w"> </span><span class="n">self</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1119,7 +1130,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">           </span><span class="n">loop_continue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="p">};</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1127,7 +1138,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">           </span><span class="n">yielding</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1135,7 +1146,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// Helpers</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1143,7 +1154,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">PartialResult</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">exceptions</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">get_next</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">iterator</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1151,7 +1162,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w">        </span><span class="n">cause</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_enter</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1159,7 +1170,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">int</span><span class="w">                   </span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_exit</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1167,7 +1178,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_native</span><span class="p">(</span><span class="n">Call_t</span><span class="o">*</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">BuiltinType_t</span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1175,7 +1186,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// Helpers</span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_script</span><span class="p">(</span><span class="n">Call_t</span><span class="o">*</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">FunctionDef_t</span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1183,7 +1194,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">get_next</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">iterator</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">make_generator</span><span class="p">(</span><span class="n">Call_t</span><span class="o">*</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">FunctionDef_t</span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1191,7 +1202,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_enter</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1199,7 +1210,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_exit</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute_body</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1207,7 +1218,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_native</span><span class="p">(</span><span class="n">Call_t</span><span class="o">*</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">BuiltinType_t</span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute_loop_body</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1215,7 +1226,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">call_script</span><span class="p">(</span><span class="n">Call_t</span><span class="o">*</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">FunctionDef_t</span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1223,7 +1234,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">make_generator</span><span class="p">(</span><span class="n">Call_t</span><span class="o">*</span><span class="w"> </span><span class="n">call</span><span class="p">,</span><span class="w"> </span><span class="n">FunctionDef_t</span><span class="o">*</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">raise_exception</span><span class="p">(</span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exception</span><span class="p">,</span><span class="w"> </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1239,7 +1250,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute_body</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// Only returns true when new exceptions pop up</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1247,7 +1258,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute_loop_body</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// we usually expect 0 exceptions,</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1255,7 +1266,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// during exceptions handling we will execpt n and this will only be true</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1263,7 +1274,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">raise_exception</span><span class="p">(</span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exception</span><span class="p">,</span><span class="w"> </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// if new exceptions are raised during the previous exceptions handling</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1271,7 +1282,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">has_exceptions</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">exceptions</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">handling_exceptions</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1279,7 +1290,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// Only returns true when new exceptions pop up</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1287,7 +1298,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// we usually expect 0 exceptions,</span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="n">StmtNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1295,7 +1306,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// during exceptions handling we will execpt n and this will only be true</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1303,7 +1314,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// if new exceptions are raised during the previous exceptions handling</span></td>
+      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1311,31 +1322,31 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">has_exceptions</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">exceptions</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">handling_exceptions</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exec</span><span class="p">(</span><span class="n">StmtNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l146" href="#l146">146</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">97</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">StackTrace</span><span class="o">&amp;</span><span class="w"> </span><span class="n">trace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_trace</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l147" href="#l147">147</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StackTrace</span><span class="o">&gt;</span><span class="w"> </span><span class="n">traces</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount coveredLine">97</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">trace</span><span class="p">.</span><span class="n">stmt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">stmt</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l148" href="#l148">148</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="linecount coveredLine">97</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">Super</span><span class="o">::</span><span class="n">exec</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1343,7 +1354,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1351,7 +1362,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1359,11 +1370,227 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exec</span><span class="p">(</span><span class="n">ExprNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">expr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l152" href="#l152">152</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">242</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">StackTrace</span><span class="o">&amp;</span><span class="w"> </span><span class="n">trace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_trace</span><span class="p">();</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l153" href="#l153">153</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">242</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">trace</span><span class="p">.</span><span class="n">expr</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">expr</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l154" href="#l154">154</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">242</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">Super</span><span class="o">::</span><span class="n">exec</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l155" href="#l155">155</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l156" href="#l156">156</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l157" href="#l157">157</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">StackTrace</span><span class="o">&amp;</span><span class="w"> </span><span class="n">get_trace</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">traces</span><span class="p">[</span><span class="n">traces</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l158" href="#l158">158</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l159" href="#l159">159</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// private:</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l160" href="#l160">160</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// --------</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l161" href="#l161">161</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Expression</span><span class="w"> </span><span class="n">root</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l162" href="#l162">162</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Bindings</span><span class="o">&amp;</span><span class="w">  </span><span class="n">bindings</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l163" href="#l163">163</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l164" href="#l164">164</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// `Registers`</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l165" href="#l165">165</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">return_value</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l166" href="#l166">166</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">           </span><span class="n">loop_break</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l167" href="#l167">167</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">           </span><span class="n">loop_continue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l168" href="#l168">168</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w">           </span><span class="n">yielding</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l169" href="#l169">169</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l170" href="#l170">170</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l171" href="#l171">171</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="kt">int</span><span class="w">            </span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l172" href="#l172">172</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l173" href="#l173">173</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="k">struct</span><span class="w"> </span><span class="nc">lyException</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">exceptions</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l174" href="#l174">174</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StackTrace</span><span class="o">&gt;</span><span class="w">          </span><span class="n">traces</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l175" href="#l175">175</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l176" href="#l176">176</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l177" href="#l177">177</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l178" href="#l178">178</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l179" href="#l179">179</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1371,7 +1598,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l153" href="#l153">153</a></td>
+      <td class="lineno"><a id="l180" href="#l180">180</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
