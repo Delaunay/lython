@@ -1010,8 +1010,28 @@ String shortprint(Node const* node) {
     return str(node);
 }
 
-void printtrace(StackTrace& trace) {
+Node const* get_parent(Node const* parent) {
+    Node const* n = parent->get_parent();
+    Node const* p = n;
 
+    while (n != nullptr) {
+        p = n;
+
+        if (n->kind == NodeKind::Module) {
+            break;
+        }
+
+        if (n->kind == NodeKind::FunctionDef) {
+            break;
+        }
+
+        n = p->get_parent();
+    }
+
+    return p;
+}
+
+void printtrace(StackTrace& trace) {
     String file   = "<input>";
     int    line   = -1;
     String parent = "<module>";
@@ -1019,14 +1039,12 @@ void printtrace(StackTrace& trace) {
 
     if (trace.stmt) {
         line   = trace.stmt->lineno;
-        parent = shortprint(trace.stmt->get_parent());
+        parent = shortprint(get_parent(trace.stmt));
         expr   = shortprint(trace.stmt);
-    }
-
-    else if (trace.expr) {
+    } else if (trace.expr) {
         line   = trace.expr->lineno;
-        parent = shortprint(trace.expr->get_parent());
-        expr   = shortprint(trace.expr);
+        parent = shortprint(trace.stmt);
+        expr   = shortprint(trace.stmt);
     }
 
     fmt::print("  File \"{}\", line {}, in {}\n", file, line, parent);
