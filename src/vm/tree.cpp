@@ -178,6 +178,9 @@ PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
     auto lhs = exec(n->left, depth);
     auto rhs = exec(n->right, depth);
 
+    // TODO: if they evaluate to constant that belong to the value root
+    // we can free them as soon as we finish combining the values
+
     // We can execute the function because both arguments got resolved
     if (lhs && lhs->is_instance<Constant>() && rhs && rhs->is_instance<Constant>()) {
 
@@ -791,7 +794,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
         auto _ = HandleException(this);
 
         ExceptHandler const* matched          = nullptr;
-        PartialResult*       latest_exception = nullptr;  // exceptions[exceptions.size() - 1];
+        lyException*         latest_exception = exceptions[exceptions.size() - 1];
 
         for (ExceptHandler const& handler: n->handlers) {
             // match the exception type to the one we received
@@ -803,16 +806,20 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
             }
 
             // FIXME: we do not have the type at runtime!!!
-            else if (equal(handler.type.value(), latest_exception)) {
+            else if (equal(handler.type.value(), latest_exception->type)) {
                 matched = &handler;
                 break;
             }
         }
 
         if (matched) {
+            Scope    _(bindings);
+            Constant exception;
+
             // Execute Handler
             if (matched->name.has_value()) {
-                bindings.add(matched->name.value(), latest_exception, nullptr);
+                exception.value = latest_exception->custom;
+                bindings.add(matched->name.value(), &exception, nullptr);
             }
 
             for (StmtNode* stmt: matched->body) {
@@ -821,6 +828,10 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
                 // new exception
                 if (has_exceptions()) {
                     return None();
+                }
+
+                if (return_value != nullptr) {
+                    break;
                 }
             }
 
@@ -837,6 +848,10 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
 
             if (has_exceptions()) {
                 return None();
+            }
+
+            if (return_value != nullptr) {
+                break;
             }
         }
     }
