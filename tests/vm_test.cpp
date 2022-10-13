@@ -381,4 +381,16 @@ TEST_CASE("VM_NamedExpr") {
                   "1");
 }
 
+TEST_CASE("VM_ClassDef") {
+    run_test_case("class Point:\n"
+                  "    def __init__(self, x: float, y: float):\n"
+                  "        self.x = x\n"
+                  "        self.y = y\n"
+                  "\n"
+                  "def fun(p: Point) -> float:\n"
+                  "    return (p.x + p.y)\n"
+                  "",
+                  "fun(Point(1, 2))",
+                  "3");
+}
 #endif

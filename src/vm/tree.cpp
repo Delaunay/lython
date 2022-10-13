@@ -1,6 +1,7 @@
 
 #include "../dtypes.h"
 #include "ast/values/exception.h"
+#include "ast/values/generator.h"
 #include "logging/logging.h"
 #include "utilities/guard.h"
 
@@ -341,12 +342,18 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
 
 PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
 
+    Generator* gen = root.new_object<Generator>();
+    gen->scope     = bindings;
+
     for (int i = 0; i < call->args.size(); i++) {
         PartialResult* arg = exec(call->args[i], depth);
-        bindings.add(StringRef(), arg, nullptr);
+        gen->scope.add(StringRef(), arg, nullptr);
     }
 
-    return nullptr;
+    Constant* val = root.new_object<Constant>();
+    val->value    = ConstantValue(gen);
+
+    return val;
 }
 
 PartialResult* TreeEvaluator::call(Call_t* n, int depth) {

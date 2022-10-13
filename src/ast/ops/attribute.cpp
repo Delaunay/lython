@@ -78,11 +78,11 @@ StmtNode* getattr(StmtNode* obj, String const& attr, ExprNode*& type) {
         return nullptr;
     }
 
-    ClassDef*      def = cast<ClassDef>(obj);
-    ClassDef::Attr at;
-    bool           found = def->get_attribute(attr, at);
+    ClassDef* def    = cast<ClassDef>(obj);
+    int       attrid = def->get_attribute(attr);
 
-    if (found) {
+    if (attrid > -1) {
+        ClassDef::Attr& at = def->attributes[attrid];
         return at.stmt;
     }
 

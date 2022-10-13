@@ -6,7 +6,10 @@
 
 namespace lython {
 
-struct NativeObject: GCObject {};
+// TODO: allow native object to register their own method
+struct NativeObject: GCObject {
+    //
+};
 }  // namespace lython
 
 #endif

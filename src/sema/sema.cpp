@@ -571,13 +571,13 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
         return nullptr;
     }
 
-    ClassDef::Attr attr;
-    bool           found = class_t->get_attribute(n->attr, attr);
-
-    if (!found) {
+    n->attrid = class_t->get_attribute(n->attr);
+    if (n->attrid == -1) {
         SEMA_ERROR(AttributeError(class_t, n->attr));
+        return nullptr;
     }
 
+    ClassDef::Attr& attr = class_t->attributes[n->attrid];
     return attr.type;
 }
 
@@ -590,15 +590,15 @@ TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* 
         return nullptr;
     }
 
-    ClassDef::Attr attr;
-    bool           found = class_t->get_attribute(n->attr, attr);
-
-    if (!found) {
+    n->attrid = class_t->get_attribute(n->attr);
+    if (n->attrid == -1) {
         SEMA_ERROR(AttributeError(class_t, n->attr));
+        return nullptr;
     }
 
     // Update attribute type when we are in an assignment
-    if (found && attr.type == nullptr) {
+    ClassDef::Attr& attr = class_t->attributes[n->attrid];
+    if (n->attrid > 0 && attr.type == nullptr) {
         attr.type = expected;
     }
 
@@ -996,7 +996,10 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
 
     // Do a first pass to look for special methods such as __init__
     // the attributes here are also static
-    record_attributes(this, n, n->body, methods, &ctor, depth);
+    {
+        Scope _(bindings);
+        record_attributes(this, n, n->body, methods, &ctor, depth);
+    }
     // -----------------------------
 
     auto class_t = make_ref(n, str(n->name));
@@ -1004,7 +1007,8 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     // get __init__ and do a pass to insert its attribute to the class
     if (ctor != nullptr) {
         // Traverse body to look for our attributes
-        auto ctor_t = record_ctor_attributes(this, n, ctor, depth);
+        Scope _(bindings);
+        auto  ctor_t = record_ctor_attributes(this, n, ctor, depth);
 
         // Fix ctor type
         if (ctor_t != nullptr) {

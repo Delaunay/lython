@@ -356,6 +356,13 @@ Array<TestCase> const& Return_examples() {
             "return 1, 2",
             {},
         },
+        {
+            "return a + b",
+            {
+                NE("a"),
+                NE("b"),
+            },
+        },
     };
     return ex;
 }

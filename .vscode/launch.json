@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
             "args": [
-                "VM_FunctionDef_recursive"
+                "VM_ClassDef"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
