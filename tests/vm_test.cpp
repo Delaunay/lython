@@ -388,7 +388,7 @@ TEST_CASE("VM_ClassDef") {
                   "        self.y = y\n"
                   "\n"
                   "def fun(p: Point) -> float:\n"
-                  "    return (p.x + p.y)\n"
+                  "    return p.x + p.y\n"
                   "",
                   "fun(Point(1, 2))",
                   "3");

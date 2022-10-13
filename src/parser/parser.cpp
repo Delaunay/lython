@@ -2188,7 +2188,16 @@ ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
 
     switch (token().type()) {
     // <expr>(args...)
-    case tok_parens: primary = parse_call(parent, primary, depth);
+    case tok_parens: {
+        primary = parse_call(parent, primary, depth);
+        break;
+    }
+
+    // <expr>.<identifier>
+    case tok_dot: {
+        primary = parse_attribute(parent, primary, depth);
+        break;
+    }
     }
 
     primary = parse_expression_1(parent, primary, 0, depth, comma);
@@ -2286,8 +2295,6 @@ ExprNode* Parser::parse_expression_1(
     case tok_in:
     case tok_operator: return parse_operators(parent, primary, min_precedence, depth);
 
-    // <expr>.<identifier>
-    case tok_dot: return parse_attribute(parent, primary, depth);
     // <expr>[
     case tok_square: return parse_subscript(parent, primary, depth);
 

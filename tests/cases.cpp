@@ -363,6 +363,13 @@ Array<TestCase> const& Return_examples() {
                 NE("b"),
             },
         },
+        {
+            "return p.x + p.y",
+            {
+                NE("p"),
+                NE("p"),
+            },
+        },
     };
     return ex;
 }
