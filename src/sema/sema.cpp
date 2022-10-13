@@ -578,7 +578,13 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
     }
 
     ClassDef::Attr& attr = class_t->attributes[n->attrid];
-    return attr.type;
+
+    if (attr.type) {
+        auto attr_type_type = exec(attr.type, depth);
+        typecheck(attr.type, attr_type_type, nullptr, Type_t(), LOC);
+        return attr.type;
+    }
+    return nullptr;
 }
 
 TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* expected) {
@@ -602,7 +608,12 @@ TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* 
         attr.type = expected;
     }
 
-    return attr.type;
+    if (attr.type) {
+        auto attr_type_type = exec(attr.type, depth);
+        typecheck(attr.type, attr_type_type, nullptr, Type_t(), LOC);
+        return attr.type;
+    }
+    return nullptr;
 }
 
 TypeExpr* SemanticAnalyser::subscript(Subscript* n, int depth) {
