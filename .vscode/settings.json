@@ -114,5 +114,8 @@
     "stack": "cpp",
     "*.inc": "cpp"
   },
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "files.exclude": {
+    "**/.git": false
+  }
 }
