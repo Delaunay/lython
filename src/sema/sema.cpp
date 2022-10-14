@@ -5,8 +5,8 @@
 #include "utilities/strings.h"
 
 namespace lython {
-ClassDef* get_class(Bindings const& bindings, ExprNode* classref);
-Arrow*    get_arrow(SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset);
+Arrow* get_arrow(
+    SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls);
 
 bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type) {
     auto name = cast<Name>(expr);
@@ -34,9 +34,9 @@ bool SemanticAnalyser::typecheck(
     return match;
 }
 
-Tuple<ClassDef*, FunctionDef*> SemanticAnalyser::find_method(TypeExpr*     class_type,
-                                                             String const& methodname) {
-    ClassDef* cls = get_class(bindings, class_type);
+Tuple<ClassDef*, FunctionDef*>
+SemanticAnalyser::find_method(TypeExpr* class_type, String const& methodname, int depth) {
+    ClassDef* cls = get_class(class_type, depth);
 
     if (cls == nullptr) {
         return std::make_tuple(nullptr, nullptr);
@@ -49,15 +49,8 @@ Tuple<ClassDef*, FunctionDef*> SemanticAnalyser::find_method(TypeExpr*     class
 
 // classname.__and__
 String SemanticAnalyser::operator_function(TypeExpr* expr_t, StringRef op) {
-    auto cls_ref = cast<Name>(expr_t);
-
-    ClassDef* expr_cls = nullptr;
-
-    if (cls_ref) {
-        expr_cls = cast<ClassDef>(bindings.get_value(cls_ref->varid));
-    } else {
-        expr_cls = cast<ClassDef>(expr_t);
-    }
+    auto      cls_ref  = cast<Name>(expr_t);
+    ClassDef* expr_cls = cast<ClassDef>(load_name(cls_ref));
 
     if (expr_cls) {
         return join(".", Array<String>{expr_cls->cls_namespace, String(StringView(op))});
@@ -424,18 +417,43 @@ TypeExpr* SemanticAnalyser::yieldfrom(YieldFrom* n, int depth) { return exec(n->
 // <fun>(arg1 arg2 ...)
 //
 
-ClassDef* get_class(Bindings const& bindings, ExprNode* classref) {
+Node* SemanticAnalyser::load_name(Name_t* n) {
+    if (n == nullptr) {
+        return nullptr;
+    }
+
+    Node* result = nullptr;
+    int   varid  = 0;
+
+    if (n->dynamic) {
+        // Local variables | Arguments
+        assert(n->offset != -1, "Reference should have a reverse lookup offset");
+        varid  = int(bindings.bindings.size()) - n->offset;
+        result = bindings.get_value(varid);
+    } else {
+        // Global variables
+        result = bindings.get_value(n->varid);
+    }
+
+    return result;
+}
+
+ClassDef* SemanticAnalyser::get_class(ExprNode* classref, int depth) {
     auto cls_name = cast<Name>(classref);
+
     if (!cls_name) {
         return nullptr;
     }
-    // Class is a compile-time value
-    auto cls_node = bindings.get_value(cls_name->varid);
-    auto cls      = cast<ClassDef>(cls_node);
+
+    cls_name->ctx = ExprContext::Load;
+    // assert(cls_name->ctx == ExprContext::Load, "Reference to the class should be loaded");
+    auto cls = cast<ClassDef>(load_name(cls_name));
+
     return cls;
 }
 
-Arrow* get_arrow(SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset) {
+Arrow* get_arrow(
+    SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls) {
     if (type == nullptr) {
         return nullptr;
     }
@@ -449,18 +467,52 @@ Arrow* get_arrow(SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int dept
         if (!equal(type, Type_t())) {
             return nullptr;
         }
-        auto      cls   = get_class(self->bindings, fun);
+
+        // Fetch the class type inside the binding
+        cls             = self->get_class(fun, depth);
         TypeExpr* arrow = nullptr;
-        auto      init  = getattr(cls, "__init__", arrow);
-        offset          = 1;
+
+        // The methods were added to the context outside of the class itself
+        // here we need to resolve the method which is inside the context
+
+        // NOTE: we should call __new__ here implictly
+        //
+
+        String ctor_name = String(cls->name) + String(".__init__");
+        int    ctorvarid = self->bindings.get_varid(ctor_name);
+        Node*  ctor      = self->bindings.get_value(ctorvarid);
+
+        // Now we can switch the function being called from being the class
+        // to being the constructor of the class
+        assert(fun->kind == NodeKind::Name, "Expect a reference to the class");
+
+        // update the ref to point to the constructor if we found it
+        Name* fun_ref = cast<Name>(fun);
+        if (fun_ref && ctorvarid != -1) {
+            fun_ref->varid   = ctorvarid;
+            fun_ref->size    = int(self->bindings.bindings.size()) - fun_ref->varid;
+            fun_ref->dynamic = self->bindings.is_dynamic(fun_ref->varid);
+        } else {
+            warn("Constructor was not found");
+        }
+
+        FunctionDef* init = cast<FunctionDef>(ctor);
+        // auto init = getattr(cls, "__init__", arrow);
+        offset = 1;
 
         if (init == nullptr) {
             debug("Use default ctor");
-            Arrow* arrow = fun->new_object<Arrow>();
-            arrow->args.push_back(self->make_ref(arrow, str(cls->name)));
-            arrow->returns = fun;
+            auto   cls_ref = self->make_ref(fun, cls->name);
+            Arrow* arrow   = fun->new_object<Arrow>();
+            arrow->args.push_back(cls_ref);
+            arrow->returns = cls_ref;
             return arrow;
         } else {
+            // ctor should already have been sema'ed
+            if (init->type) {
+                return init->type;
+            }
+
             auto init_t = self->exec(init, depth);
             debug("Got a custom ctor {}", str(init_t));
             return cast<Arrow>(init_t);
@@ -471,9 +523,12 @@ Arrow* get_arrow(SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int dept
 }
 
 TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
-    auto type   = exec(n->func, depth);
-    int  offset = 0;
-    auto arrow  = get_arrow(this, n->func, type, depth, offset);
+    // Get the type of the function
+    auto type = exec(n->func, depth);
+
+    int       offset = 0;
+    ClassDef* cls    = nullptr;
+    auto      arrow  = get_arrow(this, n->func, type, depth, offset, cls);
 
     if (arrow == nullptr) {
         SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
@@ -487,8 +542,9 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     if (arrow != nullptr) {
         got->args.reserve(arrow->args.size());
     }
-    if (offset == 1) {
-        auto cls = get_class(bindings, n->func);
+
+    // Method, insert the self argument since it is implicit
+    if (offset == 1 && cls) {
         got->args.push_back(make_ref(got, str(cls->name)));
     }
 
@@ -564,45 +620,60 @@ TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
 // This is only called when loading
 TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
     auto type_t  = exec(n->value, depth);
-    auto class_t = get_class(bindings, type_t);
+    auto class_t = get_class(type_t, depth);
 
     if (class_t == nullptr) {
-        SEMA_ERROR(NameError(n->value, str(n->value)));
+        // class was not found, this is probably because the lookup
+        // of the value failed, it should have produced a precise error
+        // so we do not have to
+        // SEMA_ERROR(NameError(n->value, str(n->value)));
         return nullptr;
     }
 
-    ClassDef::Attr attr;
-    bool           found = class_t->get_attribute(n->attr, attr);
-
-    if (!found) {
+    n->attrid = class_t->get_attribute(n->attr);
+    if (n->attrid == -1) {
         SEMA_ERROR(AttributeError(class_t, n->attr));
+        return nullptr;
     }
 
-    return attr.type;
+    ClassDef::Attr& attr = class_t->attributes[n->attrid];
+
+    if (attr.type) {
+        auto attr_type_type = exec(attr.type, depth);
+        typecheck(attr.type, attr_type_type, nullptr, Type_t(), LOC);
+        return attr.type;
+    }
+    return nullptr;
 }
 
 TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* expected) {
+    // self: Ref[class_t]
     auto type_t  = exec(n->value, depth);
-    auto class_t = get_class(bindings, type_t);
+    auto class_t = get_class(type_t, depth);
 
     if (class_t == nullptr) {
         SEMA_ERROR(NameError(n->value, str(n->value)));
         return nullptr;
     }
 
-    ClassDef::Attr attr;
-    bool           found = class_t->get_attribute(n->attr, attr);
-
-    if (!found) {
+    n->attrid = class_t->get_attribute(n->attr);
+    if (n->attrid == -1) {
         SEMA_ERROR(AttributeError(class_t, n->attr));
+        return nullptr;
     }
 
     // Update attribute type when we are in an assignment
-    if (found && attr.type == nullptr) {
+    ClassDef::Attr& attr = class_t->attributes[n->attrid];
+    if (n->attrid > 0 && attr.type == nullptr) {
         attr.type = expected;
     }
 
-    return attr.type;
+    if (attr.type) {
+        auto attr_type_type = exec(attr.type, depth);
+        typecheck(attr.type, attr_type_type, nullptr, Type_t(), LOC);
+        return attr.type;
+    }
+    return nullptr;
 }
 
 TypeExpr* SemanticAnalyser::subscript(Subscript* n, int depth) {
@@ -625,9 +696,9 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         debug("Storing value for {} ({})", n->id, n->varid);
     } else {
         // Both delete & Load requires the variable to be defined first
-        n->varid  = bindings.get_varid(n->id);
-        n->offset = int(bindings.bindings.size()) - n->varid;
-
+        n->varid   = bindings.get_varid(n->id);
+        n->size    = int(bindings.bindings.size());
+        n->offset  = int(bindings.bindings.size()) - n->varid;
         n->dynamic = bindings.is_dynamic(n->varid);
 
         if (n->varid == -1) {
@@ -635,6 +706,8 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
             SEMA_ERROR(NameError(n, n->id));
         }
     }
+
+    // assert(n->varid != -1, "Should have been founds");
 
     auto t = bindings.get_type(n->varid);
     if (t == nullptr) {
@@ -782,7 +855,6 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     }
 
     PopGuard nested_stmt(nested, (StmtNode*)n);
-    PopGuard _(namespaces, str(n->name));
     PopGuard ctx(semactx, SemaContext());
 
     // Set the type right away
@@ -793,21 +865,26 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
         return_t      = n->returns.value();
         auto typetype = exec(return_t, depth);
         typecheck(return_t, typetype, nullptr, Type_t(), LOC);
-
         type->returns = n->returns.value();
     }
 
-    // Add the function name first to handle recursive calls
-    auto id = bindings.add(n->name, n, type);
+    // Generate the function name
+    String funname = String(n->name);
+    if (namespaces.size() > 0) {
+        String cls_namespace = join(".", namespaces);
+        funname              = fmtstr("{}.{}", cls_namespace, funname);
+    }
+    PopGuard _(namespaces, str(n->name));
+
+    // Insert the function into the global context
+    auto id = bindings.add(funname, n, type);
+
+    // The arguments will be rolled back
+    Scope scope(bindings);
 
     auto lst = nested_stmt.last(1, nullptr);
-
-    // Add the arguments to the context
-    Scope scope(bindings);
     add_arguments(n->args, type, cast<ClassDef>(lst), depth);
     // --
-
-    bindings.dump(std::cout);
 
     auto return_effective = exec<TypeExpr*>(n->body, depth);
 
@@ -825,7 +902,6 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
         // TODO check the signature here
     }
 
-    // bindings.dump(std::cout);
     n->type      = type;
     n->generator = get_context().yield;
     return type;
@@ -900,10 +976,10 @@ void record_attributes(SemanticAnalyser*       self,
     }
 }
 
-Arrow* record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* ctor, int depth) {
+void record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* ctor, int depth) {
     if (ctor->args.args.size() <= 0) {
         error("__init__ without self");
-        return nullptr;
+        return;
     }
 
     info("Looking for attributes inside the ctor");
@@ -911,6 +987,8 @@ Arrow* record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* 
 
     // we need the arguments in the scope so we can look them up
     Arrow arrow;
+
+    Scope _(sema->bindings);
     sema->add_arguments(ctor->args, &arrow, n, depth);
 
     for (auto stmt: ctor->body) {
@@ -964,15 +1042,16 @@ Arrow* record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* 
         n->insert_attribute(attr->attr, stmt, type);
     }
 
-    // We have identified all the attributes
-    // we can now do the semantic analysis
-    return cast<Arrow>(sema->exec(ctor, depth));
+    return;
 }
 TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     PopGuard _(nested, n);
     PopGuard _n(namespaces, str(n->name));
 
-    int id = bindings.add(n->name, n, Type_t());
+    // a class is a new type
+    // the type of a class is type
+    int   id      = bindings.add(n->name, n, Type_t());
+    Name* class_t = make_ref(n, str(n->name), id);
 
     // TODO: go through bases and add their elements
     for (auto base: n->bases) {
@@ -999,21 +1078,19 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     record_attributes(this, n, n->body, methods, &ctor, depth);
     // -----------------------------
 
-    auto class_t = make_ref(n, str(n->name));
-
     // get __init__ and do a pass to insert its attribute to the class
     if (ctor != nullptr) {
         // Traverse body to look for our attributes
-        auto ctor_t = record_ctor_attributes(this, n, ctor, depth);
+        record_ctor_attributes(this, n, ctor, depth);
+
+        // add the constructor to the context
+        auto ctor_t = cast<Arrow>(exec(ctor, depth));
 
         // Fix ctor type
         if (ctor_t != nullptr) {
             ctor_t->args[0] = class_t;
             ctor_t->returns = class_t;
         }
-
-        String name = fmtstr("{}.{}", cls_namespace, ctor->name);
-        bindings.add(name, ctor, ctor_t);
     }
     // -----------------------------
 
@@ -1028,13 +1105,6 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         if (fun_t != nullptr) {
             fun_t->args[0] = class_t;
         }
-
-        if (fun != nullptr) {
-            // class_name.class_name.function_name._function_name
-            fun->type   = fun_t;
-            String name = fmtstr("{}.{}", n->cls_namespace, fun->name);
-            bindings.add(name, fun, fun_t);
-        }
     }
 
     // ----
@@ -1043,6 +1113,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         auto deco_t = exec(deco, depth);
         // TODO: check signature here
     }
+
     return Type_t();
 }
 TypeExpr* SemanticAnalyser::returnstmt(Return* n, int depth) {
@@ -1233,7 +1304,7 @@ TypeExpr* SemanticAnalyser::trystmt(Try* n, int depth) {
             exception_type = handler.type.value();
 
             TypeExpr* type = exec(exception_type, depth);
-            typecheck(exception_type, type, nullptr, make_ref(n, "type"), LOC);
+            typecheck(exception_type, type, nullptr, make_ref(n, "Type"), LOC);
         }
 
         if (handler.name.has_value()) {

@@ -18,13 +18,13 @@ String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 using namespace lython;
 
-void run_testcase(String const &name, Array<TestCase> cases);
+void run_testcase(String const& name, Array<TestCase> cases);
 
 TEST_CASE("SEMA_FunctionDef_Typing") {
     static Array<TestCase> ex = {
         {
             "def fun():\n"
-            "    return x\n", // Name error
+            "    return x\n",  // Name error
             {
                 NE("x"),
             },
@@ -32,18 +32,18 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
-            "x = fun(1)\n" // Works
+            "x = fun(1)\n"  // Works
         },
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
-            "x: i32 = fun(1)\n" // Works
+            "x: i32 = fun(1)\n"  // Works
         },
 
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
-            "x = fun(1.0)\n", // Type Error
+            "x = fun(1.0)\n",  // Type Error
             {
                 TE("fun(1.0)", "(f64) -> i32", "fun", "(i32) -> i32"),
             },
@@ -52,7 +52,7 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
-            "x: f32 = fun(1)\n", // Type Error
+            "x: f32 = fun(1)\n",  // Type Error
             {
                 TE("x", "f32", "fun(1)", "i32"),
             },
@@ -61,19 +61,19 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
         {
             "def fun(a: i32, b: f64) -> i32:\n"
             "    return a\n"
-            "x: i32 = fun(b=1.0, a=1)\n", // works
+            "x: i32 = fun(b=1.0, a=1)\n",  // works
         },
 
         {
             "def fun(a: i32 = 1, b: f64 = 1.1) -> i32:\n"
             "    return a\n"
-            "x: i32 = fun()\n", // works
+            "x: i32 = fun()\n",  // works
         },
 
         {
             "def fun(a: i32, b: f64 = 1.1) -> i32:\n"
             "    return a\n"
-            "x: i32 = fun()\n", // missing argument
+            "x: i32 = fun()\n",  // missing argument
             {
                 // TE("Argument a is not defined");
             },
@@ -105,11 +105,11 @@ TEST_CASE("SEMA_ClassDef_Attribute") {
             "    def __init__(self, a: i32):\n"
             "        self.a = a\n"
             "\n"
-            "a = Custom(1)\n" // works
+            "a = Custom(1)\n"  // works
         },
         {
             "class Name:\n"
-            "    def __init__(self, x: i32):\n" // Resolve an attribute defined inside the ctor
+            "    def __init__(self, x: i32):\n"  // Resolve an attribute defined inside the ctor
             "        self.x = x\n"
             "\n"
             "a = Name(2)\n"
@@ -161,7 +161,7 @@ TEST_CASE("SEMA_ClassDef_Static_Attribute") {
 TEST_CASE("SEMA_ClassDef_Magic_BoolOperator") {
     static Array<TestCase> ex = {
         {
-            "class CustomAnd:\n" // Bool op
+            "class CustomAnd:\n"  // Bool op
             "    pass\n"
             "\n"
             "a = CustomAnd()\n"
@@ -171,12 +171,12 @@ TEST_CASE("SEMA_ClassDef_Magic_BoolOperator") {
             },
         },
         {
-            "class CustomAnd:\n" // Bool op
-            "    def __and__(self, a: bool) -> bool:\n"
+            "class CustomAnd:\n"  // Bool op
+            "    def __and__(self, b: bool) -> bool:\n"
             "        return True\n"
             "\n"
             "a = CustomAnd()\n"
-            "a and True\n" // <= lookup of __and__ to call __and__(a, b)
+            "a and True\n"  // <= lookup of __and__ to call __and__(a, b)
         },
     };
 
@@ -250,7 +250,7 @@ Array<TestCase> sema_cases() {
     return ex;
 }
 
-inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
+inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
     StringBuffer reader(code);
     Lexer        lex(reader);
     Parser       parser(lex);
@@ -264,23 +264,23 @@ inline Tuple<TypeExpr *, Array<String>> sema_it(String code, Module *&mod) {
     sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
 
-    BindingEntry &entry = sema.bindings.bindings.back();
+    BindingEntry& entry = sema.bindings.bindings.back();
 
     Array<String> errors;
-    for (auto &err: sema.errors) {
+    for (auto& err: sema.errors) {
         errors.push_back(err->what());
     }
 
     return std::make_tuple(entry.type, errors);
 }
 
-void run_testcase(String const &name, Array<TestCase> cases) {
+void run_testcase(String const& name, Array<TestCase> cases) {
     info("Testing {}", name);
 
     Array<String> errors;
-    TypeExpr *    deduced_type = nullptr;
-    for (auto &c: cases) {
-        Module *mod;
+    TypeExpr*     deduced_type = nullptr;
+    for (auto& c: cases) {
+        Module* mod;
 
         std::tie(deduced_type, errors) = sema_it(c.code, mod);
 

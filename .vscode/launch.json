@@ -10,8 +10,10 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
             "args": [
-                "VM_FunctionDef_recursive"
+                "VM_ClassDef"
             ],
+            "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
+            "showDisplayString": true,
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -57,14 +59,16 @@
         },
         {
             "name": "Debug Sema",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/sema_test",
-            "args": [],
+            "program": "${workspaceFolder}/build/bin/Debug/sema_test.exe",
+            "args": [
+                "SEMA_ClassDef_Attribute*"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,
+            "externalConsole": true,
             "MIMode": "gdb",
             "setupCommands": [
                 {

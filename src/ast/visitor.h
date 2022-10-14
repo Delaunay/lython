@@ -16,6 +16,12 @@ struct DefaultVisitorTrait {
     using PatRet  = Pattern*;
 };
 
+#ifdef __linux__
+#    define LYTHON_INLINE
+#else
+#    define LYTHON_INLINE __forceinline
+#endif
+
 /*!
  * Visitor implemented using static polymorphism.
  * This implementation has 2 advantages:
@@ -222,7 +228,7 @@ struct BaseVisitor {
     }
 
 #define FUNCTION_GEN(name, fun, rtype)                                          \
-    rtype fun(name##_t* node, int depth, Args... args) {                        \
+    LYTHON_INLINE rtype fun(name##_t* node, int depth, Args... args) {          \
         if (Trace::value) {                                                     \
             trace(depth, #name);                                                \
         }                                                                       \

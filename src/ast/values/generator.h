@@ -10,6 +10,7 @@
 
 namespace lython {
 
+// this value is created when a function yields instead of returning
 struct Generator: public NativeObject {
     public:
     ConstantValue __next__(struct TreeEvaluator& vm);

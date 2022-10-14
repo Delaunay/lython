@@ -89,23 +89,29 @@ class StringDatabase {
     Array<Array<StringEntry>*> reverse;
 };
 
+#define STRING_VIEW(X) X
+
 // Very Cheap string reference
 class StringRef {
     public:
     StringRef(std::size_t r = 0): ref(StringDatabase::instance().inc(r)) {
         assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     StringRef(String const& name): ref(StringDatabase::instance().string(name).ref) {
         assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     StringRef(StringRef const& name): ref(StringDatabase::instance().inc(name.ref)) {
         assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     StringRef(StringRef const&& name): ref(StringDatabase::instance().inc(name.ref)) {
         assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     bool operator==(StringRef const& b) const { return ref == b.ref; }
@@ -115,12 +121,14 @@ class StringRef {
     StringRef& operator=(String const& name) {
         StringDatabase::instance().dec(ref);
         ref = StringDatabase::instance().string(name).ref;
+        STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
         return *this;
     }
 
     StringRef operator=(StringRef const& name) {
         StringDatabase::instance().dec(ref);
         ref = StringDatabase::instance().inc(name.ref);
+        STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
         return *this;
     }
 
@@ -136,6 +144,7 @@ class StringRef {
 
     private:
     std::size_t ref = 0;
+    StringView  debug_view;
 };
 
 std::ostream& operator<<(std::ostream& out, StringRef ref);

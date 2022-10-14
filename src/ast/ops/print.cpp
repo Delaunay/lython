@@ -956,8 +956,9 @@ void ConstantValue::print(std::ostream& out) const {
 
 String Node::__str__() const {
     StringStream ss;
-    if (kind == NodeKind::Invalid) {
+    if (kind <= NodeKind::Invalid) {
         error("Node is invalid");
+        return "<Invalid>";
     }
     Printer p;
     p.Super::exec<bool>(this, 0, ss, 0);

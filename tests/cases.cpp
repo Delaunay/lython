@@ -175,7 +175,7 @@ Array<TestCase> const& Try_examples() {
          "    pass\n",
          {
              NE("Exception"),
-             TE("Exception", "", "", "type"),
+             TE("Exception", "", "", "Type"),
          }},
     };
     return ex;
@@ -356,6 +356,20 @@ Array<TestCase> const& Return_examples() {
             "return 1, 2",
             {},
         },
+        {
+            "return a + b",
+            {
+                NE("a"),
+                NE("b"),
+            },
+        },
+        {
+            "return p.x + p.y",
+            {
+                NE("p"),
+                NE("p"),
+            },
+        },
     };
     return ex;
 }
@@ -391,6 +405,20 @@ Array<TestCase> const& ClassDef_examples() {
             //"        xx: i32 = 0\n"
             //"\n"
         },
+        // {
+        //     "class Name:\n"
+        //     "    x: i32 = 0\n"
+        //     "    y: i32 = 1\n"
+        //     "    z = 1.2\n"
+        //     "\n"
+        //     "    def __init__(self):\n"
+        //     "        self.x = 2\n"
+        //     "\n"
+        //     "    def method(self):\n"
+        //     "        return self.x\n"
+        //     "\n"
+        //     //
+        // },
     };
     return ex;
 }
@@ -543,7 +571,7 @@ Array<TestCase> const& Attribute_examples() {
         {"a.b",
          {
              NE("a"),
-             NE("a"),
+             // NE("a"),
          }},
     };
     return ex;

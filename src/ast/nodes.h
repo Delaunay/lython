@@ -510,6 +510,9 @@ struct Attribute: public ExprNode {
     Identifier  attr;
     ExprContext ctx;
 
+    // SEMA
+    int attrid = 0;
+
     Attribute(): ExprNode(NodeKind::Attribute) {}
 };
 
@@ -650,39 +653,46 @@ struct ClassDef: public StmtNode {
 
         void dump(std::ostream& out);
     };
-    Dict<StringRef, Attr> attributes;
+    // Dict<StringRef, Attr> attributes;
+    Array<Attr> attributes;
 
     void dump(std::ostream& out) {
         out << "Attributes:\n";
         for (auto& item: attributes) {
-            out << "`" << item.first << "` ";
-            item.second.dump(out);
+            out << "`" << item.name << "` ";
+            item.dump(out);
             out << "\n";
         }
     }
 
-    bool get_attribute(StringRef name, Attr& out) {
-        auto result = attributes.find(name);
+    int get_attribute(StringRef name) {
 
-        if (result != attributes.end()) {
-            out = (*result).second;
-            return true;
+        int i = 0;
+        for (Attr& att: attributes) {
+            if (att.name == name) {
+                return i;
+            }
+
+            i += 1;
         }
 
-        return false;
+        return -1;
     }
 
     bool insert_attribute(StringRef name, StmtNode* stmt, ExprNode* type = nullptr) {
-        auto v = attributes[name];
+        int attrid = get_attribute(name);
 
-        if (v.name == StringRef()) {
-            attributes[name] = Attr{name, int(attributes.size()), stmt, type};
+        if (attrid == -1) {
+            attributes.emplace_back(name, int(attributes.size()), stmt, type);
             return true;
         }
+
+        Attr& v = attributes[attrid];
 
         if (!v.type && type) {
             v.type = type;
         }
+
         return false;
     }
 };
