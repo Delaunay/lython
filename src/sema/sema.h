@@ -121,7 +121,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return nullptr;
     }
 
-    Tuple<ClassDef*, FunctionDef*> find_method(TypeExpr* class_type, String const& methodname);
+    Tuple<ClassDef*, FunctionDef*>
+    find_method(TypeExpr* class_type, String const& methodname, int depth);
 
     bool typecheck(
         ExprNode* lhs, TypeExpr* lhs_t, ExprNode* rhs, TypeExpr* rhs_t, CodeLocation const& loc);
@@ -137,13 +138,30 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return nullptr;
     }
 
-    ExprNode* make_ref(Node* parent, String const& name) {
-        auto ref   = parent->new_object<Name>();
-        ref->id    = name;
-        ref->varid = bindings.get_varid(ref->id);
+    Node* load_name(Name_t* variable);
+
+    Name* make_ref(Node* parent, String const& name, int varid = -1) {
+        return make_ref(parent, StringRef(name), varid);
+    }
+
+    Name* make_ref(Node* parent, StringRef const& name, int varid = -1) {
+        auto ref = parent->new_object<Name>();
+        ref->id  = name;
+
+        if (varid == -1) {
+            ref->varid = bindings.get_varid(ref->id);
+            assert(ref->varid != -1, "Should be able to find the name we are refering to");
+        } else {
+            ref->varid = varid;
+        }
+
+        ref->ctx     = ExprContext::Load;
+        ref->size    = int(bindings.bindings.size());
+        ref->dynamic = bindings.is_dynamic(ref->varid);
         return ref;
     }
 
+    ClassDef* get_class(ExprNode* classref, int depth);
     TypeExpr* resolve_variable(ExprNode* node);
 
     TypeExpr* attribute_assign(Attribute* n, int depth, TypeExpr* expected);

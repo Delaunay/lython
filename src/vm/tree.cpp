@@ -340,6 +340,10 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
     return return_value;
 }
 
+PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) {
+    return nullptr;
+}
+
 PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
 
     Generator* gen = root.new_object<Generator>();
@@ -374,9 +378,13 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
         if (fun->generator) {
             return make_generator(n, fun, depth);
         }
-
         return call_script(n, fun, depth);
     }
+
+    if (ClassDef_t* cls = cast<ClassDef_t>(function)) {
+        return call_constructor(n, cls, depth);
+    }
+
     if (BuiltinType_t* fun = cast<BuiltinType>(function)) {
         return call_native(n, fun, depth);
     }

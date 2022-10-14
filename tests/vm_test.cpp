@@ -381,16 +381,16 @@ TEST_CASE("VM_NamedExpr") {
                   "1");
 }
 
-TEST_CASE("VM_ClassDef") {
-    run_test_case("class Point:\n"
-                  "    def __init__(self, x: f64, y: f64):\n"
-                  "        self.x = x\n"
-                  "        self.y = y\n"
-                  "\n"
-                  "def fun(p: Point) -> f64:\n"
-                  "    return p.x + p.y\n"
-                  "",
-                  "fun(Point(1.0, 2.0))",
-                  "3");
-}
+// TEST_CASE("VM_ClassDef") {
+//     run_test_case("class Point:\n"
+//                   "    def __init__(self, x: f64, y: f64):\n"
+//                   "        self.x = x\n"
+//                   "        self.y = y\n"
+//                   "\n"
+//                   "def fun(p: Point) -> f64:\n"
+//                   "    return p.x + p.y\n"
+//                   "",
+//                   "fun(Point(1.0, 2.0))",
+//                   "3");
+// }
 #endif
