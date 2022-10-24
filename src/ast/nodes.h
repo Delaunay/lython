@@ -58,7 +58,7 @@ struct Node: public GCObject {
         return kind == nodekind<T>();
     }
 
-    Node const* get_parent() const { return static_cast<Node*>(parent); }
+    Node const* get_parent() const { return static_cast<Node*>(get_gc_parent()); }
 };
 
 struct ModNode: public Node {

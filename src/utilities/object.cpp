@@ -4,7 +4,36 @@
 namespace lython {
 
 void GCObject::remove_child(GCObject* child, bool dofree) {
+
+    GCObject* result = nullptr;
+    int       i      = int(children.size()) - 1;
+
+    for (; i >= 0; i--) {
+        if (children[i] == child) {
+            break;
+        }
+    }
+
+    // FIXME: this should never happen
+    if (i == -1) {
+        error("Trying to remove (child: {}) from (parent: {}), (child->parent: {});"
+              "but the child was not found",
+              (void*)child,
+              (void*)this,
+              (void*)child->parent);
+        return;
+    } else {
+        info("Removed (child: {}) from (parent: {})", (void*)child, (void*)this);
+    }
+    // assert(i != -1, "Should find child");
+
+    Array<GCObject*>::iterator data = children.begin() + i;
+    children.erase(data);
+    child->parent = nullptr;
+
+    /*
     auto elem = std::find(children.rbegin(), children.rend(), child);
+    assert(elem == children.rend(), "Should be a child");
     // This is why people hate C++
     //
     // This removes the element found by the reverse iterator.
@@ -19,11 +48,16 @@ void GCObject::remove_child(GCObject* child, bool dofree) {
     assert(*found == child, "Child should match");
     children.erase(found);
     assert(n > children.size(), "Child was not removed");
-
-    child->parent = nullptr;
+    */
 
     if (dofree) {
         free(child);
+    }
+}
+
+void GCObject::remove_child_if_parent(GCObject* child, bool dofree) {
+    if (child->parent == this) {
+        remove_child(child, dofree);
     }
 }
 
@@ -45,10 +79,6 @@ void GCObject::private_free(GCObject* child) {
 }
 
 void GCObject::free(GCObject* child) {
-    if (child == nullptr) {
-        return;
-    }
-
     // Remove from parent right away
     if (child->parent != nullptr) {
         child->parent->remove_child(child, false);

@@ -2,6 +2,7 @@
 #include "../dtypes.h"
 #include "ast/values/exception.h"
 #include "ast/values/generator.h"
+#include "ast/values/object.h"
 #include "logging/logging.h"
 #include "utilities/guard.h"
 
@@ -184,6 +185,7 @@ PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
 
     // We can execute the function because both arguments got resolved
     if (lhs && lhs->is_instance<Constant>() && rhs && rhs->is_instance<Constant>()) {
+        PartialResult* result = nullptr;
 
         // Execute function
         if (n->resolved_operator) {
@@ -192,24 +194,44 @@ PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
             bindings.add(StringRef(), lhs, nullptr);
             bindings.add(StringRef(), rhs, nullptr);
 
-            return exec(n->resolved_operator, depth);
+            result = exec(n->resolved_operator, depth);
         }
 
-        if (n->native_operator) {
+        else if (n->native_operator) {
             Constant* lhsc = static_cast<Constant*>(lhs);
             Constant* rhsc = static_cast<Constant*>(rhs);
 
-            return root.new_object<Constant>(n->native_operator(lhsc->value, rhsc->value));
+            result = root.new_object<Constant>(n->native_operator(lhsc->value, rhsc->value));
+        }
+
+        if (result) {
+            // Free the temporary values because we were able to combine them into a result
+            // lhs/rhs could be constant created by the parser, in that case their parent are not
+            // the root node and they should not be destroyed
+
+            // This is not valid, the constant could have been allocated by a function call
+            // they need to be freed when the call ends
+            // root.remove_child_if_parent(lhs, true);
+            // root.remove_child_if_parent(rhs, true);
+
+            return result;
         }
     }
 
     // We could not execute, just return what we could execute so far
-    BinOp* binary             = root.new_object<BinOp>();
-    binary->op                = n->op;
-    binary->left              = (ExprNode*)lhs;
-    binary->right             = (ExprNode*)rhs;
+    BinOp* binary = root.new_object<BinOp>();
+
+    binary->op    = n->op;
+    binary->left  = (ExprNode*)lhs;
+    binary->right = (ExprNode*)rhs;
+
     binary->resolved_operator = n->resolved_operator;
     binary->native_operator   = n->native_operator;
+
+    // The partial operator becomes the owner of the partial results
+    lhs->move(binary);
+    rhs->move(binary);
+
     return binary;
 }
 
@@ -307,20 +329,33 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function,
         compile_time = compile_time && value != nullptr;
     }
 
+    PartialResult* ret_result = nullptr;
+
     if (compile_time) {
         ConstantValue result = function->native_function(value_args);
-        return root.new_object<Constant>(result);
+        ret_result           = root.new_object<Constant>(result);
     } else {
         // FIXME: we probably need the context here
-        return function->native_macro(args);
+        ret_result = function->native_macro(args);
     }
+
+    for (PartialResult* arg: args) {
+        root.remove_child_if_parent(arg, true);
+    }
+
+    return ret_result;
 }
 PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function, int depth) {
     Scope scope(bindings);
 
+    // TODO: free the references held by the binding to save sapce
+    Array<PartialResult*> to_be_freed;
+    to_be_freed.reserve(call->args.size());
+
     // insert arguments to the context
     for (int i = 0; i < call->args.size(); i++) {
         PartialResult* arg = exec(call->args[i], depth);
+        to_be_freed.push_back(arg);
         bindings.add(StringRef(), arg, nullptr);
     }
 
@@ -337,11 +372,83 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
         }
     }
 
+    // TODO: check if the execution was partial or full
+    // Actually; if we take ownership of the arguments
+    // when we generate partial nodes then we can always try to free regardless
+    for (PartialResult* arg: to_be_freed) {
+        root.remove_child_if_parent(arg, true);
+    }
+
     return return_value;
 }
 
 PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) {
     return nullptr;
+}
+
+Constant* object__new__(GCObject* parent, ClassDef* class_t) {
+    Constant* value = parent->new_object<Constant>();
+
+    Object* obj = value->new_object<Object>();
+    obj->attributes.resize(class_t->attributes.size());
+
+    value->value = ConstantValue(obj);
+    return value;
+}
+
+Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int depth) {
+    // TODO: this should be generated inside the SEMA
+    //
+    String __new__  = class_t->cls_namespace + "." + "__new__";
+    String __init__ = class_t->cls_namespace + "." + "__init__";
+
+    int varid_new_fun  = bindings.get_varid(__new__);
+    int varid_init_fun = bindings.get_varid(__init__);
+
+    FunctionDef* new_fun  = cast<FunctionDef>(bindings.get_value(varid_new_fun));
+    FunctionDef* init_fun = cast<FunctionDef>(bindings.get_value(varid_init_fun));
+
+    Constant* self = nullptr;
+
+    if (new_fun) {
+        Scope _(bindings);
+        bindings.add(StringRef(), class_t, nullptr);
+        for (auto& arg: args) {
+            bindings.add(StringRef(), arg, nullptr);
+        }
+
+        for (auto& stmt: new_fun->body) {
+            exec(stmt, depth);
+
+            if (return_value) {
+                self = cast<Constant>(return_value);
+                break;
+            }
+
+            if (has_exceptions()) {
+                break;
+            }
+        }
+    }
+
+    if (init_fun) {
+        Scope _(bindings);
+
+        bindings.add(StringRef(), self, nullptr);
+        for (auto& arg: args) {
+            bindings.add(StringRef(), arg, nullptr);
+        }
+
+        for (auto& stmt: init_fun->body) {
+            exec(stmt, depth);
+
+            if (has_exceptions()) {
+                break;
+            }
+        }
+    }
+
+    return self;
 }
 
 PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
@@ -464,11 +571,12 @@ PartialResult* TreeEvaluator::returnstmt(Return_t* n, int depth) {
     debug("Compute return {}", str(n));
 
     if (n->value.has_value()) {
-        return_value = exec(n->value.value(), depth);
+        set_return_value(exec(n->value.value(), depth));
         debug("Returning {}", str(return_value));
         return return_value;
     }
-    return_value = None();
+
+    set_return_value(None());
     return return_value;
 }
 

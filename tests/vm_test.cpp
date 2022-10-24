@@ -46,6 +46,7 @@ String eval_it(String code, String expr, Module*& mod) {
     TreeEvaluator eval(sema.bindings);
     auto          partial = str(eval.eval(stmt));
 
+    eval.root.dump(std::cout);
     emod->dump(std::cout);
     delete emod;
     return partial;

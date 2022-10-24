@@ -142,6 +142,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     PartialResult* eval(StmtNode_t* stmt);
 
+    Constant* make(ClassDef* class_t, Array<Constant*> args, int depth);
+
     private:
     PartialResult* exec(StmtNode_t* stmt, int depth) {
         StackTrace& trace = get_trace();
@@ -159,14 +161,44 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     // private:
     // --------
-    Expression root;
-    Bindings&  bindings;
+    public:
+    void set_return_value(PartialResult* ret) {
+        // I cant delete the return value here, it might be re-used in the context
+        // It is hard to decide when to delete the return value
+        // the problem lie when a value is returned, its scope ends
+        // but the value belongs to the upper scope
+        //
+        // Maybe just make a stack of scopes and return makes the value belong to the upper scope
+        // or promote it to the upper scope so it does not get deleted
+        //
+        // I thought about allocating the return value before the call is made
+        // so I do not have to promote the return value (it would already be on the right scope)
+        // but it might get tricky with values referenced twice
+        // when the variable is promoted the references are removed but not freed because it is
+        // still used as a return value
 
+        // if (return_value != nullptr) {
+        //     root.remove_child_if_parent(return_value, true);
+        // }
+        return_value = ret;
+    }
+
+    // This can be used as a root for garbage collection
+    // root is never deleted but its children gets checked as reachable or not
+    // we can traverse the bindings struct to check if all values are reachable or not
+    // every time we leave a scope we could do a quick small GC step on that scope
+    // to remove free temporary variables and only keep the return value
+    Expression root;
+
+    Bindings&      bindings;
+    PartialResult* return_value = nullptr;
+
+    private:
     // `Registers`
-    PartialResult* return_value  = nullptr;
-    bool           loop_break    = false;
-    bool           loop_continue = false;
-    bool           yielding      = false;
+
+    bool loop_break    = false;
+    bool loop_continue = false;
+    bool yielding      = false;
 
     PartialResult* cause               = nullptr;
     int            handling_exceptions = 0;

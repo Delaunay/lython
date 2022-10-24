@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 
 
 
@@ -14,3 +14,12 @@ class Custom:
 
 
 a = Custom(1, 2)
+
+
+def make(cls, *args, **kwargs) -> 'cls':
+    a = cls.__new__(cls, *args, **kwargs)
+    a.__init__(*args, **kwargs)
+    return a
+
+
+a = make(Custom, 1, 2)

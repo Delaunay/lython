@@ -12,4 +12,7 @@
 	url = https://github.com/microsoft/mimalloc.git
 [submodule "dependencies/fpm"]
 	path = dependencies/fpm
-	url = git@github.com:MikeLankamp/fpm.git
+	url = https://github.com/MikeLankamp/fpm.git
+[submodule "dependencies/Imath"]
+	path = dependencies/Imath
+	url = https://github.com/AcademySoftwareFoundation/Imath

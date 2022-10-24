@@ -19,9 +19,8 @@ struct GCObject {
         // construct
         T* obj        = new ((void*)memory) T(std::forward<Args>(args)...);
         obj->class_id = meta::type_id<T>();
-        obj->parent   = this;
 
-        children.push_back(obj);
+        add_child(obj);
         return obj;
     }
 
@@ -51,13 +50,16 @@ struct GCObject {
 
     template <typename T, typename D>
     void add_child(Unique<T, D> child) {
-        children.push_back(child.release());
+        GCObject* obj = child.release();
+        add_child(obj);
     }
 
     void remove_child(GCObject* child, bool dofree);
 
+    void remove_child_if_parent(GCObject* child, bool dofree);
+
     void move(GCObject* newparent) {
-        if (parent) {
+        if (parent != nullptr) {
             parent->remove_child(this, false);
         }
         newparent->add_child(this);
@@ -80,7 +82,11 @@ struct GCObject {
 
     protected:
     Array<GCObject*> children;
-    GCObject*        parent = nullptr;
+
+    GCObject* get_gc_parent() const { return parent; }
+
+    private:
+    GCObject* parent = nullptr;
 
     static void private_free(GCObject* child);
 };

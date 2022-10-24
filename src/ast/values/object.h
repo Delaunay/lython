@@ -1,5 +1,5 @@
-#ifndef LYTHON_OBJECT_HEADER
-#define LYTHON_OBJECT_HEADER
+#ifndef LYTHON_OBJECT_VALUE_HEADER
+#define LYTHON_OBJECT_VALUE_HEADER
 
 // Actual method signature is WIP
 // most mght become references
