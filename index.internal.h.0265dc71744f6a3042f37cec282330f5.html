@@ -23,7 +23,7 @@
     </tr>
     <tr>
       <th scope="row">File:</th>
-      <td>src/ast/values/generator.cpp</td>
+      <td>src/cli/commands/internal.h</td>
     </tr>
     <tr>
       <th scope="row">Date:</th>
@@ -42,20 +42,20 @@
     <tr>
       <th scope="row">Lines:</th>
       <td>0</td>
-      <td>1</td>
+      <td>12</td>
       <td class="coverage-none">0.0%</td>
     </tr>
     <tr>
       <th scope="row">Functions:</th>
       <td>0</td>
-      <td>1</td>
+      <td>2</td>
       <td class="coverage-none">0.0%</td>
     </tr>
     <tr>
       <th scope="row">Branches:</th>
       <td>0</td>
-      <td>0</td>
-      <td class="coverage-unknown">-%</td>
+      <td>20</td>
+      <td class="coverage-none">0.0%</td>
     </tr>
   </table>
 </div>
@@ -75,13 +75,24 @@
     </tr>
     <tr>
       <td>
-        <a href="#l7">lython::Generator::__next__(lython::TreeEvaluator&amp;)</a>
+        <a href="#l7">lython::InternalCmd::InternalCmd()</a>
       </td>
       <td>
         <a href="#l7">7</a>
       </td>
       <td>
         <a href="#l7"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l9">lython::InternalCmd::parser()</a>
+      </td>
+      <td>
+        <a href="#l9">9</a>
+      </td>
+      <td>
+        <a href="#l9"> not called</a>
       </td>
     </tr>
   </table>
@@ -104,7 +115,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;generator.h&quot;</span><span class="cp"></span></td>
+      <td class="src "><span class="cp">#pragma once</span></td>
     </tr>
 
     <tr class="source-line">
@@ -112,7 +123,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;sema/builtin.h&quot;</span><span class="cp"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -120,7 +131,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;vm/tree.h&quot;</span><span class="cp"></span></td>
+      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cli/command.h&quot;</span><span class="cp"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -136,7 +147,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="k">namespace</span><span class="w"> </span><span class="nn">lython</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="n">namespace</span><span class="w"> </span><span class="n">lython</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -144,7 +155,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">InternalCmd</span><span class="o">:</span><span class="w"> </span><span class="n">public</span><span class="w"> </span><span class="n">Command</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -152,7 +163,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="n">ConstantValue</span><span class="w"> </span><span class="nf">Generator::__next__</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">TreeEvaluator</span><span class="o">&amp;</span><span class="w"> </span><span class="n">vm2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">InternalCmd</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="n">Command</span><span class="p">(</span><span class="s">&quot;internal&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -160,7 +171,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">//</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -168,23 +179,23 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// TODO we need to detech when we reach</span></td>
+      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="n">argparse</span><span class="o">::</span><span class="n">ArgumentParser</span><span class="o">*</span><span class="w"> </span><span class="n">parser</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l10" href="#l10">10</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// vm.exec(bo)</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="n">argparse</span><span class="o">::</span><span class="n">ArgumentParser</span><span class="o">*</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new_parser</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l11" href="#l11">11</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="n">p</span><span class="o">-&gt;</span><span class="n">add_description</span><span class="p">(</span><span class="s">&quot;Utilities to debug lython internal components&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -192,47 +203,47 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="cm">/*</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l13" href="#l13">13</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">        int           depth = 0;</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="n">p</span><span class="o">-&gt;</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--file&quot;</span><span class="p">).</span><span class="n">help</span><span class="p">(</span><span class="s">&quot;increase output verbosity&quot;</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l14" href="#l14">14</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">        TreeEvaluator vm(scope);</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="n">p</span><span class="o">-&gt;</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--debug-lexer&quot;</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l15" href="#l15">15</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="p">.</span><span class="n">help</span><span class="p">(</span><span class="s">&quot;Dump lexer tokens&quot;</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l16" href="#l16">16</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">        for (StmtNode* stmt: generator-&gt;body) {</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="p">.</span><span class="n">default_value</span><span class="p">(</span><span class="nb">false</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l17" href="#l17">17</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">            vm.exec(stmt, depth + 1);</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="p">.</span><span class="n">implicit_value</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -240,39 +251,39 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">        </span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l19" href="#l19">19</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">            if (vm.has_exceptions()) {</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="n">p</span><span class="o">-&gt;</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&quot;--lexer-format&quot;</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l20" href="#l20">20</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">                break;</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="p">.</span><span class="n">help</span><span class="p">(</span><span class="s">&quot;Format lexer tokens back to the original code&quot;</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l21" href="#l21">21</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">            }</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="p">.</span><span class="n">default_value</span><span class="p">(</span><span class="nb">false</span><span class="p">)</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l22" href="#l22">22</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">            </span><span class="p">.</span><span class="n">implicit_value</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -280,15 +291,15 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">            if (vm.yielding) {</span></td>
+      <td class="src "><span class="w">        </span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l24" href="#l24">24</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">                break;</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">p</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -296,7 +307,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">            }</span></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -312,7 +323,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">            // We are returning</span></td>
+      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="n">argparse</span><span class="o">::</span><span class="n">ArgumentParser</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -320,7 +331,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">            if (vm.return_value != nullptr) {</span></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -328,7 +339,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">                break;</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -336,67 +347,11 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cm">            }</span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l31" href="#l31">31</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">        }</span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l32" href="#l32">32</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l33" href="#l33">33</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">        vm.raise&lt;StopIteration&gt;();</span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l34" href="#l34">34</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="cm">        */</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l35" href="#l35">35</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount uncoveredLine">&cross;</td>
-      <td class="src uncoveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">ConstantValue</span><span class="o">::</span><span class="n">none</span><span class="p">();</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l36" href="#l36">36</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l37" href="#l37">37</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
       <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l38" href="#l38">38</a></td>
+      <td class="lineno"><a id="l31" href="#l31">31</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
