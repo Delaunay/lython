@@ -10,7 +10,8 @@ struct InternalCmd: public Command {
         argparse::ArgumentParser* p = new_parser();
         p->add_description("Utilities to debug lython internal components");
 
-        p->add_argument("--file").help("increase output verbosity");
+        p->add_argument("--file").help("file to process");
+        ;
         p->add_argument("--debug-lexer")
             .help("Dump lexer tokens")
             .default_value(false)

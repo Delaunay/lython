@@ -33,13 +33,13 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NAME}_test)
 ENDMACRO(TEST_MACRO)
 
-IF(UNIX)
-  ADD_TEST(
-    NAME lython-inspector
-    WORKING_DIRECTORY .
-    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython-inspector --file ../code/python_test.ly
-  )
+ADD_TEST(
+  NAME lython-inspector
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython internal --file ../code/python_test.ly
+)
 
+IF(UNIX)
   ADD_DEPENDENCIES(coverage lython-inspector)
 ENDIF()
 

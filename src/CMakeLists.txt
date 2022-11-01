@@ -113,11 +113,6 @@ TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
 TARGET_LINK_LIBRARIES(liblython spdlog::spdlog mimalloc-static)
 
-# Main interpreter loop
-ADD_EXECUTABLE(lython-inspector lython_inspector.cpp)
-TARGET_LINK_LIBRARIES(lython-inspector spdlog::spdlog liblython liblogging)
-SET_PROPERTY(TARGET lython-inspector PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD 20)
 
