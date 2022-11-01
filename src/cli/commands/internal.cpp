@@ -47,6 +47,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
     bool dump_lexer        = args.get<bool>("--debug-lexer");
     bool lexer_format      = args.get<bool>("--lexer-format");
     bool show_alloc_layout = true;
+    bool show_parsing      = args.get<bool>("--parsing");
 
     info("Enter");
 
@@ -66,6 +67,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             reader->reset();
         }
         std::cout << std::string(80, '-') << '\n';
+        return 0;
     }
 
     if (lexer_format) {
@@ -83,14 +85,16 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
         std::cout << std::string(80, '-') << '\n';
         std::cout << strip2(lexer_string) << std::endl;
         std::cout << std::string(80, '-') << '\n';
+        return 0;
     }
 
     Module* mod = nullptr;
 
     try {
 
-        Lexer  lex(*reader.get());
-        Parser parser(lex);
+        Lexer        lex(*reader.get());
+        Parser       parser(lex);
+        StringStream parsing;
 
         // Parsing Logs
         // ------------
@@ -126,6 +130,10 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             std::cout << std::string(80, '-') << '\n';
             std::cout << ss.str();
             std::cout << std::string(80, '-') << '\n';
+        }
+
+        if (show_parsing) {
+            return 0;
         }
 
         // Sema

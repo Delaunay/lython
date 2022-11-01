@@ -117,7 +117,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         SemaException* exception = errors[errors.size() - 1].get();
 
         // use the LOC from parent function
-        lython::log(lython::LogLevel::Error, loc, "%s", exception->what());
+        lython::log(lython::LogLevel::Error, loc, "{}", exception->what());
     }
 
 #define SEMA_ERROR(expr, exception, ...) sema_error<exception>(expr, LOC, __VA_ARGS__)

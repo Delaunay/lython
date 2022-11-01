@@ -69,7 +69,7 @@ struct LinterAnalyser: BaseVisitor<LinterAnalyser, false, LinterVisitorTrait> {
 
         LinterException* exception = errors[errors.size() - 1];
         // use the LOC from parent function
-        lython::log(lython::LogLevel::Error, loc, "%s", exception->what());
+        lython::log(lython::LogLevel::Error, loc, "{}", exception->what());
     }
 
 #define LINTER_ERROR(expr, exception, ...) linter_error(expr, exception, LOC, __VA_ARGS__)

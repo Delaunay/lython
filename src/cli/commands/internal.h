@@ -22,6 +22,11 @@ struct InternalCmd: public Command {
             .default_value(false)
             .implicit_value(true);
         ;
+        p->add_argument("--parsing")
+            .help("Stop after parsing")
+            .default_value(false)
+            .implicit_value(true);
+        ;
         return p;
     }
 
