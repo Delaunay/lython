@@ -129,3 +129,22 @@ IF(UNIX)
         DEPENDS test
     )
 ENDIF(UNIX)
+
+# CLI
+SET(ADD_CLI_SOURCE
+    cli/cli.cpp
+
+    cli/commands/code.cpp
+    cli/commands/format.cpp
+    cli/commands/codegen.cpp
+    cli/commands/debug.cpp
+    cli/commands/doc.cpp
+    cli/commands/install.cpp
+    cli/commands/internal.cpp
+    cli/commands/linter.cpp
+    cli/commands/profile.cpp
+    cli/commands/tests.cpp
+)
+ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
+TARGET_LINK_LIBRARIES(lython spdlog::spdlog liblython liblogging argparse)
+SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)

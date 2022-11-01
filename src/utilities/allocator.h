@@ -10,6 +10,8 @@
 
 namespace lython {
 
+void show_alloc_stats();
+
 namespace meta {
 
 // NOTE: All those should not depend on each other during deinit time
@@ -23,15 +25,27 @@ struct Stat {
     int startup_count = 0;
 };
 
-inline std::vector<Stat>& stats() {
-    static std::vector<Stat> stat;
-    return stat;
-}
+struct TypeRegistry {
+    std::vector<Stat>                    stat;
+    bool                                 print_stats = false;
+    std::unordered_map<int, std::string> id_to_name;
+    int                                  type_counter = 0;
 
-inline int& _get_id() {
-    static int i = 0;
-    return i;
-}
+    static TypeRegistry& instance() {
+        static TypeRegistry obj;
+        return obj;
+    }
+
+    ~TypeRegistry() {
+        if (print_stats) {
+            show_alloc_stats();
+        }
+    }
+};
+
+inline std::vector<Stat>& stats() { return TypeRegistry::instance().stat; }
+
+inline int& _get_id() { return TypeRegistry::instance().type_counter; }
 
 inline int _new_id() {
     auto r = _get_id();
@@ -41,8 +55,7 @@ inline int _new_id() {
 }
 
 inline std::unordered_map<int, std::string>& typenames() {
-    static std::unordered_map<int, std::string> stat;
-    return stat;
+    return TypeRegistry::instance().id_to_name;
 }
 
 // Generate a unique ID for a given type
@@ -95,7 +108,9 @@ inline Stat& get_stat(int class_id) { return stats()[class_id]; }
 
 }  // namespace meta
 
-void show_alloc_stats();
+inline void show_alloc_stats_on_destroy(bool enabled) {
+    meta::TypeRegistry::instance().print_stats = enabled;
+}
 
 namespace device {
 

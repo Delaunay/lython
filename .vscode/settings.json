@@ -112,7 +112,10 @@
     "ranges": "cpp",
     "filesystem": "cpp",
     "stack": "cpp",
-    "*.inc": "cpp"
+    "*.inc": "cpp",
+    "any": "cpp",
+    "cfenv": "cpp",
+    "csignal": "cpp"
   },
   "python.formatting.provider": "black",
   "files.exclude": {

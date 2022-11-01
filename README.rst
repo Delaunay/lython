@@ -84,9 +84,42 @@ Libraries
 * re2: regex
 
 
-
 * GPU Compute ?
 * SDL2: basic 2D Library ?
 * vulkan  ?
 * rpclib ?
-*
+
+Compiler
+--------
+
+* Tokenizer
+* Parser
+* Sema
+* Optimization
+* Code Gen
+
+Interpreter
+-----------
+
+
+* Tokenizer
+* Parser
+* Sema
+* TreeEvaluator
+
+Linter
+------
+
+* Tokenizer
+* Parser
+* Sema
+* Linter
+
+
+Modularity
+----------
+
+* Language
+  * Tokenizer
+  * Parser
+

@@ -42,7 +42,7 @@
             "name": "Debug Parsing",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/parser_test",
+            "program": "${workspaceFolder}/build/bin/Debug/parser_test.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -8,27 +8,14 @@
 #include "lexer/token.h"
 #include "utilities/strings.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     using namespace lython;
 
-    {
-        metadata_init_names();
-        // Static globals
-        {
-            StringDatabase::instance();
-            default_precedence();
-            keywords();
-            keyword_as_string();
-            strip_defaults();
-        }
-        // --
-        track_static();
-    }
+    register_globals();
+    show_alloc_stats_on_destroy(true);
+    show_string_stats_on_destroy(true);
 
     int result = Catch::Session().run(argc, argv);
-
-    lython::StringDatabase::instance().report(std::cout);
-    lython::show_alloc_stats();
 
     return result;
 }

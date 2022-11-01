@@ -22,11 +22,23 @@ void print_op(std::ostream& out, BoolOperator op);
 
 #define ReturnType bool
 
+struct PrinterConfig {
+    //
+    int max_line;
+};
+
+struct PrinterContext {
+    //
+};
+
+// Change this to return strings so we can change the format of partial results
+
 struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
     using Super = BaseVisitor<Printer, true, PrintTrait, std::ostream&, int>;
 
-    String l0;
-    String latest = String(128, ' ');
+    PrinterContext context;
+    String         l0;
+    String         latest = String(128, ' ');
 
     String const indent(int level, int scale = 4) {
         if (level <= 0)
@@ -35,6 +47,12 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
         // one time allocation of an empty string
         latest.resize(scale * level, ' ');
         return latest;
+    }
+
+    StringStream fmt(ExprNode const* node, int depth, int level) {
+        StringStream ss;
+        exec(node, depth, ss, level);
+        return ss;
     }
 
     ReturnType print_body(Array<StmtNode*> const& body,
@@ -503,8 +521,10 @@ ReturnType Printer::yieldfrom(YieldFrom const* self, int depth, std::ostream& ou
 }
 
 ReturnType Printer::call(Call const* self, int depth, std::ostream& out, int level) {
-    exec(self->func, depth, out, level);
-    out << "(";
+
+    StringStream fname = fmt(self->func, depth, level);
+
+    out << fname.str() << "(";
 
     for (int i = 0; i < self->args.size(); i++) {
         exec(self->args[i], depth, out, level);

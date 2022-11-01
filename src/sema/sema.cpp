@@ -29,7 +29,7 @@ bool SemanticAnalyser::typecheck(
     auto match = equal(lhs_t, rhs_t);
 
     if (!match) {
-        SEMA_ERROR(TypeError(lhs, lhs_t, rhs, rhs_t, loc));
+        SEMA_ERROR(lhs, TypeError, lhs, lhs_t, rhs, rhs_t, loc);
     }
     return match;
 }
@@ -118,7 +118,7 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
                 }
 
                 if (lhs_op_varid == -1 && rhs_op_varid == -1) {
-                    SEMA_ERROR(UnsupportedOperand(str(n->op), lhs_t, rhs_t));
+                    SEMA_ERROR(n, UnsupportedOperand, str(n->op), lhs_t, rhs_t);
                 }
             }
         }
@@ -202,7 +202,7 @@ TypeExpr* SemanticAnalyser::compare(Compare* n, int depth) {
         n->native_operator.push_back(handler);
 
         if (!handler) {
-            SEMA_ERROR(UnsupportedOperand(str(op), prev_t, cmp_t));
+            SEMA_ERROR(n, UnsupportedOperand, str(op), prev_t, cmp_t);
         }
         //
         // prev <op> cmp
@@ -256,7 +256,7 @@ TypeExpr* SemanticAnalyser::unaryop(UnaryOp* n, int depth) {
 
     UnaryOp::NativeUnaryOp handler = get_native_unary_operation(signature);
     if (!handler) {
-        SEMA_ERROR(UnsupportedOperand(str(n->op), expr_t, nullptr));
+        SEMA_ERROR(n, UnsupportedOperand, str(n->op), expr_t, nullptr);
     }
 
     // assert(handler != nullptr, "Unary operation require native handler");
@@ -531,7 +531,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     auto      arrow  = get_arrow(this, n->func, type, depth, offset, cls);
 
     if (arrow == nullptr) {
-        SEMA_ERROR(TypeError(fmt::format("{} is not callable", str(n->func))));
+        SEMA_ERROR(n, TypeError, fmt::format("{} is not callable", str(n->func)));
     }
 
     // Sort kwargs to make them positional
@@ -565,7 +565,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
             if (item == kwargs.end()) {
                 auto value = got->defaults[name];
                 if (value) {
-                    SEMA_ERROR(TypeError(fmt::format("Arguement {} is not set", name)));
+                    SEMA_ERROR(n, TypeError, fmt::format("Arguement {} is not set", name));
                 }
                 // Got default use the expected type
                 got->args.push_back(arrow->args[i]);
@@ -632,7 +632,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
 
     n->attrid = class_t->get_attribute(n->attr);
     if (n->attrid == -1) {
-        SEMA_ERROR(AttributeError(class_t, n->attr));
+        SEMA_ERROR(n, AttributeError, class_t, n->attr);
         return nullptr;
     }
 
@@ -652,13 +652,13 @@ TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* 
     auto class_t = get_class(type_t, depth);
 
     if (class_t == nullptr) {
-        SEMA_ERROR(NameError(n->value, str(n->value)));
+        SEMA_ERROR(n, NameError, n->value, str(n->value));
         return nullptr;
     }
 
     n->attrid = class_t->get_attribute(n->attr);
     if (n->attrid == -1) {
-        SEMA_ERROR(AttributeError(class_t, n->attr));
+        SEMA_ERROR(n, AttributeError, class_t, n->attr);
         return nullptr;
     }
 
@@ -703,7 +703,7 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
 
         if (n->varid == -1) {
             debug("Value {} not found", n->id);
-            SEMA_ERROR(NameError(n, n->id));
+            SEMA_ERROR(n, NameError, n, n->id);
         }
     }
 
@@ -1181,7 +1181,7 @@ TypeExpr* SemanticAnalyser::augassign(AugAssign* n, int depth) {
     n->native_operator = handler;
 
     if (!handler) {
-        SEMA_ERROR(UnsupportedOperand(str(n->op), expected_type, type));
+        SEMA_ERROR(n, UnsupportedOperand, str(n->op), expected_type, type);
     }
 
     typecheck(n->value, type, n->target, expected_type, LOC);
@@ -1333,7 +1333,7 @@ TypeExpr* SemanticAnalyser::global(Global* n, int depth) {
     for (auto& name: n->names) {
         auto varid = bindings.get_varid(name);
         if (varid == -1) {
-            SEMA_ERROR(NameError(n, name));
+            SEMA_ERROR(n, NameError, n, name);
         }
     }
     return nullptr;
@@ -1342,7 +1342,7 @@ TypeExpr* SemanticAnalyser::nonlocal(Nonlocal* n, int depth) {
     for (auto& name: n->names) {
         auto varid = bindings.get_varid(name);
         if (varid == -1) {
-            SEMA_ERROR(NameError(n, name));
+            SEMA_ERROR(n, NameError, n, name);
         }
     }
     return nullptr;

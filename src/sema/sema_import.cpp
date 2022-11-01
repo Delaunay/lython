@@ -102,7 +102,7 @@ TypeExpr* SemanticAnalyser::import(Import* n, int depth) {
         auto      mod = process_file(name.name, paths);
 
         if (mod == nullptr) {
-            SEMA_ERROR(ModuleNotFoundError(name.name));
+            SEMA_ERROR(n, ModuleNotFoundError, name.name);
             continue;
         }
 
@@ -184,14 +184,14 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
         mod = process_file(n->module.value(), paths);
 
         if (mod == nullptr) {
-            SEMA_ERROR(ModuleNotFoundError(n->module.value()));
+            SEMA_ERROR(n, ModuleNotFoundError, n->module.value());
             return nullptr;
         }
     } else if (n->level.has_value()) {
         // relative import using level
 
         if (mod == nullptr) {
-            SEMA_ERROR(ModuleNotFoundError(n->module.value()));
+            SEMA_ERROR(n, ModuleNotFoundError, n->module.value());
             return nullptr;
         }
     }
@@ -221,7 +221,7 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
 
         // Did not find the value inside the module
         if (value == nullptr) {
-            SEMA_ERROR(ImportError(n->module.value(), nm));
+            SEMA_ERROR(n, ImportError, n->module.value(), nm);
             continue;
         }
 

@@ -32,6 +32,8 @@ class StringRef;
 // so the strings can expire
 class StringDatabase {
     public:
+    bool print_stats = false;
+
     static StringDatabase& instance();
 
     StringView operator[](std::size_t i) const;
@@ -39,6 +41,12 @@ class StringDatabase {
     StringRef string(String const& name);
 
     StringDatabase();
+
+    ~StringDatabase() {
+        if (print_stats) {
+            report(std::cout);
+        }
+    }
 
     std::ostream& report(std::ostream& out) const;
 
@@ -87,6 +95,8 @@ class StringDatabase {
 
     List<Array<StringEntry>>   memory_blocks;
     Array<Array<StringEntry>*> reverse;
+
+    friend bool _metadata_init_names();
 };
 
 #define STRING_VIEW(X) X
@@ -157,6 +167,10 @@ struct string_ref_hash {
     std::size_t            operator()(StringRef const& v) const noexcept { return _h(v.__id__()); }
     std::hash<std::size_t> _h;
 };
+
+inline void show_string_stats_on_destroy(bool enabled) {
+    StringDatabase::instance().print_stats = enabled;
+}
 
 }  // namespace lython
 

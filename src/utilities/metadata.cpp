@@ -2,6 +2,7 @@
 // #include "parser/module.h"
 
 #include "ast/nodes.h"
+#include "builtin/operators.h"
 #include "parser/parser.h"
 #include "sema/sema.h"
 
@@ -111,6 +112,9 @@ bool _metadata_init_names() {
         HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, true>>(
         "Pair[String, NativeUnaryOp]");
 
+    // String Database
+    meta::register_type<Array<StringDatabase::StringEntry>*>("Array[StringEntry]*");
+
 #if !__linux__
     // hashtable internal stuff
     // windows only
@@ -142,6 +146,11 @@ bool _metadata_init_names() {
 
     meta::register_type<ListIterator<std::pair<const StringRef, bool>, false>>(
         "Iterator[Pair[StringRef, bool]]");
+
+    meta::register_type<std::_List_node<Array<StringDatabase::StringEntry>,
+                                        typename std::allocator_traits<std::allocator<
+                                            Array<StringDatabase::StringEntry>>>::void_pointer>>(
+        "ListNode[Array[StringEntry]]");
 #endif
 
     // StringDatabase
@@ -176,10 +185,42 @@ void track_static() {
     // after the static variables got initialized
     auto& stat = meta::stats();
     for (auto& s: stat) {
-        s.startup_count = s.allocated - s.deallocated;
+        s.startup_count = 0;
+        // s.allocated - s.deallocated;
     }
 }
 
 void metadata_init_names() { static bool _ = _metadata_init_names(); }
+
+void register_globals() {
+    {
+        metadata_init_names();
+
+        // Static globals
+        {
+            StringDatabase::instance();
+            default_precedence();
+            keywords();
+            keyword_as_string();
+            native_binary_operators();
+            native_bool_operators();
+            native_unary_operators();
+            native_cmp_operators();
+            operator_magic_name(BinaryOperator::Add);
+            operator_magic_name(BoolOperator::And);
+            operator_magic_name(UnaryOperator::Invert);
+            operator_magic_name(CmpOperator::Eq);
+
+            None();
+            True();
+            False();
+
+            strip_defaults();
+        }
+
+        // --
+        track_static();
+    }
+}
 
 }  // namespace lython

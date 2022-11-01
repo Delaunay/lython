@@ -80,19 +80,9 @@ struct ArgumentsParser {
 };
 
 int main(int argc, const char* argv[]) {
-    {
-        metadata_init_names();
-        // Static globals
-        {
-            StringDatabase::instance();
-            default_precedence();
-            keywords();
-            keyword_as_string();
-            strip_defaults();
-        }
-        // --
-        track_static();
-    }
+    register_globals();
+    show_alloc_stats_on_destroy(true);
+    show_string_stats_on_destroy(true);
 
     ArgumentsParser<Args> argparser;
     argparser.add_argument("--file", [](Args& arg, std::string const& value) { arg.file = value; });
@@ -253,14 +243,5 @@ int main(int argc, const char* argv[]) {
         delete mod;
     }
 
-    if (args.show_alloc_stats) {
-        std::cout << std::string(80, '=') << '\n';
-        std::cout << "Alloc\n";
-        show_alloc_stats();
-    }
-
-    if (args.dump_string_db) {
-        StringDatabase::instance().report(std::cout);
-    }
     return 0;
 }

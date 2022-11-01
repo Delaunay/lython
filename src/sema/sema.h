@@ -9,9 +9,9 @@
 #include "sema/errors.h"
 #include "utilities/strings.h"
 
-#define SEMA_ERROR(exception)      \
-    error("{}", exception.what()); \
-    errors.push_back(std::unique_ptr<SemaException>(new exception));
+// #define SEMA_ERROR(exception)      \
+//     error("{}", exception.what()); \
+//     errors.push_back(std::unique_ptr<SemaException>(new exception));
 
 namespace lython {
 
@@ -110,6 +110,17 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         }
         return semactx[semactx.size() - 1];
     }
+
+    template <typename T, typename... Args>
+    void sema_error(Node* Node, lython::CodeLocation const& loc, Args... args) {
+        errors.push_back(std::unique_ptr<SemaException>(new T(args...)));
+        SemaException* exception = errors[errors.size() - 1].get();
+
+        // use the LOC from parent function
+        lython::log(lython::LogLevel::Error, loc, "%s", exception->what());
+    }
+
+#define SEMA_ERROR(expr, exception, ...) sema_error<exception>(expr, LOC, __VA_ARGS__)
 
     public:
     virtual ~SemanticAnalyser() {}

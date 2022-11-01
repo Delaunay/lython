@@ -16,3 +16,6 @@
 [submodule "dependencies/Imath"]
 	path = dependencies/Imath
 	url = https://github.com/AcademySoftwareFoundation/Imath
+[submodule "dependencies/argparse"]
+	path = dependencies/argparse
+	url = https://github.com/p-ranav/argparse.git

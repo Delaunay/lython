@@ -32,7 +32,7 @@ std::ostream& StringDatabase::report(std::ostream& out) const {
             saved += lower;
             saved_up += upper;
 
-            if (entry.count == 1 && entry.in_use == 1) {
+            if (entry.count == 1 && entry.in_use == 0) {
                 continue;
             }
 

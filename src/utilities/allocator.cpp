@@ -72,10 +72,10 @@ void show_alloc_stats() {
     auto const&                                 stat  = meta::stats();
     std::unordered_map<int, std::string> const& names = meta::typenames();
 
-    auto line = String(4 + 40 + 10 + 10 + 10 + 10 + 10 + 10 + 7, '-');
+    auto line = String(4 + 40 + 10 + 10 + 10 + 10 + 10 + 10 + 7 + 1, '-');
 
     std::cout << line << '\n';
-    std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+    std::cout << fmt::format("{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
                              "id",
                              "name",
                              "alloc",
@@ -104,7 +104,7 @@ void show_alloc_stats() {
         total += size * bytes;
 
         if (alloc != 0) {
-            std::cout << fmt::format("{:>4} {:>40} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+            std::cout << fmt::format("{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
                                      i,
                                      String(name.c_str()),
                                      alloc,

@@ -35,6 +35,8 @@ void metadata_init_names();
 
 void track_static();
 
+void register_globals();
+
 }  // namespace lython
 
 #endif
