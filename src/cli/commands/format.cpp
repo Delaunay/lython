@@ -12,6 +12,7 @@ namespace fs = std::filesystem;
 namespace lython {
 argparse::ArgumentParser* FormatCmd::parser() {
     argparse::ArgumentParser* p = new_parser();
+    p->add_description("Format lython source files");
     p->add_argument("sources")                      //
         .remaining()                                //
         .help("Directories or files to reformat");  //
@@ -20,6 +21,11 @@ argparse::ArgumentParser* FormatCmd::parser() {
         .default_value(false)
         .implicit_value(true)
         .help("Reformat files inplace");
+
+    p->add_argument("--ast")   //
+        .default_value(false)  //
+        .implicit_value(true)  //
+        .help("Use the AST to reformat the code");
 
     p->add_argument("--extension")                       //
         .default_value(std::vector<std::string>{".ly"})  //
@@ -55,10 +61,14 @@ int FormatCmd::main(argparse::ArgumentParser const& args) {
 
     info("Found {} files", regular_files.size());
 
-    int result = 0;
+    int  result = 0;
+    bool ast    = args.get<bool>("--ast");
     for (auto const& path: regular_files) {
-        // result += ast_reformat_file(path);
-        result += tok_reformat_file(path);
+        if (ast) {
+            result += ast_reformat_file(path);
+        } else {
+            result += tok_reformat_file(path);
+        }
     }
 
     return result;

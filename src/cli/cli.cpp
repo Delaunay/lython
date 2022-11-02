@@ -59,12 +59,10 @@ int main(int argc, const char* argv[]) {
         .default_value(false)
         .implicit_value(true);
 
-    ;
     lython_args.add_argument("--show-string-stats")
         .help("Print string database allocations")
         .default_value(false)
         .implicit_value(true);
-    ;
 
     lython_args.add_argument("-v", "--version")
         .action([&](const auto& /*unused*/) {

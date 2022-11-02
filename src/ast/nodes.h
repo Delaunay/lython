@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include "../dtypes.h"
 #include "ast/nodekind.h"
 #include "constant.h"
+#include "dtypes.h"
 #include "logging/logging.h"
 #include "utilities/names.h"
 #include "utilities/object.h"

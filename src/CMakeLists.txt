@@ -116,15 +116,6 @@ TARGET_LINK_LIBRARIES(liblython spdlog::spdlog mimalloc-static)
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD 20)
 
-IF(UNIX)
-    setup_target_for_coverage_gcovr_html(
-        NAME coverage
-        EXECUTABLE ctest --output-on-failure
-        BASE_DIRECTORY "."
-        DEPENDS test
-    )
-ENDIF(UNIX)
-
 # CLI
 SET(ADD_CLI_SOURCE
     cli/cli.cpp
@@ -145,3 +136,12 @@ TARGET_LINK_LIBRARIES(lython spdlog::spdlog liblython liblogging argparse)
 
 SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD 20)
+
+IF(UNIX)
+    setup_target_for_coverage_gcovr_html(
+        NAME coverage
+        EXECUTABLE ctest --output-on-failure
+        BASE_DIRECTORY "."
+        DEPENDS test
+    )
+ENDIF(UNIX)

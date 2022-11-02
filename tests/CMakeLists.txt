@@ -33,16 +33,6 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
     COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NAME}_test)
 ENDMACRO(TEST_MACRO)
 
-ADD_TEST(
-  NAME lython-inspector
-  WORKING_DIRECTORY .
-  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython internal --file ../code/python_test.ly
-)
-
-IF(UNIX)
-  ADD_DEPENDENCIES(coverage lython-inspector)
-ENDIF()
-
 # add test here
 # file_name_test.cpp ==> CBTEST_MACRO(file_name)
 TEST_MACRO(logging)
@@ -72,3 +62,71 @@ MACRO(STDLIB_TEST_MACRO NAME)
 ENDMACRO(STDLIB_TEST_MACRO)
 
 STDLIB_TEST_MACRO(hashtable)
+
+#
+# CLI
+#
+ADD_TEST(
+  NAME lython_internal
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython internal --file ../code/python_test.ly
+)
+
+ADD_TEST(
+  NAME lython_fmt
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt ../code/python_test.ly
+)
+
+ADD_TEST(
+  NAME lython_codegen
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython codegen -h
+)
+
+ADD_TEST(
+  NAME lython_debug
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython debug -h
+)
+
+ADD_TEST(
+  NAME lython_doc
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython doc -h
+)
+
+ADD_TEST(
+  NAME lython_install
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython install -h
+)
+
+ADD_TEST(
+  NAME lython_lint
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython lint -h
+)
+
+ADD_TEST(
+  NAME lython_profile
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython profile -h
+)
+
+ADD_TEST(
+  NAME lython_tests
+  WORKING_DIRECTORY .
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython tests -h
+)
+
+IF(UNIX)
+  ADD_DEPENDENCIES(coverage lython_internal)
+  ADD_DEPENDENCIES(coverage lython_tests)
+  ADD_DEPENDENCIES(coverage lython_profile)
+  ADD_DEPENDENCIES(coverage lython_lint)
+  ADD_DEPENDENCIES(coverage lython_fmt)
+  ADD_DEPENDENCIES(coverage lython_doc)
+  ADD_DEPENDENCIES(coverage lython_debug)
+  ADD_DEPENDENCIES(coverage lython_codegen)
+ENDIF()
