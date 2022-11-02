@@ -240,7 +240,9 @@ Array<TestCase> const& While_examples() {
 Array<TestCase> const& For_examples() {
     static Array<TestCase> ex = {
         {"for a in b:\n"
-         "    pass\n"
+         "    a\n"
+         "    b\n"
+         "    c\n"
          "else:\n"
          "    pass\n",
          {

@@ -97,6 +97,7 @@ class Parser {
     StmtNode* parse_pass(Node* parent, int depth);
     StmtNode* parse_break(Node* parent, int depth);
     StmtNode* parse_continue(Node* parent, int depth);
+    StmtNode* parse_comment_stmt(Node* parent, int depth);
 
     // Statement_2
     StmtNode* parse_assign(Node* parent, ExprNode* epxr, int depth);

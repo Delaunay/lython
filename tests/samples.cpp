@@ -42,7 +42,7 @@ DEFINE_SAMPLE_CODE(simple_function_global,
 DEFINE_SAMPLE_CODE(function_call,
                    "def add(a: Float, b: Float) -> Float:\n"
                    "    return a + b\n"
-                   "\n"
+                   "\n\n"
                    "def function_call() -> Float:\n"
                    "    return add(1, 2)\n")
 
@@ -69,14 +69,14 @@ DEFINE_SAMPLE_CODE(simple_while_loop,
                    "    i = 10\n"
                    "    while i > 0:\n"
                    "        i -= 1\n"
-                   "\n"
+                   "\n\n"
                    "simple_while_loop()\n\n")
 
 DEFINE_SAMPLE_CODE(simple_for_loop,
                    "def simple_for_loop():\n"
                    "    for i in range(10):\n"
                    "        d = 2\n"
-
+                   "\n"
                    "\n"
                    "simple_for_loop()\n\n")
 

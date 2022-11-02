@@ -2027,6 +2027,15 @@ StmtNode* Parser::parse_yield_stmt(Node* parent, int depth) {
     return stmt;
 }
 
+StmtNode* Parser::parse_comment_stmt(Node* parent, int depth) {
+    Expr*     comment_stmt = parent->new_object<Expr>();
+    ExprNode* comment      = parse_comment(comment_stmt, depth);
+
+    comment_stmt->value = comment;
+    expect_newline(comment_stmt, LOC);
+    return comment_stmt;
+}
+
 StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     TRACE_START();
 
@@ -2087,12 +2096,7 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     //
 
     // clang-format on
-    case tok_comment: {
-        ExprNode* comment      = parse_comment(parent, depth);
-        Expr*     comment_stmt = parent->new_object<Expr>();
-        comment_stmt->value    = comment;
-        return comment_stmt;
-    }
+    case tok_comment: return parse_comment_stmt(parent, depth);
     case tok_return: return parse_return(parent, depth);
     case tok_import: return parse_import(parent, depth);
     case tok_from: return parse_import_from(parent, depth);

@@ -73,15 +73,17 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
             k += 1;
 
             out << indent(level);
-            exec(stmt, depth, out, level);
+            bool printed_new_line = exec(stmt, depth, out, level);
 
             if (stmt->is_one_line()) {
                 maybe_inline_comment(stmt->comment, depth, out, level);
             }
 
             // out << "\n";
-            if (k + 1 < body.size() || print_last) {
-                out << "\n";
+            if (!printed_new_line) {
+                if (k < body.size() || print_last) {
+                    out << "\n";
+                }
             }
         }
 
@@ -464,6 +466,8 @@ ReturnType Printer::match(Match const* self, int depth, std::ostream& out, int l
         if (i + 1 < self->cases.size()) {
             out << '\n';
         }
+
+        i += 1;
     }
     return false;
 }
@@ -1137,15 +1141,15 @@ void Printer::alias(Alias const& self, int depth, std::ostream& out, int level) 
 
 ReturnType
 Printer::functiontype(FunctionType const* self, int depth, std::ostream& out, int indent) {
-    return true;
+    return false;
 }
 
 ReturnType Printer::expression(Expression const* self, int depth, std::ostream& out, int level) {
-    return true;
+    return false;
 }
 
 ReturnType Printer::interactive(Interactive const* self, int depth, std::ostream& out, int level) {
-    return true;
+    return false;
 }
 
 void Printer::withitem(WithItem const& self, int depth, std::ostream& out, int level) {
@@ -1162,7 +1166,7 @@ ReturnType Printer::comment(Comment const* n, int depth, std::ostream& out, int 
     for (Token const& tok: n->tokens) {
         tok.print(out);
     }
-    return true;
+    return false;
 }
 
 void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int level) {
