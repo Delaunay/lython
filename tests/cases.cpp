@@ -247,6 +247,8 @@ Array<TestCase> const& For_examples() {
          "    pass\n",
          {
              NE("b"),
+             NE("b"),
+             NE("c"),
          }},
         {"for a, (b, c), d in b:\n"
          "    pass\n",
