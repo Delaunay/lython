@@ -75,7 +75,7 @@ ADD_TEST(
 ADD_TEST(
   NAME lython_fmt
   WORKING_DIRECTORY .
-  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt ../code/python_test.ly
+  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt --ast ../code/comment.ly
 )
 
 ADD_TEST(
