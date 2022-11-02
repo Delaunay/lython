@@ -14,17 +14,14 @@ using namespace lython;
 
 inline String parse_it(String code) {
     StringBuffer reader(code);
-    Module       module;
 
     Lexer  lex(reader);
     Parser parser(lex);
 
-    Module* mod = parser.parse_module();
+    auto mod = Unique<Module>(parser.parse_module());
     assert(mod->body.size() > 0, "Should parse more than one expression");
 
-    auto data = str(mod);
-
-    delete mod;
+    auto data = str(mod.get());
     return data;
 }
 
@@ -123,8 +120,6 @@ void show_debug(
 // Runs code through the parser but remove some tokens
 void run_partial(String const& name, int j, TestCase const& test) {
     StringBuffer reader(test.code);
-    Module       module;
-
     Lexer        lex(reader);
     Array<Token> toks = lex.extract_token();
 
@@ -134,15 +129,17 @@ void run_partial(String const& name, int j, TestCase const& test) {
 
         Parser parser(lexer);
         auto   expr = [&]() {
-            Module* mod = parser.parse_module();
-            show_debug(name, j, i, test.code, tokens, mod);
+            Module mod;
+            parser.parse_to_module(&mod);
+            show_debug(name, j, i, test.code, tokens, &mod);
         };
 
         if (!allowed({name, j, i})) {
             CHECK_THROWS_AS(expr(), SyntaxError);
         } else {
             try {
-                Module* mod = parser.parse_module();
+                Module mod;
+                parser.parse_to_module(&mod);
             } catch (SyntaxError const& err) {
                 show_debug(name, j, i, test.code, tokens, nullptr);
                 throw err;

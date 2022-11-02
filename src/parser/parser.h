@@ -39,15 +39,21 @@ class Parser {
     public:
     Parser(AbstractLexer& lexer): _lex(lexer) { metadata_init_names(); }
 
-    Module* parse_module() {
+    void parse_to_module(Module* module) {
         if (token().type() == tok_incorrect) {
             next_token();
         }
 
         // lookup the module
+        parse_body(module, module->body, 0);
+    }
+
+    Module* parse_module() {
+        // lookup the module
         Module* module   = new Module();
         module->class_id = meta::type_id<Module>();
-        parse_body(module, module->body, 0);
+
+        parse_to_module(module);
         return module;
     }
 
