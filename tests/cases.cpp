@@ -423,6 +423,11 @@ Array<TestCase> const& ClassDef_examples() {
     return ex;
 }
 
+Array<TestCase> const& Comment_examples() {
+    static Array<TestCase> ex = {};
+    return ex;
+}
+
 Array<TestCase> const& FunctionDef_examples() {
     static Array<TestCase> ex = {
         {"@j\n"

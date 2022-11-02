@@ -253,6 +253,9 @@ struct Equality {
 
         return exec(a->returns, b->returns, depth);
     }
+
+    bool comment(Comment* a, Comment* b, int depth) { return true; }
+
     bool dicttype(DictType* a, DictType* b, int depth) {
         return exec(a->key, b->key, depth) && exec(a->value, b->value, depth);
     }

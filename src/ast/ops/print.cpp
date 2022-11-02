@@ -1106,6 +1106,11 @@ void Printer::withitem(WithItem const& self, int depth, std::ostream& out, int l
     }
 }
 
+ReturnType Printer::comment(Comment const* n, int depth, std::ostream& out, int level) {
+    //
+    return true;
+}
+
 void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int level) {
     int i = 0;
 

@@ -717,6 +717,9 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
     }
     return t;
 }
+
+TypeExpr* SemanticAnalyser::comment(Comment* n, int depth) { return nullptr; }
+
 TypeExpr* SemanticAnalyser::listexpr(ListExpr* n, int depth) {
     TypeExpr* val_t = nullptr;
 

@@ -10,6 +10,7 @@
 #include "utilities/names.h"
 #include "utilities/object.h"
 #include "utilities/optional.h"
+#include "lexer/token.h"
 
 namespace lython {
 
@@ -934,6 +935,13 @@ struct BuiltinType: public ExprNode {
     // Maybe I need a native function Expr/Stmt instead ?
     NativeFunction native_function;
     NativeMacro    native_macro;
+};
+
+struct Comment: public ExprNode {
+
+    Comment(): ExprNode(NodeKind::Comment) {}
+
+    Array<Token> tokens;
 };
 
 // we need that to convert ClassDef which is a statement

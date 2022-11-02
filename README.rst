@@ -114,6 +114,18 @@ Linter
 * Linter
 
 
+Format
+------
+
+* Tokenizer
+* Parser
+* Format
+
+or
+
+* Tokenizer
+* Format
+
 Modularity
 ----------
 

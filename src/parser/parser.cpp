@@ -2028,6 +2028,12 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     //
 
     // clang-format on
+    // case tok_comment: {
+    //     ExprNode* comment      = parse_comment(parent, depth);
+    //     Expr*     comment_stmt = parent.new_object<Expr>();
+    //     stmt_expr->value       = comment;
+    //     return comment_stmt;
+    // }
     case tok_return: return parse_return(parent, depth);
     case tok_import: return parse_import(parent, depth);
     case tok_from: return parse_import_from(parent, depth);
@@ -2181,12 +2187,25 @@ ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedenc
     return lhs;
 }
 
+ExprNode* Parser::parse_comment(Node* parent, int depth) {
+
+    Comment* com = parent->new_object<Comment>();
+
+    while (token().type() != tok_newline) {
+        com->tokens.push_back(token());
+        next_token();
+    }
+
+    return com;
+}
+
 ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
     expression_depth += 1;
     // parse primary
     auto primary = parse_expression_primary(parent, depth);
 
     switch (token().type()) {
+
     // <expr>(args...)
     case tok_parens: {
         primary = parse_call(parent, primary, depth);
@@ -2208,8 +2227,10 @@ ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
 
 // Expression we can guess rightaway from the current token we are seeing
 ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
+
     switch (token().type()) {
     // await <expr>
+    case tok_comment: return parse_comment(parent, depth);
     case tok_await: return parse_await(parent, depth);
 
     // yield from <expr>

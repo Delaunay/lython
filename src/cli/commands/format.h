@@ -6,15 +6,9 @@ namespace lython {
 struct FormatCmd: public Command {
     FormatCmd(): Command("fmt") {}
 
-    virtual argparse::ArgumentParser* parser() {
-        argparse::ArgumentParser* p = new_parser();
-        return p;
-    }
+    virtual argparse::ArgumentParser* parser();
 
-    virtual int main(argparse::ArgumentParser const& args) {
-        //
-        return 0;
-    };
+    virtual int main(argparse::ArgumentParser const& args);
 };
 
 }  // namespace lython

@@ -89,7 +89,8 @@
     X(tok_not, -57)        \
     X(tok_and, -58)        \
     X(tok_or, -59)         \
-    X(tok_decorator, '@')
+    X(tok_decorator, '@')  \
+    X(tok_comment, '#')
 
 #define LYTHON_KEYWORDS(X)      \
     X("def", tok_def)           \

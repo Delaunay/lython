@@ -5,6 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Lython fmt",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
+            "args": [
+                "fmt",
+                "../code"
+            ],
+            "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
+            "showDisplayString": true,
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        },
+        {
             "name": "Debug VM (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
@@ -101,8 +117,9 @@
             "name": "Debug Lython-Inspect",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/lython-inspector",
+            "program": "${workspaceFolder}/build/bin/lython.exe",
             "args": [
+                "internal",
                 "--file",
                 "${workspaceFolder}/code/python_test.ly"
             ],

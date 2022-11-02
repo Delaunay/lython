@@ -104,6 +104,7 @@ class Parser {
 
     // Primary expression
     // parse_expression_1
+    ExprNode* parse_comment(Node* parent, int depth);
     ExprNode* parse_await(Node* parent, int depth);
     StmtNode* parse_yield_stmt(Node* parent, int depth);
     ExprNode* parse_yield(Node* parent, int depth);

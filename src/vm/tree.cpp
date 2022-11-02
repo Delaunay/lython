@@ -512,6 +512,8 @@ PartialResult* TreeEvaluator::constant(Constant_t* n, int depth) {
     return cpy;
 }
 
+PartialResult* TreeEvaluator::comment(Comment_t* n, int depth) { return nullptr; }
+
 PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
 
     Node* result = nullptr;
