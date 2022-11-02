@@ -144,9 +144,7 @@ int ast_reformat_file(fs::path const& file) {
     }
 
     StringStream ss;
-    for (auto stmt: mod->body) {
-        print(str(stmt), ss);
-    }
+    print(str(mod), ss);
 
     // We should compute a hash of the original file
     // and a hash of the formated string

@@ -13,6 +13,11 @@
 
 #define TRACE_END() TRACE_END2(token())
 
+#define MAYBE_COMMENT(obj, attr)                        \
+    if (token().type() == tok_comment) {                \
+        (obj)->attr = parse_comment(parent, depth + 1); \
+    }
+
 namespace lython {
 
 #define SHOW_TOK(tok) error("{}", str(tok));
@@ -153,13 +158,18 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
 
     while (token().type() != tok_desindent && token().type() != tok_eof) {
 
-        auto expr = parse_statement(parent, depth + 1);
+        auto stmt = parse_statement(parent, depth + 1);
 
-        if (expr == nullptr) {
+        // only one liner should have the comment attached
+        if (stmt->is_one_line() && token().type() == tok_comment) {
+            stmt->comment = parse_comment(stmt, depth);
+        }
+
+        if (stmt == nullptr) {
             return token();
         }
 
-        out.push_back(expr);
+        out.push_back(stmt);
 
         if (token().type() == tok_incorrect) {
             next_token();
@@ -177,12 +187,18 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     }
 
     auto last = token();
+    //
     expect_tokens({tok_desindent, tok_eof}, true, parent, LOC);
     return last;
 }
 
+bool Parser::is_tok_statement_ender() const {
+    // returns true if the token terminates a statement
+    return in(token().type(), tok_newline, tok_eof, tok_comment);
+}
+
 void Parser::expect_newline(Node* stmt, CodeLocation const& loc) {
-    expect_token(tok_newline, true, stmt, LOC);
+    expect_token(tok_newline, true, stmt, loc);
     while (token().type() == tok_newline) {
         next_token();
     }
@@ -218,14 +234,15 @@ StmtNode* Parser::parse_function_def(Node* parent, bool async, int depth) {
     }
 
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     if (token().type() == tok_docstring) {
         stmt->docstring = token().identifier();
         next_token();
 
-        expect_newline(stmt, LOC);
+        expect_newline(stmt, LOC);  // Could have a comment here too
+                                    // but let's not support it for now
     }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -253,13 +270,13 @@ StmtNode* Parser::parse_class_def(Node* parent, int depth) {
     }
 
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     if (token().type() == tok_docstring) {
         stmt->docstring = token().identifier();
         next_token();
-        expect_newline(stmt, LOC);
+        expect_newline(stmt, LOC);  // Could have a comment here too
     }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -341,6 +358,11 @@ ExprNode* Parser::parse_star_targets(Node* parent, int depth) {
     // t_lookahead: '(' | '[' | '.'
 }
 
+void Parser::expect_comment_or_newline(StmtNode* stmt, int depth, CodeLocation const& loc) {
+    add_inline_comment(stmt, depth);
+    expect_newline(stmt, LOC);
+}
+
 StmtNode* Parser::parse_for(Node* parent, int depth) {
     TRACE_START();
 
@@ -367,7 +389,8 @@ StmtNode* Parser::parse_for(Node* parent, int depth) {
     stmt->iter = parse_expression(stmt, depth + 1);
 
     expect_token(':', true, parent, LOC);
-    expect_newline(stmt, LOC);
+
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, parent, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -375,7 +398,10 @@ StmtNode* Parser::parse_for(Node* parent, int depth) {
     if (token().type() == tok_else) {
         next_token();
         expect_token(':', true, stmt, LOC);
+
+        MAYBE_COMMENT(stmt, else_comment);
         expect_newline(stmt, LOC);
+
         expect_token(tok_indent, true, stmt, LOC);
 
         last = parse_body(stmt, stmt->orelse, depth + 1);
@@ -394,7 +420,7 @@ StmtNode* Parser::parse_while(Node* parent, int depth) {
 
     stmt->test = parse_expression(stmt, depth + 1);
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -402,7 +428,10 @@ StmtNode* Parser::parse_while(Node* parent, int depth) {
     if (token().type() == tok_else) {
         next_token();
         expect_token(':', true, stmt, LOC);
+
+        MAYBE_COMMENT(stmt, else_comment);
         expect_newline(stmt, LOC);
+
         expect_token(tok_indent, true, stmt, LOC);
         last = parse_body(stmt, stmt->orelse, depth + 1);
     }
@@ -424,7 +453,7 @@ StmtNode* Parser::parse_if_alt(Node* parent, int depth) {
         stmt->test = parse_expression(stmt, depth + 1);
 
         expect_token(':', true, stmt, LOC);
-        expect_newline(stmt, LOC);
+        expect_comment_or_newline(stmt, depth, LOC);
         expect_token(tok_indent, true, stmt, LOC);
 
         auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -434,9 +463,15 @@ StmtNode* Parser::parse_if_alt(Node* parent, int depth) {
         next_token();
 
         auto test = parse_expression(stmt, depth + 1);
-
         expect_token(':', true, stmt, LOC);
-        expect_newline(stmt, LOC);
+
+        // We need to push a comment even if there is nothing
+        // because we will zip between tests and tests_comments
+        int n = int(stmt->tests_comment.size());
+        stmt->tests_comment.push_back(nullptr);
+        MAYBE_COMMENT(stmt, tests_comment[n]);
+
+        expect_newline(stmt, LOC);  // FIXME: can have comment too
         expect_token(tok_indent, true, stmt, LOC);
 
         Array<StmtNode*> body;
@@ -451,7 +486,10 @@ StmtNode* Parser::parse_if_alt(Node* parent, int depth) {
         next_token();
 
         expect_token(':', true, stmt, LOC);
+
+        MAYBE_COMMENT(stmt, else_comment);
         expect_newline(stmt, LOC);
+
         expect_token(tok_indent, true, stmt, LOC);
 
         last = parse_body(stmt, stmt->orelse, depth + 1);
@@ -471,7 +509,7 @@ StmtNode* Parser::parse_if(Node* parent, int depth) {
     stmt->test = parse_expression(stmt, depth + 1);
 
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -481,7 +519,10 @@ StmtNode* Parser::parse_if(Node* parent, int depth) {
         next_token();
 
         expect_token(':', true, stmt, LOC);
+
+        MAYBE_COMMENT(stmt, else_comment);
         expect_newline(stmt, LOC);
+
         expect_token(tok_indent, true, stmt, LOC);
 
         last = parse_body(stmt, stmt->orelse, depth + 1);
@@ -764,6 +805,7 @@ Token Parser::parse_match_case(Node* parent, Array<MatchCase>& out, int depth) {
         }
 
         expect_token(':', true, parent, LOC);
+        MAYBE_COMMENT(&case_, comment);
         expect_newline(parent, LOC);
         expect_token(tok_indent, true, parent, LOC);
 
@@ -790,7 +832,7 @@ StmtNode* Parser::parse_match(Node* parent, int depth) {
 
     stmt->subject = parse_expression(stmt, depth + 1);
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, parent, LOC);
 
     auto last = parse_match_case(stmt, stmt->cases, depth);
@@ -840,7 +882,7 @@ StmtNode* Parser::parse_with(Node* parent, int depth) {
     parse_withitem(stmt, stmt->items, depth + 1);
 
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -855,7 +897,7 @@ StmtNode* Parser::parse_raise(Node* parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    if (token().type() != tok_newline && token().type() != tok_eof) {
+    if (!is_tok_statement_ender()) {
         stmt->exc = parse_expression(stmt, depth + 1);
 
         if (token().type() == tok_from) {
@@ -866,13 +908,16 @@ StmtNode* Parser::parse_raise(Node* parent, int depth) {
         end_code_loc(stmt, token());
     } else {
         end_code_loc(stmt, token());
-        next_token();
+
+        if (token().type() != tok_comment) {
+            next_token();
+        }
     }
 
     return stmt;
 }
 
-Token Parser::parse_except_handler(Node* parent, Array<ExceptHandler>& out, int depth) {
+Token Parser::parse_except_handler(Try* parent, Array<ExceptHandler>& out, int depth) {
     TRACE_START();
 
     while (token().type() == tok_except) {
@@ -890,6 +935,7 @@ Token Parser::parse_except_handler(Node* parent, Array<ExceptHandler>& out, int 
         }
 
         expect_token(':', true, parent, LOC);
+        add_inline_comment(parent, &handler, depth);
         expect_newline(parent, LOC);
         expect_token(tok_indent, true, parent, LOC);
 
@@ -909,7 +955,7 @@ StmtNode* Parser::parse_try(Node* parent, int depth) {
     next_token();
 
     expect_token(':', true, stmt, LOC);
-    expect_newline(stmt, LOC);
+    expect_comment_or_newline(stmt, depth, LOC);
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -920,7 +966,10 @@ StmtNode* Parser::parse_try(Node* parent, int depth) {
     if (token().type() == tok_else) {
         next_token();  // else
         expect_token(':', true, stmt, LOC);
+
+        MAYBE_COMMENT(stmt, else_comment);
         expect_newline(stmt, LOC);
+
         expect_token(tok_indent, true, stmt, LOC);
         parse_body(stmt, stmt->orelse, depth + 1);
     }
@@ -928,7 +977,10 @@ StmtNode* Parser::parse_try(Node* parent, int depth) {
     if (token().type() == tok_finally) {
         next_token();  // finally
         expect_token(':', true, stmt, LOC);
+
+        MAYBE_COMMENT(stmt, finally_comment);
         expect_newline(stmt, LOC);
+
         expect_token(tok_indent, true, stmt, LOC);
         parse_body(stmt, stmt->finalbody, depth + 1);
     }
@@ -980,7 +1032,6 @@ String Parser::parse_module_path(Node* parent, int& level, int depth) {
         }
 
         // separator
-
         if (is_dot(token())) {
             next_token();
 
@@ -991,8 +1042,7 @@ String Parser::parse_module_path(Node* parent, int& level, int depth) {
             }
         }
 
-        if (token().type() == tok_as || token().type() == ',' || token().type() == tok_newline ||
-            token().type() == tok_eof || token().type() == tok_import) {
+        if (in(token().type(), tok_as, tok_comma, tok_newline, tok_eof, tok_import, tok_comment)) {
             break;
         }
     }
@@ -1003,7 +1053,7 @@ String Parser::parse_module_path(Node* parent, int& level, int depth) {
 void Parser::parse_alias(Node* parent, Array<Alias>& out, int depth) {
     TRACE_START();
 
-    while (token().type() != tok_newline && token().type() != tok_eof) {
+    while (!is_tok_statement_ender()) {
         Alias alias;
 
         int level  = 0;
@@ -1044,6 +1094,7 @@ StmtNode* Parser::parse_import(Node* parent, int depth) {
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
+    add_inline_comment(stmt, depth);
     expect_tokens({tok_newline, tok_eof}, true, stmt, LOC);
     return stmt;
 }
@@ -1065,6 +1116,7 @@ StmtNode* Parser::parse_import_from(Node* parent, int depth) {
     parse_alias(stmt, stmt->names, depth + 1);
 
     end_code_loc(stmt, token());
+    add_inline_comment(stmt, depth);
     expect_tokens({tok_newline, tok_eof}, true, stmt, LOC);
     return stmt;
 }
@@ -1120,12 +1172,15 @@ StmtNode* Parser::parse_return(Node* parent, int depth) {
     start_code_loc(stmt, token());
     next_token();
 
-    if (token().type() != tok_newline && token().type() != tok_eof) {
+    if (!is_tok_statement_ender()) {
         stmt->value = parse_expression(stmt, depth + 1, true);
         end_code_loc(stmt, token());
     } else {
         end_code_loc(stmt, token());
-        next_token();
+
+        if (token().type() != tok_comment) {
+            next_token();
+        }
     }
 
     TRACE_END();
@@ -1137,16 +1192,15 @@ StmtNode* Parser::parse_del(Node* parent, int depth) {
 
     auto stmt = parent->new_object<Delete>();
     start_code_loc(stmt, token());
-    next_token();
 
-    while (token().type() != tok_newline) {
+    while (!is_tok_statement_ender()) {
+        next_token();
+
         auto expr = parse_expression(stmt, depth + 1);
         stmt->targets.push_back(expr);
 
         if (token().type() == ',') {
-            next_token();
-        } else {
-            break;
+            continue;
         }
     }
 
@@ -1245,8 +1299,10 @@ StmtNode* Parser::parse_annassign(Node* parent, ExprNode* expr, int depth) {
 
     stmt->annotation = parse_expression(stmt, depth + 1);
 
-    expect_token(tok_assign, true, stmt, LOC);
-    stmt->value = parse_expression(stmt, depth + 1);
+    if (token().type() == tok_assign) {
+        expect_token(tok_assign, true, stmt, LOC);
+        stmt->value = parse_expression(stmt, depth + 1);
+    }
 
     end_code_loc(stmt, token());
     return stmt;
@@ -1341,7 +1397,7 @@ ExprNode* Parser::parse_yield(Node* parent, int depth) {
     start_code_loc(expr, token());
     next_token();
 
-    if (!in(token().type(), tok_newline, tok_eof)) {
+    if (!is_tok_statement_ender()) {
         expr->value = parse_expression(expr, depth + 1, true);
     } else {
         next_token();
@@ -1922,6 +1978,7 @@ StmtNode* Parser::parse_statement(Node* parent, int depth) {
         auto fun = parse_expression(parent, depth);
         decorators.push_back(fun);
 
+        // FIXME decorators can have comments
         if (token().type() == tok_newline) {
             next_token();
         }
@@ -1941,7 +1998,7 @@ StmtNode* Parser::parse_statement(Node* parent, int depth) {
     while (token().type() == ';') {
         next_token();
 
-        if (token().type() == tok_newline || token().type() == tok_eof) {
+        if (is_tok_statement_ender()) {
             break;
         }
 
@@ -1949,15 +2006,17 @@ StmtNode* Parser::parse_statement(Node* parent, int depth) {
         body.push_back(stmt);
     }
 
+    stmt = nullptr;
     if (body.size() == 1) {
-        return body[0];
+        stmt = body[0];
+    } else {
+        auto inlinestmt  = parent->new_object<Inline>();
+        inlinestmt->body = body;
+        stmt             = inlinestmt;
     }
 
-    auto inlinestmt  = parent->new_object<Inline>();
-    inlinestmt->body = body;
-
     TRACE_END();
-    return inlinestmt;
+    return stmt;
 }
 
 StmtNode* Parser::parse_yield_stmt(Node* parent, int depth) {
@@ -2028,12 +2087,12 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     //
 
     // clang-format on
-    // case tok_comment: {
-    //     ExprNode* comment      = parse_comment(parent, depth);
-    //     Expr*     comment_stmt = parent.new_object<Expr>();
-    //     stmt_expr->value       = comment;
-    //     return comment_stmt;
-    // }
+    case tok_comment: {
+        ExprNode* comment      = parse_comment(parent, depth);
+        Expr*     comment_stmt = parent->new_object<Expr>();
+        comment_stmt->value    = comment;
+        return comment_stmt;
+    }
     case tok_return: return parse_return(parent, depth);
     case tok_import: return parse_import(parent, depth);
     case tok_from: return parse_import_from(parent, depth);
@@ -2187,11 +2246,15 @@ ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedenc
     return lhs;
 }
 
-ExprNode* Parser::parse_comment(Node* parent, int depth) {
+Comment* Parser::parse_comment(Node* parent, int depth) {
+    TRACE_START();
 
+    if (token().type() == tok_comment) {
+        next_token();
+    }
     Comment* com = parent->new_object<Comment>();
 
-    while (token().type() != tok_newline) {
+    while (!in(token().type(), tok_newline, tok_eof)) {
         com->tokens.push_back(token());
         next_token();
     }
@@ -2230,7 +2293,6 @@ ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
 
     switch (token().type()) {
     // await <expr>
-    case tok_comment: return parse_comment(parent, depth);
     case tok_await: return parse_await(parent, depth);
 
     // yield from <expr>

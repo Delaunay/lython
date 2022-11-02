@@ -11,7 +11,8 @@
             "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
             "args": [
                 "fmt",
-                "../code"
+                "--ast",
+                "${workspaceFolder}/code/comment.ly"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,

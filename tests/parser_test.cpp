@@ -69,7 +69,8 @@ Array<AllowEntry> allow_list = {
     {"Assign", 8, 1},       {"Assign", 9, 1},      {"Assign", 10, 1},     {"Assign", 11, 1},
     {"Assign", 12, 1},      {"Assign", 13, 1},     {"Assign", 14, 1},     {"Assign", 14, 3},
     {"Assign", 14, 5},      {"AugAssign", 0, 1},   {"AugAssign", 1, 1},   {"AnnAssign", 3, 1},
-    {"AnnAssign", 2, 1},    {"AnnAssign", 0, 1},   {"AnnAssign", 1, 1},   {"For", 0, 8},
+    {"AnnAssign", 0, 3},    {"AnnAssign", 2, 1},   {"AnnAssign", 0, 1},   {"AnnAssign", 1, 1},
+    {"AnnAssign", 3, 3},    {"AnnAssign", 2, 3},   {"AnnAssign", 1, 3},   {"For", 0, 8},
     {"For", 0, 9},          {"For", 0, 10},        {"For", 0, 15},        {"For", 1, 16},
     {"While", 0, 6},        {"While", 0, 7},       {"While", 0, 8},       {"While", 0, 13},
     {"If", 0, 6},           {"If", 0, 7},          {"If", 0, 8},          {"If", 0, 14},
@@ -89,7 +90,8 @@ Array<AllowEntry> allow_list = {
     {"Match", 1, 12},       {"Match", 1, 13},      {"Match", 1, 14},      {"ClassDef", 1, 10},
     {"ClassDef", 1, 11},    {"ClassDef", 1, 16},   {"ClassDef", 1, 17},   {"ClassDef", 1, 20},
     {"ClassDef", 1, 21},    {"ClassDef", 1, 22},   {"ClassDef", 1, 31},   {"ClassDef", 1, 33},
-    {"ClassDef", 1, 35},    {"ClassDef", 1, 36},   {"IfExp", 0, 1},       {"IfExp", 0, 3}};
+    {"ClassDef", 1, 35},    {"ClassDef", 1, 36},   {"ClassDef", 1, 14},   {"ClassDef", 1, 8},
+    {"IfExp", 0, 1},        {"IfExp", 0, 3}};
 
 bool allowed(AllowEntry const& v) {
     for (auto& entry: allow_list) {

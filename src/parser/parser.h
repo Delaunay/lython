@@ -52,7 +52,7 @@ class Parser {
     }
 
     Token  parse_body(Node* parent, Array<StmtNode*>& out, int depth);
-    Token  parse_except_handler(Node* parent, Array<ExceptHandler>& out, int depth);
+    Token  parse_except_handler(Try* parent, Array<ExceptHandler>& out, int depth);
     void   parse_alias(Node* parent, Array<Alias>& out, int depth);
     Token  parse_match_case(Node* parent, Array<MatchCase>& out, int depth);
     String parse_module_path(Node* parent, int& level, int depth);
@@ -104,7 +104,7 @@ class Parser {
 
     // Primary expression
     // parse_expression_1
-    ExprNode* parse_comment(Node* parent, int depth);
+    Comment*  parse_comment(Node* parent, int depth);
     ExprNode* parse_await(Node* parent, int depth);
     StmtNode* parse_yield_stmt(Node* parent, int depth);
     ExprNode* parse_yield(Node* parent, int depth);
@@ -166,6 +166,18 @@ class Parser {
 
     bool is_binary_operator_family(OpConfig const& conf);
 
+    void add_inline_comment(StmtNode* stmt, int depth) {
+        //
+        add_inline_comment(stmt, stmt, depth);
+    }
+
+    template <typename T>
+    void add_inline_comment(Node* parent, T* stmt, int depth) {
+        if (token().type() == tok_comment) {
+            stmt->comment = parse_comment(parent, depth + 1);
+        }
+    }
+
     // Error Handling
     // --------------
     ParsingError*
@@ -184,6 +196,8 @@ class Parser {
     // NB: making the lexer not eat new line enable the lexer to be closer
     // to the original code when it is used for formatting only
     void expect_newline(Node* wip_expression, CodeLocation const& loc);
+
+    void expect_comment_or_newline(StmtNode* stmt, int depth, CodeLocation const& loc);
 
     ParsingError*
     write_error(Array<int> const& expected, Node* wip_expression, CodeLocation const& loc);
@@ -225,6 +239,8 @@ class Parser {
 
         return parsing_context[n - 1];
     }
+
+    bool is_tok_statement_ender() const;
 
     bool allow_slice() const { return parsing_ctx() == ParsingContext::Slice; }
 

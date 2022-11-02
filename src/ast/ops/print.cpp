@@ -49,6 +49,13 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
         return latest;
     }
 
+    void maybe_inline_comment(Comment* com, int depth, std::ostream& out, int level) {
+        if (com) {
+            out << "   ";
+            exec(com, depth, out, level);
+        }
+    }
+
     StringStream fmt(ExprNode const* node, int depth, int level) {
         StringStream ss;
         exec(node, depth, ss, level);
@@ -68,6 +75,11 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
             out << indent(level);
             exec(stmt, depth, out, level);
 
+            if (stmt->is_one_line()) {
+                maybe_inline_comment(stmt->comment, depth, out, level);
+            }
+
+            // out << "\n";
             if (k + 1 < body.size() || print_last) {
                 out << "\n";
             }
@@ -88,7 +100,9 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
             out << self.name.value();
         }
 
-        out << ":\n";
+        out << ":";
+        maybe_inline_comment(self.comment, depth, out, level);
+        out << "\n";
         return print_body(self.body, depth, out, level + 1);
     }
 
@@ -101,7 +115,9 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
             exec(self.guard.value(), depth, out, level);
         }
 
-        out << ":\n";
+        out << ":";
+        maybe_inline_comment(self.comment, depth, out, level);
+        out << "\n";
         return print_body(self.body, depth, out, level + 1);
     }
 
@@ -213,7 +229,9 @@ ReturnType Printer::with(With const* self, int depth, std::ostream& out, int lev
         }
         i += 1;
     }
-    out << ":\n";
+    out << ":";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
 
     print_body(self->body, depth, out, level + 1);
     return false;
@@ -404,7 +422,9 @@ ReturnType Printer::matchor(MatchOr const* self, int depth, std::ostream& out, i
 ReturnType Printer::ifstmt(If const* self, int depth, std::ostream& out, int level) {
     out << "if ";
     exec(self->test, depth, out, level);
-    out << ":\n";
+    out << ":";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
     print_body(self->body, depth, out, level + 1);
 
     for (int i = 0; i < self->tests.size(); i++) {
@@ -414,12 +434,17 @@ ReturnType Printer::ifstmt(If const* self, int depth, std::ostream& out, int lev
         out << "\n" << indent(level) << "elif ";
 
         exec(eliftest, depth, out, level);
-        out << ":\n";
+        out << ":";
+        maybe_inline_comment(self->tests_comment[i], depth, out, level);
+        out << "\n";
         print_body(elifbody, depth, out, level + 1);
     }
 
     if (self->orelse.size()) {
-        out << "\n" << indent(level) << "else:\n";
+        out << "\n" << indent(level) << "else:";
+        maybe_inline_comment(self->else_comment, depth, out, level);
+        out << "\n";
+
         print_body(self->orelse, depth, out, level + 1);
     }
     return false;
@@ -428,7 +453,9 @@ ReturnType Printer::ifstmt(If const* self, int depth, std::ostream& out, int lev
 ReturnType Printer::match(Match const* self, int depth, std::ostream& out, int level) {
     out << "match ";
     exec(self->subject, depth, out, level);
-    out << ":\n";
+    out << ":";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
 
     int i = 0;
     for (auto& case_: self->cases) {
@@ -522,9 +549,11 @@ ReturnType Printer::yieldfrom(YieldFrom const* self, int depth, std::ostream& ou
 
 ReturnType Printer::call(Call const* self, int depth, std::ostream& out, int level) {
 
-    StringStream fname = fmt(self->func, depth, level);
+    // StringStream fname = fmt(self->func, depth, level);
+    // out << fname.str() << "(";
 
-    out << fname.str() << "(";
+    exec(self->func, depth, out, level);
+    out << "(";
 
     for (int i = 0; i < self->args.size(); i++) {
         exec(self->args[i], depth, out, level);
@@ -603,7 +632,9 @@ ReturnType Printer::classdef(ClassDef const* self, int depth, std::ostream& out,
         out << ')';
     }
 
-    out << ":\n";
+    out << ":";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
 
     if (self->docstring.has_value()) {
         out << indent(level + 1) << "\"\"\"" << self->docstring.value() << "\"\"\"\n";
@@ -622,7 +653,7 @@ ReturnType Printer::classdef(ClassDef const* self, int depth, std::ostream& out,
 
         out << indent(level + 1);
         exec(stmt, depth, out, level + 1);
-
+        maybe_inline_comment(stmt->comment, depth, out, level);
         out << "\n";
         k += 1;
     }
@@ -655,7 +686,9 @@ ReturnType Printer::functiondef(FunctionDef const* self, int depth, std::ostream
         exec(self->returns.value(), depth, out, level);
     }
 
-    out << ":\n";
+    out << ":";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
 
     if (self->docstring.has_value()) {
         out << indent(level + 1) << "\"\"\"" << self->docstring.value() << "\"\"\"\n";
@@ -689,12 +722,18 @@ ReturnType Printer::forstmt(For const* self, int depth, std::ostream& out, int l
     exec(self->target, depth, out, -1);
     out << " in ";
     exec(self->iter, depth, out, -1);
-    out << ":\n";
+    out << ":";
+
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
+
     print_body(self->body, depth, out, level + 1);
 
     if (self->orelse.size() > 0) {
         out << '\n';
-        out << indent(level) << "else:\n";
+        out << indent(level) << "else:";
+        maybe_inline_comment(self->else_comment, depth, out, level);
+        out << "\n";
         print_body(self->orelse, depth, out, level + 1);
     }
 
@@ -702,7 +741,10 @@ ReturnType Printer::forstmt(For const* self, int depth, std::ostream& out, int l
 }
 
 ReturnType Printer::trystmt(Try const* self, int depth, std::ostream& out, int level) {
-    out << "try:\n";
+    out << "try:";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
+
     print_body(self->body, depth, out, level + 1);
 
     for (auto& handler: self->handlers) {
@@ -710,12 +752,16 @@ ReturnType Printer::trystmt(Try const* self, int depth, std::ostream& out, int l
     }
 
     if (self->orelse.size() > 0) {
-        out << "\n" << indent(level) << "else:\n";
+        out << "\n" << indent(level) << "else:";
+        maybe_inline_comment(self->else_comment, depth, out, level);
+        out << "\n";
         print_body(self->orelse, depth, out, level + 1);
     }
 
     if (self->finalbody.size() > 0) {
-        out << "\n" << indent(level) << "finally:\n";
+        out << "\n" << indent(level) << "finally:";
+        maybe_inline_comment(self->finally_comment, depth, out, level);
+        out << "\n";
         print_body(self->finalbody, depth, out, level + 1);
     }
 
@@ -784,11 +830,15 @@ ReturnType Printer::unaryop(UnaryOp const* self, int depth, std::ostream& out, i
 ReturnType Printer::whilestmt(While const* self, int depth, std::ostream& out, int level) {
     out << "while ";
     exec(self->test, depth, out, level);
-    out << ":\n";
+    out << ":";
+    maybe_inline_comment(self->comment, depth, out, level);
+    out << "\n";
     print_body(self->body, depth, out, level + 1);
 
     if (self->orelse.size() > 0) {
-        out << '\n' << indent(level) << "else:\n";
+        out << '\n' << indent(level) << "else:";
+        maybe_inline_comment(self->else_comment, depth, out, level);
+        out << "\n";
         print_body(self->orelse, depth, out, level + 1);
     }
 
@@ -1108,6 +1158,10 @@ void Printer::withitem(WithItem const& self, int depth, std::ostream& out, int l
 
 ReturnType Printer::comment(Comment const* n, int depth, std::ostream& out, int level) {
     //
+    out << "#";
+    for (Token const& tok: n->tokens) {
+        tok.print(out);
+    }
     return true;
 }
 

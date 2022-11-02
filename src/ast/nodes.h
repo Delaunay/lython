@@ -6,11 +6,11 @@
 #include "ast/nodekind.h"
 #include "constant.h"
 #include "dtypes.h"
+#include "lexer/token.h"
 #include "logging/logging.h"
 #include "utilities/names.h"
 #include "utilities/object.h"
 #include "utilities/optional.h"
-#include "lexer/token.h"
 
 namespace lython {
 
@@ -68,10 +68,31 @@ struct ModNode: public Node {
     NodeFamily family() const override { return NodeFamily::Module; }
 };
 
+struct Comment;
+
 struct StmtNode: public CommonAttributes, public Node {
     StmtNode(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Statement; }
+
+    // inline comments are inserted to its matching statement
+    // example:
+    //      <stmt> # comment
+    //
+    // Some statements can have multiple comment
+    //
+    // if <expr>: # comment
+    //     ...
+    // else: # commnet
+    //
+    Comment* comment = nullptr;
+
+    bool is_one_line() const {
+        if (end_lineno.has_value()) {
+            return lineno == end_lineno.value();
+        }
+        return true;
+    }
 };
 
 struct ExprNode: public CommonAttributes, public Node {
@@ -200,6 +221,7 @@ struct ExceptHandler: public CommonAttributes {
     Optional<ExprNode*>  type;
     Optional<Identifier> name;
     Array<StmtNode*>     body;
+    Comment*             comment = nullptr;
 };
 
 struct Arg: public CommonAttributes {
@@ -310,10 +332,18 @@ struct MatchCase {
     Pattern*            pattern;
     Optional<ExprNode*> guard;
     Array<StmtNode*>    body;
+    Comment*            comment = nullptr;
 };
 
 // Expressions
 // -----------
+
+struct Comment: public ExprNode {
+
+    Comment(): ExprNode(NodeKind::Comment) {}
+
+    Array<Token> tokens;
+};
 
 struct Constant: public ExprNode {
     ConstantValue    value;
@@ -758,6 +788,8 @@ struct For: public StmtNode {
     bool async = false;
 
     For(): StmtNode(NodeKind::For) {}
+
+    Comment* else_comment = nullptr;
 };
 
 // Keeping it for consistency with python docs, but useless
@@ -769,6 +801,8 @@ struct While: public StmtNode {
     Array<StmtNode*> orelse;
 
     While(): StmtNode(NodeKind::While) {}
+
+    Comment* else_comment = nullptr;
 };
 
 struct If: public StmtNode {
@@ -782,6 +816,9 @@ struct If: public StmtNode {
     Array<Array<StmtNode*>> bodies;
 
     If(): StmtNode(NodeKind::If) {}
+
+    Array<Comment*> tests_comment;
+    Comment*        else_comment = nullptr;
 };
 
 struct With: public StmtNode {
@@ -811,6 +848,9 @@ struct Try: public StmtNode {
     Array<StmtNode*>     finalbody;
 
     Try(): StmtNode(NodeKind::Try) {}
+
+    Comment* else_comment    = nullptr;
+    Comment* finally_comment = nullptr;
 };
 
 struct Assert: public StmtNode {
@@ -935,13 +975,6 @@ struct BuiltinType: public ExprNode {
     // Maybe I need a native function Expr/Stmt instead ?
     NativeFunction native_function;
     NativeMacro    native_macro;
-};
-
-struct Comment: public ExprNode {
-
-    Comment(): ExprNode(NodeKind::Comment) {}
-
-    Array<Token> tokens;
 };
 
 // we need that to convert ClassDef which is a statement
