@@ -119,14 +119,3 @@ ADD_TEST(
   WORKING_DIRECTORY .
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython tests -h
 )
-
-IF(UNIX)
-  ADD_DEPENDENCIES(coverage lython_internal)
-  ADD_DEPENDENCIES(coverage lython_tests)
-  ADD_DEPENDENCIES(coverage lython_profile)
-  ADD_DEPENDENCIES(coverage lython_lint)
-  ADD_DEPENDENCIES(coverage lython_fmt)
-  ADD_DEPENDENCIES(coverage lython_doc)
-  ADD_DEPENDENCIES(coverage lython_debug)
-  ADD_DEPENDENCIES(coverage lython_codegen)
-ENDIF()
