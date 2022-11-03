@@ -23,7 +23,7 @@ argparse::ArgumentParser* FormatCmd::parser() {
         .help("Reformat files inplace");
 
     p->add_argument("--ast")   //
-        .default_value(false)  //
+        .default_value(true)   //
         .implicit_value(true)  //
         .help("Use the AST to reformat the code");
 

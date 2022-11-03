@@ -20,6 +20,21 @@
 
 namespace lython {
 
+template <typename T, typename N>
+bool in(T const& e, N const& v) {
+    return e == v;
+}
+
+template <typename T, typename N, typename... Args>
+bool in(T const& e, N const& v, Args... args) {
+    return e == v || in(e, args...);
+}
+
+template <typename T, typename... Args>
+bool in(T const& e, Args... args) {
+    return in(e, args...);
+}
+
 struct OpConfig {
     int            precedence       = -1;
     bool           left_associative = true;
@@ -134,15 +149,14 @@ class Lexer: public AbstractLexer {
     Token const& next_token() override final;
     Token const& peek_token() override final {
         // we can only peek ahead once
-        if (_buffered_token)
-            return _buffer;
+        if (_buffer.size() > 0)
+            return _buffer[_buffer.size() - 1];
 
         // Save current token a get next
         Token current_token = _token;
-        _buffer             = next_token();
-        _token              = current_token;
-        _buffered_token     = true;
-        return _buffer;
+        _buffer.push_back(next_token());
+        _token = current_token;
+        return _buffer[_buffer.size() - 1];
     }
 
     Token const& make_token(int8 t) {
@@ -161,9 +175,8 @@ class Lexer: public AbstractLexer {
     Token           _token{dummy()};
     int32           _cindent;
     int32           _oindent;
-    bool            _buffered_token = false;
-    Token           _buffer{dummy()};
     LexerOperators  _operators;
+    Array<Token>    _buffer;
 
     // shortcuts
     const String& file_name() { return _reader.file_name(); }
@@ -173,6 +186,9 @@ class Lexer: public AbstractLexer {
     void          consume() { return _reader.consume(); }
     char          peek() { return _reader.peek(); }
     bool          empty_line() { return _reader.empty_line(); }
+
+    // state
+    bool desindent_for_comment = false;
 
     char nextc() {
         _reader.consume();

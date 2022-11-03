@@ -901,7 +901,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     // do decorator last since we need to know our function signature to
     // typecheck them
     for (auto decorator: n->decorator_list) {
-        auto deco_t = exec(decorator, depth);
+        auto deco_t = exec(decorator.expr, depth);
         // TODO check the signature here
     }
 
@@ -1015,6 +1015,11 @@ void record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* ct
         }
         }
 
+        // if stmt is a comment
+        if (attr_expr == nullptr) {
+            continue;
+        }
+
         if (attr_expr->kind != NodeKind::Attribute) {
             continue;
         }
@@ -1105,7 +1110,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         auto fun   = cast<FunctionDef>(stmt);
         auto fun_t = cast<Arrow>(exec(stmt, depth));
 
-        if (fun_t != nullptr) {
+        if (fun_t != nullptr && fun_t->args.size() > 0) {
             fun_t->args[0] = class_t;
         }
     }
@@ -1113,7 +1118,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     // ----
 
     for (auto deco: n->decorator_list) {
-        auto deco_t = exec(deco, depth);
+        auto deco_t = exec(deco.expr, depth);
         // TODO: check signature here
     }
 

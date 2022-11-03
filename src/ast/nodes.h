@@ -338,11 +338,17 @@ struct MatchCase {
 // Expressions
 // -----------
 
+// So currently comment are tokens
+// maybe it should be its own single string token
+// so I do not have to worry about the formatting
+//
+// currently the tokens are formatted back using the unlex
+// which tries to output tokens following python code style
 struct Comment: public ExprNode {
 
     Comment(): ExprNode(NodeKind::Comment) {}
 
-    Array<Token> tokens;
+    String comment;
 };
 
 struct Constant: public ExprNode {
@@ -637,14 +643,28 @@ struct Inline: public StmtNode {
     Inline(): StmtNode(NodeKind::Inline) {}
 };
 
+struct Decorator {
+    ExprNode* expr    = nullptr;
+    Comment*  comment = nullptr;
+
+    Decorator(ExprNode* deco, Comment* com = nullptr): expr(deco), comment(com) {}
+};
+
+struct Docstring {
+    String   docstring;
+    Comment* comment = nullptr;
+
+    Docstring(String const& doc, Comment* com = nullptr): docstring(doc), comment(com) {}
+};
+
 struct FunctionDef: public StmtNode {
     Identifier          name;
     Arguments           args;
     Array<StmtNode*>    body;
-    Array<ExprNode*>    decorator_list = {};
+    Array<Decorator>    decorator_list = {};
     Optional<ExprNode*> returns;
     String              type_comment;
-    Optional<String>    docstring;
+    Optional<Docstring> docstring;
 
     bool async : 1 = false;
     // SEMA
@@ -657,13 +677,12 @@ struct FunctionDef: public StmtNode {
 struct AsyncFunctionDef: public FunctionDef {};
 
 struct ClassDef: public StmtNode {
-    Identifier       name;
-    Array<ExprNode*> bases;
-    Array<Keyword>   keywords;
-    Array<StmtNode*> body;
-    Array<ExprNode*> decorator_list = {};
-
-    Optional<String> docstring;
+    Identifier          name;
+    Array<ExprNode*>    bases;
+    Array<Keyword>      keywords;
+    Array<StmtNode*>    body;
+    Array<Decorator>    decorator_list = {};
+    Optional<Docstring> docstring;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
 

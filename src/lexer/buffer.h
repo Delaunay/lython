@@ -27,6 +27,8 @@ class AbstractBuffer {
 
     void init() { _next_char = getc(); }
 
+    // TODO: add a hash digest compute
+    // so we can hash files with little overhead
     void consume() {
         if (_next_char == EOF)
             return;

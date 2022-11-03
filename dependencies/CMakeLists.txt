@@ -10,3 +10,6 @@ ADD_SUBDIRECTORY(spdlog)
 ADD_SUBDIRECTORY(pybind11)
 ADD_SUBDIRECTORY(mimalloc)
 ADD_SUBDIRECTORY(argparse)
+
+# this has dependencies on libtommath
+# ADD_SUBDIRECTORY(libtomcrypt)

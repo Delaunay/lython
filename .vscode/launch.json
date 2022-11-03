@@ -57,15 +57,17 @@
         },
         {
             "name": "Debug Parsing",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/parser_test.exe",
-            "args": [],
+            "args": [
+                "Parser_Comment_*"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
+            // "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -116,13 +118,13 @@
         },
         {
             "name": "Debug Lython-Inspect",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/lython.exe",
+            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
             "args": [
                 "internal",
                 "--file",
-                "${workspaceFolder}/code/python_test.ly"
+                "${workspaceFolder}/code/scratch.ly",
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

@@ -196,12 +196,7 @@ class Token {
     // print all tokens and their info
     std::ostream& debug_print(std::ostream& out) const;
 
-    // TODO: move this elsewhere
-    // NB: it is important to be able to generate the code as is
-    // from the tokens since when handling with bad code in an interactive environemtn
-    // we will save the WIP code as a list of tokens
-    // could be used for code formatting
-    std::ostream& print(std::ostream& out, int32 indent = 0) const;
+    std::ostream& print(std::ostream& out) const;
 };
 
 inline Token& dummy() {

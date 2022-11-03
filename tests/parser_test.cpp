@@ -89,7 +89,11 @@ Array<AllowEntry> allow_list = {
     {"ClassDef", 1, 11},    {"ClassDef", 1, 16},   {"ClassDef", 1, 17},   {"ClassDef", 1, 20},
     {"ClassDef", 1, 21},    {"ClassDef", 1, 22},   {"ClassDef", 1, 31},   {"ClassDef", 1, 33},
     {"ClassDef", 1, 35},    {"ClassDef", 1, 36},   {"ClassDef", 1, 14},   {"ClassDef", 1, 8},
-    {"IfExp", 0, 1},        {"IfExp", 0, 3}};
+    {"IfExp", 0, 1},        {"IfExp", 0, 3},
+
+    {"With", 1, 12},        {"With", 1, 14},       {"With", 1, 16},       {"With", 1, 17},
+    {"With", 1, 18},        {"With", 1, 20},       {"With", 1, 22},       {"With", 1, 23},
+    {"With", 1, 24},        {"With", 1, 26},       {"With", 1, 28}};
 
 bool allowed(AllowEntry const& v) {
     for (auto& entry: allow_list) {
@@ -158,20 +162,103 @@ void run_partials(String const& name, Array<TestCase> cases) {
     }
 }
 
-void run_testcase(String const& name, Array<TestCase> cases) {
-    info("Testing {}", name);
+using Transformer = std::function<String(String const& code)>;
+
+String identity(String const& code) { return code; }
+
+// insert comments at the end of each lines
+String insert_comment(String const& code) {
+    auto lines = split('\n', code);
+
+    int          i = 1;
+    StringStream ss;
+
+    ss << "# c0 another tok\n";
+    for (auto& line: lines) {
+        ss << line;
+
+        if (line.size() > 0) {
+            ss << "   ";
+        }
+
+        ss << "# c" << i << " another tok\n";
+        i += 1;
+    }
+
+    return ss.str();
+}
+
+struct FormatException {
+    String name;
+    int    i;
+    String format;
+    bool   operator==(FormatException const& v) const { return name == v.name && i == v.i; }
+};
+
+String classdef_format = "# c0 another tok\n"
+                         "class Name:   # c1 another tok\n"
+                         "    x: i32 = 0   # c2 another tok\n"
+                         "    y: i32 = 1   # c3 another tok\n"
+                         "    z = 1.2   # c4 another tok\n"
+                         "\n"
+                         "    # c5 another tok\n"
+                         "\n"
+                         "    def __init__(self):   # c6 another tok\n"
+                         "        self.x = 2   # c7 another tok\n"
+                         "\n"
+                         "\n"
+                         "# c8 another tok\n";
+
+Array<FormatException> fmt_exceptions = {{"ClassDef", 1, classdef_format}};
+
+String const* get_exception(Array<FormatException> const& exceptions, FormatException const& v) {
+    for (auto& entry: exceptions) {
+        if (entry == v) {
+            return &entry.format;
+        }
+    }
+    return nullptr;
+}
+
+void run_testcase(String const&                 name,
+                  Array<TestCase>               cases,
+                  Transformer                   Transformer = identity,
+                  Array<FormatException> const& exceptions  = Array<FormatException>()) {
+    int i = 0;
     for (auto& c: cases) {
-        REQUIRE(strip(parse_it(c.code)) == strip(c.code));
+        String const* fmt = get_exception(exceptions, FormatException{name, i});
+
+        info("Testing {} - {}", name, i);
+        String new_code = Transformer(c.code);
+
+        String parsed   = strip(parse_it(new_code));
+        String original = strip(new_code);
+        bool   equal    = parsed == original;
+
+        if (!equal) {
+            error("\n`{}`\n`{}`", parsed, original);
+        }
+
+        if (fmt != nullptr) {
+            original = strip(*fmt);
+        }
+
+        REQUIRE(parsed == original);
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        i += 1;
     }
 }
 
-#define GENTEST(name)                                               \
-    TEMPLATE_TEST_CASE("Parser_Success_" #name, #name, name) {      \
-        run_testcase(str(nodekind<TestType>()), name##_examples()); \
-    }                                                               \
-    TEMPLATE_TEST_CASE("Parser_Failure_" #name, #name, name) {      \
-        run_partials(str(nodekind<TestType>()), name##_examples()); \
+#define GENTEST(name)                                                                      \
+    TEMPLATE_TEST_CASE("Parser_Success_" #name, #name, name) {                             \
+        run_testcase(str(nodekind<TestType>()), name##_examples());                        \
+    }                                                                                      \
+    TEMPLATE_TEST_CASE("Parser_Comment_" #name, #name, name) {                             \
+        run_testcase(                                                                      \
+            str(nodekind<TestType>()), name##_examples(), insert_comment, fmt_exceptions); \
+    }                                                                                      \
+    TEMPLATE_TEST_CASE("Parser_Failure_" #name, #name, name) {                             \
+        run_partials(str(nodekind<TestType>()), name##_examples());                        \
     }
 
 #define X(name, _)

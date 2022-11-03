@@ -19,3 +19,9 @@
 [submodule "dependencies/argparse"]
 	path = dependencies/argparse
 	url = https://github.com/p-ranav/argparse.git
+[submodule "dependencies/libtomcrypt"]
+	path = dependencies/libtomcrypt
+	url = https://github.com/libtom/libtomcrypt.git
+[submodule "dependencies/cpython"]
+	path = dependencies/cpython
+	url = https://github.com/python/cpython.git

@@ -26,21 +26,6 @@ namespace lython {
 // but debug info is not kept for the nodes
 #define AVOID_DUPLICATE_CONST 0
 
-template <typename T, typename N>
-bool in(T const& e, N const& v) {
-    return e == v;
-}
-
-template <typename T, typename N, typename... Args>
-bool in(T const& e, N const& v, Args... args) {
-    return e == v || in(e, args...);
-}
-
-template <typename T, typename... Args>
-bool in(T const& e, Args... args) {
-    return in(e, args...);
-}
-
 template <typename Literal>
 ExprNode* parse_literal(Parser* parser, Node* parent, ExprNode* child, char kind, int depth);
 
@@ -158,6 +143,27 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
 
     while (token().type() != tok_desindent && token().type() != tok_eof) {
 
+        // Comment attach themselves to the next statement
+        // when comments are inserted at the beginning of a block
+        // they can be inserted to the previous block instead
+        if (token().type() == tok_comment) {
+            StmtNode* cmt = parse_comment_stmt(parent, depth);
+            _pending_comments.push_back(cmt);
+
+            while (token().type() == tok_newline) {
+                next_token();
+            }
+            continue;
+        }
+
+        // we have read a bunch of comments and we are still in this block
+        {
+            for (auto* comment: _pending_comments) {
+                out.push_back(comment);
+            }
+            _pending_comments.clear();
+        }
+
         auto stmt = parse_statement(parent, depth + 1);
 
         // only one liner should have the comment attached
@@ -187,6 +193,14 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     }
 
     auto last = token();
+
+    if (last.type() == tok_eof && depth == 0) {
+        // reached eof, insert all the comments here
+        for (auto* comment: _pending_comments) {
+            out.push_back(comment);
+        }
+        _pending_comments.clear();
+    }
     //
     expect_tokens({tok_desindent, tok_eof}, true, parent, LOC);
     return last;
@@ -238,11 +252,16 @@ StmtNode* Parser::parse_function_def(Node* parent, bool async, int depth) {
     expect_token(tok_indent, true, stmt, LOC);
 
     if (token().type() == tok_docstring) {
-        stmt->docstring = token().identifier();
-        next_token();
+        Comment* comment   = nullptr;
+        String   docstring = token().identifier();
 
-        expect_newline(stmt, LOC);  // Could have a comment here too
-                                    // but let's not support it for now
+        next_token();
+        if (token().type() == tok_comment) {
+            comment = parse_comment(parent, depth + 1);
+        }
+
+        stmt->docstring = Docstring(docstring, comment);
+        expect_newline(stmt, LOC);
     }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
@@ -274,15 +293,26 @@ StmtNode* Parser::parse_class_def(Node* parent, int depth) {
     expect_token(tok_indent, true, stmt, LOC);
 
     if (token().type() == tok_docstring) {
-        stmt->docstring = token().identifier();
+        Comment* comment   = nullptr;
+        String   docstring = token().identifier();
         next_token();
-        expect_newline(stmt, LOC);  // Could have a comment here too
+
+        if (token().type() == tok_comment) {
+            comment = parse_comment(parent, depth + 1);
+        }
+
+        stmt->docstring = Docstring(docstring, comment);
+        expect_newline(stmt, LOC);
     }
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
 
     for (auto child: stmt->body) {
-        if (child->kind == NodeKind::Expr) {
+        // this checks we do not have expression inside the body of a class
+        Expr* exprstmt = cast<Expr>(child);
+
+        // Comments are fine though
+        if (exprstmt && exprstmt->value->kind != NodeKind::Comment) {
             throw SyntaxError();
         }
     }
@@ -886,6 +916,7 @@ StmtNode* Parser::parse_with(Node* parent, int depth) {
     expect_token(tok_indent, true, stmt, LOC);
 
     auto last = parse_body(stmt, stmt->body, depth + 1);
+    end_code_loc(stmt, token());
 
     return stmt;
 }
@@ -1399,10 +1430,15 @@ ExprNode* Parser::parse_yield(Node* parent, int depth) {
 
     if (!is_tok_statement_ender()) {
         expr->value = parse_expression(expr, depth + 1, true);
+        end_code_loc(expr, token());
     } else {
-        next_token();
+        end_code_loc(expr, token());
+
+        if (token().type() != tok_comment) {
+            next_token();
+        }
     }
-    end_code_loc(expr, token());
+
     return expr;
 }
 
@@ -1955,7 +1991,7 @@ ExprNode* Parser::parse_slice(Node* parent, ExprNode* primary, int depth) {
     return expr;
 }
 
-void set_decorators(StmtNode* stmt, Array<ExprNode*>& decorators) {
+void set_decorators(StmtNode* stmt, Array<Decorator>& decorators) {
     if (decorators.size() > 0) {
         if (stmt->kind == NodeKind::FunctionDef) {
             auto fun            = cast<FunctionDef>(stmt);
@@ -1972,13 +2008,19 @@ StmtNode* Parser::parse_statement(Node* parent, int depth) {
 
     TRACE_START();
 
-    Array<ExprNode*> decorators;
+    Array<Decorator> decorators;
     while (token().type() == tok_decorator) {
         next_token();
-        auto fun = parse_expression(parent, depth);
-        decorators.push_back(fun);
 
-        // FIXME decorators can have comments
+        Comment* comment = nullptr;
+        auto     fun     = parse_expression(parent, depth);
+
+        if (token().type() == tok_comment) {
+            comment = parse_comment(fun, depth);
+        }
+
+        decorators.emplace_back(fun, comment);
+
         if (token().type() == tok_newline) {
             next_token();
         }
@@ -2032,6 +2074,7 @@ StmtNode* Parser::parse_comment_stmt(Node* parent, int depth) {
     ExprNode* comment      = parse_comment(comment_stmt, depth);
 
     comment_stmt->value = comment;
+
     expect_newline(comment_stmt, LOC);
     return comment_stmt;
 }
@@ -2253,15 +2296,16 @@ ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedenc
 Comment* Parser::parse_comment(Node* parent, int depth) {
     TRACE_START();
 
-    if (token().type() == tok_comment) {
-        next_token();
-    }
     Comment* com = parent->new_object<Comment>();
+    assert(token().type() == tok_comment, "Need a comment token");
 
-    while (!in(token().type(), tok_newline, tok_eof)) {
-        com->tokens.push_back(token());
-        next_token();
-    }
+    com->comment = token().identifier();
+    next_token();
+
+    // while (!in(token().type(), tok_newline, tok_eof)) {
+    //     com->tokens.push_back(token());
+    //     next_token();
+    // }
 
     return com;
 }

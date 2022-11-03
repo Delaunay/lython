@@ -30,6 +30,7 @@ SET(ADD_HEADERS
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
+    lexer/unlex.h
     parser/parser.h
     parser/parsing_error.h
     lowering/lowering.h
@@ -59,6 +60,7 @@ SET(ADD_SOURCE
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp
+    lexer/unlex.cpp
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp

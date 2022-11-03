@@ -43,114 +43,28 @@ std::ostream& Token::debug_print(std::ostream& out) const {
     return out;
 }
 
-// could be used for code formatting
-std::ostream& Token::print(std::ostream& out, int32 indent) const {
-    // Keep track of some variable for correct printing
-    static int32 indent_level = 0;
-    static bool  emptyline    = true;  // To generate indent when needed
-    static bool  open_parens  = false;
-    static bool  prev_is_op   = false;
+std::ostream& Token::print(std::ostream& out) const {
 
-    if (indent > 0)
-        indent_level = indent;
-
-    // because indent_level is static we need a token to reset the value
-    if (type() == tok_eof) {
-        indent_level = 0;
-        emptyline    = true;
-        open_parens  = false;
-        prev_is_op   = false;
-        return out;
+    if (type() > 0) {
+        return out << type();
     }
 
-    // Invisible Token
-    if (type() == tok_indent) {
-        indent_level += 1;
-        return out;
+    if (type() == tok_identifier) {
+        return out << identifier();
+    } else if (type() == tok_docstring) {
+        return out << "\"\"\"" << identifier() << "\"\"\"";
+    } else if (type() == tok_int || type() == tok_float) {
+        return out << identifier();
     }
-
-    if (type() == tok_desindent) {
-        indent_level -= 1;
-        return out;
-    }
-
-    if (type() == tok_newline) {
-        out << std::endl;
-        emptyline = true;
-        return out;
-    }
-
-    if (type() == tok_operator || type() == tok_dot || type() == tok_in || type() == tok_assign) {
-        if (operator_name() == "." || operator_name() == "@") {
-            out << operator_name();
-        } else {
-            out << " " << operator_name() << " ";
-        }
-
-        prev_is_op = true;
-        return out;
-    }
-
-    // Indentation
-    if (emptyline && indent_level > 0)
-        out << String(std::size_t(indent_level * LYTHON_INDENT), ' ');
 
     String const& str = keyword_as_string()[type()];
 
     if (str.size() > 0) {
-        emptyline = false;
-
-        switch (type()) {
-        case tok_arrow:
-        case tok_as: out << " "; break;
-
-        case tok_import:
-            if (!emptyline) {
-                out << " ";
-            }
-            break;
-        }
-
         return out << str;
     }
 
-    // Single Char
-    if (type() > 0) {
-
-        if (type() == '(' || type() == '[')
-            open_parens = true;
-        else
-            open_parens = false;
-
-        emptyline = false;
-        out << type();
-        return out;
-    }
-
-    // Everything else
-    // we printout what the lexer read in identifier (no risk of error)
-
-    // no space if the line is empty and no space if it is just after
-    // a open parens
-    if (!prev_is_op && !emptyline && !open_parens) {
-        out << ' ';
-    }
-    prev_is_op = false;
-
-    if (type() == tok_string)
-        out << '"' << identifier() << '"';
-    else if (type() == tok_docstring)
-        out << "\"\"\"" << identifier() << "\"\"\"";
-    else if (type() == tok_int || type() == tok_float)
-        out << identifier();
-    else
-        out << identifier();
-
-    open_parens = false;
-    emptyline   = false;
-    prev_is_op  = false;
-
-    return out;
+    // is this possible ?
+    return out << identifier();
 }
 
 ReservedKeyword& keywords() {

@@ -204,6 +204,14 @@ Array<TestCase> const& With_examples() {
              NE("a"),
              NE("c"),
          }},
+        {"with a as b, c as d:\n"
+         "    e = b + d\n"
+         "    e = b + d\n"
+         "    e = b + d\n",
+         {
+             NE("a"),
+             NE("c"),
+         }},
     };
     return ex;
 }
@@ -397,13 +405,13 @@ Array<TestCase> const& ClassDef_examples() {
          }},
 
         {
-            "class Name:\n"
-            "    x: i32 = 0\n"
-            "    y: i32 = 1\n"
-            "    z = 1.2\n"
-            "\n"
-            "    def __init__(self):\n"
-            "        self.x = 2\n"
+            "class Name:\n"              // c1
+            "    x: i32 = 0\n"           // c2
+            "    y: i32 = 1\n"           // c3
+            "    z = 1.2\n"              // c4
+            "\n"                         // c5
+            "    def __init__(self):\n"  // c7
+            "        self.x = 2\n"       // c8
             //"\n"
             //"    class Nested:\n"
             //"        xx: i32 = 0\n"

@@ -136,6 +136,12 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             return 0;
         }
 
+        // Memory layout dump
+        {
+            //
+            mod->dump(std::cout);
+        }
+
         // Sema
         // ----
         {

@@ -267,12 +267,13 @@ class Parser {
     int expression_depth = 0;
 
     private:
-    bool                        with_extension = true;
-    std::vector<ExprContext>    _context;
-    std::vector<bool>           async_mode;
-    std::vector<ParsingContext> parsing_context;
-    AbstractLexer&              _lex;
-    Array<ParsingError>         errors;
+    Array<StmtNode*>      _pending_comments;
+    bool                  with_extension = true;
+    Array<ExprContext>    _context;
+    Array<bool>           async_mode;
+    Array<ParsingContext> parsing_context;
+    AbstractLexer&        _lex;
+    Array<ParsingError>   errors;
 };
 
 }  // namespace lython

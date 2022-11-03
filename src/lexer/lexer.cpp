@@ -1,6 +1,7 @@
 #include <spdlog/fmt/bundled/core.h>
 
 #include "lexer.h"
+#include "unlex.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -85,20 +86,22 @@ std::ostream& AbstractLexer::debug_print(std::ostream& out) {
 std::ostream& AbstractLexer::print(std::ostream& out) {
 
     Token t = next_token();
+    Unlex unlex;
+
     do {
-        t.print(out);
+        unlex.format(out, t);
     } while ((t = next_token()));
 
     // send eof for reset
-    t.print(out);
+    unlex.format(out, t);
 
     return out;
 }
 Token const& Lexer::next_token() {
     // if we peeked ahead return that one
-    if (_buffered_token) {
-        _buffered_token = false;
-        _token          = _buffer;
+    if (_buffer.size() > 0) {
+        _token = _buffer[_buffer.size() - 1];
+        _buffer.pop_back();
         return _token;
     }
 
@@ -142,9 +145,61 @@ Token const& Lexer::next_token() {
         return make_token(tok_indent);
     }
 
+// only broadcast desindent on actual code
+// comments have no impacts on our indentation level
+//
+// Doing it here brings another problem:
+//  - now comment indentation is going to change
+//    this could be a good thing as it forces comment
+//    to be at the "right" indentation
+//
+// but if you write a comment after a class its indentation is going to be wrong
+//
+//  class X:
+//  # comment
+//      def __init__(self):
+//          ...
+//
+// becomes
+//
+//  class X:
+//      # comment
+//      def __init__(self):
+//          ...
+//
+//  and
+//
+//  for i in range(10):
+//      ...
+//  # comment
+//
+// becomes
+//
+//  for i in range(10):
+//      ...
+//      # comment
+//
+//  1) is ok, the comment was written inside a statement block
+//  2) is problematic, the comment was written outside the block
+//  but we cannot tell until we reached a desindent block
+//  which happens AFTER the comment
+//
+// SOLUTION: make the parser associate comment with the comming statement
+#define FORCE_COMMENT_INDENT(X) X
+
+    bool desindent_comment = _cindent < _oindent && c == tok_comment;
+
     if (_cindent < _oindent) {
-        _oindent -= LYTHON_INDENT;
-        return make_token(tok_desindent);
+        // TODO: this behaviour is not good for the Unlexer
+        // but it is fine for the parser
+        if (FORCE_COMMENT_INDENT(c != tok_comment)) {
+            _oindent -= LYTHON_INDENT;
+            return make_token(tok_desindent);
+        } else {
+            // reset current indent to match previous indentation level
+            // because comment indentation do not matter
+            _cindent = _oindent;
+        }
     }
 
     // remove white space
@@ -190,8 +245,7 @@ Token const& Lexer::next_token() {
                     return make_token(conf.type, "not in");
                 }
 
-                _buffered_token = true;
-                _buffer         = tok;
+                _buffer.push_back(tok);
                 return make_token(conf.type, identifier);
             }
         }
@@ -334,6 +388,23 @@ strings:
         }
         consume();
         return make_token(tok, str);
+    }
+
+    c = peek();
+    if (c == tok_comment) {
+        String comment;
+        comment.reserve(128);
+
+        // eat the comment token
+        c = nextc();
+
+        // eat all characters until the newline
+        while (c != '\n' && c != EOF) {
+            comment.push_back(c);
+            c = nextc();
+        };
+
+        return make_token(tok_comment, comment);
     }
 
     // get next char
