@@ -1,3 +1,4 @@
+#include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -143,6 +144,30 @@ Logger new_logger(char const* name) {
     spdlog::set_pattern("[%L] [%t] %v");
 
     return console;
+}
+
+Logger new_ostream_logger(char const* name, std::ostream& out) {
+    auto ossink  = std::make_shared<spdlog::sinks::ostream_sink_st>(out);
+    auto console = std::make_shared<spdlog::logger>(name, ossink);
+
+    console->set_level(spdlog::level::level_enum::trace);
+    console->flush_on(spdlog::level::level_enum::trace);
+
+    spdlog::register_logger(console);
+    // %Y-%m-%d %H:%M:%S.%e
+    spdlog::set_pattern("[%L] [%t] %v");
+    return console;
+}
+
+std::unordered_map<const char*, Logger>& logger_handles() {
+    static std::unordered_map<const char*, Logger> handles;
+    return handles;
+}
+
+LoggerHandle new_log(const char* name, std::ostream& out) {
+    Logger log             = new_ostream_logger(name, out);
+    logger_handles()[name] = log;
+    return (LoggerHandle)(log.get());
 }
 
 Logger root() {

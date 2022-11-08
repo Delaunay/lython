@@ -111,9 +111,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             std::cout << std::string(80, '-') << '\n';
             std::cout << "Parsing Diag\n";
             std::cout << std::string(80, '-') << '\n';
-            for (auto& diag: parser.get_errors()) {
-                diag.print(std::cout);
-            }
+            parser.show_diagnostics(std::cout);
             std::cout << std::string(80, '-') << '\n';
         }
 

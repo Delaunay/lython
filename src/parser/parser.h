@@ -39,6 +39,22 @@ class Parser {
     public:
     Parser(AbstractLexer& lexer): _lex(lexer) { metadata_init_names(); }
 
+    ParsingError&
+    parser_error(lython::CodeLocation const& loc, String const& exception, String const& msg) {
+        current_error += 1;
+        assert(current_error == errors.size(), "Only one error at a time can happen");
+
+        auto& details      = errors.emplace_back(ParsingError());
+        details.error_kind = exception;
+        details.message    = msg;
+        details.loc        = loc;
+
+        lython::log(lython::LogLevel::Error, loc, "{}: {}", exception, msg);
+        return details;
+    }
+
+    bool has_errors() const { return errors.size() > 0; }
+
     void parse_to_module(Module* module) {
         if (token().type() == tok_incorrect) {
             next_token();
@@ -187,16 +203,14 @@ class Parser {
 
     // Error Handling
     // --------------
-    ParsingError*
-    expect_token(int expected, bool eat, Node* wip_expression, CodeLocation const& loc);
+    void expect_token(int expected, bool eat, Node* wip_expression, CodeLocation const& loc);
 
-    ParsingError*
-    expect_operator(String const& op, bool eat, Node* wip_expression, CodeLocation const& loc);
+    void expect_operator(String const& op, bool eat, Node* wip_expression, CodeLocation const& loc);
 
-    ParsingError* expect_tokens(Array<int> const&   expected,
-                                bool                eat,
-                                Node*               wip_expression,
-                                CodeLocation const& loc);
+    void expect_tokens(Array<int> const&   expected,
+                       bool                eat,
+                       Node*               wip_expression,
+                       CodeLocation const& loc);
 
     // check for a new lines and eats all the subsequent newlines
     // NB: maybe we should each repeating newlines inside the lexer
@@ -206,8 +220,11 @@ class Parser {
 
     void expect_comment_or_newline(StmtNode* stmt, int depth, CodeLocation const& loc);
 
-    ParsingError*
-    write_error(Array<int> const& expected, Node* wip_expression, CodeLocation const& loc);
+    void error_recovery(ParsingError* error);
+
+    void ensure_valid();
+
+    void show_diagnostics(std::ostream& out);
 
     // Shortcuts
     // ---------
@@ -273,7 +290,9 @@ class Parser {
     Array<bool>           async_mode;
     Array<ParsingContext> parsing_context;
     AbstractLexer&        _lex;
-    Array<ParsingError>   errors;
+
+    int                 current_error = -1;
+    Array<ParsingError> errors;
 };
 
 }  // namespace lython

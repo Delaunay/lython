@@ -142,8 +142,8 @@ enum TokenType
 #undef X
 };
 
+String to_human_name(int8 t);
 String to_string(int8 t);
-;
 
 inline void print(TokenType const& t, std::ostream& out) { out << to_string(t); }
 

@@ -51,6 +51,29 @@ enum LogLevel
     Off
 };
 
+struct Handle {};
+typedef Handle* LoggerHandle;
+
+LoggerHandle new_log(const char* name, std::ostream& out);
+
+class LoggingScope {
+
+    void set_log_level();
+
+    void logerr();
+    void logwarn();
+    void logdebug();
+    void loginfo();
+    void logtrace();
+    void logfatal();
+
+    template <typename... Args>
+    void
+    _log_message(LogLevel level, CodeLocation const& loc, const char* fmt, const Args&... args) {}
+
+    LoggerHandle logger;
+};
+
 void spdlog_log(LogLevel level, const std::string& msg);
 
 extern const char* log_level_str[];

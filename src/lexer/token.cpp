@@ -1,4 +1,5 @@
 #include "token.h"
+#include "utilities/strings.h"
 #include <spdlog/fmt/bundled/core.h>
 
 namespace lython {
@@ -15,6 +16,24 @@ String to_string(int8 t) {
         s[1]     = t;
         return s;
     }
+}
+
+String to_human_name(int8 t) {
+    static String eof = String("EOF (End Of File)");
+
+    String        n   = to_string(t);
+    Array<String> arr = split('_', n);
+
+    if (arr.size() == 2) {
+        return arr[1];
+    }
+
+    switch (t) {
+    case EOF: return eof;
+    case '\0': return eof;
+    }
+
+    return n;
 }
 
 // this should be computed at compile time

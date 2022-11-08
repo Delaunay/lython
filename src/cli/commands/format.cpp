@@ -132,14 +132,9 @@ int ast_reformat_file(fs::path const& file) {
     Module*                mod = nullptr;
 
     mod = parser.parse_module();
+    parser.show_diagnostics(std::cout);
 
-    auto errors = parser.get_errors();
-
-    for (auto& diag: errors) {
-        diag.print(std::cout);
-    }
-
-    if (errors.size() > 0) {
+    if (parser.has_errors()) {
         return -1;
     }
 

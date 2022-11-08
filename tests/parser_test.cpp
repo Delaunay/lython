@@ -136,6 +136,11 @@ void run_partial(String const& name, int j, TestCase const& test) {
         auto   expr = [&]() {
             Module mod;
             parser.parse_to_module(&mod);
+
+            if (parser.has_errors()) {
+                parser.show_diagnostics(std::cout);
+                throw SyntaxError();
+            }
             show_debug(name, j, i, test.code, tokens, &mod);
         };
 
@@ -145,6 +150,11 @@ void run_partial(String const& name, int j, TestCase const& test) {
             try {
                 Module mod;
                 parser.parse_to_module(&mod);
+
+                if (parser.has_errors()) {
+                    parser.show_diagnostics(std::cout);
+                    throw SyntaxError();
+                }
             } catch (SyntaxError const& err) {
                 show_debug(name, j, i, test.code, tokens, nullptr);
                 throw err;

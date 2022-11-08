@@ -328,9 +328,7 @@ ReturnType Printer::dictexpr(DictExpr const* self, int depth, std::ostream& out,
     strs.reserve(self->keys.size());
 
     for (int i = 0; i < self->keys.size(); i++) {
-        // FIXME std::string -> String conversion
-        strs.push_back(
-            String(fmt::format("{}: {}", str(self->keys[i]), str(self->values[i])).c_str()));
+        strs.push_back(fmtstr("{}: {}", str(self->keys[i]), str(self->values[i])));
     }
 
     out << "{" << join(", ", strs) << "}";
@@ -361,9 +359,7 @@ Printer::matchmapping(MatchMapping const* self, int depth, std::ostream& out, in
     strs.reserve(self->keys.size());
 
     for (int i = 0; i < self->keys.size(); i++) {
-        // FIXME std::string -> String conversion
-        strs.push_back(
-            String(fmt::format("{}: {}", str(self->keys[i]), str(self->patterns[i])).c_str()));
+        strs.push_back(fmtstr("{}: {}", str(self->keys[i]), str(self->patterns[i])));
     }
 
     String remains = "";
@@ -389,9 +385,7 @@ ReturnType Printer::matchclass(MatchClass const* self, int depth, std::ostream& 
     kwdpat.reserve(self->kwd_attrs.size());
 
     for (int i = 0; i < self->kwd_attrs.size(); i++) {
-        // FIXME std::string -> String conversion
-        kwdpat.push_back(
-            String(fmt::format("{}={}", self->kwd_attrs[i], str(self->kwd_patterns[i])).c_str()));
+        kwdpat.push_back(fmtstr("{}={}", self->kwd_attrs[i], str(self->kwd_patterns[i])));
     }
 
     out << join(", ", kwdpat);
@@ -631,8 +625,7 @@ ReturnType Printer::classdef(ClassDef const* self, int depth, std::ostream& out,
     kwd.reserve(self->keywords.size());
 
     for (auto kw: self->keywords) {
-        // FIXME std::string -> String conversion
-        kwd.push_back(String(fmt::format("{}={}", str(kw.arg), str(kw.value)).c_str()));
+        kwd.push_back(fmtstr("{}={}", str(kw.arg), str(kw.value)));
     }
 
     out << join(", ", kwd);
@@ -1033,7 +1026,7 @@ void ConstantValue::print(std::ostream& out) const {
 
     case Tf64:
         // always print a float even without decimal point
-        out << fmt::format("{:#}", value.f64);
+        out << fmtstr("{:#}", value.f64);
         break;
 
     case TBool:
