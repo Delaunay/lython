@@ -831,6 +831,7 @@ ReturnType Printer::binop(BinOp const* self, int depth, std::ostream& out, int l
 
 ReturnType Printer::boolop(BoolOp const* self, int depth, std::ostream& out, int level) {
 
+    int m = self->opcount + 1;
  
     int n = int(self->values.size());
     for (int i = 0; i < m; i++) {

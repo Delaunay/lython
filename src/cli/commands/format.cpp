@@ -33,6 +33,11 @@ argparse::ArgumentParser* FormatCmd::parser() {
         .help("File extensions require, this is to prevent trying to reformat files that are not "
               "lython code");
 
+    p->add_argument("--dump")  //
+        .default_value(true)   //
+        .implicit_value(true)  //
+        .help("Allways dump parsed AST even if an error occured");
+
     return p;
 }
 
@@ -40,8 +45,8 @@ void find_regular_files(std::string const&              path,
                         std::vector<std::string> const& extensions,
                         Array<fs::path>&                out);
 bool has_extension(fs::path const& file, std::vector<std::string> const& extensions);
-int  ast_reformat_file(fs::path const& file);
-int  tok_reformat_file(fs::path const& file);
+int  ast_reformat_file(fs::path const& file, bool _ = false);
+int  tok_reformat_file(fs::path const& file, bool _ = false);
 
 int FormatCmd::main(argparse::ArgumentParser const& args) {
     //
@@ -65,7 +70,7 @@ int FormatCmd::main(argparse::ArgumentParser const& args) {
     bool ast    = args.get<bool>("--ast");
     for (auto const& path: regular_files) {
         if (ast) {
-            result += ast_reformat_file(path);
+            result += ast_reformat_file(path, args.get<bool>("dump"));
         } else {
             result += tok_reformat_file(path);
         }
@@ -106,7 +111,7 @@ bool has_extension(fs::path const& file, std::vector<std::string> const& extensi
     return false;
 }
 
-int tok_reformat_file(fs::path const& file) {
+int tok_reformat_file(fs::path const& file, bool) {
     std::cout << "reformat: " << file << std::endl;
 
     String file_str = file.generic_string().c_str();
@@ -121,7 +126,7 @@ int tok_reformat_file(fs::path const& file) {
     return 0;
 }
 
-int ast_reformat_file(fs::path const& file) {
+int ast_reformat_file(fs::path const& file, bool dump) {
     std::cout << "reformat: " << file << std::endl;
 
     String file_str = file.generic_string().c_str();
@@ -133,19 +138,26 @@ int ast_reformat_file(fs::path const& file) {
 
     mod = parser.parse_module();
     parser.show_diagnostics(std::cout);
+    int ec = 0;
 
     if (parser.has_errors()) {
-        return -1;
+        ec = -1;
     }
 
-    StringStream ss;
-    print(str(mod), ss);
+    if (parser.has_errors() && !dump) {
+        return ec;
+    }
 
-    // We should compute a hash of the original file
-    // and a hash of the formated string
-    std::cout << ss.str() << "\n";
+    if ((parser.has_errors() && dump) || !parser.has_errors()) {
+        StringStream ss;
+        print(str(mod), ss);
 
-    return 0;
+        // We should compute a hash of the original file
+        // and a hash of the formated string
+        std::cout << ss.str() << "\n";
+    }
+
+    return ec;
 }
 
 }  // namespace lython
