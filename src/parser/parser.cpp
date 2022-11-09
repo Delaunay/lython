@@ -57,16 +57,18 @@ void Parser::ensure_valid() {
 
 void Parser::show_diagnostics(std::ostream& out) {
     //
-    out << "Parsing error messages (" << errors.size() << ")\n";
+    if (has_errors()) {
+        out << "Parsing error messages (" << errors.size() << ")\n";
 
-    ParsingErrorPrinter printer(out, &_lex);
-    printer.with_compiler_code_loc = false;
-    printer.indent                 = 1;
+        ParsingErrorPrinter printer(out, &_lex);
+        printer.with_compiler_code_loc = true;
+        printer.indent                 = 1;
 
-    for (ParsingError const& error: errors) {
-        out << "  ";
-        printer.print(error);
-        out << "\n";
+        for (ParsingError const& error: errors) {
+            out << "  ";
+            printer.print(error);
+            out << "\n";
+        }
     }
 }
 
@@ -190,7 +192,7 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
             }
 
             out.push_back(stmt);
-        } catch (ParsingException const& err) {
+        } catch (ParsingException const&) {
             //
             error_recovery(&errors[current_error]);
         }
@@ -528,9 +530,9 @@ StmtNode* Parser::parse_if_alt(Node* parent, int depth) {
         // because we will zip between tests and tests_comments
         int n = int(stmt->tests_comment.size());
         stmt->tests_comment.push_back(nullptr);
-        MAYBE_COMMENT(stmt, tests_comment[n]);
 
-        expect_newline(stmt, LOC);  // FIXME: can have comment too
+        MAYBE_COMMENT(stmt, tests_comment[n]);
+        expect_newline(stmt, LOC);
         expect_token(tok_indent, true, stmt, LOC);
 
         Array<StmtNode*> body;
@@ -2143,7 +2145,7 @@ StmtNode* Parser::parse_comment_stmt(Node* parent, int depth) {
 
     comment_stmt->value = comment;
 
-    expect_newline(comment_stmt, LOC);
+    expect_tokens({tok_newline, tok_eof}, true, comment_stmt, LOC);
     return comment_stmt;
 }
 

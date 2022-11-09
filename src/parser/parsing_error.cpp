@@ -138,10 +138,10 @@ String get_filename(ParsingErrorPrinter* printer) {
 void ParsingErrorPrinter::print(ParsingError const& error) {
     String            filename = get_filename(this);
     Node*             node     = get_expr(error);
-    CommonAttributes* loc      = get_code_loc(error);
+    CommonAttributes* srcloc   = get_code_loc(error);
     String            parent   = get_parent(error);
 
-    int line = error.received_token.begin_line();
+    int line = error.received_token.line();
 
     firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
 
@@ -160,8 +160,8 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
         unlex.format(out, error.remaining);
 
         // Underline error if possible
-        if (loc) {
-            underline(*loc);
+        if (srcloc) {
+            underline(*srcloc);
         } else {
             underline(error.received_token);
         }
@@ -197,16 +197,16 @@ void ParsingErrorPrinter::underline(CommonAttributes const& attr) {
     int32 size = 1;
 
     if (attr.end_col_offset.has_value()) {
-        size = attr.end_col_offset.value() - attr.col_offset;
+        size = std::max(attr.end_col_offset.value() - attr.col_offset, 1);
     }
 
-    int32 start = attr.col_offset;
+    int32 start = std::max(1, attr.col_offset);
     codeline() << String(start, ' ') << String(size, '^');
 }
 
 void ParsingErrorPrinter::underline(Token const& tok) {
     int32 tok_size  = std::max(1, tok.end_col() - tok.begin_col());
-    int32 tok_start = tok.begin_col();
+    int32 tok_start = std::max(1, tok.begin_col());
     codeline() << String(tok_start, ' ') << String(tok_size, '^');
 }
 
