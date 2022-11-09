@@ -60,7 +60,7 @@ void Parser::show_diagnostics(std::ostream& out) {
     out << errors.size() << " Parsing Errors:\n";
     out << String(32, '-') << "\n";
 
-    ParsingErrorPrinter printer(out);
+    ParsingErrorPrinter printer(out, &_lex);
     printer.indent = 2;
 
     for (ParsingError const& error: errors) {
@@ -2472,10 +2472,11 @@ ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
     // Left Unary operator
     // + <expr> | - <expr> | ! <expr> | ~ <expr>
 
-    ParsingError& error = parser_error(                                               //
-        LOC,                                                                          //
-        "SyntaxError",                                                                //
-        fmtstr("Could not deduce the expression {}", str(TokenType(token().type())))  //
+    ParsingError& error = parser_error(  //
+        LOC,                             //
+        "SyntaxError",                   //
+        // fmtstr("Could not deduce the expression {}", str(TokenType(token().type())))  //
+        "Expected an expression"  //
     );
     add_wip_expr(error, parent);
     PARSER_THROW(SyntaxError, error);

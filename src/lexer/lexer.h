@@ -84,6 +84,8 @@ class AbstractLexer {
 
     virtual Token const& token() = 0;
 
+    virtual const String& file_name() = 0;
+
     // print tokens with their info
     ::std::ostream& debug_print(::std::ostream& out);
 
@@ -131,6 +133,11 @@ class ReplayLexer: public AbstractLexer {
 
     Token const& token() override final { return tokens[i]; }
 
+    const String& file_name() {
+        static String fakefile = "<replay buffer>";
+        return fakefile;
+    }
+
     ~ReplayLexer() {}
 
     private:
@@ -170,6 +177,8 @@ class Lexer: public AbstractLexer {
         return _token;
     }
 
+    const String& file_name() { return _reader.file_name(); }
+
     private:
     AbstractBuffer& _reader;
     Token           _token{dummy()};
@@ -179,13 +188,13 @@ class Lexer: public AbstractLexer {
     Array<Token>    _buffer;
 
     // shortcuts
-    const String& file_name() { return _reader.file_name(); }
-    int32         line() { return _reader.line(); }
-    int32         col() { return _reader.col(); }
-    int32         indent() { return _reader.indent(); }
-    void          consume() { return _reader.consume(); }
-    char          peek() { return _reader.peek(); }
-    bool          empty_line() { return _reader.empty_line(); }
+
+    int32 line() { return _reader.line(); }
+    int32 col() { return _reader.col(); }
+    int32 indent() { return _reader.indent(); }
+    void  consume() { return _reader.consume(); }
+    char  peek() { return _reader.peek(); }
+    bool  empty_line() { return _reader.empty_line(); }
 
     // state
     bool desindent_for_comment = false;

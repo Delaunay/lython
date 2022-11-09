@@ -10,9 +10,9 @@ namespace lython {
 struct ParsingError {
     Array<int>   expected_tokens;
     Token        received_token;
-    StmtNode*    stmt;
-    ExprNode*    expr;
-    Pattern*     pat;
+    StmtNode*    stmt = nullptr;
+    ExprNode*    expr = nullptr;
+    Pattern*     pat  = nullptr;
     String       error_kind;
     String       message;
     CodeLocation loc;
@@ -35,7 +35,8 @@ class EndOfFileError: public ParsingException {};
 
 class ParsingErrorPrinter {
     public:
-    ParsingErrorPrinter(std::ostream& out): out(out) {}
+    ParsingErrorPrinter(std::ostream& out, class AbstractLexer* lexer = nullptr):
+        out(out), lexer(lexer) {}
 
     void print(ParsingError const& err);
 
@@ -45,8 +46,14 @@ class ParsingErrorPrinter {
 
     String indentation() { return String(indent * 2, ' '); }
 
+    void underline(Token const& tok);
+    void underline(CommonAttributes const& attr);
+
     std::ostream& firstline() { return out; }
     std::ostream& newline() { return out << std::endl << indentation(); }
+    void          end() { out << std::endl; }
+
+    class AbstractLexer* lexer;
 };
 
 class SyntaxError: public ParsingException {

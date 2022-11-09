@@ -6,6 +6,11 @@ namespace lython {
 std::ostream& Unlex::format(std::ostream& out, Array<Token> const& tokens) {
     for (auto& tok: tokens) {
         format(out, tok);
+
+        if (should_stop) {
+            should_stop = false;
+            break;
+        }
     }
     return out;
 }
@@ -35,8 +40,14 @@ std::ostream& Unlex::format(std::ostream& out, Token const& token, int indent) {
     }
 
     if (token.type() == tok_newline) {
-        out << std::endl;
         emptyline = true;
+
+        if (stop_on_newline) {
+            should_stop = stop_on_newline;
+            return out;
+        }
+
+        out << std::endl;
         return out;
     }
 

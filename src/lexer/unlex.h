@@ -15,7 +15,10 @@ class Unlex {
 
     void reset();
 
+    bool stop_on_newline = false;
+
     private:
+    bool  should_stop  = false;
     int32 indent_level = 0;
     bool  emptyline    = true;  // To generate indent when needed
     bool  open_parens  = false;
