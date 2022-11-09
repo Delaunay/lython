@@ -60,63 +60,133 @@ class NoNewLine: public std::basic_stringbuf<char, std::char_traits<char>, std::
 // SyntaxError: invalid syntax
 // exit status 1
 
-void ParsingErrorPrinter::print(ParsingError const& error) {
-    Array<String> toks;
-    std::transform(std::begin(error.expected_tokens),
-                   std::end(error.expected_tokens),
-                   std::back_inserter(toks),
-                   [](int tok) -> String { return to_human_name(tok); });
+// Python traceback example:
+// -------------------------
 
-    String expected = join("|", toks);
+// Traceback (most recent call last):
+//   File "/home/runner/ShyCalculatingGraph/main.py", line 11, in <module>
+//     rec(10)
+//   File "/home/runner/ShyCalculatingGraph/main.py", line 7, in rec
+//     return rec(n - 1)
+//   File "/home/runner/ShyCalculatingGraph/main.py", line 7, in rec
+//     return rec(n - 1)
+//   File "/home/runner/ShyCalculatingGraph/main.py", line 7, in rec
+//     return rec(n - 1)
+//   [Previous line repeated 7 more times]
+//   File "/home/runner/ShyCalculatingGraph/main.py", line 5, in rec
+//     raise RuntimeError()
+// RuntimeError
 
-    String filename = "";
-    if (lexer) {
-        filename = lexer->file_name();
+// Lython parsing error messages
+// -----------------------------
+//
+// Note that python stops at the first syntax error while
+// lython can keep going and print more than one error.
+
+// Parsing error messages (2)
+//   File "<replay buffer>", line 0
+//     |self.x =
+//     |               ^
+// SyntaxError: Expected an expression
+//
+//   File "<replay buffer>", line 0
+//     |def __init__(self):
+//     |       ^
+// SyntaxError: Expected a body
+
+Node* get_expr(ParsingError const& error) {
+    if (error.stmt) {
+        return error.stmt;
+    } else if (error.expr) {
+        return error.expr;
+    } else if (error.pat) {
+        return error.pat;
     }
+    return nullptr;
+}
+
+CommonAttributes* get_code_loc(ParsingError const& error) {
+    if (error.stmt) {
+        return error.stmt;
+    } else if (error.expr) {
+        return error.expr;
+    } else if (error.pat) {
+        return error.pat;
+    }
+    return nullptr;
+}
+
+String get_parent(ParsingError const& error) {
+    if (error.stmt) {
+        return shortprint(get_parent(error.stmt));
+    } else if (error.expr) {
+        return shortprint(get_parent(error.expr));
+    } else if (error.pat) {
+        return shortprint(get_parent(error.pat));
+    }
+
+    return "<module>";
+}
+
+String get_filename(ParsingErrorPrinter* printer) {
+    if (printer->lexer) {
+        return printer->lexer->file_name();
+    }
+    return "<input>";
+}
+
+void ParsingErrorPrinter::print(ParsingError const& error) {
+    String            filename = get_filename(this);
+    Node*             node     = get_expr(error);
+    CommonAttributes* loc      = get_code_loc(error);
+    String            parent   = get_parent(error);
+
     int line = error.received_token.begin_line();
 
-    firstline() << "File \"" << filename << "\", line " << line;
+    firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
 
-    CommonAttributes* val        = nullptr;
-    auto              noline_val = NoNewLine(out);
-    std::ostream      noline(&noline_val);
+    // Print what we were able to parse
+    {
+        if (node) {
+            auto         noline_buf = NoNewLine(out);
+            std::ostream noline(&noline_buf);
+            codeline();
+            noline << str(node);
+            noline.flush();
+        }
 
-    if (error.stmt) {
-        newline();
-        noline << str(error.stmt);
-        val = error.stmt;
-    } else if (error.expr) {
-        newline();
-        noline << str(error.expr);
-        val = error.expr;
-    } else if (error.pat) {
-        newline();
-        noline << str(error.pat);
-        val = error.pat;
+        // Print the tokens that we were not able to parse
+        Unlex unlex;
+        unlex.format(out, error.remaining);
+
+        // Underline error if possible
+        if (loc) {
+            underline(*loc);
+        } else {
+            underline(error.received_token);
+        }
     }
 
-    noline.flush();
-
-    Unlex unlex;
-    unlex.format(out, error.remaining);
-
-    if (val) {
-        underline(*val);
-    } else {
-        // this does not work that well
-        underline(error.received_token);
+    // Lython own code loc
+    if (with_compiler_code_loc) {
+        newline() << error.loc.repr();
     }
 
-    newline() << error.error_kind << ": ";
+    // Error message
 
+    errorline() << error.error_kind << ": ";
     if (error.expected_tokens.size() > 0) {
+        Array<String> toks;
+        std::transform(std::begin(error.expected_tokens),
+                       std::end(error.expected_tokens),
+                       std::back_inserter(toks),
+                       [](int tok) -> String { return to_human_name(tok); });
+
+        String expected = join("|", toks);
+
         out << "Expected: " << expected << " token but got " << to_human_name(error.received_token);
     } else {
         out << error.message;
-    }
-
-    if (with_compiler_code_loc) {
-        newline() << error.loc.repr();
     }
 
     end();
@@ -131,13 +201,48 @@ void ParsingErrorPrinter::underline(CommonAttributes const& attr) {
     }
 
     int32 start = attr.col_offset;
-    newline() << String(start, ' ') << String(size, '^');
+    codeline() << String(start, ' ') << String(size, '^');
 }
 
 void ParsingErrorPrinter::underline(Token const& tok) {
     int32 tok_size  = std::max(1, tok.end_col() - tok.begin_col());
     int32 tok_start = tok.begin_col();
-    newline() << String(tok_start, ' ') << String(tok_size, '^');
+    codeline() << String(tok_start, ' ') << String(tok_size, '^');
+}
+
+String shortprint(Node const* node) {
+    if (node->kind == NodeKind::FunctionDef) {
+        FunctionDef const* fun = static_cast<FunctionDef const*>(node);
+        return str(fun->name);
+    }
+    if (node->kind == NodeKind::ClassDef) {
+        ClassDef const* def = static_cast<ClassDef const*>(node);
+        return str(def->name);
+    }
+    if (node->kind == NodeKind::Module) {
+        return "<module>";
+    }
+    return str(node);
+}
+
+Node const* get_parent(Node const* parent) {
+    Node const* n = parent->get_parent();
+    Node const* p = parent;
+
+    while (n != nullptr) {
+
+        if (n->kind == NodeKind::Module) {
+            return n;
+        }
+
+        if (n->kind == NodeKind::FunctionDef) {
+            return n;
+        }
+        p = n;
+        n = n->get_parent();
+    }
+
+    return p;
 }
 
 }  // namespace lython

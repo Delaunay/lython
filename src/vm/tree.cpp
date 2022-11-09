@@ -4,6 +4,7 @@
 #include "ast/values/generator.h"
 #include "ast/values/object.h"
 #include "logging/logging.h"
+#include "parser/parsing_error.h"
 #include "utilities/guard.h"
 
 #include "vm/tree.h"
@@ -1140,36 +1141,6 @@ PartialResult* TreeEvaluator::nonlocal(Nonlocal_t* n, int depth) {
 }
 
 #define PRINT(msg) std::cout << msg << "\n";
-
-String shortprint(Node const* node) {
-    if (node->kind == NodeKind::FunctionDef) {
-        FunctionDef const* fun = static_cast<FunctionDef const*>(node);
-        return str(fun->name);
-    }
-
-    return str(node);
-}
-
-Node const* get_parent(Node const* parent) {
-    Node const* n = parent->get_parent();
-    Node const* p = n;
-
-    while (n != nullptr) {
-        p = n;
-
-        if (n->kind == NodeKind::Module) {
-            break;
-        }
-
-        if (n->kind == NodeKind::FunctionDef) {
-            break;
-        }
-
-        n = p->get_parent();
-    }
-
-    return p;
-}
 
 void printtrace(StackTrace& trace) {
     String file   = "<input>";

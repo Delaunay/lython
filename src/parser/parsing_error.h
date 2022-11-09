@@ -40,7 +40,7 @@ class ParsingErrorPrinter {
 
     void print(ParsingError const& err);
 
-    bool          with_compiler_code_loc = true;
+    bool          with_compiler_code_loc = false;
     std::ostream& out;
     int           indent = 0;
 
@@ -51,6 +51,9 @@ class ParsingErrorPrinter {
 
     std::ostream& firstline() { return out; }
     std::ostream& newline() { return out << std::endl << indentation(); }
+    std::ostream& errorline() { return out << std::endl; }
+
+    std::ostream& codeline() { return out << std::endl << indentation() << indentation() << "|"; }
     void          end() { out << std::endl; }
 
     class AbstractLexer* lexer;
@@ -64,6 +67,9 @@ class SyntaxError: public ParsingException {
 
     String msg;
 };
+
+String      shortprint(Node const* node);
+Node const* get_parent(Node const* parent);
 
 void add_wip_expr(ParsingError& err, StmtNode* stmt);
 void add_wip_expr(ParsingError& err, ExprNode* expr);

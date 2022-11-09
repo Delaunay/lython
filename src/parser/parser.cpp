@@ -57,15 +57,16 @@ void Parser::ensure_valid() {
 
 void Parser::show_diagnostics(std::ostream& out) {
     //
-    out << errors.size() << " Parsing Errors:\n";
-    out << String(32, '-') << "\n";
+    out << "Parsing error messages (" << errors.size() << ")\n";
 
     ParsingErrorPrinter printer(out, &_lex);
-    printer.indent = 2;
+    printer.with_compiler_code_loc = false;
+    printer.indent                 = 1;
 
     for (ParsingError const& error: errors) {
-        out << "  - ";
+        out << "  ";
         printer.print(error);
+        out << "\n";
     }
 }
 
