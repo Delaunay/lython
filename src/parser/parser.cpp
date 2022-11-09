@@ -2281,7 +2281,8 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
 ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_precedence, int depth) {
     TRACE_START();
 
-    Node* parent = og_parent;
+    Node*  parent = og_parent;
+    BinOp* binop  = nullptr;
 
     // FIXME: For error reporting we need to catch th error here and build the partia expression
     while (true) {
@@ -2296,6 +2297,15 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
         // lookahead is a binary operator whose precedence is >= min_precedence
         if (!(is_binary_operator_family(op_conf) && oppred >= min_precedence)) {
             break;
+        }
+
+        // we are going to build the operator for sure
+        // create the operator right away so we can use save what we have so far for error reporting
+        if (op_conf.binarykind != BinaryOperator::None) {
+            binop       = parent->new_object<BinOp>();
+            binop->left = lhs;
+            binop->op   = op_conf.binarykind;
+            parent      = binop;
         }
 
         next_token();
@@ -2319,11 +2329,8 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
 
         // the result of applying op with operands lhs and rhs
         if (op_conf.binarykind != BinaryOperator::None) {
-            auto result   = parent->new_object<BinOp>();
-            result->left  = lhs;
-            result->op    = op_conf.binarykind;
-            result->right = rhs;
-            lhs           = result;
+            binop->right = rhs;
+            lhs          = binop;
         } else if (op_conf.cmpkind != CmpOperator::None) {
             // Compare can combine comparison in a single node
             // 1 < 2 < 3 gets parsed as 1 < (2 < (3 < (4 < 5)))
