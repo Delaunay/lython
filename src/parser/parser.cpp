@@ -2281,8 +2281,10 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
 ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_precedence, int depth) {
     TRACE_START();
 
-    Node*  parent = og_parent;
-    BinOp* binop  = nullptr;
+    Node*    parent = og_parent;
+    BinOp*   binop  = nullptr;
+    Compare* comp   = nullptr;
+    BoolOp*  boolop = nullptr;
 
     // FIXME: For error reporting we need to catch th error here and build the partia expression
     while (true) {
@@ -2305,7 +2307,41 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
             binop       = parent->new_object<BinOp>();
             binop->left = lhs;
             binop->op   = op_conf.binarykind;
-            parent      = binop;
+
+            parent = binop;
+        }
+
+        else if (op_conf.cmpkind != CmpOperator::None) {
+            // parent is a Comparison (1 < ?expr < ) and we are doing chained comparison
+            Compare* lhs_parent = cast<Compare>(parent);
+            if (lhs_parent) {
+                comp = lhs_parent;
+                comp->safe_comparator_add(lhs);
+                comp->ops.push_back(op_conf.cmpkind);
+            } else {
+                comp       = parent->new_object<Compare>();
+                comp->left = lhs;
+                comp->ops.push_back(op_conf.cmpkind);
+            }
+
+            parent = comp;
+        }
+
+        else if (op_conf.boolkind != BoolOperator::None) {
+            BoolOp* lhs_parent = cast<BoolOp>(parent);
+
+            if (lhs_parent && lhs_parent->op == op_conf.boolkind) {
+                boolop = lhs_parent;
+                boolop->values.push_back(lhs);
+
+            } else {
+
+                boolop         = parent->new_object<BoolOp>();
+                boolop->op     = op_conf.boolkind;
+                boolop->values = {lhs};
+            }
+
+            parent = boolop;
         }
 
         next_token();
@@ -2332,43 +2368,19 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
             binop->right = rhs;
             lhs          = binop;
         } else if (op_conf.cmpkind != CmpOperator::None) {
-            // Compare can combine comparison in a single node
-            // 1 < 2 < 3 gets parsed as 1 < (2 < (3 < (4 < 5)))
-            Compare* rhs_comp = cast<Compare>(rhs);
-
-            // TODO: would be better if comparators and ops were reversed
-            if (rhs_comp) {
-                ExprNode* old  = rhs_comp->left;
-                rhs_comp->left = lhs;
-                lhs->move(rhs_comp);
-
-                rhs_comp->comparators.insert(std::begin(rhs_comp->comparators), old);
-                rhs_comp->ops.insert(std::begin(rhs_comp->ops), op_conf.cmpkind);
-
-                lhs = rhs;
-            } else {
-                auto result  = parent->new_object<Compare>();
-                result->left = lhs;
-                result->ops.push_back(op_conf.cmpkind);
-                result->comparators.push_back(rhs);
-
-                lhs = result;
+            // rhs can be comp if it was a nested comparison
+            // but it does not have to be
+            if (rhs != comp) {
+                comp->safe_comparator_add(rhs);
             }
+            //
+            lhs = comp;
 
         } else if (op_conf.boolkind != BoolOperator::None) {
-            BoolOp* rhs_bool = cast<BoolOp>(rhs);
-
-            if (rhs_bool && rhs_bool->op == op_conf.boolkind) {
-                rhs_bool->values.insert(std::begin(rhs_bool->values), lhs);
-
-                lhs = rhs;
-            } else {
-                auto result    = parent->new_object<BoolOp>();
-                result->op     = op_conf.boolkind;
-                result->values = {lhs, rhs};
-
-                lhs = result;
+            if (rhs != boolop) {
+                boolop->values.push_back(rhs);
             }
+            lhs = boolop;
         } else {
             error("unknow operator {}", str(op_conf));
         }

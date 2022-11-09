@@ -403,6 +403,16 @@ struct Compare: public ExprNode {
     Array<StmtNode*>    resolved_operator;
     Array<NativeCompOp> native_operator;
 
+    void safe_comparator_add(ExprNode* comp) {
+        assert(comp != this, "Cannot insert itself");
+
+        for (auto& expr: comparators) {
+            assert(comp != expr, "Cannot insert duplicate");
+        }
+
+        comparators.push_back(comp);
+    }
+
     Compare(): ExprNode(NodeKind::Compare) {}
 };
 

@@ -97,9 +97,9 @@
         },
         {
             "name": "Debug Equality",
-            "type": "cppdbg",
+            "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/equality_test",
+            "program": "${workspaceFolder}/build/bin/Debug/equality_test.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
