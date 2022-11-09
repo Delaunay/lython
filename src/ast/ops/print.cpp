@@ -831,17 +831,15 @@ ReturnType Printer::binop(BinOp const* self, int depth, std::ostream& out, int l
 
 ReturnType Printer::boolop(BoolOp const* self, int depth, std::ostream& out, int level) {
 
-    // FIXME: we do not know when this expression is partial
-    // 1 and 2 and ..           <= missing 3rd expression but currently we cannot know that
-    // the parser will complain but by looking at the AST only it will look fine
-    //
+ 
     int n = int(self->values.size());
-    for (int i = 0; i < n; i++) {
-        exec(self->values[i], depth, out, level);
+    for (int i = 0; i < m; i++) {
 
-        // this can happen if the user did not finish writing the expression
-        // if that is the case we want and to still be printed
-        if (i < n - 1 || n < 2) {
+        if (i < n) {
+            exec(self->values[i], depth, out, level);
+        }
+
+        if (i < m - 1) {
             print_op(out, self->op);
         }
     }

@@ -2333,12 +2333,14 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
             if (lhs_parent && lhs_parent->op == op_conf.boolkind) {
                 boolop = lhs_parent;
                 boolop->values.push_back(lhs);
+                boolop->opcount += 1;
 
             } else {
 
-                boolop         = parent->new_object<BoolOp>();
-                boolop->op     = op_conf.boolkind;
-                boolop->values = {lhs};
+                boolop          = parent->new_object<BoolOp>();
+                boolop->op      = op_conf.boolkind;
+                boolop->values  = {lhs};
+                boolop->opcount = 1;
             }
 
             parent = boolop;

@@ -382,6 +382,10 @@ struct BoolOp: public ExprNode {
     BoolOperator     op;
     Array<ExprNode*> values;
 
+    // this is used to know if we have a partial expression or not
+    // if the expression is valid we should have values == opcount + 1
+    int opcount = 0;
+
     // Function to apply, resolved by the sema
     StmtNode*     resolved_operator = nullptr;
     NativeBoolyOp native_operator   = nullptr;
