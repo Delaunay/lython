@@ -42,10 +42,11 @@ class Parser {
         current_error += 1;
         assert(current_error == errors.size(), "Only one error at a time can happen");
 
-        auto& details      = errors.emplace_back(ParsingError());
-        details.error_kind = exception;
-        details.message    = msg;
-        details.loc        = loc;
+        auto& details          = errors.emplace_back(ParsingError());
+        details.error_kind     = exception;
+        details.message        = msg;
+        details.loc            = loc;
+        details.received_token = token();
 
         lython::log(lython::LogLevel::Error, loc, "{}: {}", exception, msg);
         return details;

@@ -147,23 +147,31 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
 
     // Print what we were able to parse
     {
+        bool written = false;
+
         if (node) {
             auto         noline_buf = NoNewLine(out);
             std::ostream noline(&noline_buf);
             codeline();
             noline << str(node);
             noline.flush();
+            written = true;
         }
 
         // Print the tokens that we were not able to parse
-        Unlex unlex;
-        unlex.format(out, error.remaining);
+        if (error.remaining.size() > 0) {
+            Unlex unlex;
+            unlex.format(out, error.remaining);
+            written = true;
+        }
 
-        // Underline error if possible
-        if (srcloc) {
-            underline(*srcloc);
-        } else {
-            underline(error.received_token);
+        if (written) {
+            // Underline error if possible
+            if (srcloc) {
+                underline(*srcloc);
+            } else {
+                underline(error.received_token);
+            }
         }
     }
 

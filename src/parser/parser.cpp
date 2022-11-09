@@ -2278,9 +2278,12 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
 // but it got issues with some edge cases.
 //
 // https://en.wikipedia.org/wiki/Operator-precedence_parser#:~:text=The%20precedence%20climbing%20method%20is%20a%20compact%2C%20efficient%2C,in%20EBNF%20format%20will%20usually%20look%20like%20this%3A
-ExprNode* Parser::parse_operators(Node* parent, ExprNode* lhs, int min_precedence, int depth) {
+ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_precedence, int depth) {
     TRACE_START();
 
+    Node* parent = og_parent;
+
+    // FIXME: For error reporting we need to catch th error here and build the partia expression
     while (true) {
         Token           lookahead = token();
         OpConfig const& op_conf   = get_operator_config(lookahead);
@@ -2386,6 +2389,8 @@ Comment* Parser::parse_comment(Node* parent, int depth) {
 }
 
 ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
+    TRACE_START();
+
     expression_depth += 1;
     // parse primary
     auto primary = parse_expression_primary(parent, depth);

@@ -12,7 +12,7 @@
             "args": [
                 "fmt",
                 "--ast",
-                "${workspaceFolder}/code/comment.ly"
+                "${workspaceFolder}/code/parsing_recovery.ly"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,
