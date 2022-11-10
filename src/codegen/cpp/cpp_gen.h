@@ -23,12 +23,31 @@ struct CPPGenVisitorTrait {
 /*
  */
 struct CPPGen: BaseVisitor<CPPGen, false, CPPGenVisitorTrait> {
-    using Trait = CPPGenVisitorTrait;
+    using Super = BaseVisitor<CPPGen, false, CPPGenVisitorTrait>;
 
-    using StmtRet = CPPGen::Trait::StmtRet;
-    using ExprRet = CPPGen::Trait::ExprRet;
-    using ModRet  = CPPGen::Trait::ModRet;
-    using PatRet  = CPPGen::Trait::PatRet;
+    using StmtRet = Super::StmtRet;
+    using ExprRet = Super::ExprRet;
+    using ModRet  = Super::ModRet;
+    using PatRet  = Super::PatRet;
+
+#define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
+
+#define X(name, _)
+#define SSECTION(name)
+#define EXPR(name, fun)  TYPE_GEN(name)
+#define STMT(name, fun)  TYPE_GEN(name)
+#define MOD(name, fun)   TYPE_GEN(name)
+#define MATCH(name, fun) TYPE_GEN(name)
+
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+#undef X
+#undef SSECTION
+#undef EXPR
+#undef STMT
+#undef MOD
+#undef MATCH
+#undef TYPE_GEN
 
     Bindings              bindings;
     bool                  forwardpass = false;
@@ -39,7 +58,7 @@ struct CPPGen: BaseVisitor<CPPGen, false, CPPGenVisitorTrait> {
     public:
     virtual ~CPPGen() {}
 
-#define FUNCTION_GEN(name, fun, ret) virtual ret fun(name* n, int depth);
+#define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)

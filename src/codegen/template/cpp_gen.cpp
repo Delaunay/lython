@@ -6,85 +6,83 @@
 
 namespace lython {
 
-using StmtRet = CPPGen::Trait::StmtRet;
-using ExprRet = CPPGen::Trait::ExprRet;
-using ModRet  = CPPGen::Trait::ModRet;
-using PatRet  = CPPGen::Trait::PatRet;
+using StmtRet = CPPGen::StmtRet;
+using ExprRet = CPPGen::ExprRet;
+using ModRet  = CPPGen::ModRet;
+using PatRet  = CPPGen::PatRet;
 
-ExprRet CPPGen::boolop(BoolOp* n, int depth) {}
-ExprRet CPPGen::namedexpr(NamedExpr* n, int depth) {}
-ExprRet CPPGen::compare(Compare* n, int depth) {}
-ExprRet CPPGen::binop(BinOp* n, int depth) {}
-ExprRet CPPGen::unaryop(UnaryOp* n, int depth) {}
-ExprRet CPPGen::lambda(Lambda* n, int depth) {}
-ExprRet CPPGen::ifexp(IfExp* n, int depth) {}
-ExprRet CPPGen::dictexpr(DictExpr* n, int depth) {}
-ExprRet CPPGen::setexpr(SetExpr* n, int depth) {}
-ExprRet CPPGen::listcomp(ListComp* n, int depth) {}
-ExprRet CPPGen::generateexpr(GeneratorExp* n, int depth) {}
-ExprRet CPPGen::setcomp(SetComp* n, int depth) {}
-ExprRet CPPGen::dictcomp(DictComp* n, int depth) {}
-ExprRet CPPGen::await(Await* n, int depth) {}
-ExprRet CPPGen::yield(Yield* n, int depth) {}
-ExprRet CPPGen::yieldfrom(YieldFrom* n, int depth) {}
-ExprRet CPPGen::call(Call* n, int depth) {}
-ExprRet CPPGen::joinedstr(JoinedStr* n, int depth) {}
-ExprRet CPPGen::formattedvalue(FormattedValue* n, int depth) {}
-ExprRet CPPGen::constant(Constant* n, int depth) {}
-ExprRet CPPGen::attribute(Attribute* n, int depth) {}
-ExprRet CPPGen::subscript(Subscript* n, int depth) {}
-ExprRet CPPGen::starred(Starred* n, int depth) {}
-ExprRet CPPGen::name(Name* n, int depth) {}
-ExprRet CPPGen::listexpr(ListExpr* n, int depth) {}
-ExprRet CPPGen::tupleexpr(TupleExpr* n, int depth) {}
-ExprRet CPPGen::slice(Slice* n, int depth) {}
+ExprRet CPPGen::boolop(BoolOp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::namedexpr(NamedExpr_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::compare(Compare_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::binop(BinOp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::unaryop(UnaryOp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::lambda(Lambda_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::ifexp(IfExp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::dictexpr(DictExpr_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::setexpr(SetExpr_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::listcomp(ListComp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::generateexpr(GeneratorExp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::setcomp(SetComp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::dictcomp(DictComp_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::await(Await_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::yield(Yield_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::call(Call_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::joinedstr(JoinedStr_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::constant(Constant_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::attribute(Attribute_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::subscript(Subscript_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::starred(Starred_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::name(Name_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::slice(Slice_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::dicttype(DictType_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::arraytype(ArrayType_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::arrow(Arrow_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::builtintype(BuiltinType_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::tupletype(TupleType_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::settype(SetType_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::classtype(ClassType_t* n, int depth) { return ExprRet(); }
+ExprRet CPPGen::comment(Comment_t* n, int depth) { return ExprRet(); }
 
-StmtRet CPPGen::comment(Comment* n, int depth) {}
-StmtRet CPPGen::functiondef(FunctionDef* n, int depth) {}
-StmtRet CPPGen::classdef(ClassDef* n, int depth) {}
-StmtRet CPPGen::invalidstmt(InvalidStatement_t* n, int depth) {}
-StmtRet CPPGen::returnstmt(Return* n, int depth) {}
-StmtRet CPPGen::deletestmt(Delete* n, int depth) {}
-StmtRet CPPGen::assign(Assign* n, int depth) {}
-StmtRet CPPGen::augassign(AugAssign* n, int depth) {}
-StmtRet CPPGen::annassign(AnnAssign* n, int depth) {}
-StmtRet CPPGen::forstmt(For* n, int depth) {}
-StmtRet CPPGen::whilestmt(While* n, int depth) {}
-StmtRet CPPGen::ifstmt(If* n, int depth) {}
-StmtRet CPPGen::with(With* n, int depth) {}
-StmtRet CPPGen::raise(Raise* n, int depth) {}
-StmtRet CPPGen::trystmt(Try* n, int depth) {}
-StmtRet CPPGen::assertstmt(Assert* n, int depth) {}
-StmtRet CPPGen::global(Global* n, int depth) {}
-StmtRet CPPGen::nonlocal(Nonlocal* n, int depth) {}
-StmtRet CPPGen::exprstmt(Expr* n, int depth) {}
-StmtRet CPPGen::pass(Pass* n, int depth) {}
-StmtRet CPPGen::breakstmt(Break* n, int depth) {}
-StmtRet CPPGen::continuestmt(Continue* n, int depth) {}
-StmtRet CPPGen::match(Match* n, int depth) {}
-StmtRet CPPGen::inlinestmt(Inline* n, int depth) {}
+StmtRet CPPGen::functiondef(FunctionDef_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::classdef(ClassDef_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::invalidstmt(InvalidStatement_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::returnstmt(Return_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::deletestmt(Delete_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::assign(Assign_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::augassign(AugAssign_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::annassign(AnnAssign_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::forstmt(For_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::whilestmt(While_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::ifstmt(If_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::with(With_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::raise(Raise_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::trystmt(Try_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::assertstmt(Assert_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::global(Global_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::nonlocal(Nonlocal_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::exprstmt(Expr_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::pass(Pass_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::breakstmt(Break_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::continuestmt(Continue_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::match(Match_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::inlinestmt(Inline_t* n, int depth) { return StmtRet(); }
 
-PatRet CPPGen::matchvalue(MatchValue* n, int depth) {}
-PatRet CPPGen::matchsingleton(MatchSingleton* n, int depth) {}
-PatRet CPPGen::matchsequence(MatchSequence* n, int depth) {}
-PatRet CPPGen::matchmapping(MatchMapping* n, int depth) {}
-PatRet CPPGen::matchclass(MatchClass* n, int depth) {}
-PatRet CPPGen::matchstar(MatchStar* n, int depth) {}
-PatRet CPPGen::matchas(MatchAs* n, int depth) {}
-PatRet CPPGen::matchor(MatchOr* n, int depth) {}
+PatRet CPPGen::matchvalue(MatchValue_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchsingleton(MatchSingleton_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchsequence(MatchSequence_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchmapping(MatchMapping_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchclass(MatchClass_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchstar(MatchStar_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchas(MatchAs_t* n, int depth) { return PatRet(); }
+PatRet CPPGen::matchor(MatchOr_t* n, int depth) { return PatRet(); }
 
-StmtRet CPPGen::dicttype(DictType* n, int depth) {}
-StmtRet CPPGen::arraytype(ArrayType* n, int depth) {}
-StmtRet CPPGen::arrow(Arrow* n, int depth) {}
-StmtRet CPPGen::builtintype(BuiltinType* n, int depth) {}
-StmtRet CPPGen::tupletype(TupleType* n, int depth) {}
-StmtRet CPPGen::settype(SetType* n, int depth) {}
-StmtRet CPPGen::classtype(ClassType* n, int depth) {}
-
-ModRet CPPGen::module(Module* stmt, int depth){};
-ModRet CPPGen::interactive(Interactive* n, int depth) {}
-
-ExprRet CPPGen::functiontype(FunctionType* n, int depth) {}
-ExprRet CPPGen::expression(Expression* n, int depth) {}
+ModRet CPPGen::module(Module_t* stmt, int depth) { return ModRet(); };
+ModRet CPPGen::interactive(Interactive_t* n, int depth) { return ModRet(); }
+ModRet CPPGen::functiontype(FunctionType_t* n, int depth) { return ModRet(); }
+ModRet CPPGen::expression(Expression_t* n, int depth) { return ModRet(); }
 
 }  // namespace lython
