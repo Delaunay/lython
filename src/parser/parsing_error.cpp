@@ -135,16 +135,9 @@ String get_filename(ParsingErrorPrinter* printer) {
     return "<input>";
 }
 
-void ParsingErrorPrinter::print(ParsingError const& error) {
-    String            filename = get_filename(this);
-    Node*             node     = get_expr(error);
-    CommonAttributes* srcloc   = get_code_loc(error);
-    String            parent   = get_parent(error);
-
-    int line = error.received_token.line();
-
-    firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
-
+void ParsingErrorPrinter::print_ast(ParsingError const& error,
+                                    Node*               node,
+                                    CommonAttributes*   srcloc) {
     // Print what we were able to parse
     {
         bool written = false;
@@ -174,6 +167,27 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
             }
         }
     }
+}
+
+void ParsingErrorPrinter::print_tok(ParsingError const& error, CommonAttributes* srcloc) {
+    Unlex unlex;
+
+    codeline();
+    unlex.format(out, error.line);
+
+    // Underline error if possible
+    underline(error.received_token);
+}
+
+void ParsingErrorPrinter::print(ParsingError const& error) {
+    String            filename = get_filename(this);
+    Node*             node     = get_expr(error);
+    CommonAttributes* srcloc   = get_code_loc(error);
+    String            parent   = get_parent(error);
+
+    int line = error.received_token.line();
+
+    firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
 
     // Lython own code loc
     if (with_compiler_code_loc) {
@@ -181,6 +195,11 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
     }
 
     // Error message
+    if (false) {
+        print_ast(error, node, srcloc);
+    } else {
+        print_tok(error, srcloc);
+    }
 
     errorline() << error.error_kind << ": ";
     if (error.expected_tokens.size() > 0) {

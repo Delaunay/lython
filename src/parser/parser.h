@@ -20,6 +20,22 @@ enum class ParsingContext
     Slice,
 };
 
+/* Saves all the token that makes up for the current line
+ * this is used for printing better error message
+ */
+struct TokenBuffer {
+
+    void add(Token const& tok) {
+        if (tok.type() == tok_newline) {
+            tokens.clear();
+        } else {
+            tokens.push_back(tok);
+        }
+    }
+
+    Array<Token> tokens;
+};
+
 /**
  * The parser is responsible for transforming the source code into the AST.
  * notifying the users of any syntax error that could prevent it from completing
@@ -227,7 +243,11 @@ class Parser {
 
     // Shortcuts
     // ---------
-    Token const& next_token() { return _lex.next_token(); }
+    Token const& next_token() {
+        // add current token to the line and fetch next one
+        currentline.add(token());
+        return _lex.next_token();
+    }
     Token const& token() const { return _lex.token(); }
     Token const& peek_token() const { return _lex.peek_token(); }
 
@@ -277,7 +297,8 @@ class Parser {
     };
 
     private:
-    Token previous = dummy();
+    Token       previous = dummy();
+    TokenBuffer currentline;
 
     public:
     int expression_depth = 0;

@@ -194,7 +194,12 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
             out.push_back(stmt);
         } catch (ParsingException const&) {
             //
-            error_recovery(&errors[current_error]);
+            ParsingError* error = &errors[current_error];
+            error_recovery(error);
+
+            InvalidStatement* stmt = parent->new_object<InvalidStatement>();
+            stmt->tokens           = error->line;
+            out.push_back(stmt);
         }
 
         if (token().type() == tok_incorrect) {
@@ -2027,6 +2032,19 @@ void Parser::error_recovery(ParsingError* error) {
     while (!in(token().type(), tok_newline, tok_eof)) {
         error->remaining.push_back(token());
         next_token();
+    }
+    error->line = currentline.tokens;
+
+    if (error->line.size() > 0) {
+        Token const& start = error->line[0];
+        Token const& end   = error->line[int(error->line.size() - 1)];
+
+        // then we got a new line
+        if (!error->received_token.isbetween(start, end)) {
+            error->received_token = end;
+        }
+    } else {
+        error("Was not able to retrieve the tok line for an error");
     }
 }
 

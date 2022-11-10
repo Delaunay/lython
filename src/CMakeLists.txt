@@ -35,6 +35,11 @@ SET(ADD_HEADERS
     parser/parsing_error.h
     lowering/lowering.h
     sema/sema.h
+
+    codegen/cpp/cpp_gen.h
+
+    vm/tree.h
+
     utilities/optional.h
     utilities/pool.h
     utilities/trie.h
@@ -65,13 +70,17 @@ SET(ADD_SOURCE
     parser/parser_ext.cpp
     parser/parsing_error.cpp
     lowering/lowering.cpp
-    vm/tree.cpp
-    vm/tree.h
+
     sema/sema.cpp
     sema/sema_import.cpp
     sema/errors.cpp
     sema/bindings.cpp
     sema/builtin.cpp
+
+    codegen/cpp/cpp_gen.cpp
+
+    vm/tree.cpp
+
     utilities/allocator.cpp
     utilities/metadata.cpp
     utilities/pool.cpp

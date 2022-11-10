@@ -19,6 +19,7 @@ struct ParsingError {
     Array<Token> remaining;  // Remaining token we have eaten to recover
                              // in practice we just eat all tokens until next line
 
+    Array<Token> line;  // Line as a stream of tokens
     ParsingError(): received_token(dummy()), loc(LOC) {}
 
     ParsingError(Array<int> expected, Token token, CodeLocation loc_):
@@ -39,6 +40,8 @@ class ParsingErrorPrinter {
         out(out), lexer(lexer) {}
 
     void print(ParsingError const& err);
+    void print_ast(ParsingError const& error, Node* node, CommonAttributes* srcloc);
+    void print_tok(ParsingError const& error, CommonAttributes* srcloc);
 
     bool          with_compiler_code_loc = false;
     std::ostream& out;

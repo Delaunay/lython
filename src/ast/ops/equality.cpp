@@ -299,6 +299,8 @@ struct Equality {
     bool breakstmt(Break* a, Break* b, int depth) { return true; }
     bool continuestmt(Continue* a, Continue* b, int depth) { return true; }
 
+    bool invalidstmt(InvalidStatement* a, InvalidStatement* b, int depth) { return false; }
+
     bool constant(Constant* a, Constant* b, int depth) { return a->value == b->value; }
     bool exprstmt(Expr* a, Expr* b, int depth) { return exec(a->value, b->value, depth); }
     bool returnstmt(Return* a, Return* b, int depth) { return exec(a->value, b->value, depth); }

@@ -36,7 +36,8 @@ argparse::ArgumentParser* FormatCmd::parser() {
     p->add_argument("--dump")  //
         .default_value(true)   //
         .implicit_value(true)  //
-        .help("Allways dump parsed AST even if an error occured");
+        .help(
+            "Allways dump parsed AST even if an error occured, (--inplace gets disabled on error)");
 
     return p;
 }

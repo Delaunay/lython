@@ -180,6 +180,16 @@ class Token {
 
     operator bool() const { return _type != tok_eof; }
 
+    int compare(Token const& tok) {
+        if (_line != tok._line)
+            return _line - tok._line;
+        return _col - tok._col;
+    }
+
+    bool isbefore(Token const& tok) { return compare(tok) < 0; }
+    bool isafter(Token const& tok) { return compare(tok) > 0; }
+    bool isbetween(Token const& begin, Token const& end) { return isafter(begin) && isbefore(end); }
+
     bool operator==(Token const& tok) const {
         return (_type == tok._type) && (_line == tok._line) && (_col == tok._col);
     }

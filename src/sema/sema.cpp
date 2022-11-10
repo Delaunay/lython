@@ -1124,6 +1124,11 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
 
     return Type_t();
 }
+
+TypeExpr* SemanticAnalyser::invalidstmt(InvalidStatement_t* n, int depth) {
+    // ignore it, parser already showed this error
+    return None_t();
+}
 TypeExpr* SemanticAnalyser::returnstmt(Return* n, int depth) {
     auto v = exec<TypeExpr*>(n->value, depth);
     if (v.has_value()) {

@@ -650,6 +650,17 @@ struct FunctionType: public ModNode {
 
 // Statements
 // ----------
+
+// This is used for error recovery
+struct InvalidStatement: public StmtNode {
+    // FIXME: this node should take ownership of the parsing error
+    // struct ParsingError* error = nullptr;
+
+    Array<Token> tokens;
+
+    InvalidStatement(): StmtNode(NodeKind::InvalidStatement) {}
+};
+
 struct Inline: public StmtNode {
     // <stmt>; <stmt>
     Array<StmtNode*> body;

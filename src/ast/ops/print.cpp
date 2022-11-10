@@ -3,6 +3,7 @@
 #include "ast/visitor.h"
 #include "lexer/unlex.h"
 #include "logging/logging.h"
+#include "parser/parsing_error.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -829,10 +830,20 @@ ReturnType Printer::binop(BinOp const* self, int depth, std::ostream& out, int l
     return false;
 }
 
+ReturnType
+Printer::invalidstmt(InvalidStatement const* self, int depth, std::ostream& out, int level) {
+    //
+    if (self->tokens.size() > 0) {
+        Unlex unlex;
+        unlex.format(out, self->tokens);
+    }
+    return false;
+}
+
 ReturnType Printer::boolop(BoolOp const* self, int depth, std::ostream& out, int level) {
 
     int m = self->opcount + 1;
- 
+
     int n = int(self->values.size());
     for (int i = 0; i < m; i++) {
 

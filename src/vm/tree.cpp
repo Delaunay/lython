@@ -570,6 +570,11 @@ PartialResult* TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
     return return_value;
 }
 
+PartialResult* TreeEvaluator::invalidstmt(InvalidStatement_t* n, int depth) {
+    // FIXME: raise exception here
+    return nullptr;
+}
+
 PartialResult* TreeEvaluator::returnstmt(Return_t* n, int depth) {
     debug("Compute return {}", str(n));
 
