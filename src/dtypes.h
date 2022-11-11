@@ -73,9 +73,15 @@ struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
     using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
 
     std::size_t operator()(Key const& k) const noexcept {
-        auto a = std::hash<std::string>();
+
+#ifdef __linux__
+        return std::_Hash_impl::hash(k.data(), k.length() * sizeof(Char));
+#else
         // FIXME: find a way to reuse the string hashing without transforming the string
+
+        auto a = std::hash<std::string>();
         return a(std::string(k.c_str()));
+#endif
     }
 };
 //*/

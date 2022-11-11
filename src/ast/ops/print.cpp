@@ -1061,6 +1061,10 @@ void ConstantValue::print(std::ostream& out) const {
     case TNone: out << "None"; break;
 
     case TString: out << "\"" << value.string << "\""; break;
+
+    case TObject: out << "<object>"; break;
+
+    default: break;
     }
 }
 

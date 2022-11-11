@@ -34,7 +34,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Project's Options
 # ====================================
 OPTION(BUILD_TESTING "Enable tests" ON)
-OPTION(BUILD_BENCHMARK "Build Benchmarks" ON)
+OPTION(BUILD_BENCHMARKS "Build Benchmarks" ON)
 OPTION(BUILD_DOCUMENTATION "Build docs" OFF)
 OPTION(BUILD_DOXYGEN "Build Doxygen docs" ON)
 OPTION(BUILD_SPHINX "Build Sphinx docs" ON)
@@ -115,6 +115,11 @@ IF(BUILD_TESTING)
     MESSAGE(STATUS "Building tests")
     ADD_SUBDIRECTORY(tests)
 ENDIF(BUILD_TESTING)
+
+IF(BUILD_BENCHMARKS)
+    MESSAGE(STATUS "Building benchmarks")
+    ADD_SUBDIRECTORY(benchmarks)
+ENDIF(BUILD_BENCHMARKS)
 
 # IF (BUILD_BENCHMARK)
 # MESSAGE(STATUS "Building Benchmarks")

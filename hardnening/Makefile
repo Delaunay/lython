@@ -125,3 +125,14 @@ coz-run:
 	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
 	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
 	echo "DONE"
+
+coz-time: coz-build
+	# before hash fix:
+	# 	49.34user 0.52system 0:49.87elapsed 99%CPU (0avgtext+0avgdata 124276maxresident)k
+	# 	0inputs+23920outputs (0major+30209minor)pagefaults 0swaps
+
+	# After hash fix:
+	#  52.07user 0.53system 0:52.61elapsed 99%CPU (0avgtext+0avgdata 124348maxresident)
+	#  0inputs+23920outputs (0major+30210minor)pagefaults 0swaps
+	/usr/bin/time ./coz/build/bin/lython internal --file coz/nothing.ly > out.txt
+

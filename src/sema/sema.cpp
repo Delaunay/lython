@@ -518,6 +518,7 @@ Arrow* get_arrow(
             return cast<Arrow>(init_t);
         }
     }
+    default: break;
     }
     return nullptr;
 }
@@ -1013,6 +1014,7 @@ void record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* ct
             type      = ann->annotation;
             break;
         }
+        default: break;
         }
 
         // if stmt is a comment
