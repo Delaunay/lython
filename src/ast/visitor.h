@@ -3,6 +3,7 @@
 
 #include "ast/nodes.h"
 #include "logging/logging.h"
+#include "utilities/coz_wrap.h"
 
 namespace lython {
 
@@ -167,6 +168,7 @@ struct BaseVisitor {
         if (!expr) {
             return ExprRet();
         }
+
         // trace(depth, "{}", expr->kind);
         // clang-format off
         switch (expr->kind) {
@@ -199,7 +201,6 @@ struct BaseVisitor {
             debug("Null statement");
             return StmtRet();
         }
-        // trace(depth, "{}", stmt->kind);
 
         // clang-format off
         switch (stmt->kind) {

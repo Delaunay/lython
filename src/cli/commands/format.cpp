@@ -27,6 +27,11 @@ argparse::ArgumentParser* FormatCmd::parser() {
         .implicit_value(true)  //
         .help("Use the AST to reformat the code");
 
+    p->add_argument("--fuzz")  //
+        .default_value(true)   //
+        .implicit_value(true)  //
+        .help("Reads from stdin for fuzzing");
+
     p->add_argument("--extension")                       //
         .default_value(std::vector<std::string>{".ly"})  //
         .nargs(argparse::nargs_pattern::any)
@@ -67,8 +72,17 @@ int FormatCmd::main(argparse::ArgumentParser const& args) {
 
     info("Found {} files", regular_files.size());
 
-    int  result = 0;
-    bool ast    = args.get<bool>("--ast");
+    bool ast = args.get<bool>("--ast");
+    if (args.get<bool>("fuzz")) {
+        if (ast) {
+            return ast_reformat_file("/dev/stdin", args.get<bool>("dump"));
+        } else {
+            return tok_reformat_file("/dev/stdin");
+        }
+    }
+
+    int result = 0;
+
     for (auto const& path: regular_files) {
         if (ast) {
             result += ast_reformat_file(path, args.get<bool>("dump"));

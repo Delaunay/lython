@@ -6,6 +6,7 @@
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
+#include "utilities/coz_wrap.h"
 #include "utilities/metadata.h"
 
 #include <iostream>
@@ -13,8 +14,7 @@
 
 namespace lython {
 
-enum class ParsingContext
-{
+enum class ParsingContext {
     None,
     Comprehension,
     Slice,
@@ -243,11 +243,7 @@ class Parser {
 
     // Shortcuts
     // ---------
-    Token const& next_token() {
-        // add current token to the line and fetch next one
-        currentline.add(token());
-        return _lex.next_token();
-    }
+    Token const& next_token();
     Token const& token() const { return _lex.token(); }
     Token const& peek_token() const { return _lex.peek_token(); }
 
@@ -289,8 +285,7 @@ class Parser {
 
     Array<ParsingError> const& get_errors() const { return errors; }
 
-    enum class Mode
-    {
+    enum class Mode {
         Stmt,
         Expr,
         Pattern

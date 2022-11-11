@@ -23,9 +23,9 @@ MACRO(TEST_MACRO NAME) # LIBRARIES
   TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 liblython liblogging liblythontest)
   ADD_DEPENDENCIES(${NAME}_test liblython liblogging liblythontest)
 
-  IF(UNIX)
+  IF(UNIX AND WITH_COVERAGE)
     ADD_DEPENDENCIES(coverage ${NAME}_test)
-  ENDIF(UNIX)
+  ENDIF()
 
   ADD_TEST(
     NAME ${NAME}
@@ -48,12 +48,12 @@ TEST_MACRO(vm)
 
 MACRO(STDLIB_TEST_MACRO NAME)
   ADD_EXECUTABLE(${NAME}_test standalone_main.cpp ${NAME}_test.cpp ${TEST_HEADERS})
-  TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 stblyb mimalloc-static)
+  TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 stblyb ${LIBRARIES})
   ADD_DEPENDENCIES(${NAME}_test stblyb)
 
-  IF(UNIX)
+  IF(UNIX AND WITH_COVERAGE)
     ADD_DEPENDENCIES(coverage ${NAME}_test)
-  ENDIF(UNIX)
+  ENDIF()
 
   ADD_TEST(
     NAME ${NAME}
@@ -72,11 +72,11 @@ ADD_TEST(
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython internal --file ../code/python_test.ly
 )
 
-ADD_TEST(
-  NAME lython_fmt
-  WORKING_DIRECTORY .
-  COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt --ast ../code/comment.ly
-)
+# ADD_TEST(
+#   NAME lython_fmt
+#   WORKING_DIRECTORY .
+#   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt --ast ../code/comment.ly
+# )
 
 ADD_TEST(
   NAME lython_codegen
@@ -120,6 +120,6 @@ ADD_TEST(
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython tests -h
 )
 
-IF(UNIX)
+IF(UNIX AND WITH_COVERAGE)
   ADD_DEPENDENCIES(coverage lython)
-ENDIF(UNIX)
+ENDIF()

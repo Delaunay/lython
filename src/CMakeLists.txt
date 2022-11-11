@@ -93,8 +93,7 @@ SET(ADD_SOURCE
 # utilities/allocator.cu
 # )
 
-# Compile
-# ==================
+
 # Compile as a library to avoid double compilation
 # ADD_SUBDIRECTORY(cuda)
 # ADD_SUBDIRECTORY(math)
@@ -116,13 +115,35 @@ SET(ADD_SOURCE
 # ENDFUNCTION()
 INCLUDE_DIRECTORIES(mimalloc)
 
+
+SET(LIBRARIES "")
+
+IF(WITH_VALGRIND)
+    MESSAGE(STATUS "Disabling mimalloc")
+    ADD_DEFINITIONS(-DWITH_VALGRIND)
+ELSE()
+    LIST(APPEND LIBRARIES mimalloc-static)
+ENDIF(WITH_VALGRIND)
+
+IF(WITH_COZ)
+    LIST(APPEND LIBRARIES dl)
+    ADD_COMPILE_OPTIONS(-g3 -gdwarf-3)
+    MESSAGE(STATUS "Compiling for coz")
+ENDIF(WITH_COZ)
+
+ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
+ADD_DEFINITIONS(-DWITH_COZ=${WITH_COZ})
+
+# Compile
+# ==================
+
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
 TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython spdlog::spdlog mimalloc-static)
+TARGET_LINK_LIBRARIES(liblython spdlog::spdlog ${LIBRARIES})
 
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD 20)
@@ -143,16 +164,16 @@ SET(ADD_CLI_SOURCE
     cli/commands/tests.cpp
 )
 ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
-TARGET_LINK_LIBRARIES(lython spdlog::spdlog liblython liblogging argparse)
+TARGET_LINK_LIBRARIES(lython spdlog::spdlog liblython liblogging argparse ${LIBRARIES})
 
 SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD 20)
 
-IF(UNIX)
+IF(UNIX AND WITH_COVERAGE)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
         EXECUTABLE ctest --output-on-failure
         BASE_DIRECTORY "."
         DEPENDS test
     )
-ENDIF(UNIX)
+ENDIF()

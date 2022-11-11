@@ -89,6 +89,8 @@ void GCObject::free(GCObject* child) {
 }
 
 GCObject::~GCObject() {
+    COZ_BEGIN("T::GCObject::delete");
+
     // free children
     int n = int(children.size());
 
@@ -101,6 +103,9 @@ GCObject::~GCObject() {
 
         private_free(obj);
     }
+
+    COZ_PROGRESS_NAMED("GCObject::delete");
+    COZ_END("T::GCObject::delete");
 
     assert(children.size() == 0,
            "Makes sure nobody added more nodes while we were busy destroying them");

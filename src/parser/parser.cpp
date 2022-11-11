@@ -2577,4 +2577,16 @@ ExprNode* Parser::parse_expression_1(
     return primary;
 }
 
+Token const& Parser::next_token() {
+    // add current token to the line and fetch next one
+    COZ_BEGIN("T::Lexer::next_token");
+
+    currentline.add(token());
+    Token const& tok = _lex.next_token();
+
+    COZ_PROGRESS_NAMED("Lexer::next_token");
+    COZ_END("T::Lexer::next_token");
+    return tok;
+}
+
 }  // namespace lython

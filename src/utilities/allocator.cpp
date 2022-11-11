@@ -7,11 +7,18 @@
 #include "utilities/allocator.h"
 #include "utilities/metadata.h"
 
-#include <mimalloc.h>
-
-#define USE_MIMALLOC          1
 #define DISABLE_ALIGNED_ALLOC 0
 #define ALIGNMENT             16
+
+#if !((defined WITH_VALGRIND) && WITH_VALGRIND)
+#    define USE_MIMALLOC 1
+#else
+#    define USE_MIMALLOC 0
+#endif
+
+#if USE_MIMALLOC
+#    include <mimalloc.h>
+#endif
 
 namespace lython {
 namespace device {
@@ -24,7 +31,7 @@ void* CPU::malloc(std::size_t n) {
 #else
     // TODO: seems 64bit alignment might be better (this is what tensorflow is using)
     // but I have not found an official document stating so
-    static std::size_t alignment = 16;
+    static std::size_t alignment = ALIGNMENT;
 
     // 16-byte aligned.
     void* original = std::malloc(n + alignment);

@@ -2,6 +2,7 @@
 #define LYTHON_SEMA_BINDINGS_HEADER
 
 #include "sema/builtin.h"
+#include "utilities/coz_wrap.h"
 
 namespace lython {
 
@@ -44,6 +45,8 @@ struct Bindings {
 
     // returns the varid it was inserted as
     inline int add(StringRef const& name, Node* value, TypeExpr* type) {
+        COZ_BEGIN("T::Bindings::add");
+
         auto size = int(bindings.size());
 
         bool dynamic = !nested;
@@ -52,6 +55,9 @@ struct Bindings {
         if (!nested) {
             global_index += 1;
         }
+
+        COZ_PROGRESS_NAMED("Bindings::add");
+        COZ_END("T::Bindings::add");
         return size;
     }
 
@@ -71,9 +77,16 @@ struct Bindings {
     }
 
     inline Node* get_value(int varid) const {
-        if (varid < 0 && varid > bindings.size())
-            return nullptr;
-        return bindings[varid].value;
+        COZ_BEGIN("T::Bindings::get_value");
+
+        Node* result = nullptr;
+
+        if (!(varid < 0 && varid > bindings.size()))
+            result = bindings[varid].value;
+
+        COZ_PROGRESS_NAMED("Bindings::get_value");
+        COZ_END("T::Bindings::get_value");
+        return result;
     }
 
     StringRef get_name(int varid) const {
@@ -85,18 +98,25 @@ struct Bindings {
     bool is_dynamic(int varid) const { return varid >= global_index; }
 
     int get_varid(StringRef name) const {
+        COZ_BEGIN("T::Bindings::get_varid");
+
         auto start = std::rbegin(bindings);
         auto end   = std::rend(bindings);
 
-        int i = 0;
+        int value = -1;
+        int i     = 0;
         while (start != end) {
             if (start->name == name) {
-                return int(bindings.size()) - i - 1;
+                value = int(bindings.size()) - i - 1;
+                break;
             }
             ++start;
             i += 1;
         }
-        return -1;
+
+        COZ_PROGRESS_NAMED("Bindings::get_varid");
+        COZ_END("T::Bindings::get_varid");
+        return value;
     }
 
     String __str__() const {

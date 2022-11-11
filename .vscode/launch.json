@@ -75,6 +75,51 @@
             ]
         },
         {
+            "name": "Debug Coz (UNIX)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/coz",
+            "args": [
+                "run",
+                "---",
+                "${workspaceFolder}/hardening/coz/build/bin/lython",
+                "internal",
+                "--file",
+                "fuzzing/in/nothing.ly"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug Parsing (UNIX)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/parser_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Debug Sema",
             "type": "cppvsdbg",
             "request": "launch",

@@ -250,7 +250,17 @@ Array<TestCase> sema_cases() {
     return ex;
 }
 
+FILE* get_fuzz_file() {
+    static FILE* file = fopen("fizz.ly", "w");
+    return file;
+}
+
+void write_fuzz_file(String const& code) { fprintf(get_fuzz_file(), "%s\n", code.c_str()); }
+
 inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
+
+    write_fuzz_file(code);
+
     StringBuffer reader(code);
     Lexer        lex(reader);
     Parser       parser(lex);

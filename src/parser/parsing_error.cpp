@@ -14,6 +14,7 @@ ParsingError::ParsingError(Array<int> expected, Token token, Node* obj, CodeLoca
     case NodeFamily::Expression: expr = (ExprNode*)obj;
     case NodeFamily::Pattern: pat = (Pattern*)obj;
     case NodeFamily::Statement: stmt = (StmtNode*)obj;
+    default: break;
     }
 }
 
@@ -26,6 +27,7 @@ void add_wip_expr(ParsingError& err, Node* expr) {
     case NodeFamily::Expression: err.expr = (ExprNode*)expr;
     case NodeFamily::Pattern: err.pat = (Pattern*)expr;
     case NodeFamily::Statement: err.stmt = (StmtNode*)expr;
+    default: break;
     }
 }
 

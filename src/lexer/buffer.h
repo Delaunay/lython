@@ -5,6 +5,7 @@
 
 #include "dtypes.h"
 #include "logging/logging.h"
+#include "utilities/coz_wrap.h"
 
 /*
  *  Buffers are special reader that keep track of current line/col and indent level
@@ -96,7 +97,15 @@ class FileBuffer: public AbstractBuffer {
 
     ~FileBuffer() override;
 
-    char getc() override { return char(::getc(_file)); }
+    char getc() override {
+        COZ_BEGIN("T::FileBuffer::getc");
+
+        char c = char(::getc(_file));
+
+        COZ_PROGRESS_NAMED("FileBuffer::getc");
+        COZ_END("T::FileBuffer::getc");
+        return c;
+    }
 
     const String& file_name() override { return _file_name; }
 
