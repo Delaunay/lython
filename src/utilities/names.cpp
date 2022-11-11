@@ -1,5 +1,6 @@
 #include "names.h"
 #include "logging/logging.h"
+#include "utilities/coz_wrap.h"
 
 namespace lython {
 
@@ -125,6 +126,33 @@ Array<StringDatabase::StringEntry>& StringDatabase::current_block() {
 }
 
 StringRef StringDatabase::string(String const& name) {
+    COZ_BEGIN("T::StringDatabase::string");
+    auto str = lookup_or_insert_string(name);
+
+    COZ_PROGRESS_NAMED("StringDatabase::string");
+    COZ_END("T::StringDatabase::string");
+    return str;
+}
+
+StringRef StringDatabase::insert_string(String const& name) {
+    COZ_BEGIN("T::StringDatabase::insert");
+    std::size_t id      = size;
+    auto&       strings = current_block();
+    std::size_t n       = strings.size();
+
+    strings.push_back({name, 1, 0, 1});
+    StringView str = strings[n].data;
+
+    defined[str] = {id};
+    size += 1;
+
+    COZ_PROGRESS_NAMED("StringDatabase::insert");
+    COZ_END("T::StringDatabase::insert");
+    return StringRef(id);
+}
+
+StringRef StringDatabase::lookup_or_insert_string(String const& name) {
+
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
     wait_time += timer.stop();
@@ -132,20 +160,10 @@ StringRef StringDatabase::string(String const& name) {
     auto val = defined.find(name);
 
     if (val == defined.end()) {
-        std::size_t id      = size;
-        auto&       strings = current_block();
-        std::size_t n       = strings.size();
-
-        strings.push_back({name, 1, 0, 1});
-        StringView str = strings[n].data;
-
-        defined[str] = {id};
-        size += 1;
-        return StringRef(id);
+        return insert_string(name);
     }
 
-    auto ref = val->second;
-
+    auto ref   = val->second;
     auto entry = get(ref);
     entry.count += 1;
     entry.in_use += 1;

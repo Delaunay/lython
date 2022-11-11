@@ -51,6 +51,9 @@ class StringDatabase {
     std::ostream& report(std::ostream& out) const;
 
     private:
+    StringRef lookup_or_insert_string(String const& name);
+    StringRef insert_string(String const& name);
+
     std::size_t inc(std::size_t i);
 
     std::size_t dec(std::size_t n);

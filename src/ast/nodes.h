@@ -757,13 +757,7 @@ struct ClassDef: public StmtNode {
         int attrid = get_attribute(name);
 
         if (attrid == -1) {
-
-#ifndef __linux__
             attributes.emplace_back(name, int(attributes.size()), stmt, type);
-#else
-            attributes.push_back(Attr{name, int(attributes.size()), stmt, type});
-#endif
-
             return true;
         }
 

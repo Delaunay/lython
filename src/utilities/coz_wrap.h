@@ -13,3 +13,14 @@
 #    define COZ_END(name)
 // clang-format on
 #endif
+
+// the latency mode does not seem that useful
+#ifdef BENCH_LATENCY
+#    undef COZ_PROGRESS_NAMED
+#    define COZ_PROGRESS_NAMED(name)
+#else
+#    undef COZ_BEGIN
+#    define COZ_BEGIN(name)
+#    undef COZ_END
+#    define COZ_END(name)
+#endif

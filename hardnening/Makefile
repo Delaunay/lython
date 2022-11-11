@@ -118,3 +118,10 @@ coz-build:
 
 coz-run:
 	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	coz run -s %/lython/src/% --- ./coz/build/bin/lython internal --file coz/nothing.ly
+	echo "DONE"

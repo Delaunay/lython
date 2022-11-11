@@ -41,5 +41,5 @@ callgrind.out*
 massif.out*
 cachegrind.out*
 profile.out
-profile.coz
+profile.coz*
 hardnening/coz/nothing.ly
