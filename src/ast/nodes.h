@@ -977,10 +977,34 @@ struct NotAllowedEpxr: public ExprNode {
 struct Arrow: public ExprNode {
     Arrow(): ExprNode(NodeKind::Arrow) {}
 
-    Array<ExprNode*>      args;
+    // TODO: check how to resolve circular types
+    //
+    bool add_arg_type(ExprNode* arg_type) {
+        if (arg_type != this) {
+            args.push_back(arg_type);
+            return true;
+        }
+        warn("trying to assing self to an arrow argument");
+        return false;
+    }
+
+    bool set_arg_type(int i, ExprNode* arg_type) {
+        if (arg_type != this) {
+            args[i] = arg_type;
+            return true;
+        }
+
+        warn("trying to assing self to an arrow argument");
+        return false;
+    }
+
     Array<StringRef>      names;     // Allow the names to be there as well
     Dict<StringRef, bool> defaults;  //
     ExprNode*             returns = nullptr;
+
+    int arg_count() const { return args.size(); }
+
+    Array<ExprNode*> args;
 };
 
 struct DictType: public ExprNode {

@@ -24,6 +24,10 @@ struct LinterVisitorTrait {
     using PatRet  = void;
     using IsConst = std::false_type;
     using Trace   = std::true_type;
+
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 struct LinterContext {

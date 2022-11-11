@@ -135,8 +135,7 @@
 
 namespace lython {
 
-enum TokenType
-{
+enum TokenType {
 #define X(name, nb) name = nb,
     LYTHON_TOKEN(X)
 #undef X
@@ -154,6 +153,17 @@ ReservedKeyword& keywords();
 KeywordToString& keyword_as_string();
 
 int8 tok_name_size();
+
+#define LY_UINT64_MAX sizeof("18446744073709551615") / sizeof(char)
+#define LY_UINT32_MAX sizeof("4294967295") / sizeof(char)
+#define LY_UINT16_MAX sizeof("65535") / sizeof(char)
+#define LY_UINT8_MAX  sizeof("255") / sizeof(char)
+
+// +1 char for the minus
+#define LY_INT64_MAX sizeof("9223372036854775807") / sizeof(char)
+#define LY_INT32_MAX sizeof("2147483647") / sizeof(char)
+#define LY_INT16_MAX sizeof("32767") / sizeof(char)
+#define LY_INT8_MAX  sizeof("255") / sizeof(char)
 
 class Token {
     public:
@@ -175,8 +185,21 @@ class Token {
     String const& operator_name() const { return _identifier; }
     String&       identifier() { return _identifier; }
     String const& identifier() const { return _identifier; }
-    float64       as_float() const { return std::stod(_identifier.c_str()); }
-    int32         as_integer() const { return std::stoi(_identifier.c_str()); }
+
+    float64 as_float() const { return std::stod(_identifier.c_str()); }
+
+    int64  as_integer() const { return std::strtoll(_identifier.c_str(), nullptr, 10); }
+    uint64 as_uint64() const { return std::strtoull(_identifier.c_str(), nullptr, 10); }
+
+    // Find a way to do this well...
+    void get_min_size(bool& bsigned, int& size) {
+        int n = _identifier.size();
+
+        if (n > LY_INT64_MAX && n < LY_UINT64_MAX) {
+            bsigned = false;
+            size    = 64;
+        }
+    }
 
     operator bool() const { return _type != tok_eof; }
 
@@ -195,9 +218,9 @@ class Token {
     }
 
     private:
-    int8  _type;
-    int32 _line;
-    int32 _col;
+    int8  _type = tok_incorrect;
+    int32 _line = -1;
+    int32 _col  = -1;
 
     // Data
     String _identifier;

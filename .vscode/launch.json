@@ -37,11 +37,13 @@
             "console": "externalTerminal"
         },
         {
-            "name": "Debug VM",
+            "name": "Debug VM (Unix)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
-            "args": [],
+            "program": "${workspaceFolder}/build/bin/vm_test",
+            "args": [
+                "VM_Aug_Add_i32"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -161,11 +163,12 @@
         },
         {
             "name": "Debug Lython-Inspect",
-            "type": "cppvsdbg",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
+            "program": "${workspaceFolder}/build/bin/lython",
             "args": [
                 "internal",
+                "--parsing",
                 "--file",
                 "${workspaceFolder}/code/scratch.ly",
             ],

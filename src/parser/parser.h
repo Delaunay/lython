@@ -3,10 +3,10 @@
 
 #include "ast/magic.h"
 #include "ast/nodes.h"
+#include "dependencies/coz_wrap.h"
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
-#include "utilities/coz_wrap.h"
 #include "utilities/metadata.h"
 
 #include <iostream>
@@ -76,6 +76,7 @@ class Parser {
         }
 
         // lookup the module
+
         parse_body(module, module->body, 0);
     }
 
@@ -306,6 +307,7 @@ class Parser {
     Array<ParsingContext> parsing_context;
     AbstractLexer&        _lex;
 
+    bool                is_empty_line = true;
     int                 current_error = -1;
     Array<ParsingError> errors;
 };

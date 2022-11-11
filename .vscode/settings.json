@@ -121,5 +121,9 @@
   "python.formatting.provider": "black",
   "files.exclude": {
     "**/.git": false
-  }
+  },
+  "cmake.ctestArgs": [
+    "--timeout",
+    "10"
+  ],
 }

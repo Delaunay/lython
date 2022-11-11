@@ -78,10 +78,17 @@ std::ostream& print(std::ostream& out, Args... args) {
     return out;
 }
 
+template <typename... Args, typename T, typename V>
+std::ostream& print(std::ostream& out, T val, V v, Args... args) {
+    print(out, v, args...);
+    out << val << "-";
+    return out;
+}
+
 template <typename... Args, typename T>
 std::ostream& print(std::ostream& out, T val, Args... args) {
-    out << "-" << val;
     print(out, args...);
+    out << val;
     return out;
 }
 

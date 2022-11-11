@@ -21,6 +21,12 @@ inline String parse_it(String code) {
     auto mod = Unique<Module>(parser.parse_module());
     assert(mod->body.size() > 0, "Should parse more than one expression");
 
+    std::cout << std::string(80, '-') << '\n';
+    std::cout << "Parsing Diag\n";
+    std::cout << std::string(80, '-') << '\n';
+    parser.show_diagnostics(std::cout);
+    std::cout << std::string(80, '-') << '\n';
+
     auto data = str(mod.get());
     return data;
 }

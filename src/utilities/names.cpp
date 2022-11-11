@@ -1,6 +1,6 @@
 #include "names.h"
+#include "dependencies/coz_wrap.h"
 #include "logging/logging.h"
-#include "utilities/coz_wrap.h"
 
 namespace lython {
 

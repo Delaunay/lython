@@ -59,7 +59,6 @@ Dict<String, OpConfig> const& default_precedence() {
         {"->",      {10, false, tok_arrow}},
         {":=",      {10, false, tok_walrus}},
         {":",       {10, false, (TokenType)':'}},
-        // Self lookup
         {".",       {60, true , tok_dot}},
     };
     // clang-format on
@@ -360,12 +359,13 @@ strings:
         }
 
         if (tok == tok_string)
-            while ((c = nextc()) != '"') {
+            while ((c = nextc()) != '"' && c != EOF) {
                 str.push_back(c);
             }
         else {
-            while (true) {
+            while (c != EOF) {
                 c = nextc();
+
                 if (c == '"') {
                     c2 = nextc();
                     if (c2 == '"') {
@@ -411,7 +411,10 @@ strings:
     c = peek();
     consume();
 
-    return make_token(c);
+    if (c > 0) {
+        return make_token(c);
+    }
+    return make_token(tok_incorrect);
 }
 
 }  // namespace lython

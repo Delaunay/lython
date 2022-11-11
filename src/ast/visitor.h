@@ -2,19 +2,24 @@
 #define LYTHON_AST_VISITOR_HEADER
 
 #include "ast/nodes.h"
+#include "dependencies/coz_wrap.h"
 #include "logging/logging.h"
-#include "utilities/coz_wrap.h"
 
 namespace lython {
 
 NEW_EXCEPTION(NullPointerError)
 
 struct DefaultVisitorTrait {
-    using Trace   = std::true_type;
-    using StmtRet = StmtNode*;
-    using ExprRet = ExprNode*;
-    using ModRet  = ModNode*;
-    using PatRet  = Pattern*;
+    using Trace               = std::true_type;
+    using LimitRecursionDepth = std::true_type;
+    using StmtRet             = StmtNode*;
+    using ExprRet             = ExprNode*;
+    using ModRet              = ModNode*;
+    using PatRet              = Pattern*;
+
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 #ifdef __linux__
@@ -36,12 +41,11 @@ struct DefaultVisitorTrait {
  */
 template <typename Implementation, bool isConst, typename VisitorTrait, typename... Args>
 struct BaseVisitor {
-
+    using Trace   = typename VisitorTrait::Trace;
     using StmtRet = typename VisitorTrait::StmtRet;
     using ExprRet = typename VisitorTrait::ExprRet;
     using ModRet  = typename VisitorTrait::ModRet;
     using PatRet  = typename VisitorTrait::PatRet;
-    using Trace   = typename VisitorTrait::Trace;
 
 #define SELECT_TYPE(T) typename std::conditional<isConst, T const, T>::type;
 
@@ -107,6 +111,9 @@ struct BaseVisitor {
     ModRet exec(ModNode_t* mod, int depth, Args... args) {
         // clang-format off
         // trace(depth, "{}", mod->kind);
+
+        check_depth(depth);
+
         switch (mod->kind) {
 
             #define X(name, _)
@@ -137,6 +144,9 @@ struct BaseVisitor {
         if (!pat) {
             return PatRet();
         }
+
+        check_depth(depth);
+
         // trace(depth, "{}", pat->kind);
         // clang-format off
         switch (pat->kind) {
@@ -169,6 +179,8 @@ struct BaseVisitor {
             return ExprRet();
         }
 
+        check_depth(depth);
+
         // trace(depth, "{}", expr->kind);
         // clang-format off
         switch (expr->kind) {
@@ -196,11 +208,19 @@ struct BaseVisitor {
         return ExprRet();
     }
 
+    void check_depth(int depth) {
+        if (VisitorTrait::MaxRecursionDepth > 0 && depth > VisitorTrait::MaxRecursionDepth) {
+            throw std::runtime_error("");
+        }
+    }
+
     StmtRet exec(StmtNode_t* stmt, int depth, Args... args) {
         if (!stmt) {
             debug("Null statement");
             return StmtRet();
         }
+
+        check_depth(depth);
 
         // clang-format off
         switch (stmt->kind) {

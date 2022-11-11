@@ -3,9 +3,11 @@
 # ===============================================================================
 
 INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(../dependencies)
 
 # INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 AUX_SOURCE_DIRECTORY(parser SRC_LIST)
+
 
 # directories
 # ADD_SUBDIRECTORY(ast)
@@ -61,15 +63,20 @@ SET(ADD_SOURCE
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
     ast/ops/print.cpp
+
     builtin/operators.cpp
+
+    dependencies/xx_hash.cpp
+
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp
     lexer/unlex.cpp
+    lowering/lowering.cpp
+
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp
-    lowering/lowering.cpp
 
     sema/sema.cpp
     sema/sema_import.cpp
@@ -131,6 +138,7 @@ IF(WITH_COZ)
     MESSAGE(STATUS "Compiling for coz")
 ENDIF(WITH_COZ)
 
+ADD_COMPILE_OPTIONS(-mavx2)
 ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
 ADD_DEFINITIONS(-DWITH_COZ=${WITH_COZ})
 
@@ -172,7 +180,7 @@ SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD 20)
 IF(UNIX AND WITH_COVERAGE)
     setup_target_for_coverage_gcovr_html(
         NAME coverage
-        EXECUTABLE ctest --output-on-failure
+        EXECUTABLE ctest --timeout 10 --output-on-failure
         BASE_DIRECTORY "."
         DEPENDS test
     )

@@ -20,6 +20,10 @@ struct TreeEvaluatorTrait {
     using ModRet  = PartialResult*;
     using PatRet  = PartialResult*;
     using Trace   = std::true_type;
+
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 struct StackTrace {

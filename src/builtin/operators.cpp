@@ -1,7 +1,7 @@
 
 #include "builtin/operators.inc"
 #include "ast/nodes.h"
-#include "utilities/coz_wrap.h"
+#include "dependencies/coz_wrap.h"
 #include "utilities/names.h"
 
 namespace lython {

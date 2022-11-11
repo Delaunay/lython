@@ -42,4 +42,6 @@ massif.out*
 cachegrind.out*
 profile.out
 profile.coz*
-hardnening/coz/nothing.ly
+hardening/coz/nothing.ly
+hardening/fuzzing/in/
+hardening/fuzzing/results/

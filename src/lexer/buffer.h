@@ -3,9 +3,9 @@
 #include <cstdio>
 #include <string>
 
+#include "dependencies/coz_wrap.h"
 #include "dtypes.h"
 #include "logging/logging.h"
-#include "utilities/coz_wrap.h"
 
 /*
  *  Buffers are special reader that keep track of current line/col and indent level

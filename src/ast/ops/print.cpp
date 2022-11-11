@@ -14,6 +14,10 @@ struct PrintTrait {
     using ExprRet = bool;
     using ModRet  = bool;
     using PatRet  = bool;
+
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 int  get_precedence(Node const* node);

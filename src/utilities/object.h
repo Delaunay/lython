@@ -3,8 +3,8 @@
 
 #include <memory>
 
+#include "dependencies/coz_wrap.h"
 #include "dtypes.h"
-#include "utilities/coz_wrap.h"
 
 namespace lython {
 

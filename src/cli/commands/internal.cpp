@@ -130,14 +130,14 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             std::cout << std::string(80, '-') << '\n';
         }
 
-        if (show_parsing) {
-            return 0;
-        }
-
         // Memory layout dump
         {
             //
             mod->dump(std::cout);
+        }
+
+        if (show_parsing) {
+            return 0;
         }
 
         // Sema

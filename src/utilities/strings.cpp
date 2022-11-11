@@ -80,7 +80,13 @@ String strip(String const& v) {
     }
 
     String result;
-    result.reserve(v.size() - (k + p));
+    int    new_size = int(v.size()) - (k + p);
+
+    if (new_size <= 0) {
+        return result;
+    }
+
+    result.reserve(new_size);
 
     std::copy(std::begin(v) + k, std::end(v) - p, std::back_inserter(result));
     return result;

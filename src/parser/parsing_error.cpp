@@ -191,10 +191,12 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
 
     firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
 
-    // Lython own code loc
+// Lython own code loc
+#if WITH_LOG
     if (with_compiler_code_loc) {
         newline() << error.loc.repr();
     }
+#endif
 
     // Error message
     if (false) {

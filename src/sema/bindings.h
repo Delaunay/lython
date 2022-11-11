@@ -1,8 +1,8 @@
 #ifndef LYTHON_SEMA_BINDINGS_HEADER
 #define LYTHON_SEMA_BINDINGS_HEADER
 
+#include "dependencies/coz_wrap.h"
 #include "sema/builtin.h"
-#include "utilities/coz_wrap.h"
 
 namespace lython {
 

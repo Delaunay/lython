@@ -1,6 +1,5 @@
-class Name:
-    x: i32 = 0
-    y: i32 = 1
-    z = 1.2
-    def __init__(self):
-        self.x = 2
+def add(a: Float, b: Float) -> Float:
+    return a + b
+
+def function_call() -> Float:
+    return add(1, 2)

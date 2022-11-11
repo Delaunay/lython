@@ -73,7 +73,7 @@ int main() {
             //
             lython::fakeuse(xx_hash_3(make_string(size)));
         })
-    });
+    }, 100, 10000);
     // clang-format on
 
     comp.add_setup(8);
