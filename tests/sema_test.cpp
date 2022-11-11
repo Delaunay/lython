@@ -255,11 +255,18 @@ FILE* get_fuzz_file() {
     return file;
 }
 
-void write_fuzz_file(String const& code) { fprintf(get_fuzz_file(), "%s\n", code.c_str()); }
+void write_fuzz_file(String const& name, String const& code) {
+    String path = String("in/") + name + String(".ly");
+
+    FILE* file = fopen(path.c_str(), "w");
+
+    if (file) {
+        fprintf(file, "%s\n", code.c_str());
+        fclose(file);
+    }
+}
 
 inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
-
-    write_fuzz_file(code);
 
     StringBuffer reader(code);
     Lexer        lex(reader);
@@ -289,8 +296,15 @@ void run_testcase(String const& name, Array<TestCase> cases) {
 
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
+
+    int i = 0;
     for (auto& c: cases) {
         Module* mod;
+
+        StringStream ss;
+        ss << "_" << i;
+
+        write_fuzz_file(name + ss.str(), c.code);
 
         std::tie(deduced_type, errors) = sema_it(c.code, mod);
 
@@ -302,6 +316,7 @@ void run_testcase(String const& name, Array<TestCase> cases) {
         delete mod;
 
         info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        i += 1;
     }
 }
 

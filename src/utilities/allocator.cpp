@@ -8,7 +8,7 @@
 #include "utilities/metadata.h"
 
 #define DISABLE_ALIGNED_ALLOC 0
-#define ALIGNMENT             16
+#define ALIGNMENT             64
 
 #if !((defined WITH_VALGRIND) && WITH_VALGRIND)
 #    define USE_MIMALLOC 1

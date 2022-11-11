@@ -1,163 +1,85 @@
 
-#include "dtypes.h"
-#include "utilities/stopwatch.h"
+#include "bench.h"
 
-#include <cmath>
 #include <iostream>
+#include <random>
 
 #define XXH_VECTOR XXH_AVX2
+
+// only from Zen 4
+// #define XXH_VECTOR XXH_AVX512
 
 #include "xxh3.h"
 #include "xxhash.c"
 #include "xxhash.h"
 
-namespace lython {
-std::size_t old_hash(String& k) noexcept {
+using namespace lython;
+
+std::size_t old_hash(String const& k) noexcept {
     auto a = std::hash<std::string>();
     return a(std::string(k.c_str()));
 }
 
-std::size_t new_hash(String& k) noexcept { return std::_Hash_impl::hash(k.data(), k.length()); }
-
-std::size_t xx_hash_32(String& k) noexcept { return XXH32(k.data(), k.length(), 0); }
-std::size_t xx_hash_64(String& k) noexcept { return XXH64(k.data(), k.length(), 0); }
-std::size_t xx_hash_3(String& k) noexcept { return XXH3_64bits(k.data(), k.length()); }
-
-template <typename T = double>
-struct ValueStream {
-
-    void add(T value) {
-        sum += value;
-        count += 1;
-        sum_squared += value * value;
-    }
-
-    double mean() const { return sum / double(count); }
-
-    double var() const {
-        double m = mean();
-        return sum_squared / double(count) - m * m;
-    }
-
-    double total() const { return sum; }
-
-    double std() const { return sqrt(var()); }
-
-    T   sum;
-    T   sum_squared;
-    int count;
-};
-
-template <class T>
-void fakeuse(T&& datum) {
-    asm volatile("" : "+r"(datum));
+std::size_t new_hash(String const& k) noexcept {
+    return std::_Hash_impl::hash(k.data(), k.length());
 }
-
-struct Benchmark {
-    Benchmark(std::string const&    name,
-              std::function<void()> function,
-              int                   count  = 100,
-              int                   repeat = 100000):
-        name(name),
-        function(function), count(count), repeat(repeat) {}
-
-    void run() {
-        for (int i = 0; i < count; i++) {
-            StopWatch<double, std::chrono::milliseconds> time;
-
-            for (int j = 0; j < repeat; j++) {
-                function();
-            }
-            val.add(time.stop());
-        }
-    }
-
-    void report(std::ostream& out) {
-        out << fmt::format(
-            "{:>30} | {:10.3f} | {:10.3f} | {:10.3f} \n", name, val.mean(), val.std(), val.total());
-    }
-
-    std::string           name;
-    std::function<void()> function;
-    ValueStream<double>   val;
-    int                   count;
-    int                   repeat;
-};
-
-struct Compare {
-    Compare(std::vector<Benchmark> const& benchs, int count = 100, int repeat = 100000):
-        benchmarks(benchs), count(count), repeat(repeat) {}
-
-    void run(std::ostream& out) {
-        int i = 0;
-
-        for (Benchmark& bench: benchmarks) {
-            progress(out, i);
-
-            bench.count  = count;
-            bench.repeat = repeat;
-            bench.run();
-
-            i += 1;
-        }
-
-        progress(out, i);
-    }
-
-    void progress(std::ostream& out, int i) {
-        out << fmt::format(
-            "{:6.2f} % {}/{}\n", float(i) / float(benchmarks.size()), i, benchmarks.size());
-    }
-
-    void report(std::ostream& out) {
-        out << fmt::format(
-            "{:>30} | {:>10} | {:>10} | {:>10} \n", "bench", "mean (ms)", "std (ms)", "total (ms)");
-        out << "---------------------------------------------------------------------\n";
-
-        for (Benchmark& bench: benchmarks) {
-            bench.report(out);
-        }
-    }
-
-    std::vector<Benchmark> benchmarks;
-    int                    count;
-    int                    repeat;
-};
-
-}  // namespace lython
+std::size_t xx_hash_32(String const& k) noexcept { return XXH32(k.data(), k.length(), 0); }
+std::size_t xx_hash_64(String const& k) noexcept { return XXH64(k.data(), k.length(), 0); }
+std::size_t xx_hash_3(String const& k) noexcept { return XXH3_64bits(k.data(), k.length()); }
 
 // check https://github.com/google/benchmark
+
+lython::String make_string(size_t size = 64) {
+    static String                                                   str(size, ' ');
+    static std::random_device                                       dev;
+    static std::mt19937                                             rng(dev());
+    static std::uniform_int_distribution<std::mt19937::result_type> uniform(0, 256);
+
+    str.resize(size);
+
+    for (int i = 0; i < size; i++) {
+        str[i] = uniform(rng);
+    }
+
+    return str;
+}
 
 int main() {
     lython::String string = "owjfopwejfpwejfopwejfpwoejfpwef";
 
     // but we need to check for collision too
 
+    make_string(64);
+
     // clang-format off
-    auto comp = lython::Compare({
-        lython::Benchmark("OLD HASH", [&string]() {
+    auto comp = lython::Compare<int>({
+        lython::Benchmark<int>("OLD HASH", [](int size) {
             //
-            lython::fakeuse(old_hash(string));
+            lython::fakeuse(old_hash(make_string(size)));
         }),
-        lython::Benchmark("NEW HASH", [&string]() {
+        lython::Benchmark<int>("NEW HASH", [](int size) {
             //
-            lython::fakeuse(new_hash(string));
+            lython::fakeuse(new_hash(make_string(size)));
         }),
-        lython::Benchmark("XX HASH 32", [&string]() {
+        lython::Benchmark<int>("XX HASH 32", [](int size) {
             //
-            lython::fakeuse(xx_hash_32(string));
+            lython::fakeuse(xx_hash_32(make_string(size)));
         }),
-        lython::Benchmark("XX HASH 64", [&string]() {
+        lython::Benchmark<int>("XX HASH 64", [](int size) {
             //
-            lython::fakeuse(xx_hash_64(string));
-        })
-        ,
-        lython::Benchmark("XX HASH 3", [&string]() {
+            lython::fakeuse(xx_hash_64(make_string(size)));
+        }),
+        lython::Benchmark<int>("XX HASH 3", [](int size) {
             //
-            lython::fakeuse(xx_hash_3(string));
+            lython::fakeuse(xx_hash_3(make_string(size)));
         })
     });
     // clang-format on
+
+    comp.add_setup(8);
+    comp.add_setup(16);
+    comp.add_setup(32);
+    comp.add_setup(64);
 
     comp.run(std::cout);
     comp.report(std::cout);
