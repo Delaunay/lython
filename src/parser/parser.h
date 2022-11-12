@@ -71,13 +71,16 @@ class Parser {
     bool has_errors() const { return errors.size() > 0; }
 
     void parse_to_module(Module* module) {
-        if (token().type() == tok_incorrect) {
-            next_token();
-        }
-
         // lookup the module
 
-        parse_body(module, module->body, 0);
+        try {
+            parse_body(module, module->body, 0);
+        } catch (ParsingException const&) {
+            // this is SyntaxError: Expected a body
+            // it was inserted by parse_body
+            // and raised to reach the parent block
+            // this is the top level block no need to go further up
+        }
     }
 
     Module* parse_module() {
