@@ -61,6 +61,13 @@ bool _metadata_init_names() {
     meta::register_type<lython::Pattern*>("Pattern*");
     meta::register_type<lython::BindingEntry>("BindingEntry");
     meta::register_type<Array<StmtNode*>>("Array<StmtNode*>");
+    meta::register_type<ExprContext>("ExprContext");
+    meta::register_type<ClassDef::Attr>("ClassDef::Attr");
+    meta::register_type<ParsingContext>("ParsingContext");
+    meta::register_type<SemaContext>("SemaContext");
+    meta::register_type<Decorator>("Decorator");
+    meta::register_type<Token>("Token");
+    meta::register_type<ParsingError>("ParsingError");
 
 #define REGISTER_TYPE(type)                   \
     meta::register_type<lython::type>(#type); \
@@ -156,6 +163,23 @@ bool _metadata_init_names() {
     // StringDatabase
     meta::register_type<HashNodeInternal<std::pair<const StringView, std::size_t>, true>>(
         "Pair[StringView, size_t]");
+
+    meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, false>>(
+        "Pair[StringRef, ExprNode*]");
+
+    meta::register_type<
+        HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
+        "Pair[StringRef, NativeBinaryOp]");
+
+    meta::register_type<
+        HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
+        "Pair[StringRef, NativeUnaryOp]");
+
+    meta::register_type<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
+        "Pair[StringRef, bool]");
+
+    meta::register_type<std::_List_node<Array<StringDatabase::StringEntry>>>(
+        "ListNode[StringEntry]");
 
     // module
     meta::register_type<HashNodeInternal<std::pair<const String, int>, true>>(

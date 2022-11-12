@@ -37,11 +37,13 @@
             "console": "externalTerminal"
         },
         {
-            "name": "Debug VM",
+            "name": "Debug VM (Unix)",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
-            "args": [],
+            "program": "${workspaceFolder}/build/bin/vm_test",
+            "args": [
+                "VM_Aug_Add_i32"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -66,6 +68,51 @@
             "environment": [],
             "externalConsole": false,
             // "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug Coz (UNIX)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/coz",
+            "args": [
+                "run",
+                "---",
+                "${workspaceFolder}/hardening/coz/build/bin/lython",
+                "internal",
+                "--file",
+                "fuzzing/in/nothing.ly"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug Parsing (UNIX)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/parser_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -116,11 +163,12 @@
         },
         {
             "name": "Debug Lython-Inspect",
-            "type": "cppvsdbg",
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
+            "program": "${workspaceFolder}/build/bin/lython",
             "args": [
                 "internal",
+                "--parsing",
                 "--file",
                 "${workspaceFolder}/code/scratch.ly",
             ],

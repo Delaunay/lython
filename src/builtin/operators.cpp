@@ -1,6 +1,7 @@
 
 #include "builtin/operators.inc"
 #include "ast/nodes.h"
+#include "dependencies/coz_wrap.h"
 #include "utilities/names.h"
 
 namespace lython {
@@ -11,8 +12,6 @@ Dict<StringRef, BinOp::NativeBinaryOp> build_native_binary_operators() {
     // clang-format off
 #define JOIN(op, t1, t2) op-t1-t2
 #define JOIN1(op, t1) op-t1
-#define _STR(x)          #x
-#define STR(x)           _STR(x)
     // clang-format on
 
 #define LAMBDA(op, type) op<type>::vm;

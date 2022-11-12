@@ -5,9 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "compilerPath": "gcc",
-            "cStandard": "gnu17",
-            "cppStandard": "gnu++17",
+            "compilerPath": "g++-9",
+            "cStandard": "gnu20",
+            "cppStandard": "gnu++20",
             "intelliSenseMode": "linux-gcc-x64",
             "compilerArgs": [
                 "-Wall",

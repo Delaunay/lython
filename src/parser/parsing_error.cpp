@@ -14,6 +14,7 @@ ParsingError::ParsingError(Array<int> expected, Token token, Node* obj, CodeLoca
     case NodeFamily::Expression: expr = (ExprNode*)obj;
     case NodeFamily::Pattern: pat = (Pattern*)obj;
     case NodeFamily::Statement: stmt = (StmtNode*)obj;
+    default: break;
     }
 }
 
@@ -26,6 +27,7 @@ void add_wip_expr(ParsingError& err, Node* expr) {
     case NodeFamily::Expression: err.expr = (ExprNode*)expr;
     case NodeFamily::Pattern: err.pat = (Pattern*)expr;
     case NodeFamily::Statement: err.stmt = (StmtNode*)expr;
+    default: break;
     }
 }
 
@@ -189,10 +191,12 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
 
     firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
 
-    // Lython own code loc
+// Lython own code loc
+#if WITH_LOG
     if (with_compiler_code_loc) {
         newline() << error.loc.repr();
     }
+#endif
 
     // Error message
     if (false) {

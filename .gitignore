@@ -24,9 +24,24 @@ Makefile*
 *.save
 *.user*
 
+crashes/
+build/
+
 /build/
 /build*/
 /old/
 
 *.autosave
 *.gcov
+
+
+gmon.out
+out.txt
+callgrind.out*
+massif.out*
+cachegrind.out*
+profile.out
+profile.coz*
+hardening/coz/nothing.ly
+hardening/fuzzing/in/
+hardening/fuzzing/results/

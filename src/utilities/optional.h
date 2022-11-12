@@ -6,7 +6,21 @@ namespace lython {
 template <typename T>
 class Optional {
     public:
-    Optional(const T& data): _has_data(true) { new (&holder.data.value) T(data); }
+    // Pointer only
+    // nullptr are set to None
+    template <typename U = T, std::enable_if_t<std::is_pointer_v<U>, bool> = true>
+    Optional(const T& data): _has_data(false) {
+        if (data != nullptr) {
+            new (&holder.data.value) T(data);
+            _has_data = true;
+        }
+    }
+
+    // Regular
+    template <typename U = T, std::enable_if_t<!std::is_pointer_v<U>, bool> = true>
+    Optional(const T& data): _has_data(true) {
+        new (&holder.data.value) T(data);
+    }
 
     Optional(): _has_data(false) {}
 

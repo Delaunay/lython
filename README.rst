@@ -477,3 +477,17 @@ DUmps the sequence of tokens created by the lexer
       66           tok_newline => [l:  17, c:   0] ``
       67               tok_eof => [l:  17, c:   0] ``
     --------------------------------------------------------------------------------
+
+
+
+Fuzzing
+-------
+
+Linux only
+
+.. code-block::
+
+   cd fuzzing
+   make build
+   make run
+

@@ -469,7 +469,11 @@ Arrow* get_arrow(
         }
 
         // Fetch the class type inside the binding
-        cls             = self->get_class(fun, depth);
+        cls = self->get_class(fun, depth);
+        if (cls == nullptr) {
+            warn("Could not resolve class");
+            return nullptr;
+        }
         TypeExpr* arrow = nullptr;
 
         // The methods were added to the context outside of the class itself
@@ -504,7 +508,7 @@ Arrow* get_arrow(
             debug("Use default ctor");
             auto   cls_ref = self->make_ref(fun, cls->name);
             Arrow* arrow   = fun->new_object<Arrow>();
-            arrow->args.push_back(cls_ref);
+            arrow->add_arg_type(cls_ref);
             arrow->returns = cls_ref;
             return arrow;
         } else {
@@ -518,6 +522,7 @@ Arrow* get_arrow(
             return cast<Arrow>(init_t);
         }
     }
+    default: break;
     }
     return nullptr;
 }
@@ -540,16 +545,16 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     // Create the matching Arrow type for this call
     Arrow* got = n->new_object<Arrow>();
     if (arrow != nullptr) {
-        got->args.reserve(arrow->args.size());
+        got->args.reserve(arrow->arg_count());
     }
 
     // Method, insert the self argument since it is implicit
     if (offset == 1 && cls) {
-        got->args.push_back(make_ref(got, str(cls->name)));
+        got->add_arg_type(make_ref(got, str(cls->name)));
     }
 
     for (auto& arg: n->args) {
-        got->args.push_back(exec(arg, depth));
+        got->add_arg_type(exec(arg, depth));
     }
 
     Dict<StringRef, ExprNode*> kwargs;
@@ -558,7 +563,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     }
 
     if (arrow != nullptr) {
-        for (int i = int(got->args.size()); i < arrow->names.size(); i++) {
+        for (int i = int(got->arg_count()); i < arrow->names.size(); i++) {
             auto name = arrow->names[i];
 
             auto item = kwargs.find(name);
@@ -568,17 +573,17 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
                     SEMA_ERROR(n, TypeError, fmt::format("Arguement {} is not set", name));
                 }
                 // Got default use the expected type
-                got->args.push_back(arrow->args[i]);
+                got->add_arg_type(arrow->args[i]);
                 continue;
             }
 
-            got->args.push_back(item->second);
+            got->add_arg_type(item->second);
         }
     }
 
     // FIXME: we do not know the returns so we just use the one we have
     if (arrow != nullptr) {
-        if (got->args.size() != arrow->args.size()) {
+        if (got->arg_count() != arrow->arg_count()) {
             // we do not really that check
             // SEMA_ERROR(TypeError(" missing {} required positional arguments"));
             //
@@ -805,7 +810,11 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
 
         if (arrow) {
             arrow->names.push_back(arg.arg);
-            arrow->args.push_back(type);
+
+            if (!arrow->add_arg_type(type)) {
+                SEMA_ERROR(
+                    arrow, TypeError, fmt::format("Cannot have a function type refer to itself"));
+            }
         }
     }
 
@@ -823,29 +832,32 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
             arrow->defaults[arg.arg] = true;
         }
 
-        TypeExpr* type = nullptr;
+        TypeExpr* arg_type = nullptr;
         if (arg.annotation.has_value()) {
-            type = arg.annotation.value();
+            arg_type = arg.annotation.value();
 
-            auto typetype = exec(type, depth);
-            typecheck(type, typetype, nullptr, Type_t(), LOC);
+            auto typetype = exec(arg_type, depth);
+            typecheck(arg_type, typetype, nullptr, Type_t(), LOC);
         }
 
         // if default value & annotation types must match
-        if (type && dvalue_t) {
-            typecheck(arg.annotation.value(), type, dvalue, dvalue_t, LOC);
+        if (arg_type && dvalue_t) {
+            typecheck(arg.annotation.value(), arg_type, dvalue, dvalue_t, LOC);
         }
 
         // if no annotation use default value type
-        if (type == nullptr) {
-            type = dvalue_t;
+        if (arg_type == nullptr) {
+            arg_type = dvalue_t;
         }
 
-        bindings.add(arg.arg, nullptr, type);
+        bindings.add(arg.arg, nullptr, arg_type);
 
         if (arrow) {
             arrow->names.push_back(arg.arg);
-            arrow->args.push_back(type);
+            if (!arrow->add_arg_type(arg_type)) {
+                SEMA_ERROR(
+                    arrow, TypeError, fmt::format("Cannot have a function type refer to itself"));
+            }
         }
     }
 }
@@ -1013,6 +1025,7 @@ void record_ctor_attributes(SemanticAnalyser* sema, ClassDef* n, FunctionDef* ct
             type      = ann->annotation;
             break;
         }
+        default: break;
         }
 
         // if stmt is a comment
@@ -1095,8 +1108,8 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         auto ctor_t = cast<Arrow>(exec(ctor, depth));
 
         // Fix ctor type
-        if (ctor_t != nullptr) {
-            ctor_t->args[0] = class_t;
+        if (ctor_t != nullptr && ctor_t->arg_count() > 0) {
+            ctor_t->set_arg_type(0, class_t);
             ctor_t->returns = class_t;
         }
     }
@@ -1110,8 +1123,8 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         auto fun   = cast<FunctionDef>(stmt);
         auto fun_t = cast<Arrow>(exec(stmt, depth));
 
-        if (fun_t != nullptr && fun_t->args.size() > 0) {
-            fun_t->args[0] = class_t;
+        if (fun_t != nullptr && fun_t->arg_count() > 0) {
+            fun_t->set_arg_type(0, class_t);
         }
     }
 

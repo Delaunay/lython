@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "dependencies/coz_wrap.h"
 #include "dtypes.h"
 #include "logging/logging.h"
 
@@ -95,7 +96,15 @@ class FileBuffer: public AbstractBuffer {
 
     ~FileBuffer() override;
 
-    char getc() override;
+    char getc() override {
+        COZ_BEGIN("T::FileBuffer::getc");
+
+        char c = char(::getc(_file));
+
+        COZ_PROGRESS_NAMED("FileBuffer::getc");
+        COZ_END("T::FileBuffer::getc");
+        return c;
+    }
 
     const String& file_name() override { return _file_name; }
 

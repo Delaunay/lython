@@ -115,10 +115,15 @@
     "*.inc": "cpp",
     "any": "cpp",
     "cfenv": "cpp",
-    "csignal": "cpp"
+    "csignal": "cpp",
+    "xxh_x86dispatch.c": "cpp"
   },
   "python.formatting.provider": "black",
   "files.exclude": {
     "**/.git": false
-  }
+  },
+  "cmake.ctestArgs": [
+    "--timeout",
+    "10"
+  ],
 }

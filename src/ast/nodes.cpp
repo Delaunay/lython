@@ -22,7 +22,11 @@ String str(NodeKind k) {
 #define MOD(name, _)   CASEGEN(name)
 #define MATCH(name, _) CASEGEN(name)
 
-    switch (k) { NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH) }
+    switch (k) {
+        NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+
+    default: break;
+    }
 
 #undef X
 #undef SECTION
@@ -42,6 +46,7 @@ void print(BoolOperator const& v, std::ostream& out) {
     }
         BOOL_OPERATORS(OP)
 
+    default: break;
 #undef OP
     }
 }
@@ -55,6 +60,7 @@ void print(BinaryOperator const& v, std::ostream& out) {
     }
         BINARY_OPERATORS(OP)
 
+    default: break;
 #undef OP
     }
 }
@@ -129,6 +135,7 @@ StringRef operator_magic_name(BoolOperator const& v, bool reverse) {
     }
         BOOL_OPERATORS(OP)
 
+    default: break;
 #undef OP
     }
 

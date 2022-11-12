@@ -151,12 +151,25 @@ void Parser::expect_tokens(Array<int> const&   expected,
 
 Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     TRACE_START();
-    // eat all the newlines until we find something interesting
-    while (token().type() == tok_newline) {
-        next_token();
-    }
 
-    while (token().type() != tok_desindent && token().type() != tok_eof) {
+    while (!in(token().type(), tok_desindent, tok_eof)) {
+
+        // Found an unexpected token
+        // eat the full line to try to recover and emit an error
+        if (token().type() == tok_incorrect) {
+            ParsingError& error = parser_error(  //
+                LOC,                             //
+                "SyntaxError",                   //
+                "Unexpected token"               //
+            );
+            add_wip_expr(error, parent);
+            error_recovery(&error);
+
+            InvalidStatement* stmt = parent->new_object<InvalidStatement>();
+            stmt->tokens           = error.line;
+            out.push_back(stmt);
+            continue;
+        }
 
         // Comment attach themselves to the next statement
         // when comments are inserted at the beginning of a block
@@ -164,10 +177,6 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
         if (token().type() == tok_comment) {
             StmtNode* cmt = parse_comment_stmt(parent, depth);
             _pending_comments.push_back(cmt);
-
-            while (token().type() == tok_newline) {
-                next_token();
-            }
             continue;
         }
 
@@ -187,6 +196,12 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
                 stmt->comment = parse_comment(stmt, depth);
             }
 
+            if (!is_empty_line) {
+                // expects at least one newline to end the statement
+                // if not we do not know what this line is supposed to be
+                expect_tokens({tok_newline, tok_eof}, true, parent, LOC);
+            }
+
             if (stmt == nullptr) {
                 return token();
             }
@@ -202,11 +217,7 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
             out.push_back(stmt);
         }
 
-        if (token().type() == tok_incorrect) {
-            next_token();
-        }
-
-        // eat all the newlines until we find something interesting
+        // look for the desindent token or next statement
         while (token().type() == tok_newline) {
             next_token();
         }
@@ -243,6 +254,7 @@ bool Parser::is_tok_statement_ender() const {
 
 void Parser::expect_newline(Node* stmt, CodeLocation const& loc) {
     expect_token(tok_newline, true, stmt, loc);
+
     while (token().type() == tok_newline) {
         next_token();
     }
@@ -426,7 +438,7 @@ ExprNode* Parser::parse_star_targets(Node* parent, int depth) {
 
 void Parser::expect_comment_or_newline(StmtNode* stmt, int depth, CodeLocation const& loc) {
     add_inline_comment(stmt, depth);
-    expect_newline(stmt, LOC);
+    expect_newline(stmt, loc);
 }
 
 StmtNode* Parser::parse_for(Node* parent, int depth) {
@@ -1085,6 +1097,9 @@ String Parser::parse_module_path(Node* parent, int& level, int depth) {
     Array<String> path;
     bool          last_was_dot = false;
 
+    // import <path> as adasd
+    // from <path> import cd as xyz
+
     while (true) {
         // relative path
         if (is_dot(token()) && path.size() <= 0) {
@@ -1114,9 +1129,13 @@ String Parser::parse_module_path(Node* parent, int& level, int depth) {
             }
         }
 
-        if (in(token().type(), tok_as, tok_comma, tok_newline, tok_eof, tok_import, tok_comment)) {
+        // we have reached the en dof the path
+        if (in(token().type(), tok_import, tok_as, tok_newline, tok_eof)) {
             break;
         }
+
+        //
+        expect_tokens({tok_dot, tok_identifier}, false, parent, LOC);
     }
 
     return join(".", path);
@@ -1412,7 +1431,8 @@ ConstantValue Parser::get_value() {
         return ConstantValue(token().identifier());
     }
     case tok_int: {
-        return ConstantValue(token().as_integer());
+        // FIXME handle different sizes
+        return ConstantValue(int(token().as_integer()));
     }
     case tok_float: {
         return ConstantValue(token().as_float());
@@ -2377,10 +2397,15 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
         // lookahead is a binary operator whose precedence is greater
         // than op's, or a right-associative operator
         // whose precedence is equal to op's
-        while (is_binary_operator_family(op_conf) &&
+        while (lookahead.type() == tok_operator && is_binary_operator_family(lookconf) &&
                (lookpred > oppred || (right_assoc && lookpred == oppred))) {
-            rhs       = parse_expression_1(parent, rhs, oppred + 1, depth + 1);
+            rhs = parse_expression_1(parent, rhs, oppred + 1, depth + 1);
+
             lookahead = token();
+
+            lookconf    = get_operator_config(lookahead);
+            lookpred    = lookconf.precedence;
+            right_assoc = !lookconf.left_associative;
         }
 
         // the result of applying op with operands lhs and rhs
@@ -2575,6 +2600,21 @@ ExprNode* Parser::parse_expression_1(
     }
 
     return primary;
+}
+
+Token const& Parser::next_token() {
+    // add current token to the line and fetch next one
+    COZ_BEGIN("T::Lexer::next_token");
+
+    // desindent are issued right after newlines
+    is_empty_line = in(token().type(), tok_newline, tok_desindent, tok_indent);
+
+    currentline.add(token());
+    Token const& tok = _lex.next_token();
+
+    COZ_PROGRESS_NAMED("Lexer::next_token");
+    COZ_END("T::Lexer::next_token");
+    return tok;
 }
 
 }  // namespace lython

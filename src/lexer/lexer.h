@@ -133,7 +133,7 @@ class ReplayLexer: public AbstractLexer {
 
     Token const& token() override final { return tokens[i]; }
 
-    const String& file_name() {
+    const String& file_name() override {
         static String fakefile = "<replay buffer>";
         return fakefile;
     }
@@ -177,7 +177,7 @@ class Lexer: public AbstractLexer {
         return _token;
     }
 
-    const String& file_name() { return _reader.file_name(); }
+    const String& file_name() override { return _reader.file_name(); }
 
     private:
     AbstractBuffer& _reader;

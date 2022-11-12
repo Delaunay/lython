@@ -68,6 +68,8 @@ struct IsAttr {
             auto n = cast<ClassDef>(obj);
             return classdef(n);
         }
+
+        default: break;
         }
         return nullptr;
     }

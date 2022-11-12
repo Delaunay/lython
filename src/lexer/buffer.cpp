@@ -39,8 +39,6 @@ FileBuffer::FileBuffer(String const& name): _file_name(name) {
     init();
 }
 
-char FileBuffer::getc() { return char(::getc(_file)); }
-
 FileBuffer::~FileBuffer() { fclose(_file); }
 
 void FileBuffer::reset() {

@@ -18,8 +18,7 @@ using Identifier = StringRef;
 
 String str(NodeKind k);
 
-enum class NodeFamily : int8_t
-{
+enum class NodeFamily : int8_t {
     Module,
     Statement,
     Expression,
@@ -36,8 +35,9 @@ struct CommonAttributes {
 
 template <typename T>
 struct NodeTrait {
-    enum Constants
-    { kind = int(NodeKind::Invalid) };
+    enum Constants {
+        kind = int(NodeKind::Invalid)
+    };
 };
 
 template <typename T>
@@ -101,16 +101,14 @@ struct ExprNode: public CommonAttributes, public Node {
     NodeFamily family() const override { return NodeFamily::Expression; }
 };
 
-enum class ConversionKind : int8_t
-{
+enum class ConversionKind : int8_t {
     None           = -1,
     String         = 115,
     Representation = 114,
     ASCII          = 97
 };
 
-enum class BinaryOperator : int8_t
-{
+enum class BinaryOperator : int8_t {
 #define BINARY_OPERATORS(OP)     \
     OP(None, "", na)             \
     OP(Add, "+", add)            \
@@ -134,8 +132,7 @@ enum class BinaryOperator : int8_t
 #undef OP
 };
 
-enum class BoolOperator : int8_t
-{
+enum class BoolOperator : int8_t {
     None,
 #define BOOL_OPERATORS(OP) \
     OP(And, and, and)      \
@@ -146,8 +143,7 @@ enum class BoolOperator : int8_t
 #undef OP
 };
 
-enum class UnaryOperator : int8_t
-{
+enum class UnaryOperator : int8_t {
 #define UNARY_OPERATORS(OP) \
     OP(None, "", na)        \
     OP(Invert, "~", invert) \
@@ -171,8 +167,7 @@ enum class UnaryOperator : int8_t
 #undef OP
 };
 
-enum class CmpOperator : int8_t
-{
+enum class CmpOperator : int8_t {
 
 #define COMP_OPERATORS(OP)     \
     OP(None, "", na)           \
@@ -192,8 +187,7 @@ enum class CmpOperator : int8_t
 #undef OP
 };
 
-enum class ExprContext : int8_t
-{
+enum class ExprContext : int8_t {
     Load,
     Store,
     Del
@@ -719,6 +713,11 @@ struct ClassDef: public StmtNode {
     //
 
     struct Attr {
+        Attr(StringRef name, int offset = -1, StmtNode* stmt = nullptr, ExprNode* type = nullptr):
+            name(name), offset(offset), stmt(stmt), type(type)
+        //
+        {}
+
         StringRef name;
         int       offset = -1;
         StmtNode* stmt   = nullptr;
@@ -978,10 +977,34 @@ struct NotAllowedEpxr: public ExprNode {
 struct Arrow: public ExprNode {
     Arrow(): ExprNode(NodeKind::Arrow) {}
 
-    Array<ExprNode*>      args;
+    // TODO: check how to resolve circular types
+    //
+    bool add_arg_type(ExprNode* arg_type) {
+        if (arg_type != this) {
+            args.push_back(arg_type);
+            return true;
+        }
+        warn("trying to assing self to an arrow argument");
+        return false;
+    }
+
+    bool set_arg_type(int i, ExprNode* arg_type) {
+        if (arg_type != this) {
+            args[i] = arg_type;
+            return true;
+        }
+
+        warn("trying to assing self to an arrow argument");
+        return false;
+    }
+
     Array<StringRef>      names;     // Allow the names to be there as well
     Dict<StringRef, bool> defaults;  //
     ExprNode*             returns = nullptr;
+
+    int arg_count() const { return args.size(); }
+
+    Array<ExprNode*> args;
 };
 
 struct DictType: public ExprNode {
@@ -1033,11 +1056,12 @@ struct ClassType: public ExprNode {
 
 // This is essentially compile time lookup
 // no-need for the function to actually exist at runtime
-#define SPECGEN(name)                   \
-    template <>                         \
-    struct NodeTrait<name> {            \
-        enum Constants                  \
-        { kind = int(NodeKind::name) }; \
+#define SPECGEN(name)                  \
+    template <>                        \
+    struct NodeTrait<name> {           \
+        enum Constants {               \
+            kind = int(NodeKind::name) \
+        };                             \
     };
 
 #define X(name, _)

@@ -97,12 +97,18 @@ Array<TestCase> const& AnnAssign_error_examples() {
 }
 
 Array<TestCase> const& AugAssign_error_examples() {
-    static Array<TestCase> ex = {};
+    static Array<TestCase> ex = {
+        // invalid Aug use
+        {"a > b %= 1"},
+    };
     return ex;
 }
 
 Array<TestCase> const& Assign_error_examples() {
-    static Array<TestCase> ex = {};
+    static Array<TestCase> ex = {
+        // Invalid assign
+        {"a * int = 3"},
+    };
     return ex;
 }
 
@@ -117,7 +123,11 @@ Array<TestCase> const& Return_error_examples() {
 }
 
 Array<TestCase> const& ClassDef_error_examples() {
-    static Array<TestCase> ex = {};
+    static Array<TestCase> ex = {// In python this does a recurcive call until infinity
+                                 {"class Name:\n"
+                                  "    def __init__(self):\n"
+                                  "        self.a = Name()\n"
+                                  "\n"}};
     return ex;
 }
 

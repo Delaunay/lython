@@ -24,6 +24,10 @@ struct SemaVisitorTrait {
     using PatRet  = TypeExpr*;
     using IsConst = std::false_type;
     using Trace   = std::true_type;
+
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 struct SemaContext {

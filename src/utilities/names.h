@@ -50,19 +50,22 @@ class StringDatabase {
 
     std::ostream& report(std::ostream& out) const;
 
-    private:
-    std::size_t inc(std::size_t i);
-
-    std::size_t dec(std::size_t n);
-
-    std::size_t count() const { return size; }
-
     struct StringEntry {
         String data;
         int    count  = 1;
         int    copy   = 0;
         int    in_use = 0;
     };
+
+    private:
+    StringRef lookup_or_insert_string(String const& name);
+    StringRef insert_string(String const& name);
+
+    std::size_t inc(std::size_t i);
+
+    std::size_t dec(std::size_t n);
+
+    std::size_t count() const { return size; }
 
     Array<StringEntry>& newblock();
     Array<StringEntry>& current_block();

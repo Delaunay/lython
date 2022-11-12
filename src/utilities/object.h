@@ -3,7 +3,8 @@
 
 #include <memory>
 
-#include "../dtypes.h"
+#include "dependencies/coz_wrap.h"
+#include "dtypes.h"
 
 namespace lython {
 
@@ -11,6 +12,8 @@ struct GCObject {
     public:
     template <typename T, typename... Args>
     T* new_object(Args&&... args) {
+        COZ_BEGIN("T::GCObject::new_object");
+
         auto& alloc = get_allocator<T>();
 
         // allocate
@@ -21,12 +24,16 @@ struct GCObject {
         obj->class_id = meta::type_id<T>();
 
         add_child(obj);
+
+        COZ_PROGRESS_NAMED("GCObject::new_object");
+        COZ_END("T::GCObject::new_object");
         return obj;
     }
 
     template <typename T>
-    std::remove_const<T>::type* copy(T* obj) {
-        using NoConstT = std::remove_const<T>::type;
+    typename std::remove_const<T>::type* copy(T* obj) {
+        COZ_BEGIN("T::GCObject::copy");
+        using NoConstT = typename std::remove_const<T>::type;
 
         auto& alloc = get_allocator<NoConstT>();
 
@@ -38,6 +45,8 @@ struct GCObject {
         nobj->class_id = meta::type_id<NoConstT>();
         nobj->parent   = this;
 
+        COZ_PROGRESS_NAMED("GCObject::copy");
+        COZ_END("T::GCObject::copy");
         return nobj;
     }
 

@@ -47,7 +47,7 @@ std::string read(int fd) {
 }
 
 template <class F, class... Args>
-std::string CHECK_ABORT(F &&f, Args &&...args) {
+std::string CHECK_ABORT(F&& f, Args&&... args) {
     int filedes[2];
     if (pipe(filedes) == -1) {
         perror("pipe");
@@ -64,8 +64,7 @@ std::string CHECK_ABORT(F &&f, Args &&...args) {
         if (child_pid == 0) {
             // close the file descriptor STDOUT_FILENO if it was previously open, then (re)open it
             // as a copy of filedes[1]
-            while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {
-            }
+            while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
             close(filedes[1]);
 
             // Child not does need the output pipe
@@ -95,18 +94,22 @@ std::string CHECK_ABORT(F &&f, Args &&...args) {
     return output;
 }
 
-bool check_signal(int signal, std::string const &value) {
+bool check_signal(int signal, std::string const& value) {
     std::regex regex(value);
 
     auto output = CHECK_ABORT(fail, signal);
+
+    info("{}", output);
 
     return std::regex_search(output, regex);
 }
 
 TEST_CASE("Cehck Signal Handlers") {
+#    if WITH_LOG
     CHECK(check_signal(SIGINT, fmt::format("Received signal {} >>>", SIGINT)));
     CHECK(check_signal(SIGSEGV, fmt::format("Received signal {} >>>", SIGSEGV)));
     CHECK(check_signal(SIGTERM, fmt::format("Received signal {} >>>", SIGTERM)));
+#    endif
 }
 
 #endif
