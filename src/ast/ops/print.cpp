@@ -1,6 +1,7 @@
 #include "ast/magic.h"
 #include "ast/nodes.h"
 #include "ast/visitor.h"
+#include "dependencies/fmt.h"
 #include "lexer/unlex.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
@@ -15,8 +16,9 @@ struct PrintTrait {
     using ModRet  = bool;
     using PatRet  = bool;
 
-    enum
-    { MaxRecursionDepth = 256 };
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 int  get_precedence(Node const* node);
