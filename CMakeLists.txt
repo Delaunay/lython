@@ -73,7 +73,9 @@ ENDIF(BUILD_WEBASSEMBLY)
 
 # Binary/pre-compiled Dependencies
 # ====================================
-SET(CMAKE_CXX_STANDARD 20)
+
+# C++20 does not work as of Nov - 2022
+SET(CMAKE_CXX_STANDARD 17)
 SET(CXX_STANDARD_REQUIRED ON)
 
 # FIND_PACKAGE(Boost REQUIRED)

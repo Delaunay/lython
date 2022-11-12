@@ -152,7 +152,12 @@ class Lexer: public AbstractLexer {
 
     ~Lexer() {}
 
-    Token const& token() override final { return _token; }
+    Token const& token() override final {
+        if (_count == 0) {
+            return next_token();
+        }
+        return _token;
+    }
     Token const& next_token() override final;
     Token const& peek_token() override final {
         // we can only peek ahead once
@@ -180,6 +185,7 @@ class Lexer: public AbstractLexer {
     const String& file_name() override { return _reader.file_name(); }
 
     private:
+    int             _count = 0;
     AbstractBuffer& _reader;
     Token           _token{dummy()};
     int32           _cindent;

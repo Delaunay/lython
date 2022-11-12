@@ -1,4 +1,6 @@
 #include "pool.h"
+
+#include <iostream>
 #include <spdlog/fmt/bundled/core.h>
 
 namespace lython {
