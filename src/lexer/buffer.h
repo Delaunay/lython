@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdio>
 #include <string>
 
 #include "dtypes.h"
@@ -96,35 +95,13 @@ class FileBuffer: public AbstractBuffer {
 
     ~FileBuffer() override;
 
-    char getc() override { return char(::getc(_file)); }
+    char getc() override;
 
     const String& file_name() override { return _file_name; }
 
-    void reset() override {
-        fseek(_file, 0, SEEK_SET);
-        AbstractBuffer::reset();
-    }
+    void reset() override;
 
-    String getline(int start_line, int end_line = -1) override {
-        fpos_t pos;
-        fgetpos(_file, &pos);
-        //--
-
-        String result;
-        result.reserve(128);
-        fseek(_file, start_line, SEEK_SET);
-
-        char c = fgetc(_file);
-
-        while (c != '\n') {
-            result.push_back(c);
-            c = fgetc(_file);
-        }
-
-        // --
-        fsetpos(_file, &pos);
-        return result;
-    }
+    String getline(int start_line, int end_line = -1);
 
     private:
     String _file_name;

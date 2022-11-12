@@ -1,25 +1,80 @@
 #include "lexer/buffer.h"
 
+#define __STDC_WANT_LIB_EXT1__   1
+#define __STDC_WANT_SECURE_LIB__ 1
+
+#include <cstdio>
+
+#ifndef __linux__
+#    define __STDC_LIB_EXT1__ 1
+#endif
+
 namespace lython {
+
+FILE* internal_fopen(String filename) {
+    FILE* file;
+
+#if (defined __STDC_LIB_EXT1__) && __STDC_LIB_EXT1__
+    auto err = fopen_s(&file, filename.c_str(), "r");
+    if (err != 0) {
+        throw FileError("{}: File `{}` does not exist", filename);
+    }
+#else
+    file = fopen(filename.c_str(), "r");
+
+    if (!file) {
+        throw FileError("{}: File `{}` does not exist", filename);
+    }
+#endif
+
+    return file;
+}
+
 AbstractBuffer::~AbstractBuffer() {}
 
 FileBuffer::FileBuffer(String const& name): _file_name(name) {
-    _file = fopen(_file_name.c_str(), "r");
 
-    if (!_file)
-        throw FileError("{}: File `{}` does not exist", _file_name);
+    _file = internal_fopen(_file_name);
 
     init();
 }
 
+char FileBuffer::getc() { return char(::getc(_file)); }
+
 FileBuffer::~FileBuffer() { fclose(_file); }
+
+void FileBuffer::reset() {
+    fseek(_file, 0, SEEK_SET);
+    AbstractBuffer::reset();
+}
+
+String FileBuffer::getline(int start_line, int end_line) {
+    fpos_t pos;
+    fgetpos(_file, &pos);
+    //--
+
+    String result;
+    result.reserve(128);
+    fseek(_file, start_line, SEEK_SET);
+
+    char c = fgetc(_file);
+
+    while (c != '\n') {
+        result.push_back(c);
+        c = fgetc(_file);
+    }
+
+    // --
+    fsetpos(_file, &pos);
+    return result;
+}
 
 StringBuffer::~StringBuffer() {}
 
 ConsoleBuffer::~ConsoleBuffer() {}
 
 String read_file(String const& name) {
-    FILE* file = fopen(name.c_str(), "r");
+    FILE* file = internal_fopen(name);
 
     if (!file)
         throw FileError("{}: File `{}` does not exist", name);

@@ -30,7 +30,7 @@ int main(int argc, const char* argv[]) {
     auto linter   = std::make_unique<LinterCmd>();
     auto install  = std::make_unique<InstallCmd>();
     auto codegen  = std::make_unique<CodegenCmd>();
-    auto fmt      = std::make_unique<FormatCmd>();
+    auto fmtcmd   = std::make_unique<FormatCmd>();
     auto debug    = std::make_unique<DebugCmd>();
     auto doc      = std::make_unique<DocCmd>();
     auto profile  = std::make_unique<ProfileCmd>();
@@ -42,7 +42,7 @@ int main(int argc, const char* argv[]) {
         linter.get(),
         install.get(),
         codegen.get(),
-        fmt.get(),
+        fmtcmd.get(),
         debug.get(),
         doc.get(),
         profile.get(),

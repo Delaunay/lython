@@ -790,7 +790,7 @@ ReturnType Printer::trystmt(Try const* self, int depth, std::ostream& out, int l
 
 ReturnType Printer::compare(Compare const* self, int depth, std::ostream& out, int level) {
     exec(self->left, depth, out, level);
-    int n = self->comparators.size();
+    int n = int(self->comparators.size());
 
     for (int i = 0; i < self->ops.size(); i++) {
         print_op(out, self->ops[i]);

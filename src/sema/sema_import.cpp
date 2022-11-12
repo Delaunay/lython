@@ -1,4 +1,13 @@
+#define __STDC_WANT_LIB_EXT1__   1
+#define __STDC_WANT_SECURE_LIB__ 1
+
 #include <cstdlib>
+
+#ifndef __linux__
+// windows use __STDC_WANT_SECURE_LIB__ instead
+#    define __STDC_LIB_EXT1__ 1
+#endif
+
 #include <filesystem>
 
 #include "lexer/buffer.h"
@@ -13,12 +22,40 @@
 
 namespace lython {
 
-Array<String> python_paths() {
-    const char* value = getenv("PYTHONPATH");
-    if (value == nullptr) {
+String internal_getenv(String const& name) {
+#if (defined __STDC_LIB_EXT1__) && __STDC_LIB_EXT1__
+    size_t      size    = 0;
+    const char* envname = name.c_str();
+
+    getenv_s(&size, nullptr, 0, envname);
+
+    // an error happened
+    if (size == 0) {
         return {};
     }
+
+    String path(size, ' ');
+    int    err = getenv_s(&size, path.data(), path.size(), envname);
+
+    if (err != 0) {
+        return String();
+    }
+#else
+    const char* value = getenv(envname);
+
+    if (value == nullptr) {
+        return String();
+    }
+
     auto path = String(value);
+#endif
+
+    return path;
+}
+
+Array<String> python_paths() {
+    String path = internal_getenv("PYTHONPATH");
+
     return split(':', path);
 }
 

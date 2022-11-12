@@ -49,15 +49,6 @@ struct CPPGen: BaseVisitor<CPPGen, false, CPPGenVisitorTrait> {
 #undef MATCH
 #undef TYPE_GEN
 
-    Bindings              bindings;
-    bool                  forwardpass = false;
-    Array<StmtNode*>      nested;
-    Array<String>         namespaces;
-    Dict<StringRef, bool> flags;
-
-    public:
-    virtual ~CPPGen() {}
-
 #define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth);
 
 #define X(name, _)
@@ -77,6 +68,14 @@ struct CPPGen: BaseVisitor<CPPGen, false, CPPGenVisitorTrait> {
 #undef MATCH
 
 #undef FUNCTION_GEN
+
+    Bindings              bindings;
+    bool                  forwardpass = false;
+    Array<StmtNode*>      nested;
+    Array<String>         namespaces;
+    Dict<StringRef, bool> flags;
+
+    virtual ~CPPGen() {}
 };
 
 }  // namespace lython

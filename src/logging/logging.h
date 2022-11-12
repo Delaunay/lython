@@ -99,7 +99,7 @@ std::vector<std::string> get_backtrace(size_t size);
 std::string format_function(std::string const&);
 
 template <typename... Args>
-void log(LogLevel level, CodeLocation const& loc, const char* fmt, const Args&... args) {
+void log(LogLevel level, CodeLocation const& loc, const char* fmtstr, const Args&... args) {
     if (!is_log_enabled(level)) {
         return;
     }
@@ -108,7 +108,7 @@ void log(LogLevel level, CodeLocation const& loc, const char* fmt, const Args&..
                            loc.filename,
                            loc.line,
                            format_function(loc.function_name),
-                           fmt::format(fmt, args...));
+                           fmt::format(fmtstr, args...));
 
     spdlog_log(level, msg);
 }
