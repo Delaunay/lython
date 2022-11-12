@@ -110,7 +110,7 @@ class FileBuffer: public AbstractBuffer {
 
     void reset() override;
 
-    String getline(int start_line, int end_line = -1);
+    String getline(int start_line, int end_line = -1) override;
 
     private:
     String _file_name;

@@ -16,7 +16,6 @@
 
 core
 *.lib
-Makefile*
 *.pdb
 
 *.depend

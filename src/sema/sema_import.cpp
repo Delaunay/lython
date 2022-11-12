@@ -23,9 +23,10 @@
 namespace lython {
 
 String internal_getenv(String const& name) {
-#if (defined __STDC_LIB_EXT1__) && __STDC_LIB_EXT1__
-    size_t      size    = 0;
     const char* envname = name.c_str();
+
+#if (defined __STDC_LIB_EXT1__) && __STDC_LIB_EXT1__
+    size_t size = 0;
 
     getenv_s(&size, nullptr, 0, envname);
 
