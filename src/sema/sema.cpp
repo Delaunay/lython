@@ -1,6 +1,7 @@
 #include "sema/sema.h"
 #include "ast/magic.h"
 #include "builtin/operators.h"
+#include "dependencies/fmt.h"
 #include "utilities/guard.h"
 #include "utilities/strings.h"
 

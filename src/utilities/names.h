@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "dtypes.h"
+#include "logging/exceptions.h"
 #include "logging/logging.h"
 #include "utilities/stopwatch.h"
 

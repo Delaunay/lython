@@ -2,11 +2,13 @@
 #define LYTHON_LOGGING_H
 
 #include <cassert>
-#include <spdlog/fmt/bundled/core.h>
 #include <string>
 #include <vector>
 
 #include "revision_data.h"
+
+#include <spdlog/fmt/bundled/core.h>
+#include <spdlog/fmt/bundled/ostream.h>
 
 // This file should not include spdlog
 // spdlog file is compile time cancer so it is only included inside the .cpp
@@ -57,8 +59,7 @@ using CodeLocationConstRef = CodeLocation const&;
 #    define LOC lython::CodeLocation::noloc()
 #endif
 
-enum LogLevel
-{
+enum LogLevel {
     Trace,
     Debug,
     Info,
@@ -164,19 +165,6 @@ void log_trace(LogLevel            level,
 #endif
 }
 
-// Exception that shows the backtrace when .what() is called
-class Exception: public std::exception {
-    public:
-    template <typename... Args>
-    Exception(const char* fmtstr, std::string const& name, const Args&... args):
-        message(fmt::format(fmtstr, name, args...)) {}
-
-    const char* what() const noexcept final;
-
-    private:
-    std::string message;
-};
-
 inline void assert_true(bool                        cond,
                         char const*                 message,
                         char const*                 assert_expr,
@@ -194,15 +182,6 @@ inline void assert_true(bool                        cond,
     }
 }
 }  // namespace lython
-
-// Make a simple exception
-#define NEW_EXCEPTION(name)                                   \
-    class name: public Exception {                            \
-        public:                                               \
-        template <typename... Args>                           \
-        name(const char* fmtstr, const Args&... args):        \
-            Exception(fmtstr, std::string(#name), args...) {} \
-    };
 
 #define SYM_LOG_HELPER(level, ...) lython::log(level, LOC, __VA_ARGS__)
 #define info(...)                  SYM_LOG_HELPER(lython::LogLevel::Info, __VA_ARGS__)

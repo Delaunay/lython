@@ -33,11 +33,6 @@ Array<String> split(char sep, String const& text);
 //           FMT_ENABLE_IF(
 //               is_contiguous<Container>::value&& internal::is_string<S>::value)>
 
-template <typename... Args>
-String fmtstr(String const& fmt, Args&&... args) {
-    return String(fmt::format(fmt, args...).c_str());
-}
-
 // Replace a by b in t
 template <typename T>
 T replace(T const& t, char a, T const& b) {

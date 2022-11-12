@@ -224,10 +224,4 @@ void set_log_level(LogLevel level, bool enabled) { log_levels()[level] = enabled
 
 bool is_log_enabled(LogLevel level) { return log_levels()[level]; }
 
-const char* Exception::what() const noexcept {
-    spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
-    show_backtrace();
-    return message.c_str();
-}
-
 }  // namespace lython

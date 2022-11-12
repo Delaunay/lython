@@ -3,8 +3,10 @@
 #include <string>
 
 #include "dependencies/coz_wrap.h"
+#include "dependencies/fmt.h"
+
 #include "dtypes.h"
-#include "logging/logging.h"
+#include "logging/exceptions.h"
 
 /*
  *  Buffers are special reader that keep track of current line/col and indent level
@@ -85,7 +87,7 @@ class AbstractBuffer {
 class FileError: public Exception {
     public:
     template <typename... Args>
-    FileError(const char* fmt, const Args&... args): Exception(fmt, "FileError", args...) {}
+    FileError(FmtStr fmt, const Args&... args): Exception(fmt, "FileError", args...) {}
 };
 
 String read_file(String const& name);
