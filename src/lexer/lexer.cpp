@@ -97,6 +97,8 @@ std::ostream& AbstractLexer::print(std::ostream& out) {
     return out;
 }
 Token const& Lexer::next_token() {
+    _count += 1;
+
     // if we peeked ahead return that one
     if (_buffer.size() > 0) {
         _token = _buffer[_buffer.size() - 1];

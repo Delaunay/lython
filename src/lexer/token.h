@@ -135,8 +135,7 @@
 
 namespace lython {
 
-enum TokenType
-{
+enum TokenType {
 #define X(name, nb) name = nb,
     LYTHON_TOKEN(X)
 #undef X

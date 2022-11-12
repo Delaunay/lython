@@ -86,9 +86,10 @@ class LoggingScope {
     void logfatal();
 
     template <typename... Args>
-    void
-    _log_message(LogLevel level, CodeLocation const& loc, const char* fmtstr, const Args&... args) {
-    }
+    void _log_message(LogLevel            level,
+                      CodeLocation const& loc,
+                      fmt::string_view    fmtstr,
+                      const Args&... args) {}
 
     LoggerHandle logger;
 };
@@ -118,7 +119,7 @@ std::vector<std::string> get_backtrace(size_t size);
 std::string format_function(std::string const&);
 
 template <typename... Args>
-void log(LogLevel level, CodeLocation const& loc, const char* fmtstr, const Args&... args) {
+void log(LogLevel level, CodeLocation const& loc, fmt::string_view fmtstr, const Args&... args) {
 
 #if WITH_LOG
     if (!is_log_enabled(level)) {
@@ -140,7 +141,7 @@ void log_trace(LogLevel            level,
                size_t              depth,
                bool                end,
                CodeLocation const& loc,
-               const char*         fmtstr,
+               fmt::string_view    fmtstr,
                const Args&... args) {
 
 #if WITH_LOG
@@ -148,18 +149,18 @@ void log_trace(LogLevel            level,
         return;
     }
 
-    const char* msg_fmt = "{:>30}:{:4} {}+-> {}";
+    fmt::string_view msg_fmt = "{:>30}:{:4} {}+-> {}";
     if (end) {
         msg_fmt = "{:>30}:{:4} {}+-< {}";
     }
+    auto log_message = fmt::format(fmtstr, args...);
 
     std::string str(depth, ' ');
     for (size_t i = 0; i < depth; ++i) {
         str[i] = i % 2 ? '|' : ':';
     }
 
-    auto msg = fmt::format(
-        msg_fmt, format_function(loc.function_name), loc.line, str, fmt::format(fmtstr, args...));
+    auto msg = fmt::format(msg_fmt, format_function(loc.function_name), loc.line, str, log_message);
 
     spdlog_log(level, msg);
 #endif
