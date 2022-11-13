@@ -143,6 +143,27 @@
             ]
         },
         {
+            "name": "Debug Sema UNIX",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/sema_test",
+            "args": [
+                "SEMA_FunctionDef_Typing"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Debug Equality",
             "type": "cppvsdbg",
             "request": "launch",

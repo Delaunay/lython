@@ -25,12 +25,14 @@ struct SemaVisitorTrait {
     using IsConst = std::false_type;
     using Trace   = std::true_type;
 
-    enum
-    { MaxRecursionDepth = 256 };
+    enum {
+        MaxRecursionDepth = 256
+    };
 };
 
 struct SemaContext {
     bool yield = false;
+    bool arrow = false;
 };
 
 /* The semantic analysis (SEM-A) happens after the parsing, the AST can be assumed to be
@@ -114,6 +116,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return semactx[semactx.size() - 1];
     }
 
+    bool is_type(TypeExpr* node, int depth, lython::CodeLocation const& loc);
+
     template <typename T, typename... Args>
     void sema_error(Node* Node, lython::CodeLocation const& loc, Args... args) {
         errors.push_back(std::unique_ptr<SemaException>(new T(args...)));
@@ -144,6 +148,10 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     bool add_name(ExprNode* expr, ExprNode* value, ExprNode* type);
 
     String operator_function(TypeExpr* expr_t, StringRef op);
+
+    Arrow* functiondef_arrow(FunctionDef* n, StmtNode* class_t, int depth);
+
+    String generate_function_name(FunctionDef* n);
 
     TypeExpr* oneof(Array<TypeExpr*> types) {
         if (types.size() > 0) {

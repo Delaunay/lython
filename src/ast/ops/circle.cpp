@@ -30,13 +30,14 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
     using Super = BaseVisitor<Circle, true, CircleTrait>;
     Array<Node const*> visited;
 
-    int in(Node const* obj) {
+    int in(Node const* obj, int depth) {
         if (obj == nullptr) {
             return false;
         }
 
         for (auto* item: visited) {
             if (item == obj) {
+                trace(depth, "Duplicate is: {}", meta::type_name(item->class_id));
                 return true;
             }
         }
@@ -46,28 +47,28 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
     }
 
     ReturnType exec(ModNode_t* mod, int depth) {
-        if (in(mod)) {
+        if (in(mod, depth)) {
             return true;
         }
 
         return Super::exec(mod, depth);
     }
     ReturnType exec(Pattern_t* pat, int depth) {
-        if (in(pat)) {
+        if (in(pat, depth)) {
             return true;
         }
 
         return Super::exec(pat, depth);
     }
     ReturnType exec(ExprNode_t* expr, int depth) {
-        if (in(expr)) {
+        if (in(expr, depth)) {
             return true;
         }
 
         return Super::exec(expr, depth);
     }
     ReturnType exec(StmtNode_t* stmt, int depth) {
-        if (in(stmt)) {
+        if (in(stmt, depth)) {
             return true;
         }
 

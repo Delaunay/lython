@@ -147,6 +147,9 @@ Array<TestCase> const& FunctionDef_error_examples() {
         {"def name(arg, a=2):\n"},
         {"def name(arg, a=2):\n"
          "    "},
+        // name is not a type
+        {"def name(arg: name):\n"
+         "    pass\n"},
     };
     return ex;
 }

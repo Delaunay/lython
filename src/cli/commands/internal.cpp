@@ -172,7 +172,9 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
                 mod->dump(std::cout);
             }
 
-            assert(!has_circle(mod), "Circle will cause infinite recursion");
+            if (has_circle(mod)) {
+                warn("Circle will cause infinite recursion");
+            }
 
             // Bindings Dump
             // -------------

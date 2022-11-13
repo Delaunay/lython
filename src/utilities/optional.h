@@ -72,6 +72,13 @@ class Optional {
 
     T& value() { return holder.data.value; }
 
+    T const& fold(T const& default_value) const {
+        if (has_value())
+            return holder.data.value;
+
+        return default_value;
+    }
+
     private:
     void set_data(const T& data) {
         if (!_has_data) {

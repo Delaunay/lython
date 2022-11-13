@@ -24,8 +24,15 @@ bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type)
 bool SemanticAnalyser::typecheck(
     ExprNode* lhs, TypeExpr* lhs_t, ExprNode* rhs, TypeExpr* rhs_t, CodeLocation const& loc) {
 
-    if (lhs_t && rhs_t)
-        debug("{} {} {} {} {}", str(lhs_t), lhs_t->kind, str(rhs_t), rhs_t->kind, loc.repr());
+    if (lhs_t && rhs_t) {
+        lython::log(lython::LogLevel::Debug,
+                    loc,
+                    "lhs_t: {} kind {} rhs_t: {} kind:{}",
+                    str(lhs_t),
+                    lhs_t->kind,
+                    str(rhs_t),
+                    rhs_t->kind);
+    }
 
     auto match = equal(lhs_t, rhs_t);
 
@@ -33,6 +40,16 @@ bool SemanticAnalyser::typecheck(
         SEMA_ERROR(lhs, TypeError, lhs, lhs_t, rhs, rhs_t, loc);
     }
     return match;
+}
+
+bool SemanticAnalyser::is_type(TypeExpr* type, int depth, lython::CodeLocation const& loc) {
+    TypeExpr* value_t_t = exec(type, depth);
+
+    return typecheck(type,       // int
+                     value_t_t,  // Type
+                     nullptr,    //
+                     Type_t(),   // Type
+                     loc);
 }
 
 Tuple<ClassDef*, FunctionDef*>
@@ -644,9 +661,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
 
     ClassDef::Attr& attr = class_t->attributes[n->attrid];
 
-    if (attr.type) {
-        auto attr_type_type = exec(attr.type, depth);
-        typecheck(attr.type, attr_type_type, nullptr, Type_t(), LOC);
+    if (attr.type && is_type(attr.type, depth, LOC)) {
         return attr.type;
     }
     return nullptr;
@@ -674,9 +689,7 @@ TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* 
         attr.type = expected;
     }
 
-    if (attr.type) {
-        auto attr_type_type = exec(attr.type, depth);
-        typecheck(attr.type, attr_type_type, nullptr, Type_t(), LOC);
+    if (attr.type && is_type(attr.type, depth, LOC)) {
         return attr.type;
     }
     return nullptr;
@@ -732,10 +745,12 @@ TypeExpr* SemanticAnalyser::listexpr(ListExpr* n, int depth) {
     for (int i = 0; i < n->elts.size(); i++) {
         auto val_type = exec(n->elts[i], depth);
 
-        if (val_t != nullptr) {
-            typecheck(n->elts[i], val_type, nullptr, val_t, LOC);
-        } else {
+        if (!val_type) {
+            // FIXME Could not find tyep for n->elts[i]
+        } else if (val_t == nullptr && is_type(val_type, depth, LOC)) {
             val_t = val_type;
+        } else if (val_t != nullptr) {
+            typecheck(n->elts[i], val_type, nullptr, val_t, LOC);
         }
     }
 
@@ -744,13 +759,20 @@ TypeExpr* SemanticAnalyser::listexpr(ListExpr* n, int depth) {
     return type;
 }
 TypeExpr* SemanticAnalyser::tupleexpr(TupleExpr* n, int depth) {
-    TypeExpr*  val_type = nullptr;
-    TupleType* type     = n->new_object<TupleType>();
+    TupleType* type = n->new_object<TupleType>();
     type->types.reserve(n->elts.size());
 
     for (int i = 0; i < n->elts.size(); i++) {
-        val_type = exec(n->elts[i], depth);
-        type->types.push_back(val_type);
+        TypeExpr* val_t = exec(n->elts[i], depth);
+
+        if (!val_t) {
+            // FIXME Could not find tyep for n->elts[i]
+
+        } else if (!is_type(val_t, depth, LOC)) {
+            val_t = nullptr;
+        }
+
+        type->types.push_back(val_t);
     }
 
     return type;
@@ -762,41 +784,67 @@ TypeExpr* SemanticAnalyser::slice(Slice* n, int depth) {
     return nullptr;
 }
 
+// name : annotation = value
+// void SemanticAnalyser::add_argument(
+//     Identifier const& name, TypeExpr* annotation, ExprNode* value, Arrow* arrow, int depth) {
+
+//     TypeExpr* value_t = exec(value, depth);
+
+// }
+
 void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* def, int depth) {
     TypeExpr* class_t = nullptr;
     if (def != nullptr) {
         class_t = make_ref(arrow, str(def->name));
     }
+
+    auto resolve_argument = [&](TypeExpr* annotation, ExprNode* value) -> TypeExpr* {
+        TypeExpr* value_t       = nullptr;
+        bool      value_t_valid = false;
+        bool      ann_valid     = false;
+
+        if (value) {
+            value_t = exec(value, depth);  // Infer the type of the value
+
+            if (!value_t) {
+                // FXIME: Could not find type for value
+            } else {
+                value_t_valid = is_type(value_t, depth, LOC);
+            }
+        }
+
+        if (annotation != nullptr) {
+            ann_valid = is_type(annotation, depth, LOC);
+        }
+
+        if (annotation != nullptr && value_t) {
+            typecheck(nullptr, annotation, value, value_t, LOC);
+        }
+
+        if (ann_valid) {
+            return annotation;
+        }
+
+        if (value_t_valid) {
+            return value_t;
+        }
+
+        return nullptr;
+    };
+
     for (int i = 0, n = int(args.args.size()); i < n; i++) {
-        Arg       arg      = args.args[i];
-        ExprNode* dvalue   = nullptr;
-        TypeExpr* dvalue_t = nullptr;
+        Arg arg = args.args[i];
+
+        ExprNode* value      = nullptr;
+        ExprNode* annotation = arg.annotation.has_value() ? arg.annotation.value() : nullptr;
 
         int d = int(args.defaults.size()) - (n - i);
-
         if (d >= 0) {
-            dvalue                   = args.defaults[d];
-            dvalue_t                 = exec(dvalue, depth);
+            value                    = args.defaults[d];
             arrow->defaults[arg.arg] = true;
         }
 
-        TypeExpr* type = nullptr;
-        if (arg.annotation.has_value()) {
-            type = arg.annotation.value();
-
-            auto typetype = exec(type, depth);
-            typecheck(type, typetype, nullptr, Type_t(), LOC);
-        }
-
-        // if default value & annotation types must match
-        if (type && dvalue_t) {
-            typecheck(arg.annotation.value(), type, dvalue, dvalue_t, LOC);
-        }
-
-        // if no annotation use default value type
-        if (type == nullptr) {
-            type = dvalue_t;
-        }
+        TypeExpr* type = resolve_argument(annotation, value);
 
         // if it is a method populate the type of self
         // TODO: fix for staticmethod & class methods
@@ -822,45 +870,62 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
     for (int i = 0, n = int(args.kwonlyargs.size()); i < n; i++) {
         auto arg = args.kwonlyargs[i];
 
-        ExprNode* dvalue   = nullptr;
-        TypeExpr* dvalue_t = nullptr;
+        ExprNode* value      = nullptr;
+        ExprNode* annotation = arg.annotation.has_value() ? arg.annotation.value() : nullptr;
 
         int d = int(args.kw_defaults.size()) - (n - i);
 
         if (d >= 0) {
-            dvalue                   = args.kw_defaults[d];
-            dvalue_t                 = exec(dvalue, depth);
+            value                    = args.kw_defaults[d];
             arrow->defaults[arg.arg] = true;
         }
 
-        TypeExpr* arg_type = nullptr;
-        if (arg.annotation.has_value()) {
-            arg_type = arg.annotation.value();
+        TypeExpr* type = resolve_argument(annotation, value);
 
-            auto typetype = exec(arg_type, depth);
-            typecheck(arg_type, typetype, nullptr, Type_t(), LOC);
-        }
-
-        // if default value & annotation types must match
-        if (arg_type && dvalue_t) {
-            typecheck(arg.annotation.value(), arg_type, dvalue, dvalue_t, LOC);
-        }
-
-        // if no annotation use default value type
-        if (arg_type == nullptr) {
-            arg_type = dvalue_t;
-        }
-
-        bindings.add(arg.arg, nullptr, arg_type);
+        bindings.add(arg.arg, nullptr, type);
 
         if (arrow) {
             arrow->names.push_back(arg.arg);
-            if (!arrow->add_arg_type(arg_type)) {
+            if (!arrow->add_arg_type(type)) {
                 SEMA_ERROR(
                     arrow, TypeError, fmt::format("Cannot have a function type refer to itself"));
             }
         }
     }
+}
+
+Arrow* SemanticAnalyser::functiondef_arrow(FunctionDef* n, StmtNode* class_t, int depth) {
+    Arrow* type = n->new_object<Arrow>();
+
+    {
+        PopGuard ctx(semactx, SemaContext{false, true});
+
+        if (n->returns.has_value()) {
+            auto return_t = n->returns.value();
+
+            if (is_type(return_t, depth, LOC)) {
+                type->returns = n->returns.value();
+            }
+        }
+
+        // The arguments will be rolled back
+
+        add_arguments(n->args, type, cast<ClassDef>(class_t), depth);
+        // --
+    }
+
+    return type;
+}
+
+String SemanticAnalyser::generate_function_name(FunctionDef* n) {
+    // Generate the function name
+    String funname = String(n->name);
+    if (namespaces.size() > 0) {
+        String cls_namespace = join(".", namespaces);
+        funname              = fmtstr("{}.{}", cls_namespace, funname);
+    }
+
+    return funname;
 }
 
 TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
@@ -870,46 +935,36 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
         return n->type;
     }
 
-    PopGuard nested_stmt(nested, (StmtNode*)n);
-    PopGuard ctx(semactx, SemaContext());
+    String funname = generate_function_name(n);
 
-    // Set the type right away
-    TypeExpr* return_t = nullptr;
-    auto      type     = n->new_object<Arrow>();
-
-    if (n->returns.has_value()) {
-        return_t      = n->returns.value();
-        auto typetype = exec(return_t, depth);
-        typecheck(return_t, typetype, nullptr, Type_t(), LOC);
-        type->returns = n->returns.value();
-    }
-
-    // Generate the function name
-    String funname = String(n->name);
-    if (namespaces.size() > 0) {
-        String cls_namespace = join(".", namespaces);
-        funname              = fmtstr("{}.{}", cls_namespace, funname);
-    }
-    PopGuard _(namespaces, str(n->name));
+    PopGuard  _(namespaces, str(n->name));
+    PopGuard  nested_stmt(nested, (StmtNode*)n);
+    StmtNode* lst = nested_stmt.last(1, nullptr);
 
     // Insert the function into the global context
-    auto id = bindings.add(funname, n, type);
+    // the arrow type is not created right away to prevent
+    // circular typing
+    auto id = bindings.add(funname, n, nullptr);
 
-    // The arguments will be rolled back
+    // Enter function context
     Scope scope(bindings);
 
-    auto lst = nested_stmt.last(1, nullptr);
-    add_arguments(n->args, type, cast<ClassDef>(lst), depth);
-    // --
+    // Create the function type from the arguments
+    // this will also add the arguments to the context
+    Arrow*    fun_type = functiondef_arrow(n, lst, depth);
+    TypeExpr* return_t = fun_type->returns;
 
-    auto return_effective = exec<TypeExpr*>(n->body, depth);
+    // Update the function type know that we have it
+    bindings.set_type(id, fun_type);
+
+    // Infer return type from the body
+    PopGuard ctx(semactx, SemaContext());
+    auto     return_effective = exec<TypeExpr*>(n->body, depth);
 
     if (n->returns.has_value()) {
         // Annotated type takes precedence
         typecheck(n->returns.value(), return_t, nullptr, oneof(return_effective), LOC);
     }
-
-    bindings.set_type(id, type);
 
     // do decorator last since we need to know our function signature to
     // typecheck them
@@ -918,9 +973,9 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
         // TODO check the signature here
     }
 
-    n->type      = type;
+    n->type      = fun_type;
     n->generator = get_context().yield;
-    return type;
+    return fun_type;
 }
 
 void record_attributes(SemanticAnalyser*       self,
@@ -1218,29 +1273,42 @@ TypeExpr* SemanticAnalyser::augassign(AugAssign* n, int depth) {
 //! Annotation takes priority over the deduced type
 //! this enbles users to use annotation to debug
 TypeExpr* SemanticAnalyser::annassign(AnnAssign* n, int depth) {
-    auto constraint = n->annotation;
-    auto typetype   = exec(n->annotation, depth);
+    TypeExpr* constraint = n->annotation;
+    is_type(n->annotation, depth, LOC);
 
-    // TODO: check if the assigned name already exist or not
-    //
+    ExprNode* value   = n->value.fold(nullptr);
+    TypeExpr* value_t = exec<TypeExpr*>(n->value, depth).fold(nullptr);
 
-    // Type annotation must be a type
-    typecheck(n->annotation, typetype, nullptr, Type_t(), LOC);
+    if (value) {
+        if (!value_t) {
+            // FIXME could not find type for value
+        } else if (!is_type(value_t, depth, LOC)) {
+            value_t = nullptr;
+        }
+    }
 
-    auto type = exec<TypeExpr*>(n->value, depth);
-
-    ExprNode* value = nullptr;
-
-    if (type.has_value()) {
+    if (constraint && value_t) {
         // if we were able to deduce a type from the expression
         // make sure it matches the annotation constraint
-        typecheck(n->target,
-                  constraint,  //
-                  n->value.value(),
-                  type.value(),  //
+        typecheck(n->target,   // a
+                  constraint,  // int
+                  value,       // 1
+                  value_t,     // int
                   LOC);
+    }
 
-        value = n->value.value();
+    if (value_t && !constraint) {
+        info("Could fix annotation here was {} should be {}", str(n->annotation), str(value_t));
+
+        // FIX annotation
+        if (false) {
+            n->annotation = value_t;
+        }
+    }
+
+    // User put the wrong constraint ?
+    if (!constraint && value_t) {
+        constraint = value_t;
     }
 
     if (n->target->kind == NodeKind::Name) {

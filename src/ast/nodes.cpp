@@ -1,5 +1,6 @@
 #include "nodes.h"
 #include "magic.h"
+#include "ops.h"
 
 namespace lython {
 
@@ -186,6 +187,41 @@ StringRef operator_magic_name(CmpOperator const& v, bool reverse) {
     }
 
     return StringRef("");
+}
+
+// FIXME: this is a hack
+// to avoid cicle we should just make a reference to the type that cycles
+bool Arrow::add_arg_type(ExprNode* arg_type) {
+    if (arg_type != this) {
+        args.push_back(arg_type);
+
+        if (has_circle(this)) {
+            args.pop_back();
+            return false;
+        }
+
+        return true;
+    }
+    warn("trying to assing self to an arrow argument");
+    return false;
+}
+
+bool Arrow::set_arg_type(int i, ExprNode* arg_type) {
+
+    if (arg_type != this) {
+        ExprNode* old = args[i];
+        args[i]       = arg_type;
+
+        if (has_circle(this)) {
+            args[i] = old;
+            return false;
+        }
+
+        return true;
+    }
+
+    warn("trying to assing self to an arrow argument");
+    return false;
 }
 
 // ------------------------------------------
