@@ -168,9 +168,8 @@
             "program": "${workspaceFolder}/build/bin/lython",
             "args": [
                 "internal",
-                "--parsing",
                 "--file",
-                "${workspaceFolder}/code/scratch.ly",
+                "${workspaceFolder}/hardening/fuzzing/results_older/crashes/id:000000,sig:11,src:003417,time:20346833,op:arith8,pos:24,val:+3",
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

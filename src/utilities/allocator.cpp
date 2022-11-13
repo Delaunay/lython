@@ -8,7 +8,7 @@
 #include "utilities/metadata.h"
 
 #define DISABLE_ALIGNED_ALLOC 0
-#define ALIGNMENT             64
+#define ALIGNMENT             32
 
 #if !((defined WITH_VALGRIND) && WITH_VALGRIND)
 #    define USE_MIMALLOC 1
@@ -21,11 +21,21 @@
 #endif
 
 namespace lython {
+namespace meta {
+bool& is_type_registry_available() {
+    static bool avail = false;
+    return avail;
+}
+
+}  // namespace meta
 namespace device {
 
 void* CPU::malloc(std::size_t n) {
 #if USE_MIMALLOC
-    return mi_malloc_aligned(n, ALIGNMENT);
+    return std::malloc(n);
+
+    // return mi_malloc(n);
+    // return mi_malloc_aligned(n, ALIGNMENT);
 #elif DISABLE_ALIGNED_ALLOC
     return std::malloc(n);
 #else
@@ -58,7 +68,10 @@ void* CPU::malloc(std::size_t n) {
 
 bool CPU::free(void* ptr, std::size_t) {
 #if USE_MIMALLOC
-    mi_free_aligned(ptr, ALIGNMENT);
+    std::free(ptr);
+
+    // mi_free(ptr);
+    // mi_free_aligned(ptr, ALIGNMENT);
     return true;
 #elif DISABLE_ALIGNED_ALLOC
     std::free(ptr);

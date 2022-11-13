@@ -24,7 +24,7 @@ HANG_FILE = $(shell ls ./fuzzing/results/hangs | head -n 1)
 .PHONY: exec-crash exec-hangs
 
 exec-crash:
-	cd ../build && cmake -DWITH_LOG=1 -DCMAKE_BUILD_TYPE=Debug ../ && make -j 32
+	cd ../build && cmake -DWITH_LOG=1 -DCMAKE_BUILD_TYPE=Debug ../ && make lython -j 32
 
 	echo ""
 	cat "fuzzing/results/crashes/$(BAD_FILE)"
@@ -36,7 +36,7 @@ exec-crash:
 	rm fuzzing/results/crashes/$(BAD_FILE)
 
 exec-hangs:
-	cd ../build && cmake -DWITH_LOG=1 -DCMAKE_BUILD_TYPE=Debug ../ && make -j 32
+	cd ../build && cmake -DWITH_LOG=1 -DCMAKE_BUILD_TYPE=Debug ../ && make lython -j 32
 
 	echo ""
 	cat "fuzzing/results/hangs/$(HANG_FILE)"

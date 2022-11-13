@@ -25,6 +25,8 @@ struct Stat {
     int startup_count = 0;
 };
 
+bool& is_type_registry_available();
+
 struct TypeRegistry {
     std::vector<Stat>                    stat;
     bool                                 print_stats = false;
@@ -36,10 +38,14 @@ struct TypeRegistry {
         return obj;
     }
 
+    TypeRegistry() { is_type_registry_available() = true; }
+
     ~TypeRegistry() {
         if (print_stats) {
             show_alloc_stats();
         }
+
+        is_type_registry_available() = false;
     }
 };
 
@@ -65,15 +71,24 @@ int type_id() {
     return _id;
 }
 
-// Insert a type name override
 template <typename T>
-const char* register_type(const char* str) {
+int _register_type_once(const char* str) {
+    if (!is_type_registry_available())
+        return 0;
+
     auto tid    = type_id<T>();
     auto result = typenames().find(tid);
 
     if (result == typenames().end()) {
         typenames().insert({type_id<T>(), str});
     }
+    return tid;
+}
+
+// Insert a type name override
+template <typename T>
+const char* register_type(const char* str) {
+    static int _ = _register_type_once<T>(str);
     return str;
 }
 

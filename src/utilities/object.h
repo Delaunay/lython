@@ -76,13 +76,15 @@ struct GCObject {
 
     static void free(GCObject* child);
 
-    void dump(std::ostream&, int depth = 0);
+    void dump(std::ostream& out);
 
     virtual ~GCObject();
 
     int class_id;
 
     private:
+    void dump_recursive(std::ostream& out, Array<GCObject*>& visited, int prev, int depth);
+
     template <typename T>
     AllocatorCPU<T>& get_allocator() {
         static auto alloc = AllocatorCPU<T>();

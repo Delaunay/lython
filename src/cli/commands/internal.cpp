@@ -166,6 +166,14 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
                 std::cout << std::string(80, '-') << '\n';
             }
 
+            // Memory layout dump
+            {
+                //
+                mod->dump(std::cout);
+            }
+
+            assert(!has_circle(mod), "Circle will cause infinite recursion");
+
             // Bindings Dump
             // -------------
             {

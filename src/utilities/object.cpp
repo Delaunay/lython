@@ -61,11 +61,41 @@ void GCObject::remove_child_if_parent(GCObject* child, bool dofree) {
     }
 }
 
-void GCObject::dump(std::ostream& out, int depth) {
-    out << String(depth * 2, ' ') << meta::type_name(class_id) << std::endl;
+void GCObject::dump(std::ostream& out) {
+    Array<GCObject*> visited;
+
+    dump_recursive(out, visited, -1, 0);
+}
+
+int in(GCObject* obj, Array<GCObject*>& visited) {
+    int i = 0;
+
+    for (auto* item: visited) {
+        if (item == obj)
+            return true;
+
+        i += 1;
+    }
+
+    return -1;
+}
+
+void GCObject::dump_recursive(std::ostream& out, Array<GCObject*>& visited, int prev, int depth) {
+    // Cycles should be impossible here
+    int    index   = prev < 0 ? visited.size() : prev;
+    String warning = prev >= 0 ? "DUPLICATE" : "";
+
+    out << String(depth * 2, ' ') << index << ". " << meta::type_name(class_id) << warning
+        << std::endl;
 
     for (auto obj: children) {
-        obj->dump(out, depth + 1);
+        int found = in(obj, visited);
+
+        if (found < 0) {
+            visited.push_back(obj);
+        }
+
+        obj->dump_recursive(out, visited, found, depth + 1);
     }
 }
 

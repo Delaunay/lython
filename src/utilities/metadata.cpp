@@ -36,6 +36,7 @@ template <typename T>
 using UniquePtrInternal = std::unique_ptr<T>;
 
 bool _metadata_init_names() {
+    meta::register_type<char>("char");
     meta::register_type<int>("int");
     meta::register_type<lython::StringRef>("StringRef");
     meta::register_type<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");

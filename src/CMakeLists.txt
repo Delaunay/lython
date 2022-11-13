@@ -24,6 +24,7 @@ SET(ADD_HEADERS
     ast/ops.h
     ast/values/native.h
     ast/values/generator.h
+
     utilities/names.h
     utilities/object.h
     ast/magic.h
@@ -59,10 +60,12 @@ SET(ADD_SOURCE
     ast/nodes.cpp
     ast/values/native.cpp
     ast/values/generator.cpp
+
     ast/ops/context.cpp
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
     ast/ops/print.cpp
+    ast/ops/circle.cpp
 
     builtin/operators.cpp
 
