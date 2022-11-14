@@ -258,7 +258,7 @@ TEST_CASE("VM_Try_AllGood") {
 
 TEST_CASE("VM_Aug_Add_i32") {
     run_test_case("def fun(a: i32) -> i32:\n"
-                  "    a += 1"
+                  "    a += 1\n"
                   "    return a\n",
                   "fun(0)",
                   "1");
