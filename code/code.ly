@@ -1,5 +1,7 @@
 
 # comments
+2 < 2 =
+
 
 def myfunction(x, y, z):
     return (x + y) * z # 123

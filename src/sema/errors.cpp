@@ -118,8 +118,13 @@ void SemaErrorPrinter::print(SemaException const& err) {
     String filename = get_filename(this);
     Node*  node     = err.expr;
     String parent   = get_parent(err);
-    int    line     = 0;
-    bool   written  = false;
+
+    int  line    = 0;
+    bool written = false;
+
+    if (err.stmt) {
+        line = err.stmt->lineno;
+    }
 
     firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
 
