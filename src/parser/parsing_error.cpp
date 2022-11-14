@@ -31,30 +31,6 @@ void add_wip_expr(ParsingError& err, Node* expr) {
     }
 }
 
-// Supresses newlines from a a stream
-class NoNewLine: public std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char>> {
-    public:
-    NoNewLine(std::ostream& out): out(out) {}
-
-    virtual int sync() {
-        std::string data = str();
-        int         val  = int(data.size());
-
-        // this might be too simplistic
-        // what if the new line is in the middle of the expression
-        for (char c: data) {
-            if (c == '\n')
-                continue;
-
-            out << c;
-        }
-        // clear buffer
-        str("");
-        return val;
-    }
-
-    std::ostream& out;
-};
 //  python3 main.py
 //   File "/home/runner/ShyCalculatingGraph/main.py", line 1
 //     2 *

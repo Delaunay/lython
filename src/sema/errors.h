@@ -1,12 +1,25 @@
 #ifndef LYTHON_SEMA_ERROR_HEADER
 #define LYTHON_SEMA_ERROR_HEADER
 
+#include <ostream>
+
 #include "ast/nodes.h"
 #include "sema/builtin.h"
 
 namespace lython {
 
+struct SemaError {};
+
+StmtNode* get_parent_stmt(Node* node);
+
 struct SemaException: LythonException {
+    ExprNode* expr = nullptr;
+    StmtNode* stmt = nullptr;
+
+    SemaException(ExprNode* expr): expr(expr), stmt(get_parent_stmt(expr)), cached_message("") {}
+
+    SemaException(StmtNode* stmt, std::string const& msg): stmt(stmt), cached_message(msg) {}
+
     SemaException(std::string const& msg): cached_message(msg) {}
 
     SemaException(): cached_message("") {}
@@ -23,6 +36,23 @@ struct SemaException: LythonException {
 
         cached_message = message();
     }
+
+    void set_node(Node* node) {
+        if (node->family() == NodeFamily::Expression) {
+            set_expr((ExprNode*)node);
+        }
+
+        if (node->family() == NodeFamily::Statement) {
+            set_stmt((StmtNode*)node);
+        }
+    }
+
+    void set_expr(ExprNode* expression) {
+        expr = expression;
+        stmt = get_parent_stmt(expr);
+    }
+
+    void set_stmt(StmtNode* statement) { stmt = statement; }
 
     virtual std::string message() const = 0;
 
@@ -43,7 +73,9 @@ struct SemaException: LythonException {
  * AttributeError: 'Name' object has no attribute 'n'
  */
 struct AttributeError: public SemaException {
-    AttributeError(ClassDef* obj, StringRef attr): obj(obj), attr(attr) {}
+    AttributeError(ClassDef* obj, StringRef attr):
+        obj(obj), attr(attr)  //
+    {}
 
     std::string message() const override;
 
@@ -145,6 +177,28 @@ struct ImportError: public SemaException {
 
     StringRef module;
     StringRef name;
+};
+
+struct SemaErrorPrinter {
+    SemaErrorPrinter(std::ostream& out, class AbstractLexer* lexer = nullptr):
+        out(out), lexer(lexer)  //
+    {}
+
+    int  indent = 1;
+    void print(SemaException const& err);
+
+    String        indentation() { return String(indent * 2, ' '); }
+    std::ostream& firstline() { return out; }
+    std::ostream& newline() { return out << std::endl << indentation(); }
+    std::ostream& errorline() { return out << std::endl; }
+
+    void underline(CommonAttributes const& attr);
+
+    std::ostream& codeline() { return out << std::endl << indentation() << indentation() << "|"; }
+    void          end() { out << std::endl; }
+
+    std::ostream&        out;
+    class AbstractLexer* lexer;
 };
 
 }  // namespace lython

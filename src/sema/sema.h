@@ -119,9 +119,12 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     bool is_type(TypeExpr* node, int depth, lython::CodeLocation const& loc);
 
     template <typename T, typename... Args>
-    void sema_error(Node* Node, lython::CodeLocation const& loc, Args... args) {
+    void sema_error(Node* node, lython::CodeLocation const& loc, Args... args) {
         errors.push_back(std::unique_ptr<SemaException>(new T(args...)));
         SemaException* exception = errors[errors.size() - 1].get();
+
+        // Populate location info
+        exception->set_node(node);
 
         // use the LOC from parent function
         lython::log(lython::LogLevel::Error, loc, "{}", exception->what());

@@ -572,6 +572,7 @@ PartialResult* TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
 
 PartialResult* TreeEvaluator::invalidstmt(InvalidStatement_t* n, int depth) {
     // FIXME: raise exception here
+    raise_exception(nullptr, nullptr);
     return nullptr;
 }
 

@@ -1,6 +1,8 @@
 #include "sema/errors.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
+#include "lexer/lexer.h"
+#include "parser/parsing_error.h"
 #include "utilities/names.h"
 #include "utilities/strings.h"
 
@@ -84,6 +86,74 @@ std::string RecursiveDefinition::message() const { return message(fun, cls); }
 
 std::string RecursiveDefinition::message(ExprNode const* fun, ClassDef const* cls) {
     return "RecursiveDefinition: ";
+}
+
+StmtNode* get_parent_stmt(Node* node) {
+    Node const* n = node->get_parent();
+
+    while (n != nullptr) {
+        if (n->family() == NodeFamily::Statement) {
+            return (StmtNode*)n;
+        }
+        n = n->get_parent();
+    }
+    return nullptr;
+}
+
+String get_parent(SemaException const& error) {
+    if (error.stmt) {
+        return shortprint(get_parent(error.stmt));
+    }
+    return "<module>";
+}
+
+String get_filename(SemaErrorPrinter* printer) {
+    if (printer->lexer) {
+        return printer->lexer->file_name();
+    }
+    return "<input>";
+}
+
+void SemaErrorPrinter::print(SemaException const& err) {
+    String filename = get_filename(this);
+    Node*  node     = err.expr;
+    String parent   = get_parent(err);
+    int    line     = 0;
+    bool   written  = false;
+
+    firstline() << "File \"" << filename << "\", line " << line << ", in " << parent;
+
+    {
+        auto         noline_buf = NoNewLine(out);
+        std::ostream noline(&noline_buf);
+        codeline();
+        if (err.stmt) {
+            noline << str(err.stmt);
+            written = true;
+        } else {
+            noline << str(node);
+        }
+        noline.flush();
+    }
+
+    if (written && err.expr) {
+        underline(*err.expr);
+    }
+
+    errorline() << err.what();
+    end();
+}
+
+void SemaErrorPrinter::underline(CommonAttributes const& attr) {
+
+    int32 size = 1;
+
+    if (attr.end_col_offset.has_value()) {
+        size = std::max(attr.end_col_offset.value() - attr.col_offset, 1);
+    }
+
+    int32 start = std::max(1, attr.col_offset);
+    codeline() << String(start, ' ') << String(size, '^');
 }
 
 }  // namespace lython

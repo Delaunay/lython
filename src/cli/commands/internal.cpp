@@ -154,15 +154,19 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             // Sema Diagnostic
             // ---------------
             {
-                std::stringstream ss;
-                for (auto& diag: sema.errors) {
-                    ss << "  - " << diag->what() << "\n";
-                }
-
                 std::cout << std::string(80, '-') << '\n';
                 std::cout << "Sema Diagnostic dump\n";
                 std::cout << std::string(80, '-') << '\n';
-                std::cout << ss.str();
+
+                SemaErrorPrinter printer(std::cout, &lex);
+
+                std::stringstream ss;
+                for (auto& diag: sema.errors) {
+                    std::cout << "  ";
+                    printer.print(*diag.get());
+                    std::cout << "\n";
+                }
+
                 std::cout << std::string(80, '-') << '\n';
             }
 
