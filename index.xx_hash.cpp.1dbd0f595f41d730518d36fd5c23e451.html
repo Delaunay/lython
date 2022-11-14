@@ -23,7 +23,7 @@
     </tr>
     <tr>
       <th scope="row">File:</th>
-      <td>src/cli/commands/format.h</td>
+      <td>src/dependencies/xx_hash.cpp</td>
     </tr>
     <tr>
       <th scope="row">Date:</th>
@@ -41,9 +41,9 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>0</td>
-      <td>0</td>
-      <td class="coverage-unknown">-%</td>
+      <td>1</td>
+      <td>1</td>
+      <td class="coverage-high">100.0%</td>
     </tr>
     <tr>
       <th scope="row">Functions:</th>
@@ -75,13 +75,13 @@
     </tr>
     <tr>
       <td>
-        <a href="#l7">lython::FormatCmd::FormatCmd()</a>
+        <a href="#l14">lython::xx_hash_3(void const*, unsigned long)</a>
       </td>
       <td>
-        <a href="#l7">7</a>
+        <a href="#l14">14</a>
       </td>
       <td>
-        <a href="#l7"> called 8 times</a>
+        <a href="#l14"> called 45492 times</a>
       </td>
     </tr>
   </table>
@@ -104,7 +104,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#pragma once</span></td>
+      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;xx_hash.h&quot;</span><span class="cp"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -120,7 +120,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;cli/command.h&quot;</span><span class="cp"></span></td>
+      <td class="src "><span class="cp">#define XXH_VECTOR XXH_AVX2</span></td>
     </tr>
 
     <tr class="source-line">
@@ -136,7 +136,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="n">namespace</span><span class="w"> </span><span class="n">lython</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="c1">// only from Zen 4</span></td>
     </tr>
 
     <tr class="source-line">
@@ -144,7 +144,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="k">struct</span><span class="w"> </span><span class="nc">FormatCmd</span><span class="o">:</span><span class="w"> </span><span class="n">public</span><span class="w"> </span><span class="n">Command</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+      <td class="src "><span class="c1">// #define XXH_VECTOR XXH_AVX512</span></td>
     </tr>
 
     <tr class="source-line">
@@ -152,7 +152,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">FormatCmd</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="n">Command</span><span class="p">(</span><span class="s">&quot;fmt&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -160,7 +160,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;xxHash/xxh3.h&quot;</span><span class="cp"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -168,7 +168,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="n">argparse</span><span class="o">::</span><span class="n">ArgumentParser</span><span class="o">*</span><span class="w"> </span><span class="n">parser</span><span class="p">();</span><span class="w"></span></td>
+      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;xxHash/xxhash.c&quot;</span><span class="cp"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -176,7 +176,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;xxHash/xxhash.h&quot;</span><span class="cp"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -184,7 +184,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">virtual</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">main</span><span class="p">(</span><span class="n">argparse</span><span class="o">::</span><span class="n">ArgumentParser</span><span class="w"> </span><span class="k">const</span><span class="o">&amp;</span><span class="w"> </span><span class="n">args</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -192,7 +192,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="src "><span class="k">namespace</span><span class="w"> </span><span class="nn">lython</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -208,11 +208,43 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
+      <td class="src "><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="nf">xx_hash_3</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="k">const</span><span class="o">*</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l15" href="#l15">15</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">45492</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">XXH3_64bits</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">);</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l16" href="#l16">16</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l17" href="#l17">17</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l18" href="#l18">18</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l19" href="#l19">19</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
