@@ -35,14 +35,14 @@ std::string demangle(std::string const& original_str) {
     char* buffer = nullptr;
 
     int status = 0;
-    for (auto i = begin; i != end;) {
+    for (auto i = begin; i != end; ++i) {
         matched_str = (*i).str();
         // ignore first (
         buffer = abi::__cxa_demangle(matched_str.c_str() + 1, nullptr, nullptr, &status);
         break;
     }
 
-    if (matched_str.size() > 0 && status == 0) {
+    if (!matched_str.empty() && status == 0) {
         result_str = std::string(buffer);
     } else {
         result_str = original_str;

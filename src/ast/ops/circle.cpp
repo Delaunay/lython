@@ -5,6 +5,7 @@
 #include "lexer/unlex.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
+#include "perf/perf.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -30,12 +31,12 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
     using Super = BaseVisitor<Circle, true, CircleTrait>;
     Array<Node const*> visited;
 
-    int in(Node const* obj, int depth) {
+    bool in(Node const* obj, int depth) {
         if (obj == nullptr) {
             return false;
         }
 
-        for (auto* item: visited) {
+        for (Node const* item: visited) {
             if (item == obj) {
                 trace(depth, "Duplicate is: {}", meta::type_name(item->class_id));
                 return true;
@@ -75,15 +76,18 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
         return Super::exec(stmt, depth);
     }
 
-    ReturnType exec_body(Array<StmtNode*> const& body, int depth) {
-
-        for (auto& stmt: body) {
-            if (exec(stmt, depth))
+    template <typename T>
+    bool any_of(Array<T> const& elts, int depth) {
+        // std::any_of produce so much asm crap
+        //
+        for (auto const& elt: elts) {  // NOLINT
+            if (exec(elt, depth))
                 return true;
         }
-
         return false;
     }
+
+    ReturnType exec_body(Array<StmtNode*> const& body, int depth) { return any_of(body, depth); }
 
     ReturnType excepthandler(ExceptHandler const& self, int depth) {
         if (self.type.has_value()) {
@@ -141,7 +145,7 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
 #undef MATCH
 
 #undef FUNCTION_GEN
-};
+} LY_ALIGN(32);
 
 ReturnType Circle::attribute(Attribute const* self, int depth) { return exec(self->value, depth); }
 
@@ -182,9 +186,7 @@ ReturnType Circle::assertstmt(Assert const* self, int depth) {
 }
 
 ReturnType Circle::with(With const* self, int depth) {
-
-    int i = 0;
-    for (auto& item: self->items) {
+    for (auto const& item: self->items) {
         if (exec(item.context_expr, depth)) {
             return true;
         }
@@ -222,32 +224,11 @@ ReturnType Circle::slice(Slice const* self, int depth) {
     return false;
 }
 
-ReturnType Circle::tupleexpr(TupleExpr const* self, int depth) {
-    for (auto& elt: self->elts) {
-        if (exec(elt, depth + 1)) {
-            return true;
-        }
-    }
-    return false;
-}
+ReturnType Circle::tupleexpr(TupleExpr const* self, int depth) { return any_of(self->elts, depth); }
 
-ReturnType Circle::listexpr(ListExpr const* self, int depth) {
-    for (auto& elt: self->elts) {
-        if (exec(elt, depth + 1)) {
-            return true;
-        }
-    }
-    return false;
-}
+ReturnType Circle::listexpr(ListExpr const* self, int depth) { return any_of(self->elts, depth); }
 
-ReturnType Circle::setexpr(SetExpr const* self, int depth) {
-    for (auto& elt: self->elts) {
-        if (exec(elt, depth + 1)) {
-            return true;
-        }
-    }
-    return false;
-}
+ReturnType Circle::setexpr(SetExpr const* self, int depth) { return any_of(self->elts, depth); }
 
 ReturnType Circle::dictexpr(DictExpr const* self, int depth) {
     for (int i = 0; i < self->keys.size(); i++) {
@@ -265,12 +246,7 @@ ReturnType Circle::matchvalue(MatchValue const* self, int depth) {
 ReturnType Circle::matchsingleton(MatchSingleton const* self, int depth) { return false; }
 
 ReturnType Circle::matchsequence(MatchSequence const* self, int depth) {
-    for (auto& pat: self->patterns) {
-        if (exec(pat, depth + 1)) {
-            return true;
-        }
-    }
-    return false;
+    return any_of(self->patterns, depth);
 }
 
 ReturnType Circle::matchmapping(MatchMapping const* self, int depth) {
@@ -283,22 +259,9 @@ ReturnType Circle::matchmapping(MatchMapping const* self, int depth) {
 }
 
 ReturnType Circle::matchclass(MatchClass const* self, int depth) {
-    if (exec(self->cls, depth)) {
-        return true;
-    }
-
-    for (auto& pat: self->patterns) {
-        if (exec(pat, depth + 1)) {
-            return true;
-        }
-    }
-
-    for (int i = 0; i < self->kwd_attrs.size(); i++) {
-        if (exec(self->kwd_patterns[i], depth)) {
-            return true;
-        }
-    }
-    return false;
+    return exec(self->cls, depth) ||         //
+           any_of(self->patterns, depth) ||  //
+           any_of(self->kwd_patterns, depth);
 }
 
 ReturnType Circle::matchstar(MatchStar const* self, int depth) { return false; }
@@ -312,14 +275,7 @@ ReturnType Circle::matchas(MatchAs const* self, int depth) {
     return false;
 }
 
-ReturnType Circle::matchor(MatchOr const* self, int depth) {
-    for (auto& pat: self->patterns) {
-        if (exec(pat, depth + 1)) {
-            return true;
-        }
-    }
-    return false;
-}
+ReturnType Circle::matchor(MatchOr const* self, int depth) { return any_of(self->patterns, depth); }
 
 ReturnType Circle::ifstmt(If const* self, int depth) {
 
@@ -328,8 +284,8 @@ ReturnType Circle::ifstmt(If const* self, int depth) {
     }
 
     for (int i = 0; i < self->tests.size(); i++) {
-        auto& eliftest = self->tests[i];
-        auto& elifbody = self->bodies[i];
+        auto const& eliftest = self->tests[i];
+        auto const& elifbody = self->bodies[i];
 
         if (exec(eliftest, depth) || exec(self->tests_comment[i], depth) ||
             exec_body(elifbody, depth + 1)) {
@@ -337,7 +293,7 @@ ReturnType Circle::ifstmt(If const* self, int depth) {
         }
     }
 
-    if (self->orelse.size()) {
+    if (!self->orelse.empty()) {
         if (exec(self->else_comment, depth) || exec_body(self->orelse, depth + 1)) {
             return true;
         }
@@ -350,7 +306,7 @@ ReturnType Circle::match(Match const* self, int depth) {
         return true;
     }
 
-    for (auto& case_: self->cases) {
+    for (auto& case_: self->cases) {  // NOLINT
         if (matchcase(case_, depth + 1)) {
             return true;
         }
@@ -422,27 +378,18 @@ ReturnType Circle::dictcomp(DictComp const* self, int depth) {
 ReturnType Circle::await(Await const* self, int depth) { return exec(self->value, depth); }
 
 ReturnType Circle::yield(Yield const* self, int depth) {
-    if (self->value.has_value() && exec(self->value.value(), depth)) {
-        return true;
-    }
-    return false;
+    return self->value.has_value() && exec(self->value.value(), depth);
 }
 
 ReturnType Circle::yieldfrom(YieldFrom const* self, int depth) { return exec(self->value, depth); }
 
 ReturnType Circle::call(Call const* self, int depth) {
-    if (exec(self->func, depth)) {
+    if (exec(self->func, depth) || any_of(self->args, depth)) {
         return true;
     }
 
-    for (int i = 0; i < self->args.size(); i++) {
-        if (exec(self->args[i], depth)) {
-            return true;
-        }
-    }
-
     for (int i = 0; i < self->keywords.size(); i++) {
-        auto& key = self->keywords[i];
+        auto const& key = self->keywords[i];
 
         if (exec(key.value, depth)) {
             return true;
@@ -459,26 +406,19 @@ ReturnType Circle::namedexpr(NamedExpr const* self, int depth) {
 }
 
 ReturnType Circle::classdef(ClassDef const* self, int depth) {
-    int k = 0;
     for (auto decorator: self->decorator_list) {
         if (exec(decorator.expr, depth) || exec(decorator.comment, depth)) {
             return true;
         }
     }
 
-    for (auto base: self->bases) {
-        if (exec(base, depth)) {
-            return true;
-        }
-    }
-
-    for (auto kw: self->keywords) {
+    for (auto kw: self->keywords) {  // NOLINT
         if (exec(kw.value, depth)) {
             return true;
         }
     }
 
-    if (exec(self->comment, depth)) {
+    if (any_of(self->bases, depth) || exec(self->comment, depth)) {
         return true;
     }
 
@@ -486,7 +426,7 @@ ReturnType Circle::classdef(ClassDef const* self, int depth) {
         return true;
     }
 
-    for (auto& stmt: self->body) {
+    for (auto& stmt: self->body) {  // NOLINT
         if (exec(stmt, depth + 1) || exec(stmt->comment, depth)) {
             return true;
         }
@@ -495,9 +435,7 @@ ReturnType Circle::classdef(ClassDef const* self, int depth) {
 }
 
 ReturnType Circle::functiondef(FunctionDef const* self, int depth) {
-    int k = 0;
     for (auto decorator: self->decorator_list) {
-
         if (exec(decorator.expr, depth) || exec(decorator.comment, depth)) {
             return true;
         }
@@ -507,22 +445,16 @@ ReturnType Circle::functiondef(FunctionDef const* self, int depth) {
         return true;
     }
 
-    if (self->returns.has_value()) {
-
-        if (exec(self->returns.value(), depth)) {
-            return true;
-        }
+    if (self->returns.has_value() && exec(self->returns.value(), depth)) {
+        return true;
     }
 
     if (exec(self->comment, depth)) {
         return true;
     }
 
-    if (self->docstring.has_value()) {
-
-        if (exec(self->docstring.value().comment, depth)) {
-            return true;
-        }
+    if (self->docstring.has_value() && exec(self->docstring.value().comment, depth)) {
+        return true;
     }
 
     return exec_body(self->body, depth + 1) || exec(self->type, depth);
@@ -541,7 +473,7 @@ ReturnType Circle::forstmt(For const* self, int depth) {
         return true;
     }
 
-    if (self->orelse.size() > 0) {
+    if (!self->orelse.empty()) {
         if (exec(self->else_comment, depth) || exec_body(self->orelse, depth + 1)) {
             return true;
         }
@@ -555,19 +487,19 @@ ReturnType Circle::trystmt(Try const* self, int depth) {
         return true;
     }
 
-    for (auto& handler: self->handlers) {
+    for (auto const& handler: self->handlers) {
         if (excepthandler(handler, depth)) {
             return true;
         }
     }
 
-    if (self->orelse.size() > 0) {
+    if (!self->orelse.empty()) {
         if (exec(self->else_comment, depth) || exec_body(self->orelse, depth + 1)) {
             return true;
         }
     }
 
-    if (self->finalbody.size() > 0) {
+    if (!self->finalbody.empty()) {
 
         if (exec(self->finally_comment, depth) || exec_body(self->finalbody, depth + 1)) {
             return true;
@@ -581,8 +513,8 @@ ReturnType Circle::compare(Compare const* self, int depth) {
     if (exec(self->left, depth)) {
         return true;
     }
-    int n = int(self->comparators.size());
 
+    int n = int(self->comparators.size());
     for (int i = 0; i < self->ops.size(); i++) {
 
         if (i < n && exec(self->comparators[i], depth)) {
@@ -621,7 +553,7 @@ ReturnType Circle::whilestmt(While const* self, int depth) {
         return true;
     }
 
-    if (self->orelse.size() > 0) {
+    if (!self->orelse.empty()) {
         return exec(self->else_comment, depth) || exec_body(self->orelse, depth + 1);
     }
 
@@ -708,12 +640,7 @@ ReturnType Circle::name(Name const* self, int depth) { return false; }
 ReturnType Circle::arraytype(ArrayType const* self, int depth) { return exec(self->value, depth); }
 
 ReturnType Circle::tupletype(TupleType const* self, int depth) {
-    for (ExprNode* node: self->types) {
-        if (exec(node, depth)) {
-            return true;
-        }
-    }
-    return false;
+    return any_of(self->types, depth);
 }
 
 ReturnType Circle::builtintype(BuiltinType const* self, int depth) { return false; }
@@ -728,29 +655,14 @@ ReturnType Circle::classtype(ClassType const* self, int depth) { return false; }
 // ==================================================
 
 bool Circle::comprehension(Comprehension const& self, int depth) {
-    if (exec(self.target, depth)) {
-        return true;
-    }
-    if (exec(self.iter, depth)) {
-        return true;
-    }
 
-    for (auto expr: self.ifs) {
-        if (exec(expr, depth)) {
-            return true;
-        }
-    }
-
-    return false;
+    return exec(self.target, depth) ||  //
+           exec(self.iter, depth) ||    //
+           any_of(self.ifs, depth);
 }
 
 bool Circle::keyword(Keyword const& self, int depth) {
-    if (self.value != nullptr) {
-        if (exec(self.value, depth)) {
-            return true;
-        }
-    }
-    return false;
+    return (self.value != nullptr) && exec(self.value, depth);
 }
 
 bool Circle::alias(Alias const& self, int depth) { return false; }
@@ -781,15 +693,13 @@ ReturnType Circle::comment(Comment const* n, int depth) { return false; }
 bool Circle::arguments(Arguments const& self, int depth) {
     int i = 0;
 
-    for (auto& arg: self.args) {
-        if (arg.annotation.has_value()) {
-            if (exec(arg.annotation.value(), depth)) {
-                return true;
-            }
+    for (auto const& arg: self.args) {
+        if (arg.annotation.has_value() && exec(arg.annotation.value(), depth)) {
+            return true;
         }
 
         auto default_offset = self.args.size() - 1 - i;
-        if (self.defaults.size() > 0 && default_offset < self.defaults.size()) {
+        if (!self.defaults.empty() && default_offset < self.defaults.size()) {
             if (exec(self.defaults[default_offset], depth)) {
                 return true;
             }
@@ -799,7 +709,7 @@ bool Circle::arguments(Arguments const& self, int depth) {
     }
 
     i = 0;
-    for (auto& kw: self.kwonlyargs) {
+    for (auto const& kw: self.kwonlyargs) {
         if (kw.annotation.has_value()) {
             if (exec(kw.annotation.value(), depth)) {
                 return true;
@@ -807,7 +717,7 @@ bool Circle::arguments(Arguments const& self, int depth) {
         }
 
         auto default_offset = self.kwonlyargs.size() - 1 - i;
-        if (self.kw_defaults.size() > 0 && default_offset < self.kw_defaults.size()) {
+        if (!self.kw_defaults.empty() && default_offset < self.kw_defaults.size()) {
             if (exec(self.kw_defaults[default_offset], depth)) {
                 return true;
             }
@@ -819,21 +729,9 @@ bool Circle::arguments(Arguments const& self, int depth) {
     return false;
 }
 
-bool has_circle(ExprNode const* obj) {
-    Circle c;
-    return c.exec(obj, 0);
-}
-bool has_circle(Pattern const* obj) {
-    Circle c;
-    return c.exec(obj, 0);
-}
-bool has_circle(StmtNode const* obj) {
-    Circle c;
-    return c.exec(obj, 0);
-}
-bool has_circle(ModNode const* obj) {
-    Circle c;
-    return c.exec(obj, 0);
-}
+bool has_circle(ExprNode const* obj) { return Circle().exec(obj, 0); }
+bool has_circle(Pattern const* obj) { return Circle().exec(obj, 0); }
+bool has_circle(StmtNode const* obj) { return Circle().exec(obj, 0); }
+bool has_circle(ModNode const* obj) { return Circle().exec(obj, 0); }
 
 }  // namespace lython

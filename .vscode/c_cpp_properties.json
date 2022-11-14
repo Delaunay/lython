@@ -5,8 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "compilerPath": "g++-9",
-            "cStandard": "gnu20",
+            "compilerPath": "g++-10",
+            "cStandard": "gnu17",
             "cppStandard": "gnu++20",
             "intelliSenseMode": "linux-gcc-x64",
             "compilerArgs": [

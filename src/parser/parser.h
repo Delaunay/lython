@@ -14,7 +14,8 @@
 
 namespace lython {
 
-enum class ParsingContext {
+enum class ParsingContext
+{
     None,
     Comprehension,
     Slice,
@@ -290,7 +291,8 @@ class Parser {
 
     Array<ParsingError> const& get_errors() const { return errors; }
 
-    enum class Mode {
+    enum class Mode
+    {
         Stmt,
         Expr,
         Pattern

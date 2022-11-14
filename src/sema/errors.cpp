@@ -13,30 +13,30 @@ std::string TypeError::message(String const& lhs_v,
                                String const& rhs_v,
                                String const& rhs_t) {
     Array<String> msg = {"TypeError: "};
-    if (lhs_v.size() > 0) {
+    if (!lhs_v.empty()) {
         msg.push_back("expression `");
         msg.push_back((lhs_v));
         msg.push_back("` ");
     }
-    if (lhs_v.size() > 0 && lhs_t.size() > 0) {
+    if (!lhs_v.empty() && !lhs_t.empty()) {
         msg.push_back("of ");
     }
-    if (lhs_t.size() > 0) {
+    if (!lhs_t.empty()) {
         msg.push_back("type `");
         msg.push_back((lhs_t));
         msg.push_back("` ");
     }
 
     msg.push_back("is not compatible with ");
-    if (rhs_v.size() > 0) {
+    if (!rhs_v.empty()) {
         msg.push_back("expression `");
         msg.push_back((rhs_v));
         msg.push_back("` ");
     }
-    if (rhs_v.size() > 0 && rhs_t.size() > 0) {
+    if (!rhs_v.empty() && !rhs_t.empty()) {
         msg.push_back("of ");
     }
-    if (rhs_t.size() > 0) {
+    if (!rhs_t.empty()) {
         msg.push_back("type `");
         msg.push_back((rhs_t));
         msg.push_back("`");
@@ -44,10 +44,10 @@ std::string TypeError::message(String const& lhs_v,
     return std::string(join("", msg));
 }
 std::string TypeError::message() const {
-    auto _str = [](ExprNode* r) {
-        if (r == nullptr)
+    auto _str = [](ExprNode* _expr) {
+        if (_expr == nullptr)
             return String();
-        return str(r);
+        return str(_expr);
     };
     return message(_str(lhs_v), _str(lhs_t), _str(rhs_v), _str(rhs_t));
 }
@@ -65,9 +65,9 @@ std::string AttributeError::message(String const& name, String const& attr) {
 std::string UnsupportedOperand::message() const { return message(operand, str(lhs_t), str(rhs_t)); }
 
 std::string
-UnsupportedOperand::message(String const& op, String const& lhs_t, String const& rhs_t) {
+UnsupportedOperand::message(String const& operand, String const& lhs_t, String const& rhs_t) {
     return fmt::format(
-        "TypeError: unsupported operand type(s) for {}: '{}' and '{}'", op, lhs_t, rhs_t);
+        "TypeError: unsupported operand type(s) for {}: '{}' and '{}'", operand, lhs_t, rhs_t);
 }
 
 std::string ModuleNotFoundError::message() const { return message(str(module)); }
@@ -101,14 +101,14 @@ StmtNode* get_parent_stmt(Node* node) {
 }
 
 String get_parent(SemaException const& error) {
-    if (error.stmt) {
+    if (error.stmt != nullptr) {
         return shortprint(get_parent(error.stmt));
     }
     return "<module>";
 }
 
 String get_filename(SemaErrorPrinter* printer) {
-    if (printer->lexer) {
+    if (printer->lexer != nullptr) {
         return printer->lexer->file_name();
     }
     return "<input>";
@@ -122,7 +122,7 @@ void SemaErrorPrinter::print(SemaException const& err) {
     int  line    = 0;
     bool written = false;
 
-    if (err.stmt) {
+    if (err.stmt != nullptr) {
         line = err.stmt->lineno;
     }
 
@@ -132,7 +132,7 @@ void SemaErrorPrinter::print(SemaException const& err) {
         auto         noline_buf = NoNewLine(out);
         std::ostream noline(&noline_buf);
         codeline();
-        if (err.stmt) {
+        if (err.stmt != nullptr) {
             noline << str(err.stmt);
             written = true;
         } else {
@@ -141,7 +141,7 @@ void SemaErrorPrinter::print(SemaException const& err) {
         noline.flush();
     }
 
-    if (written && err.expr) {
+    if (written && err.expr != nullptr) {
         underline(*err.expr);
     }
 

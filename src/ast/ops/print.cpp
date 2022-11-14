@@ -52,13 +52,13 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
             return l0;
 
         // one time allocation of an empty string
-        latest.resize(scale * level, ' ');
+        latest.resize(std::size_t(scale * level), ' ');
         return latest;
     }
 
     void maybe_inline_comment(
         Comment* com, int depth, std::ostream& out, int level, CodeLocation const& loc) {
-        if (com) {
+        if (com != nullptr) {
             // lython::log(lython::LogLevel::Info, loc, "printing inline comment {}", com->comment);
             out << "   ";
             exec(com, depth, out, level);
@@ -78,7 +78,7 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
                           bool                    print_last = false) {
 
         int k = 0;
-        for (auto& stmt: body) {
+        for (auto const& stmt: body) {
             k += 1;
 
             out << indent(level);
@@ -227,7 +227,7 @@ ReturnType Printer::with(With const* self, int depth, std::ostream& out, int lev
     out << "with ";
 
     int i = 0;
-    for (auto& item: self->items) {
+    for (auto const& item: self->items) {
         exec(item.context_expr, depth, out, level);
 
         if (item.optional_vars.has_value()) {
@@ -252,7 +252,7 @@ ReturnType Printer::import(Import const* self, int depth, std::ostream& out, int
     out << "import ";
 
     int i = 0;
-    for (auto& alias: self->names) {
+    for (auto const& alias: self->names) {
         out << alias.name;
 
         if (alias.asname.has_value()) {
@@ -276,7 +276,7 @@ ReturnType Printer::importfrom(ImportFrom const* self, int depth, std::ostream& 
     out << " import ";
 
     int i = 0;
-    for (auto& alias: self->names) {
+    for (auto const& alias: self->names) {
         out << alias.name;
 
         if (alias.asname.has_value()) {
@@ -368,7 +368,7 @@ Printer::matchmapping(MatchMapping const* self, int depth, std::ostream& out, in
         strs.push_back(fmtstr("{}: {}", str(self->keys[i]), str(self->patterns[i])));
     }
 
-    String remains = "";
+    String remains;
     if (self->rest.has_value()) {
         StringStream ss;
         ss << ", **" << self->rest.value();
@@ -383,7 +383,7 @@ ReturnType Printer::matchclass(MatchClass const* self, int depth, std::ostream& 
     exec(self->cls, depth, out, level);
     out << "(" << join(", ", self->patterns);
 
-    if (self->patterns.size() > 0 && self->kwd_attrs.size() > 0) {
+    if (!self->patterns.empty() && !self->kwd_attrs.empty()) {
         out << ", ";
     }
 
@@ -445,7 +445,7 @@ ReturnType Printer::ifstmt(If const* self, int depth, std::ostream& out, int lev
         print_body(elifbody, depth, out, level + 1);
     }
 
-    if (self->orelse.size()) {
+    if (!self->orelse.empty()) {
         out << "\n" << indent(level) << "else:";
         maybe_inline_comment(self->else_comment, depth, out, level, LOC);
         out << "\n";
@@ -463,7 +463,7 @@ ReturnType Printer::match(Match const* self, int depth, std::ostream& out, int l
     out << "\n";
 
     int i = 0;
-    for (auto& case_: self->cases) {
+    for (auto const& case_: self->cases) {
         matchcase(case_, depth, out, level + 1);
 
         if (i + 1 < self->cases.size()) {
@@ -566,12 +566,12 @@ ReturnType Printer::call(Call const* self, int depth, std::ostream& out, int lev
     for (int i = 0; i < self->args.size(); i++) {
         exec(self->args[i], depth, out, level);
 
-        if (i < self->args.size() - 1 || self->keywords.size() > 0)
+        if (i < self->args.size() - 1 || !self->keywords.empty())
             out << ", ";
     }
 
     for (int i = 0; i < self->keywords.size(); i++) {
-        auto& key = self->keywords[i];
+        auto const& key = self->keywords[i];
 
         out << self->keywords[i].arg;
         out << "=";
@@ -612,25 +612,25 @@ ReturnType Printer::classdef(ClassDef const* self, int depth, std::ostream& out,
         k += 1;
     }
 
-    if (self->decorator_list.size() > 0) {
+    if (!self->decorator_list.empty()) {
         out << indent(level);
     }
 
     out << "class " << self->name;
-    if (self->bases.size() + self->keywords.size() > 0) {
+    if (self->bases.size() + size_t(!self->keywords.empty())) {
         out << '(';
     }
 
     out << join<ExprNode*>(", ", self->bases);
 
-    if (self->bases.size() > 0 && self->keywords.size() > 0) {
+    if (!self->bases.empty() && !self->keywords.empty()) {
         out << ", ";
     }
 
     Array<String> kwd;
     kwd.reserve(self->keywords.size());
 
-    for (auto kw: self->keywords) {
+    for (auto const& kw: self->keywords) {
         kwd.push_back(fmtstr("{}={}", str(kw.arg), str(kw.value)));
     }
 
@@ -652,15 +652,15 @@ ReturnType Printer::classdef(ClassDef const* self, int depth, std::ostream& out,
         out << "\n";
     }
 
-    int assign = 1;
-    k          = 0;
-    for (auto& stmt: self->body) {
+    bool assign = false;
+    k           = 0;
+    for (auto const& stmt: self->body) {
 
         assign = stmt->kind == NodeKind::Assign || stmt->kind == NodeKind::AnnAssign ||
                  stmt->kind == NodeKind::Pass;
 
         // print an extra line before if not an attribute
-        if (k > 0 && assign == 0) {
+        if (k > 0 && !assign) {
             out << "\n";
         }
 
@@ -694,7 +694,7 @@ ReturnType Printer::functiondef(FunctionDef const* self, int depth, std::ostream
         k += 1;
     }
 
-    if (self->decorator_list.size() > 0) {
+    if (!self->decorator_list.empty()) {
         out << indent(level);
     }
 
@@ -729,7 +729,7 @@ ReturnType Printer::inlinestmt(Inline const* self, int depth, std::ostream& out,
     out << indent(level);
 
     int k = 0;
-    for (auto& stmt: self->body) {
+    for (auto const& stmt: self->body) {
         exec(stmt, depth, out, level);
 
         if (k + 1 < self->body.size()) {
@@ -754,7 +754,7 @@ ReturnType Printer::forstmt(For const* self, int depth, std::ostream& out, int l
 
     print_body(self->body, depth, out, level + 1);
 
-    if (self->orelse.size() > 0) {
+    if (!self->orelse.empty()) {
         out << '\n';
         out << indent(level) << "else:";
         maybe_inline_comment(self->else_comment, depth, out, level, LOC);
@@ -772,18 +772,18 @@ ReturnType Printer::trystmt(Try const* self, int depth, std::ostream& out, int l
 
     print_body(self->body, depth, out, level + 1);
 
-    for (auto& handler: self->handlers) {
+    for (auto const& handler: self->handlers) {
         excepthandler(handler, depth, out, level);
     }
 
-    if (self->orelse.size() > 0) {
+    if (!self->orelse.empty()) {
         out << "\n" << indent(level) << "else:";
         maybe_inline_comment(self->else_comment, depth, out, level, LOC);
         out << "\n";
         print_body(self->orelse, depth, out, level + 1);
     }
 
-    if (self->finalbody.size() > 0) {
+    if (!self->finalbody.empty()) {
         out << "\n" << indent(level) << "finally:";
         maybe_inline_comment(self->finally_comment, depth, out, level, LOC);
         out << "\n";
@@ -838,7 +838,7 @@ ReturnType Printer::binop(BinOp const* self, int depth, std::ostream& out, int l
 ReturnType
 Printer::invalidstmt(InvalidStatement const* self, int depth, std::ostream& out, int level) {
     //
-    if (self->tokens.size() > 0) {
+    if (!self->tokens.empty()) {
         Unlex unlex;
         unlex.format(out, self->tokens);
     }
@@ -880,7 +880,7 @@ ReturnType Printer::whilestmt(While const* self, int depth, std::ostream& out, i
     out << "\n";
     print_body(self->body, depth, out, level + 1);
 
-    if (self->orelse.size() > 0) {
+    if (!self->orelse.empty()) {
         out << '\n' << indent(level) << "else:";
         maybe_inline_comment(self->else_comment, depth, out, level, LOC);
         out << "\n";
@@ -1163,7 +1163,7 @@ void comprehension(Printer& p, Comprehension const& self, int depth, std::ostrea
     out << " in ";
     p.exec(self.iter, depth, out, level);
 
-    for (auto expr: self.ifs) {
+    for (auto* expr: self.ifs) {
         out << " if ";
         p.exec(expr, depth, out, level);
     }
@@ -1250,7 +1250,7 @@ void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int
     }
 
     i = 0;
-    for (auto& kw: self.kwonlyargs) {
+    for (auto const& kw: self.kwonlyargs) {
         out << kw.arg;
 
         if (kw.annotation.has_value()) {
@@ -1275,7 +1275,7 @@ void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int
     }
 
     if (self.kwarg.has_value()) {
-        if (self.kwonlyargs.size() > 0) {
+        if (!self.kwonlyargs.empty()) {
             out << ", ";
         }
         out << "**" << self.kwarg.value().arg;

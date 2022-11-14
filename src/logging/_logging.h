@@ -46,7 +46,7 @@ struct CodeLocation {
 using CodeLocationConstRef = CodeLocation const&;
 
 #define MAKE_LOC(fun, funp) lython::CodeLocation(__FILE__, fun, __LINE__, funp)
-#define LAMBDA_LOC(fun, funp) (([](const char* afun, const char* afunp) -> lython::CodeLocationConstRef { static lython::CodeLocation l = lython::CodeLocation(__FILE__, afun, __LINE__, afunp); return l; })(fun, funp))
+#define LAMBDA_LOC(fun, funp) (([](const char* afun, const char* afunp) -> lython::CodeLocationConstRef { static lython::CodeLocation loc = lython::CodeLocation(__FILE__, afun, __LINE__, afunp); return loc; })(fun, funp))
 // clang-format on
 
 #if WITH_LOG

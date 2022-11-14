@@ -77,7 +77,7 @@ String lookup_module(StringRef const& module_path, Array<String> const& paths) {
     debug("{}", str(paths));
     auto module_frags = split('.', str(module_path));
 
-    for (auto path: paths) {
+    for (auto const& path: paths) {
         auto stat = fs::status(path);
         if (!fs::is_directory(stat)) {
             debug("Not a directory {}", path);
@@ -121,7 +121,7 @@ String lookup_module(StringRef const& module_path, Array<String> const& paths) {
 
 Module* process_file(StringRef const& modulepath, Array<String> const& paths) {
     String filepath = lookup_module(modulepath, paths);
-    if (filepath == "") {
+    if (filepath.empty()) {
         return nullptr;
     }
 
@@ -137,7 +137,7 @@ TypeExpr* SemanticAnalyser::import(Import* n, int depth) {
     // import math as m
     for (auto& name: n->names) {
         StringRef nm  = name.name;
-        auto      mod = process_file(name.name, paths);
+        auto*     mod = process_file(name.name, paths);
 
         if (mod == nullptr) {
             SEMA_ERROR(n, ModuleNotFoundError, name.name);
@@ -168,40 +168,40 @@ TypeExpr* SemanticAnalyser::import(Import* n, int depth) {
 }
 
 StringRef get_name(ExprNode* target) {
-    auto name = cast<Name>(target);
-    if (!name) {
+    auto* name = cast<Name>(target);
+    if (name == nullptr) {
         return StringRef();
     }
 
     return name->id;
 }
 
-StmtNode* find(Array<StmtNode*> const& body, StringRef name) {
-    for (auto stmt: body) {
+StmtNode* find(Array<StmtNode*> const& body, StringRef const& name) {
+    for (auto* stmt: body) {
         switch (stmt->kind) {
         case NodeKind::ClassDef: {
-            auto def = cast<ClassDef>(stmt);
+            auto* def = cast<ClassDef>(stmt);
             if (def->name == name) {
                 return stmt;
             }
             continue;
         }
         case NodeKind::FunctionDef: {
-            auto def = cast<FunctionDef>(stmt);
+            auto* def = cast<FunctionDef>(stmt);
             if (def->name == name) {
                 return stmt;
             }
             continue;
         }
         case NodeKind::Assign: {
-            auto ass = cast<Assign>(stmt);
+            auto* ass = cast<Assign>(stmt);
             if (get_name(ass->targets[0]) == name) {
                 return ass;
             }
             continue;
         }
         case NodeKind::AnnAssign: {
-            auto ann = cast<AnnAssign>(stmt);
+            auto* ann = cast<AnnAssign>(stmt);
             if (get_name(ann->target) == name) {
                 return ann;
             }
@@ -254,8 +254,8 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
             continue;
         }
 
-        auto varid = sema.bindings.get_varid(nm);
-        auto type  = sema.bindings.get_type(varid);
+        auto  varid = sema.bindings.get_varid(nm);
+        auto* type  = sema.bindings.get_type(varid);
 
         // Did not find the value inside the module
         if (value == nullptr) {

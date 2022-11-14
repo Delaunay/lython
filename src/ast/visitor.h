@@ -21,9 +21,8 @@ struct DefaultVisitorTrait {
     using ModRet              = ModNode*;
     using PatRet              = Pattern*;
 
-    enum {
-        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
-    };
+    enum
+    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
 #ifdef __linux__
