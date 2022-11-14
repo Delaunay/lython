@@ -27,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-11-14 03:43:22</td>
+      <td>2022-11-14 03:48:14</td>
     </tr>
   </table>
 </div>
@@ -41,9 +41,9 @@
     </tr>
     <tr>
       <th scope="row">Lines:</th>
-      <td>66</td>
-      <td>72</td>
-      <td class="coverage-high">91.7%</td>
+      <td>68</td>
+      <td>74</td>
+      <td class="coverage-high">91.9%</td>
     </tr>
     <tr>
       <th scope="row">Functions:</th>
@@ -53,9 +53,9 @@
     </tr>
     <tr>
       <th scope="row">Branches:</th>
-      <td>88</td>
-      <td>107</td>
-      <td class="coverage-medium">82.2%</td>
+      <td>89</td>
+      <td>109</td>
+      <td class="coverage-medium">81.7%</td>
     </tr>
   </table>
 </div>
@@ -185,13 +185,13 @@
     </tr>
     <tr>
       <td>
-        <a href="#l147">lython::SemaErrorPrinter::underline(lython::CommonAttributes const&amp;)</a>
+        <a href="#l152">lython::SemaErrorPrinter::underline(lython::CommonAttributes const&amp;)</a>
       </td>
       <td>
-        <a href="#l147">147</a>
+        <a href="#l152">152</a>
       </td>
       <td>
-        <a href="#l147"> called 8 times</a>
+        <a href="#l152"> called 8 times</a>
       </td>
     </tr>
     <tr>
@@ -1490,8 +1490,8 @@
       <td class="lineno"><a id="l121" href="#l121">121</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">8</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="kt">int</span><span class="w">    </span><span class="n">line</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
+      <td class="linecount "></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1499,11 +1499,19 @@
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="kt">bool</span><span class="w">   </span><span class="n">written</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src coveredLine"><span class="w">    </span><span class="kt">int</span><span class="w">  </span><span class="n">line</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l123" href="#l123">123</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">8</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">written</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l124" href="#l124">124</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1511,7 +1519,46 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l124" href="#l124">124</a></td>
+      <td class="lineno"><a id="l125" href="#l125">125</a></td>
+      <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/2</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 0 taken 8 times.</div>
+          <div class="notTakenBranch">&cross; Branch 1 not taken.</div>
+        </div>
+        </details>
+      </td>
+      <td class="linecount coveredLine">8</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">err</span><span class="p">.</span><span class="n">stmt</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l126" href="#l126">126</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount coveredLine">8</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">err</span><span class="p">.</span><span class="n">stmt</span><span class="o">-&gt;</span><span class="n">lineno</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l127" href="#l127">127</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l128" href="#l128">128</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l129" href="#l129">129</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">6/6</summary>
@@ -1530,7 +1577,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l125" href="#l125">125</a></td>
+      <td class="lineno"><a id="l130" href="#l130">130</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1538,7 +1585,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l126" href="#l126">126</a></td>
+      <td class="lineno"><a id="l131" href="#l131">131</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1546,7 +1593,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l127" href="#l127">127</a></td>
+      <td class="lineno"><a id="l132" href="#l132">132</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/1</summary>
@@ -1560,7 +1607,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l128" href="#l128">128</a></td>
+      <td class="lineno"><a id="l133" href="#l133">133</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/1</summary>
@@ -1574,7 +1621,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l129" href="#l129">129</a></td>
+      <td class="lineno"><a id="l134" href="#l134">134</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/1</summary>
@@ -1588,7 +1635,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l130" href="#l130">130</a></td>
+      <td class="lineno"><a id="l135" href="#l135">135</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/2</summary>
@@ -1603,7 +1650,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l131" href="#l131">131</a></td>
+      <td class="lineno"><a id="l136" href="#l136">136</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
@@ -1618,7 +1665,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l132" href="#l132">132</a></td>
+      <td class="lineno"><a id="l137" href="#l137">137</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
@@ -1626,7 +1673,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l133" href="#l133">133</a></td>
+      <td class="lineno"><a id="l138" href="#l138">138</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1634,7 +1681,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l134" href="#l134">134</a></td>
+      <td class="lineno"><a id="l139" href="#l139">139</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount uncoveredLine">&cross;</td>
@@ -1642,7 +1689,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l135" href="#l135">135</a></td>
+      <td class="lineno"><a id="l140" href="#l140">140</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1650,7 +1697,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l136" href="#l136">136</a></td>
+      <td class="lineno"><a id="l141" href="#l141">141</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/1</summary>
@@ -1664,7 +1711,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l137" href="#l137">137</a></td>
+      <td class="lineno"><a id="l142" href="#l142">142</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
@@ -1672,7 +1719,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l138" href="#l138">138</a></td>
+      <td class="lineno"><a id="l143" href="#l143">143</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1680,7 +1727,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l139" href="#l139">139</a></td>
+      <td class="lineno"><a id="l144" href="#l144">144</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/4</summary>
@@ -1697,7 +1744,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l140" href="#l140">140</a></td>
+      <td class="lineno"><a id="l145" href="#l145">145</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/1</summary>
@@ -1711,7 +1758,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l141" href="#l141">141</a></td>
+      <td class="lineno"><a id="l146" href="#l146">146</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1719,7 +1766,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l142" href="#l142">142</a></td>
+      <td class="lineno"><a id="l147" href="#l147">147</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1727,7 +1774,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l143" href="#l143">143</a></td>
+      <td class="lineno"><a id="l148" href="#l148">148</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">2/2</summary>
@@ -1742,7 +1789,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l144" href="#l144">144</a></td>
+      <td class="lineno"><a id="l149" href="#l149">149</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/1</summary>
@@ -1756,7 +1803,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l145" href="#l145">145</a></td>
+      <td class="lineno"><a id="l150" href="#l150">150</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
@@ -1764,7 +1811,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l146" href="#l146">146</a></td>
+      <td class="lineno"><a id="l151" href="#l151">151</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1772,7 +1819,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l147" href="#l147">147</a></td>
+      <td class="lineno"><a id="l152" href="#l152">152</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1780,7 +1827,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l148" href="#l148">148</a></td>
+      <td class="lineno"><a id="l153" href="#l153">153</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1788,7 +1835,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l149" href="#l149">149</a></td>
+      <td class="lineno"><a id="l154" href="#l154">154</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
@@ -1796,7 +1843,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l150" href="#l150">150</a></td>
+      <td class="lineno"><a id="l155" href="#l155">155</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1804,7 +1851,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l151" href="#l151">151</a></td>
+      <td class="lineno"><a id="l156" href="#l156">156</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">1/2</summary>
@@ -1819,7 +1866,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l152" href="#l152">152</a></td>
+      <td class="lineno"><a id="l157" href="#l157">157</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount uncoveredLine">&cross;</td>
@@ -1827,7 +1874,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l153" href="#l153">153</a></td>
+      <td class="lineno"><a id="l158" href="#l158">158</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1835,7 +1882,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l154" href="#l154">154</a></td>
+      <td class="lineno"><a id="l159" href="#l159">159</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1843,7 +1890,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l155" href="#l155">155</a></td>
+      <td class="lineno"><a id="l160" href="#l160">160</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
@@ -1851,7 +1898,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l156" href="#l156">156</a></td>
+      <td class="lineno"><a id="l161" href="#l161">161</a></td>
       <td class="linebranch">
         <details class="linebranchDetails">
         <summary class="linebranchSummary">4/4</summary>
@@ -1868,7 +1915,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l157" href="#l157">157</a></td>
+      <td class="lineno"><a id="l162" href="#l162">162</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">8</td>
@@ -1876,7 +1923,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l158" href="#l158">158</a></td>
+      <td class="lineno"><a id="l163" href="#l163">163</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1884,7 +1931,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l159" href="#l159">159</a></td>
+      <td class="lineno"><a id="l164" href="#l164">164</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1892,7 +1939,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l160" href="#l160">160</a></td>
+      <td class="lineno"><a id="l165" href="#l165">165</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
