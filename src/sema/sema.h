@@ -168,6 +168,12 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         return make_ref(parent, StringRef(name), varid);
     }
 
+    void record_attributes(ClassDef*               n,
+                           Array<StmtNode*> const& body,
+                           Array<StmtNode*>&       methods,
+                           FunctionDef**           ctor,
+                           int                     depth);
+
     Name* make_ref(Node* parent, StringRef const& name, int varid = -1) {
         auto ref = parent->new_object<Name>();
         ref->id  = name;

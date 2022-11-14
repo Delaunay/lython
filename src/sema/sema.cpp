@@ -644,6 +644,7 @@ TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
 
 // This is only called when loading
 TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
+    // <value>.<name>
     auto type_t  = exec(n->value, depth);
     auto class_t = get_class(type_t, depth);
 
@@ -980,20 +981,21 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     return fun_type;
 }
 
-void record_attributes(SemanticAnalyser*       self,
-                       ClassDef*               n,
-                       Array<StmtNode*> const& body,
-                       Array<StmtNode*>&       methods,
-                       FunctionDef**           ctor,
-                       int                     depth) {
+void SemanticAnalyser::record_attributes(ClassDef*               n,
+                                         Array<StmtNode*> const& body,
+                                         Array<StmtNode*>&       methods,
+                                         FunctionDef**           ctor,
+                                         int                     depth) {
 
     for (auto& stmt: n->body) {
-        Scope scope(self->bindings);
+        Scope scope(bindings);
 
         // Assignment
         ExprNode* target   = nullptr;
-        ExprNode* value    = nullptr;
         TypeExpr* target_t = nullptr;
+
+        ExprNode* value   = nullptr;
+        TypeExpr* value_t = nullptr;
 
         switch (stmt->kind) {
         case NodeKind::FunctionDef: {
@@ -1018,8 +1020,8 @@ void record_attributes(SemanticAnalyser*       self,
         case NodeKind::AnnAssign: {
             auto ann = cast<AnnAssign>(stmt);
             target   = ann->target;
-            value    = ann->value.has_value() ? ann->value.value() : nullptr;
-            target_t = ann->annotation;
+            value    = ann->value.fold(nullptr);
+            target_t = is_type(ann->annotation, depth, LOC) ? ann->annotation : nullptr;
             break;
         }
         default: debug("Unhandled statement {}", str(stmt->kind)); continue;
@@ -1032,16 +1034,18 @@ void record_attributes(SemanticAnalyser*       self,
             continue;
         }
 
-        TypeExpr* value_t = nullptr;
-
         // try to deduce type fo the value
         if (value) {
-            value_t = self->exec(value, depth);
+            value_t = exec(value, depth);
+
+            if (!is_type(value_t, depth, LOC)) {
+                value_t = nullptr;
+            }
         }
 
         // if both types are available do a type check
         if (target_t != nullptr && value_t != nullptr) {
-            self->typecheck(target, target_t, value, value_t, LOC);
+            typecheck(target, target_t, value, value_t, LOC);
         }
 
         // insert attribute using the annotation first
@@ -1154,7 +1158,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
 
     // Do a first pass to look for special methods such as __init__
     // the attributes here are also static
-    record_attributes(this, n, n->body, methods, &ctor, depth);
+    record_attributes(n, n->body, methods, &ctor, depth);
     // -----------------------------
 
     // get __init__ and do a pass to insert its attribute to the class
