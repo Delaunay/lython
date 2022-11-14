@@ -470,8 +470,9 @@ ClassDef* SemanticAnalyser::get_class(ExprNode* classref, int depth) {
     return cls;
 }
 
-Arrow* get_arrow(
-    SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls) {
+Arrow*
+SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls) {
+
     if (type == nullptr) {
         return nullptr;
     }
@@ -487,7 +488,8 @@ Arrow* get_arrow(
         }
 
         // Fetch the class type inside the binding
-        cls = self->get_class(fun, depth);
+        cls = get_class(fun, depth);
+
         if (cls == nullptr) {
             warn("Could not resolve class");
             return nullptr;
@@ -501,8 +503,8 @@ Arrow* get_arrow(
         //
 
         String ctor_name = String(cls->name) + String(".__init__");
-        int    ctorvarid = self->bindings.get_varid(ctor_name);
-        Node*  ctor      = self->bindings.get_value(ctorvarid);
+        int    ctorvarid = bindings.get_varid(ctor_name);
+        Node*  ctor      = bindings.get_value(ctorvarid);
 
         // Now we can switch the function being called from being the class
         // to being the constructor of the class
@@ -512,8 +514,8 @@ Arrow* get_arrow(
         Name* fun_ref = cast<Name>(fun);
         if (fun_ref && ctorvarid != -1) {
             fun_ref->varid   = ctorvarid;
-            fun_ref->size    = int(self->bindings.bindings.size()) - fun_ref->varid;
-            fun_ref->dynamic = self->bindings.is_dynamic(fun_ref->varid);
+            fun_ref->size    = int(bindings.bindings.size()) - fun_ref->varid;
+            fun_ref->dynamic = bindings.is_dynamic(fun_ref->varid);
         } else {
             warn("Constructor was not found");
         }
@@ -524,7 +526,7 @@ Arrow* get_arrow(
 
         if (init == nullptr) {
             debug("Use default ctor");
-            auto   cls_ref = self->make_ref(fun, cls->name);
+            auto   cls_ref = make_ref(fun, cls->name);
             Arrow* arrow   = fun->new_object<Arrow>();
             arrow->add_arg_type(cls_ref);
             arrow->returns = cls_ref;
@@ -535,9 +537,9 @@ Arrow* get_arrow(
                 return init->type;
             }
 
-            auto init_t = self->exec(init, depth);
-            debug("Got a custom ctor {}", str(init_t));
-            return cast<Arrow>(init_t);
+            // if not then we are doing it right now and this is a circle
+            SEMA_ERROR(fun, RecursiveDefinition, "", fun, cls);
+            return nullptr;
         }
     }
     default: break;
@@ -551,7 +553,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
 
     int       offset = 0;
     ClassDef* cls    = nullptr;
-    auto      arrow  = get_arrow(this, n->func, type, depth, offset, cls);
+    auto      arrow  = get_arrow(n->func, type, depth, offset, cls);
 
     if (arrow == nullptr) {
         SEMA_ERROR(n, TypeError, fmt::format("{} is not callable", str(n->func)));
@@ -817,7 +819,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
             ann_valid = is_type(annotation, depth, LOC);
         }
 
-        if (annotation != nullptr && value_t) {
+        if (ann_valid && value_t_valid) {
             typecheck(nullptr, annotation, value, value_t, LOC);
         }
 
@@ -954,7 +956,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     Arrow*    fun_type = functiondef_arrow(n, lst, depth);
     TypeExpr* return_t = fun_type->returns;
 
-    // Update the function type know that we have it
+    // Update the function type at the very end
     bindings.set_type(id, fun_type);
 
     // Infer return type from the body
@@ -1274,7 +1276,7 @@ TypeExpr* SemanticAnalyser::augassign(AugAssign* n, int depth) {
 //! this enbles users to use annotation to debug
 TypeExpr* SemanticAnalyser::annassign(AnnAssign* n, int depth) {
     TypeExpr* constraint = n->annotation;
-    is_type(n->annotation, depth, LOC);
+    bool      ann_valid  = is_type(n->annotation, depth, LOC);
 
     ExprNode* value   = n->value.fold(nullptr);
     TypeExpr* value_t = exec<TypeExpr*>(n->value, depth).fold(nullptr);
@@ -1297,18 +1299,14 @@ TypeExpr* SemanticAnalyser::annassign(AnnAssign* n, int depth) {
                   LOC);
     }
 
-    if (value_t && !constraint) {
+    if (value_t && !ann_valid) {
+        constraint = value_t;
         info("Could fix annotation here was {} should be {}", str(n->annotation), str(value_t));
 
         // FIX annotation
         if (false) {
             n->annotation = value_t;
         }
-    }
-
-    // User put the wrong constraint ?
-    if (!constraint && value_t) {
-        constraint = value_t;
     }
 
     if (n->target->kind == NodeKind::Name) {

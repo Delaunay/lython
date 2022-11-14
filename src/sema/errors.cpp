@@ -80,4 +80,10 @@ std::string ImportError::message(String const& module, String const& name) {
     return fmt::format("ImportError: cannot import name {} from '{}'", name, module);
 }
 
+std::string RecursiveDefinition::message() const { return message(fun, cls); }
+
+std::string RecursiveDefinition::message(ExprNode const* fun, ClassDef const* cls) {
+    return "RecursiveDefinition: ";
+}
+
 }  // namespace lython

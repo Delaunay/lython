@@ -5,10 +5,14 @@ fuzz: fuzz-build fuzz-run
 fuzz-build:
 	mkdir -p fuzzing/build
 
+	#
+	# Disable max recursion depth so we do not throw on far fetched examples
+	#
 	cd fuzzing/build && CC=/usr/bin/afl-clang-fast CXX=/usr/bin/afl-clang-fast++ cmake\
 		-DCMAKE_BUILD_TYPE=RelWithDebInfo			\
 		-DWITH_LOG=0								\
 		-DWITH_COVERAGE=0							\
+		-DLY_MAX_VISITOR_RECURSION_DEPTH=-1         \
 		 ../../../
 
 	cd fuzzing/build &&make -j 32

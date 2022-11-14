@@ -814,7 +814,7 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
     case tok_string:
     case tok_float: {
         auto pat   = parent->new_object<MatchSingleton>();
-        pat->value = get_value();
+        pat->value = get_value(pat);
         next_token();
         return pat;
     }
@@ -1424,7 +1424,57 @@ ExprNode* Parser::parse_name(Node* parent, int depth) {
     return expr;
 }
 
-ConstantValue Parser::get_value() {
+#define LY_UINT64_MAX sizeof("18446744073709551615") / sizeof(char)
+#define LY_UINT32_MAX sizeof("4294967295") / sizeof(char)
+#define LY_UINT16_MAX sizeof("65535") / sizeof(char)
+#define LY_UINT8_MAX  sizeof("255") / sizeof(char)
+
+// +1 char for the minus
+#define LY_INT64_MAX sizeof("9223372036854775807") / sizeof(char)
+#define LY_INT32_MAX sizeof("2147483647") / sizeof(char)
+#define LY_INT16_MAX sizeof("32767") / sizeof(char)
+#define LY_INT8_MAX  sizeof("255") / sizeof(char)
+
+bool Parser::is_valid_value() {
+    String const& value    = token().identifier();
+    int           has_sign = value[0] == '-' || value[0] == '+';
+
+    switch (token().type()) {
+    case tok_string: {
+        return true;
+    }
+    case tok_int: {
+        if (value.size() > 18 + has_sign) {
+            return false;
+        }
+        return true;
+    }
+    case tok_float: {
+        // Max numbers of digits
+        if (value.size() > 16 + has_sign) {
+            return false;
+        }
+        return true;
+    }
+    case tok_none:
+    case tok_true:
+    case tok_false: return true;
+    }
+
+    return false;
+}
+
+ConstantValue Parser::get_value(Node* parent) {
+    if (!is_valid_value()) {
+        ParsingError& error = parser_error(  //
+            LOC,                             //
+            "SyntaxError",                   //
+            "Value is out of range"          //
+        );
+        add_wip_expr(error, parent);
+        PARSER_THROW(SyntaxError, error);
+    }
+
     switch (token().type()) {
 
     case tok_string: {
@@ -1465,11 +1515,10 @@ ExprNode* Parser::parse_constant(Node* parent, int depth) {
     }
 //
 #endif
-
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
 
-    expr->value = get_value();
+    expr->value = get_value(expr);
 
     end_code_loc(expr, token());
     next_token();
@@ -1899,7 +1948,14 @@ ExprNode* Parser::parse_prefix_unary(Node* parent, int depth) {
     }
 
     if (conf.unarykind == UnaryOperator::None) {
-        error("expected an unary operator not {}", str(token()));
+        ParsingError& error = parser_error(              //
+            LOC,                                         //
+            "SyntaxError",                               //
+            fmtstr("Expected an unary operator not {}",  //
+                   str(token())));
+
+        add_wip_expr(error, parent);
+        PARSER_THROW(SyntaxError, error);
     }
 
     next_token();
@@ -2354,8 +2410,17 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
             Compare* lhs_parent = cast<Compare>(parent);
             if (lhs_parent) {
                 comp = lhs_parent;
-                comp->safe_comparator_add(lhs);
-                comp->ops.push_back(op_conf.cmpkind);
+                if (comp->safe_comparator_add(lhs)) {
+                    comp->ops.push_back(op_conf.cmpkind);
+                } else {
+                    ParsingError& err = parser_error(          //
+                        LOC,                                   //
+                        "SyntaxError",                         //
+                        fmtstr("Unable to parse comparators")  //
+                    );
+                    add_wip_expr(err, parent);
+                    PARSER_THROW(SyntaxError, err);
+                }
             } else {
                 comp       = parent->new_object<Compare>();
                 comp->left = lhs;
@@ -2399,7 +2464,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
         // whose precedence is equal to op's
         while (lookahead.type() == tok_operator && is_binary_operator_family(lookconf) &&
                (lookpred > oppred || (right_assoc && lookpred == oppred))) {
-            rhs = parse_expression_1(parent, rhs, oppred + 1, depth + 1);
+            rhs = parse_expression_1(parent, rhs, oppred, depth + 1);
 
             lookahead = token();
 

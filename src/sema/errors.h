@@ -113,6 +113,19 @@ struct UnsupportedOperand: public SemaException {
     TypeExpr* rhs_t = nullptr;
 };
 
+struct RecursiveDefinition: public SemaException {
+    RecursiveDefinition(String const& str, ExprNode* fun, ClassDef* cls):
+        msg(str), fun(fun), cls(cls) {}
+
+    std::string message() const override;
+
+    static std::string message(ExprNode const* lhs_t, ClassDef const* rhs_t);
+
+    String    msg;
+    ExprNode* fun = nullptr;
+    ClassDef* cls = nullptr;
+};
+
 struct ModuleNotFoundError: public SemaException {
     ModuleNotFoundError(StringRef const& mod): module(mod) {}
 

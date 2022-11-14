@@ -21,8 +21,9 @@ struct TreeEvaluatorTrait {
     using PatRet  = PartialResult*;
     using Trace   = std::true_type;
 
-    enum
-    { MaxRecursionDepth = 256 };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 struct StackTrace {

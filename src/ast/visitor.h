@@ -5,6 +5,10 @@
 #include "dependencies/coz_wrap.h"
 #include "logging/logging.h"
 
+#ifndef LY_MAX_VISITOR_RECURSION_DEPTH
+#    define LY_MAX_VISITOR_RECURSION_DEPTH 256
+#endif
+
 namespace lython {
 
 NEW_EXCEPTION(NullPointerError)
@@ -17,8 +21,9 @@ struct DefaultVisitorTrait {
     using ModRet              = ModNode*;
     using PatRet              = Pattern*;
 
-    enum
-    { MaxRecursionDepth = 256 };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 #ifdef __linux__

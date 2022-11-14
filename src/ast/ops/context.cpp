@@ -11,8 +11,9 @@ struct TraverseTrait {
     using PatRet  = void_t;
     using Trace   = std::false_type;
 
-    enum
-    { MaxRecursionDepth = 256 };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 // Generic visitor for simple tree operation

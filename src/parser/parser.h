@@ -14,8 +14,7 @@
 
 namespace lython {
 
-enum class ParsingContext
-{
+enum class ParsingContext {
     None,
     Comprehension,
     Slice,
@@ -203,7 +202,8 @@ class Parser {
 
     void end_code_loc(CommonAttributes* target, Token tok);
 
-    ConstantValue get_value();
+    bool          is_valid_value();
+    ConstantValue get_value(Node* parent);
 
     OpConfig const& get_operator_config(Token const& tok) const;
 
@@ -290,8 +290,7 @@ class Parser {
 
     Array<ParsingError> const& get_errors() const { return errors; }
 
-    enum class Mode
-    {
+    enum class Mode {
         Stmt,
         Expr,
         Pattern

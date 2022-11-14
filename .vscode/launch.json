@@ -190,7 +190,7 @@
             "args": [
                 "internal",
                 "--file",
-                "${workspaceFolder}/hardening/fuzzing/results_older/crashes/id:000000,sig:11,src:003417,time:20346833,op:arith8,pos:24,val:+3",
+                "${workspaceFolder}/hardening/fuzzing/results/crashes/id:000078,sig:06,src:002858,time:42937322,op:havoc,rep:16",
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

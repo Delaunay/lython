@@ -17,7 +17,7 @@ struct CircleTrait {
     using PatRet  = bool;
 
     enum {
-        MaxRecursionDepth = 256
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
     };
 };
 

@@ -154,17 +154,6 @@ KeywordToString& keyword_as_string();
 
 int8 tok_name_size();
 
-#define LY_UINT64_MAX sizeof("18446744073709551615") / sizeof(char)
-#define LY_UINT32_MAX sizeof("4294967295") / sizeof(char)
-#define LY_UINT16_MAX sizeof("65535") / sizeof(char)
-#define LY_UINT8_MAX  sizeof("255") / sizeof(char)
-
-// +1 char for the minus
-#define LY_INT64_MAX sizeof("9223372036854775807") / sizeof(char)
-#define LY_INT32_MAX sizeof("2147483647") / sizeof(char)
-#define LY_INT16_MAX sizeof("32767") / sizeof(char)
-#define LY_INT8_MAX  sizeof("255") / sizeof(char)
-
 class Token {
     public:
     Token(TokenType t, int32 l, int32 c): _type(t), _line(l), _col(c) {}
@@ -190,16 +179,6 @@ class Token {
 
     int64  as_integer() const { return std::strtoll(_identifier.c_str(), nullptr, 10); }
     uint64 as_uint64() const { return std::strtoull(_identifier.c_str(), nullptr, 10); }
-
-    // Find a way to do this well...
-    void get_min_size(bool& bsigned, int& size) {
-        int n = _identifier.size();
-
-        if (n > LY_INT64_MAX && n < LY_UINT64_MAX) {
-            bsigned = false;
-            size    = 64;
-        }
-    }
 
     operator bool() const { return _type != tok_eof; }
 

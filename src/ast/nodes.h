@@ -401,14 +401,19 @@ struct Compare: public ExprNode {
     Array<StmtNode*>    resolved_operator;
     Array<NativeCompOp> native_operator;
 
-    void safe_comparator_add(ExprNode* comp) {
-        assert(comp != this, "Cannot insert itself");
+    bool safe_comparator_add(ExprNode* comp) {
+        if (comp == this) {
+            return false;
+        }
 
         for (auto& expr: comparators) {
-            assert(comp != expr, "Cannot insert duplicate");
+            if (comp == expr) {
+                return false;
+            }
         }
 
         comparators.push_back(comp);
+        return true;
     }
 
     Compare(): ExprNode(NodeKind::Compare) {}
@@ -688,7 +693,7 @@ struct FunctionDef: public StmtNode {
     bool async : 1;
     // SEMA
     bool          generator : 1;
-    struct Arrow* type          = nullptr;
+    struct Arrow* type = nullptr;
 
     FunctionDef(): StmtNode(NodeKind::FunctionDef), async(false), generator(false) {}
 };
@@ -979,24 +984,8 @@ struct Arrow: public ExprNode {
 
     // TODO: check how to resolve circular types
     //
-    bool add_arg_type(ExprNode* arg_type) {
-        if (arg_type != this) {
-            args.push_back(arg_type);
-            return true;
-        }
-        warn("trying to assing self to an arrow argument");
-        return false;
-    }
-
-    bool set_arg_type(int i, ExprNode* arg_type) {
-        if (arg_type != this) {
-            args[i] = arg_type;
-            return true;
-        }
-
-        warn("trying to assing self to an arrow argument");
-        return false;
-    }
+    bool add_arg_type(ExprNode* arg_type);
+    bool set_arg_type(int i, ExprNode* arg_type);
 
     Array<StringRef>      names;     // Allow the names to be there as well
     Dict<StringRef, bool> defaults;  //

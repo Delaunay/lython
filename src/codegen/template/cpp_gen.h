@@ -19,8 +19,9 @@ struct CPPGenVisitorTrait {
     using IsConst = std::false_type;
     using Trace   = std::true_type;
 
-    enum
-    { MaxRecursionDepth = 256 };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 /*

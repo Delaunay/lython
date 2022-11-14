@@ -26,7 +26,7 @@ struct SemaVisitorTrait {
     using Trace   = std::true_type;
 
     enum {
-        MaxRecursionDepth = 256
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
     };
 };
 
@@ -152,6 +152,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Arrow* functiondef_arrow(FunctionDef* n, StmtNode* class_t, int depth);
 
     String generate_function_name(FunctionDef* n);
+
+    Arrow* get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls);
 
     TypeExpr* oneof(Array<TypeExpr*> types) {
         if (types.size() > 0) {
