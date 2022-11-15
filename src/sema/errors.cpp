@@ -89,13 +89,26 @@ std::string RecursiveDefinition::message(ExprNode const* fun, ClassDef const* cl
 }
 
 StmtNode* get_parent_stmt(Node* node) {
-    Node const* n = node->get_parent();
+    Array<Node const*> nodes;
+    Node const*        n = node;
 
     while (n != nullptr) {
         if (n->family() == NodeFamily::Statement) {
             return (StmtNode*)n;
         }
+        if (n->family() == NodeFamily::Module) {
+            return nullptr;
+        }
         n = n->get_parent();
+
+        for (auto const* prev: nodes) {
+            if (prev == n) {
+                error("Circle found inside GC nodes");
+                // circle should not happen
+                return nullptr;
+            }
+        }
+        nodes.push_back(n);
     }
     return nullptr;
 }

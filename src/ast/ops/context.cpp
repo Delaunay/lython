@@ -11,8 +11,9 @@ struct TraverseTrait {
     using PatRet  = void_t;
     using Trace   = std::false_type;
 
-    enum
-    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 // Generic visitor for simple tree operation
@@ -44,13 +45,13 @@ struct Traverse: public BaseVisitor<Traverse, false, TraverseTrait> {
     virtual void_t starred(Starred* n, int depth) { return void_t(); }
     virtual void_t name(Name* n, int depth) { return void_t(); }
     virtual void_t listexpr(ListExpr* n, int depth) {
-        for (auto i: n->elts) {
+        for (auto* i: n->elts) {
             Super::exec(i, depth);
         }
         return void_t();
     }
     virtual void_t tupleexpr(TupleExpr* n, int depth) {
-        for (auto i: n->elts) {
+        for (auto* i: n->elts) {
             Super::exec(i, depth);
         }
         return void_t();
@@ -134,10 +135,9 @@ struct SetContext: public Traverse {
 };
 
 void set_context(Node* n, ExprContext ctx) {
-    SetContext t;
-    t.ctx = ctx;
-    t.exec<void_t>(n, 0);
-    return;
+    SetContext ctx_visitor;
+    ctx_visitor.ctx = ctx;
+    ctx_visitor.exec<void_t>(n, 0);
 }
 
 }  // namespace lython

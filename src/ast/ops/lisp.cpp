@@ -1,10 +1,9 @@
+#include "ast/lisp.h"
 #include "ast/magic.h"
 #include "ast/nodes.h"
 #include "ast/visitor.h"
 #include "logging/logging.h"
 #include "utilities/strings.h"
-
-#include "ast/lisp.h"
 
 namespace lython {
 

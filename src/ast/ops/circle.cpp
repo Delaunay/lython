@@ -78,8 +78,9 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
 
     template <typename T>
     bool any_of(Array<T> const& elts, int depth) {
-        // std::any_of produce so much asm crap
-        //
+        // std::any_of produce so much asm crap in gcc-12 & clang-15
+        // zig++ generates fine code though
+        // msvc generates the worst code by far
         for (auto const& elt: elts) {  // NOLINT
             if (exec(elt, depth))
                 return true;

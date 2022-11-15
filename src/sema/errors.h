@@ -38,11 +38,11 @@ struct SemaException: LythonException {
     }
 
     void set_node(Node* node) {
-        if (node->family() == NodeFamily::Expression) {
+        if (node && node->family() == NodeFamily::Expression) {
             set_expr((ExprNode*)node);
         }
 
-        if (node->family() == NodeFamily::Statement) {
+        if (node && node->family() == NodeFamily::Statement) {
             set_stmt((StmtNode*)node);
         }
     }

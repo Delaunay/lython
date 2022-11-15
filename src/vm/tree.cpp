@@ -38,7 +38,7 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
     Array<PartialResult*> partials;
     partials.reserve(n->comparators.size());
 
-    bool bnative   = n->native_operator.size() > 0;
+    bool bnative   = !n->native_operator.empty();
     bool full_eval = true;
     bool result    = true;
 
@@ -48,7 +48,7 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
         Constant* right_const = cast<Constant>(right);
 
-        if (left_const && right_const) {
+        if (left_const != nullptr && right_const != nullptr) {
             Constant* value = nullptr;
 
             if (!bnative) {
@@ -92,7 +92,7 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
     comp->resolved_operator = n->resolved_operator;
     comp->native_operator   = n->native_operator;
 
-    for (auto p: partials) {
+    for (auto* p: partials) {
         comp->comparators.push_back((ExprNode*)p);
     }
     return comp;
@@ -123,10 +123,10 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
 
         Constant* second = cast<Constant>(second_value);
 
-        if (first && second) {
+        if (first != nullptr && second != nullptr) {
             Constant* value = nullptr;
 
-            if (n->resolved_operator) {
+            if (n->resolved_operator != nullptr) {
                 Scope scope(bindings);
 
                 bindings.add(StringRef(), first_value, nullptr);
@@ -136,17 +136,17 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
 
                 result = reduce(result, value->value.get<bool>());
 
-            } else if (n->native_operator) {
+            } else if (n->native_operator != nullptr) {
                 ConstantValue v = n->native_operator(first->value, second->value);
                 result          = reduce(result, v.get<bool>());
             }
 
             // Shortcut
-            if (n->op == BoolOperator::And && result == false) {
+            if (n->op == BoolOperator::And && !result) {
                 return False();
             }
 
-            if (n->op == BoolOperator::Or && result == true) {
+            if (n->op == BoolOperator::Or && result) {
                 return True();
             }
 
@@ -170,7 +170,7 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
     boolop->resolved_operator = n->resolved_operator;
     boolop->native_operator   = n->native_operator;
 
-    for (auto p: partials) {
+    for (auto* p: partials) {
         boolop->values.push_back((ExprNode*)p);
     }
     return boolop;
@@ -178,18 +178,19 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
 
 PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
 
-    auto lhs = exec(n->left, depth);
-    auto rhs = exec(n->right, depth);
+    auto* lhs = exec(n->left, depth);
+    auto* rhs = exec(n->right, depth);
 
     // TODO: if they evaluate to constant that belong to the value root
     // we can free them as soon as we finish combining the values
 
     // We can execute the function because both arguments got resolved
-    if (lhs && lhs->is_instance<Constant>() && rhs && rhs->is_instance<Constant>()) {
+    if (lhs != nullptr && lhs->is_instance<Constant>() && rhs != nullptr &&
+        rhs->is_instance<Constant>()) {
         PartialResult* result = nullptr;
 
         // Execute function
-        if (n->resolved_operator) {
+        if (n->resolved_operator != nullptr) {
             Scope scope(bindings);
 
             bindings.add(StringRef(), lhs, nullptr);
@@ -198,14 +199,14 @@ PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
             result = exec(n->resolved_operator, depth);
         }
 
-        else if (n->native_operator) {
+        else if (n->native_operator != nullptr) {
             Constant* lhsc = static_cast<Constant*>(lhs);
             Constant* rhsc = static_cast<Constant*>(rhs);
 
             result = root.new_object<Constant>(n->native_operator(lhsc->value, rhsc->value));
         }
 
-        if (result) {
+        if (result != nullptr) {
             // Free the temporary values because we were able to combine them into a result
             // lhs/rhs could be constant created by the parser, in that case their parent are not
             // the root node and they should not be destroyed
@@ -237,19 +238,19 @@ PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
 }
 
 PartialResult* TreeEvaluator::unaryop(UnaryOp_t* n, int depth) {
-    auto operand = exec(n->operand, depth);
+    auto* operand = exec(n->operand, depth);
 
     // We can execute the function because both arguments got resolved
-    if (operand && operand->is_instance<Constant>()) {
+    if (operand != nullptr && operand->is_instance<Constant>()) {
 
         // Execute function
-        if (n->resolved_operator) {
+        if (n->resolved_operator != nullptr) {
             Scope scope(bindings);
             bindings.add(StringRef(), operand, nullptr);
             return exec(n->resolved_operator, depth);
         }
 
-        if (n->native_operator) {
+        if (n->native_operator != nullptr) {
             Constant* operandc = static_cast<Constant*>(operand);
             return root.new_object<Constant>(n->native_operator(operandc->value));
         }
@@ -281,9 +282,9 @@ PartialResult* TreeEvaluator::namedexpr(NamedExpr_t* n, int depth) {
 }
 
 PartialResult* TreeEvaluator::lambda(Lambda_t* n, int depth) {
-    auto result = exec(n->body, depth);
+    auto* result = exec(n->body, depth);
 
-    if (result->is_instance<Constant>())
+    if (result != nullptr && result->is_instance<Constant>())
         return result;
 
     // Here we should build a new lambda
@@ -296,7 +297,7 @@ PartialResult* TreeEvaluator::lambda(Lambda_t* n, int depth) {
 PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
     Constant* value = cast<Constant>(exec(n->test, depth));
 
-    if (!value) {
+    if (value == nullptr) {
         // Could not evaluate the if test
         // the entire expression cannot be evaluated
         return n;
@@ -324,7 +325,7 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function,
         args.push_back(arg);
 
         Constant* value = cast<Constant>(arg);
-        if (value) {
+        if (value != nullptr) {
             value_args.push_back(value);
         }
         compile_time = compile_time && value != nullptr;
@@ -411,7 +412,7 @@ Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int dept
 
     Constant* self = nullptr;
 
-    if (new_fun) {
+    if (new_fun != nullptr) {
         Scope _(bindings);
         bindings.add(StringRef(), class_t, nullptr);
         for (auto& arg: args) {
@@ -421,7 +422,7 @@ Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int dept
         for (auto& stmt: new_fun->body) {
             exec(stmt, depth);
 
-            if (return_value) {
+            if (return_value != nullptr) {
                 self = cast<Constant>(return_value);
                 break;
             }
@@ -432,7 +433,7 @@ Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int dept
         }
     }
 
-    if (init_fun) {
+    if (init_fun != nullptr) {
         Scope _(bindings);
 
         bindings.add(StringRef(), self, nullptr);
@@ -479,7 +480,7 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     StackTrace& trace = traces.emplace_back();
 
     // fetch the function we need to call
-    auto function = exec(n->func, depth);
+    auto* function = exec(n->func, depth);
     assert(function, "Function should be found");
 
     if (FunctionDef_t* fun = cast<FunctionDef>(function)) {
@@ -533,13 +534,13 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
     assert(result != nullptr, "Could not find variable");
     // bindings.dump(std::cout);
 
-    String kindstr = "";
-    if (result) {
+    String kindstr;
+    if (result != nullptr) {
         kindstr = str(result->kind);
     }
 
     String strresult;
-    if (result && result->kind == NodeKind::Constant) {
+    if (result != nullptr && result->kind == NodeKind::Constant) {
         strresult = str(result);
     }
     debug("Name (varid: {}), (size: {}) (offset: {}) resolved: {}",
@@ -595,7 +596,7 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
     TupleExpr* targets = cast<TupleExpr>(n->targets[0]);
     TupleExpr* values  = cast<TupleExpr>(value);
 
-    if (values && targets) {
+    if (values != nullptr && targets != nullptr) {
         assert(values->elts.size() == targets->elts.size(), "Size must match");
 
         for (int i = 0; i < values->elts.size(); i++) {
@@ -610,24 +611,24 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
 PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
 
     // This should a Name
-    auto name = cast<Name>(n->target);
+    auto* name = cast<Name>(n->target);
 
-    if (!name) {
+    if (name != nullptr) {
         error("Assign to {}", str(n->target->kind));
         return None();
     }
 
-    auto left  = exec(n->target, depth);  // load a
-    auto right = exec(n->value, depth);   // load b
+    auto* left  = exec(n->target, depth);  // load a
+    auto* right = exec(n->value, depth);   // load b
 
-    auto left_v  = cast<Constant>(left);
-    auto right_v = cast<Constant>(right);
+    auto* left_v  = cast<Constant>(left);
+    auto* right_v = cast<Constant>(right);
 
-    if (left_v && right_v) {
+    if (left_v != nullptr && right_v != nullptr) {
         PartialResult* value = nullptr;
 
         // Execute function
-        if (n->resolved_operator) {
+        if (n->resolved_operator != nullptr) {
             Scope scope(bindings);
 
             bindings.add(StringRef(), left_v, nullptr);
@@ -636,7 +637,7 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
             value = exec(n->resolved_operator, depth);
         }
 
-        else if (n->native_operator) {
+        else if (n->native_operator != nullptr) {
             auto result = n->native_operator(left_v->value, right_v->value);
             value       = root.new_object<Constant>(result);
         } else {
@@ -724,7 +725,7 @@ PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
         // node itself
         assert(value, "While test should return a boolean");
 
-        bool bcontinue = value && value->value.get<bool>();
+        bool bcontinue = value != nullptr && value->value.get<bool>();
 
         if (!bcontinue || broke) {
             break;
@@ -766,7 +767,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
 
     Array<StmtNode*>& body = n->orelse;
     // Chained
-    if (n->tests.size() > 0) {
+    if (!n->tests.empty()) {
         for (int i = 0; i < n->tests.size(); i++) {
             Constant* value = cast<Constant>(exec(n->test, depth));
             assert(value, "If test should return a boolean");
@@ -818,7 +819,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
 PartialResult* TreeEvaluator::assertstmt(Assert_t* n, int depth) {
     PartialResult* btest = exec(n->test, depth);
     Constant*      value = cast<Constant>(btest);
-    if (value) {
+    if (value != nullptr) {
         if (!value->value.get<bool>()) {
             // make_ref(n, "AssertionError") n->msg
             raise_exception(nullptr, nullptr);
@@ -865,7 +866,7 @@ PartialResult* TreeEvaluator::raise(Raise_t* n, int depth) {
 
     if (n->exc.has_value()) {
         // create a new exceptins
-        auto obj = exec(n->exc.value(), depth);
+        auto* obj = exec(n->exc.value(), depth);
 
         if (n->cause.has_value()) {
             cause = exec(n->cause.value(), depth);
@@ -931,20 +932,26 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
         for (ExceptHandler const& handler: n->handlers) {
             // match the exception type to the one we received
 
+            bool found_matcher = false;
+
             // catch all
             if (!handler.type.has_value()) {
-                matched = &handler;
-                break;
+                matched       = &handler;
+                found_matcher = true;
             }
 
             // FIXME: we do not have the type at runtime!!!
             else if (equal(handler.type.value(), latest_exception->type)) {
-                matched = &handler;
+                matched       = &handler;
+                found_matcher = true;
+            }
+
+            if (found_matcher) {
                 break;
             }
         }
 
-        if (matched) {
+        if (matched != nullptr) {
             Scope    _(bindings);
             Constant exception;
 
@@ -1029,8 +1036,8 @@ finally:
 PartialResult* TreeEvaluator::with(With_t* n, int depth) {
     // Call enter
     for (auto& item: n->items) {
-        auto ctx    = exec(item.context_expr, depth);
-        auto result = call_enter(ctx, depth);
+        auto* ctx    = exec(item.context_expr, depth);
+        auto* result = call_enter(ctx, depth);
 
         if (item.optional_vars.has_value()) {
             bindings.add(StringRef(""), result, nullptr);
@@ -1050,7 +1057,7 @@ PartialResult* TreeEvaluator::with(With_t* n, int depth) {
     auto _ = HandleException(this);
 
     for (auto& item: n->items) {
-        auto ctx = exec(item.context_expr, depth);
+        auto* ctx = exec(item.context_expr, depth);
         call_exit(ctx, depth);
     }
 
@@ -1070,7 +1077,7 @@ PartialResult* TreeEvaluator::dictcomp(DictComp_t* n, int depth) { return nullpt
 
 PartialResult* TreeEvaluator::yield(Yield_t* n, int depth) {
     if (n->value.has_value()) {
-        auto value = exec(n->value.value(), depth);
+        auto* value = exec(n->value.value(), depth);
         // Get the top level functions and create a lambda
         yielding     = true;
         return_value = value;
@@ -1146,19 +1153,19 @@ PartialResult* TreeEvaluator::nonlocal(Nonlocal_t* n, int depth) {
     return nullptr;
 }
 
-#define PRINT(msg) std::cout << msg << "\n";
+#define PRINT(msg) std::cout << (msg) << "\n";
 
 void printtrace(StackTrace& trace) {
     String file   = "<input>";
     int    line   = -1;
     String parent = "<module>";
-    String expr   = "";
+    String expr;
 
-    if (trace.stmt) {
+    if (trace.stmt != nullptr) {
         line   = trace.stmt->lineno;
         parent = shortprint(get_parent(trace.stmt));
         expr   = shortprint(trace.stmt);
-    } else if (trace.expr) {
+    } else if (trace.expr != nullptr) {
         line   = trace.expr->lineno;
         parent = shortprint(trace.stmt);
         expr   = shortprint(trace.stmt);
@@ -1169,7 +1176,7 @@ void printtrace(StackTrace& trace) {
 }
 
 PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
-    auto result = exec(stmt, 0);
+    auto* result = exec(stmt, 0);
 
     if (has_exceptions()) {
         lyException* except = exceptions[exceptions.size() - 1];

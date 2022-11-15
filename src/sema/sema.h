@@ -25,8 +25,9 @@ struct SemaVisitorTrait {
     using IsConst = std::false_type;
     using Trace   = std::true_type;
 
-    enum
-    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 struct SemaContext {
@@ -152,6 +153,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     String operator_function(TypeExpr* expr_t, StringRef op);
 
     Arrow* functiondef_arrow(FunctionDef* n, StmtNode* class_t, int depth);
+    void   record_ctor_attributes(ClassDef* n, FunctionDef* ctor, int depth);
 
     String generate_function_name(FunctionDef* n);
 

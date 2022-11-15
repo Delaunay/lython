@@ -2408,7 +2408,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
         else if (op_conf.cmpkind != CmpOperator::None) {
             // parent is a Comparison (1 < ?expr < ) and we are doing chained comparison
             Compare* lhs_parent = cast<Compare>(parent);
-            if (lhs_parent) {
+            if (lhs_parent != nullptr) {
                 comp = lhs_parent;
                 if (comp->safe_comparator_add(lhs)) {
                     comp->ops.push_back(op_conf.cmpkind);
@@ -2433,13 +2433,22 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
         else if (op_conf.boolkind != BoolOperator::None) {
             BoolOp* lhs_parent = cast<BoolOp>(parent);
 
-            if (lhs_parent && lhs_parent->op == op_conf.boolkind) {
+            if (lhs_parent != nullptr && lhs_parent->op == op_conf.boolkind) {
                 boolop = lhs_parent;
-                boolop->values.push_back(lhs);
-                boolop->opcount += 1;
+
+                if (boolop->safe_value_add(lhs)) {
+                    boolop->opcount += 1;
+                } else {
+                    ParsingError& err = parser_error(                     //
+                        LOC,                                              //
+                        "SyntaxError",                                    //
+                        fmtstr("Unable to finish parsing bool operator")  //
+                    );
+                    add_wip_expr(err, parent);
+                    PARSER_THROW(SyntaxError, err);
+                }
 
             } else {
-
                 boolop          = parent->new_object<BoolOp>();
                 boolop->op      = op_conf.boolkind;
                 boolop->values  = {lhs};
@@ -2452,7 +2461,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
         next_token();
         // in the case of 1 < 2 < 3
 
-        auto rhs  = parse_expression(parent, depth);
+        auto* rhs = parse_expression(parent, depth);
         lookahead = token();
 
         auto lookconf    = get_operator_config(lookahead);

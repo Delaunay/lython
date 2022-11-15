@@ -18,8 +18,7 @@ using Identifier = StringRef;
 
 String str(NodeKind k);
 
-enum class NodeFamily : int8_t
-{
+enum class NodeFamily : int8_t {
     Module,
     Statement,
     Expression,
@@ -36,8 +35,9 @@ struct CommonAttributes {
 
 template <typename T>
 struct NodeTrait {
-    enum Constants
-    { kind = int(NodeKind::Invalid) };
+    enum Constants {
+        kind = int(NodeKind::Invalid)
+    };
 };
 
 template <typename T>
@@ -101,16 +101,14 @@ struct ExprNode: public CommonAttributes, public Node {
     NodeFamily family() const override { return NodeFamily::Expression; }
 };
 
-enum class ConversionKind : int8_t
-{
+enum class ConversionKind : int8_t {
     None           = -1,
     String         = 115,
     Representation = 114,
     ASCII          = 97
 };
 
-enum class BinaryOperator : int8_t
-{
+enum class BinaryOperator : int8_t {
 #define BINARY_OPERATORS(OP)     \
     OP(None, "", na)             \
     OP(Add, "+", add)            \
@@ -134,8 +132,7 @@ enum class BinaryOperator : int8_t
 #undef OP
 };
 
-enum class BoolOperator : int8_t
-{
+enum class BoolOperator : int8_t {
     None,
 #define BOOL_OPERATORS(OP) \
     OP(And, and, and)      \
@@ -146,8 +143,7 @@ enum class BoolOperator : int8_t
 #undef OP
 };
 
-enum class UnaryOperator : int8_t
-{
+enum class UnaryOperator : int8_t {
 #define UNARY_OPERATORS(OP) \
     OP(None, "", na)        \
     OP(Invert, "~", invert) \
@@ -171,8 +167,7 @@ enum class UnaryOperator : int8_t
 #undef OP
 };
 
-enum class CmpOperator : int8_t
-{
+enum class CmpOperator : int8_t {
 
 #define COMP_OPERATORS(OP)     \
     OP(None, "", na)           \
@@ -192,8 +187,7 @@ enum class CmpOperator : int8_t
 #undef OP
 };
 
-enum class ExprContext : int8_t
-{
+enum class ExprContext : int8_t {
     Load,
     Store,
     Del
@@ -392,6 +386,21 @@ struct BoolOp: public ExprNode {
     int           varid             = -1;
 
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
+
+    bool safe_value_add(ExprNode* value) {
+        if (value == this) {
+            return false;
+        }
+
+        for (auto& expr: values) {
+            if (value == expr) {
+                return false;
+            }
+        }
+
+        values.push_back(value);
+        return true;
+    }
 };
 
 // need sequences for compare to distinguish between
@@ -764,7 +773,7 @@ struct ClassDef: public StmtNode {
         return -1;
     }
 
-    bool insert_attribute(StringRef name, StmtNode* stmt, ExprNode* type = nullptr) {
+    bool insert_attribute(StringRef name, StmtNode* stmt = nullptr, ExprNode* type = nullptr) {
         int attrid = get_attribute(name);
 
         if (attrid == -1) {
@@ -1051,11 +1060,12 @@ struct ClassType: public ExprNode {
 
 // This is essentially compile time lookup
 // no-need for the function to actually exist at runtime
-#define SPECGEN(name)                   \
-    template <>                         \
-    struct NodeTrait<name> {            \
-        enum Constants                  \
-        { kind = int(NodeKind::name) }; \
+#define SPECGEN(name)                  \
+    template <>                        \
+    struct NodeTrait<name> {           \
+        enum Constants {               \
+            kind = int(NodeKind::name) \
+        };                             \
     };
 
 #define X(name, _)
