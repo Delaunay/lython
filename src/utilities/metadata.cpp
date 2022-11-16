@@ -36,43 +36,44 @@ template <typename T>
 using UniquePtrInternal = std::unique_ptr<T>;
 
 bool _metadata_init_names() {
-    meta::register_type<char>("char");
-    meta::register_type<int>("int");
-    meta::register_type<lython::StringRef>("StringRef");
-    meta::register_type<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");
+    meta::override_typename<char>("char");
+    meta::override_typename<int>("int");
+    meta::override_typename<lython::String>("String");
+    meta::override_typename<lython::StringRef>("StringRef");
+    meta::override_typename<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");
 
-    meta::register_type<lython::Node*>("Node*");
-    meta::register_type<lython::GCObject*>("GCObject*");
-    meta::register_type<lython::ExprNode*>("ExprNode*");
-    meta::register_type<lython::StmtNode*>("StmtNode*");
-    meta::register_type<lython::ConstantValue>("ConstantValue");
-    meta::register_type<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
+    meta::override_typename<lython::Node*>("Node*");
+    meta::override_typename<lython::GCObject*>("GCObject*");
+    meta::override_typename<lython::ExprNode*>("ExprNode*");
+    meta::override_typename<lython::StmtNode*>("StmtNode*");
+    meta::override_typename<lython::ConstantValue>("ConstantValue");
+    meta::override_typename<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
 
-    meta::register_type<UniquePtrInternal<lython::SemaException>>("SemaException");
-    meta::register_type<UniquePtrInternal<lython::ParsingException>>("ParsingException");
+    meta::override_typename<UniquePtrInternal<lython::SemaException>>("SemaException");
+    meta::override_typename<UniquePtrInternal<lython::ParsingException>>("ParsingException");
 
-    meta::register_type<lython::Comprehension>("Comprehension");
-    meta::register_type<lython::Alias>("Alias");
-    meta::register_type<lython::WithItem>("WithItem");
-    meta::register_type<lython::ExceptHandler>("ExceptHandler");
-    meta::register_type<lython::Arg>("Arg");
-    meta::register_type<lython::CmpOperator>("CmpOperator");
-    meta::register_type<lython::Keyword>("Keyword");
-    meta::register_type<lython::MatchCase>("MatchCase");
-    meta::register_type<lython::Pattern*>("Pattern*");
-    meta::register_type<lython::BindingEntry>("BindingEntry");
-    meta::register_type<Array<StmtNode*>>("Array<StmtNode*>");
-    meta::register_type<ExprContext>("ExprContext");
-    meta::register_type<ClassDef::Attr>("ClassDef::Attr");
-    meta::register_type<ParsingContext>("ParsingContext");
-    meta::register_type<SemaContext>("SemaContext");
-    meta::register_type<Decorator>("Decorator");
-    meta::register_type<Token>("Token");
-    meta::register_type<ParsingError>("ParsingError");
+    meta::override_typename<lython::Comprehension>("Comprehension");
+    meta::override_typename<lython::Alias>("Alias");
+    meta::override_typename<lython::WithItem>("WithItem");
+    meta::override_typename<lython::ExceptHandler>("ExceptHandler");
+    meta::override_typename<lython::Arg>("Arg");
+    meta::override_typename<lython::CmpOperator>("CmpOperator");
+    meta::override_typename<lython::Keyword>("Keyword");
+    meta::override_typename<lython::MatchCase>("MatchCase");
+    meta::override_typename<lython::Pattern*>("Pattern*");
+    meta::override_typename<lython::BindingEntry>("BindingEntry");
+    meta::override_typename<Array<StmtNode*>>("Array<StmtNode*>");
+    meta::override_typename<ExprContext>("ExprContext");
+    meta::override_typename<ClassDef::Attr>("ClassDef::Attr");
+    meta::override_typename<ParsingContext>("ParsingContext");
+    meta::override_typename<SemaContext>("SemaContext");
+    meta::override_typename<Decorator>("Decorator");
+    meta::override_typename<Token>("Token");
+    meta::override_typename<ParsingError>("ParsingError");
 
-#define REGISTER_TYPE(type)                   \
-    meta::register_type<lython::type>(#type); \
-    meta::register_type<lython::type*>(#type "*");
+#define REGISTER_TYPE(type)                       \
+    meta::override_typename<lython::type>(#type); \
+    meta::override_typename<lython::type*>(#type "*");
 
 #define X(name, _)
 #define SECTION(name)
@@ -90,112 +91,115 @@ bool _metadata_init_names() {
 #undef MOD
 #undef MATCH
 
-    meta::register_type<
+    meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Pair[Ref, Classdef::Attr]");
 
-    meta::register_type<HashNodeInternal<std::pair<const String, lython::OpConfig>, false>>(
+    meta::override_typename<HashNodeInternal<std::pair<const String, lython::OpConfig>, false>>(
         "Pair[String, OpConfig]");
 
-    meta::register_type<HashNodeInternal<std::pair<const String, lython::TokenType>, false>>(
+    meta::override_typename<HashNodeInternal<std::pair<const String, lython::TokenType>, false>>(
         "Pair[String, TokenType]");
 
-    meta::register_type<HashNodeInternal<std::pair<const String, TokenType>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const String, TokenType>, true>>(
         "Pair[String, TokenType]");
 
-    meta::register_type<HashNodeInternal<std::pair<const String, OpConfig>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const String, OpConfig>, true>>(
         "Pair[String, OpConfig]");
 
-    meta::register_type<HashNodeInternal<std::pair<const StringRef, bool>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const StringRef, bool>, true>>(
         "Pair[String, bool]");
 
-    meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, true>>(
         "Pair[String, ExprNode*]");
 
-    meta::register_type<
+    meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, true>>(
         "Pair[String, NativeBinaryOp]");
 
-    meta::register_type<
+    meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, true>>(
         "Pair[String, NativeUnaryOp]");
 
     // String Database
-    meta::register_type<Array<StringDatabase::StringEntry>*>("Array[StringEntry]*");
+    meta::override_typename<Array<StringDatabase::StringEntry>*>("Array[StringEntry]*");
 
 #if __linux__
-    meta::register_type<std::_List_node<Array<StringDatabase::StringEntry>>>(
+    meta::override_typename<std::_List_node<Array<StringDatabase::StringEntry>>>(
         "ListNode[StringEntry]");
 #else
     // hashtable internal stuff
     // windows only
-    meta::register_type<ListIterator<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
+    meta::override_typename<
+        ListIterator<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Iterator[Pair[Ref, Classdef::Attr]]");
 
-    meta::register_type<ListIterator<std::pair<const int, String>, false>>(
+    meta::override_typename<ListIterator<std::pair<const int, String>, false>>(
         "Iterator[Pair[int, String]]");
 
-    meta::register_type<ListIterator<std::pair<const std::string_view, std::size_t>, false>>(
+    meta::override_typename<ListIterator<std::pair<const std::string_view, std::size_t>, false>>(
         "Iterator[Pair[StringView, size_t]]");
 
-    meta::register_type<ListIterator<std::pair<const String, OpConfig>, false>>(
+    meta::override_typename<ListIterator<std::pair<const String, OpConfig>, false>>(
         "Iterator[Pair[String, OpConfig]]");
 
-    meta::register_type<ListIterator<std::pair<const String, TokenType>, false>>(
+    meta::override_typename<ListIterator<std::pair<const String, TokenType>, false>>(
         "Iterator[Pair[String, TokenType]]");
 
-    meta::register_type<
+    meta::override_typename<
         ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
         "Iterator[Pair[StringRef, NativeBinaryOp]]");
 
-    meta::register_type<
+    meta::override_typename<
         ListIterator<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
         "Iterator[Pair[StringRef, NativeUnaryOp]]");
 
-    meta::register_type<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
+    meta::override_typename<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
         "Iterator[Pair[StringRef, ExprNode*]]");
 
-    meta::register_type<ListIterator<std::pair<const StringRef, bool>, false>>(
+    meta::override_typename<ListIterator<std::pair<const StringRef, bool>, false>>(
         "Iterator[Pair[StringRef, bool]]");
 
-    meta::register_type<std::_List_node<Array<StringDatabase::StringEntry>,
-                                        typename std::allocator_traits<std::allocator<
-                                            Array<StringDatabase::StringEntry>>>::void_pointer>>(
+    meta::override_typename<
+        std::_List_node<Array<StringDatabase::StringEntry>,
+                        typename std::allocator_traits<
+                            std::allocator<Array<StringDatabase::StringEntry>>>::void_pointer>>(
         "ListNode[Array[StringEntry]]");
 
 #endif
 
     // StringDatabase
-    meta::register_type<HashNodeInternal<std::pair<const StringView, std::size_t>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const StringView, std::size_t>, true>>(
         "Pair[StringView, size_t]");
 
-    meta::register_type<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, false>>(
+    meta::override_typename<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, false>>(
         "Pair[StringRef, ExprNode*]");
 
-    meta::register_type<
+    meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
         "Pair[StringRef, NativeBinaryOp]");
 
-    meta::register_type<
+    meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
         "Pair[StringRef, NativeUnaryOp]");
 
-    meta::register_type<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
+    meta::override_typename<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
         "Pair[StringRef, bool]");
 
     // module
-    meta::register_type<HashNodeInternal<std::pair<const String, int>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const String, int>, true>>(
         "Pair[String, Index]");
 
     // module precedence_table
-    meta::register_type<HashNodeInternal<std::pair<const String, std::tuple<int, bool>>, true>>(
+    meta::override_typename<HashNodeInternal<std::pair<const String, std::tuple<int, bool>>, true>>(
         "Pair[String, Tuple[int, bool]]");
 
     // Keyword to string
-    meta::register_type<HashNodeInternal<std::pair<const int, String>, false>>("Pair[int, String]");
+    meta::override_typename<HashNodeInternal<std::pair<const int, String>, false>>(
+        "Pair[int, String]");
 
     // Set Keyword
-    meta::register_type<HashNodeInternal<char, false>>("Set[char]");
+    meta::override_typename<HashNodeInternal<char, false>>("Set[char]");
 
 #define INIT_METADATA(name, typname) meta::type_name<name>();
 

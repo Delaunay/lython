@@ -87,6 +87,13 @@ int _register_type_once(const char* str) {
 
 // Insert a type name override
 template <typename T>
+void override_typename(const char* str) {
+    auto tid         = type_id<T>();
+    typenames()[tid] = str;
+}
+
+// Insert a type name override
+template <typename T>
 const char* register_type(const char* str) {
     static int _ = _register_type_once<T>(str);
     return str;
