@@ -39,13 +39,31 @@ OPTION(BUILD_DOCUMENTATION "Build docs" OFF)
 OPTION(BUILD_DOXYGEN "Build Doxygen docs" ON)
 OPTION(BUILD_SPHINX "Build Sphinx docs" ON)
 OPTION(CLANG_TIDY "Run clang-tidy" OFF)
-OPTION(BUILD_WEBASSEMBLY "Webassembly" OFF)
 OPTION(WITH_VALGRIND "Disable mimalloc for better valgrind support" OFF)
 OPTION(WITH_COVERAGE "Enable coverage generation" ON)
 OPTION(WITH_LOG "Enable compiler log" ON)
 OPTION(WITH_COZ "Enable coz profiler" OFF)
 
+# OPTION(BUILD_WEBASSEMBLY "Webassembly" OFF)
+IF(WIN32)
+ENDIF(WIN32)
+
+IF(CMAKE_CXX_COMPILER MATCHES "/em.*$")
+    message(" * C++ compiler: Emscripten")
+    SET(BUILD_WEBASSEMBLY 1)
+    SET(WITH_COVERAGE OFF)
+    SET(BUILD_TESTING OFF)
+    SET(BUILD_BENCHMARKS OFF)
+    SET(WITH_VALGRIND ON)
+    SET(WIN32 0)
+ELSE()
+    message(" * not webassembly ${CMAKE_CXX_COMPILER}")
+ENDIF()
+
 IF(BUILD_WEBASSEMBLY)
+    # https://depth-first.com/articles/2019/10/16/compiling-c-to-webassembly-and-running-it-without-emscripten/
+    # https://medium.com/@dougschaefer/going-straight-to-clang-for-webassembly-928df1484430
+
     # Looks like I have to use emacscripten
     # maybe I could use things like:
     # - https://github.com/WebAssembly/wasi-libc

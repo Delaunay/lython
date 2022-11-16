@@ -1,9 +1,11 @@
-#define __STDC_WANT_LIB_EXT1__   1
-#define __STDC_WANT_SECURE_LIB__ 1
+#if __linux__
+#    define __STDC_WANT_LIB_EXT1__   1
+#    define __STDC_WANT_SECURE_LIB__ 1
+#endif
 
 #include <cstdlib>
 
-#ifndef __linux__
+#if WIN32
 // windows use __STDC_WANT_SECURE_LIB__ instead
 #    define __STDC_LIB_EXT1__ 1
 #endif

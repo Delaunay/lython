@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <spdlog/fmt/bundled/core.h>
 
 #include "dtypes.h"
 

@@ -1,11 +1,13 @@
 #include "lexer/buffer.h"
 
-#define __STDC_WANT_LIB_EXT1__   1
-#define __STDC_WANT_SECURE_LIB__ 1
+#ifdef __linux__
+#    define __STDC_WANT_LIB_EXT1__   1
+#    define __STDC_WANT_SECURE_LIB__ 1
+#endif
 
 #include <cstdio>
 
-#ifndef __linux__
+#if WIN32
 #    define __STDC_LIB_EXT1__ 1
 #endif
 

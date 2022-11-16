@@ -69,6 +69,7 @@ using StringView = std::string_view;
 namespace std {
 
 //*
+#if !BUILD_WEBASSEMBLY
 template <typename Char, typename Allocator>
 struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
     using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
@@ -82,6 +83,7 @@ struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
         // #endif
     }
 };
+#endif
 //*/
 
 }  // namespace std
@@ -113,8 +115,13 @@ class LythonException: public std::exception {};
 
 #if __linux__
 #    define NOTHROW _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
+#    define LYTHON_INLINE
+#elif BUILD_WEBASSEMBLY
+#    define NOTHROW _NOEXCEPT
+#    define LYTHON_INLINE
 #else
 #    define NOTHROW
+#    define LYTHON_INLINE __forceinline
 #endif
 
 #endif

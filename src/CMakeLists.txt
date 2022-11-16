@@ -3,6 +3,7 @@
 # ===============================================================================
 
 INCLUDE_DIRECTORIES(.)
+INCLUDE_DIRECTORIES(../dependencies/spdlog/include)
 INCLUDE_DIRECTORIES(../dependencies)
 
 # INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
@@ -141,23 +142,33 @@ IF(WITH_COZ AND UNIX)
     MESSAGE(STATUS "Compiling for coz")
 ENDIF()
 
-IF(UNIX)
+IF(UNIX AND NOT BUILD_WEBASSEMBLY)
     ADD_COMPILE_OPTIONS(-mavx2)
-ENDIF(UNIX)
+ENDIF()
 
+ADD_DEFINITIONS(-DWIN32=${WIN32})
 ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
 ADD_DEFINITIONS(-DWITH_COZ=${WITH_COZ})
+ADD_DEFINITIONS(-DBUILD_WEBASSEMBLY=${BUILD_WEBASSEMBLY})
+ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
 
 # Compile
 # ==================
+SET(SPD_LOG)
+
+IF(WITH_LOG)
+    SET(SPD_LOG spdlog::spdlog)
+ELSE()
+    SET(SPD_LOG)
+ENDIF()
 
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
-TARGET_LINK_LIBRARIES(liblogging spdlog::spdlog)
+TARGET_LINK_LIBRARIES(liblogging ${SPD_LOG})
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython spdlog::spdlog ${LIBRARIES})
+TARGET_LINK_LIBRARIES(liblython ${SPD_LOG} ${LIBRARIES})
 
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD 20)
@@ -178,7 +189,7 @@ SET(ADD_CLI_SOURCE
     cli/commands/tests.cpp
 )
 ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
-TARGET_LINK_LIBRARIES(lython spdlog::spdlog liblython liblogging argparse ${LIBRARIES})
+TARGET_LINK_LIBRARIES(lython ${SPD_LOG} liblython liblogging argparse ${LIBRARIES})
 
 SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD 20)

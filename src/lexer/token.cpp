@@ -1,6 +1,5 @@
 #include "token.h"
 #include "utilities/strings.h"
-#include <spdlog/fmt/bundled/core.h>
 
 namespace lython {
 

@@ -59,7 +59,8 @@ using CodeLocationConstRef = CodeLocation const&;
 #    define LOC lython::CodeLocation::noloc()
 #endif
 
-enum LogLevel {
+enum LogLevel
+{
     Trace,
     Debug,
     Info,

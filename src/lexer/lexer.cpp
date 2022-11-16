@@ -1,5 +1,3 @@
-#include <spdlog/fmt/bundled/core.h>
-
 #include "lexer.h"
 #include "unlex.h"
 #include "utilities/strings.h"

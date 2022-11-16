@@ -1,6 +1,10 @@
 #include "xx_hash.h"
 
-#define XXH_VECTOR XXH_AVX2
+#if BUILD_WEBASSEMBLY
+#    define XXH_VECTOR XXH_SCALAR
+#else
+#    define XXH_VECTOR XXH_AVX2
+#endif
 
 // only from Zen 4
 // #define XXH_VECTOR XXH_AVX512

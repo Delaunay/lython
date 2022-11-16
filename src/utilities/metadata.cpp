@@ -21,7 +21,7 @@ using SharedPtrInternal =
     std::_Sp_counted_ptr_inplace<T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
 template <typename T, bool cache>
 using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
-#else
+#elif !BUILD_WEBASSEMBLY
 template <typename T>
 using SharedPtrInternal = std::shared_ptr<T>;
 
@@ -35,7 +35,15 @@ using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_sim
 template <typename T>
 using UniquePtrInternal = std::unique_ptr<T>;
 
+void _metadata_init_names_windows();
+void _metadata_init_names_unix();
+void _metadata_init_names_js();
+
 bool _metadata_init_names() {
+    _metadata_init_names_windows();
+    _metadata_init_names_unix();
+    _metadata_init_names_js();
+
     meta::override_typename<char>("char");
     meta::override_typename<int>("int");
     meta::override_typename<lython::String>("String");
@@ -91,6 +99,7 @@ bool _metadata_init_names() {
 #undef MOD
 #undef MATCH
 
+#if __linux__ || !BUILD_WEBASSEMBLY
     meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Pair[Ref, Classdef::Attr]");
@@ -124,12 +133,49 @@ bool _metadata_init_names() {
     // String Database
     meta::override_typename<Array<StringDatabase::StringEntry>*>("Array[StringEntry]*");
 
-#if __linux__
-    meta::override_typename<std::_List_node<Array<StringDatabase::StringEntry>>>(
-        "ListNode[StringEntry]");
-#else
-    // hashtable internal stuff
-    // windows only
+    // StringDatabase
+    meta::override_typename<HashNodeInternal<std::pair<const StringView, std::size_t>, true>>(
+        "Pair[StringView, size_t]");
+
+    meta::override_typename<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, false>>(
+        "Pair[StringRef, ExprNode*]");
+
+    meta::override_typename<
+        HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
+        "Pair[StringRef, NativeBinaryOp]");
+
+    meta::override_typename<
+        HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
+        "Pair[StringRef, NativeUnaryOp]");
+
+    meta::override_typename<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
+        "Pair[StringRef, bool]");
+
+    // module
+    meta::override_typename<HashNodeInternal<std::pair<const String, int>, true>>(
+        "Pair[String, Index]");
+
+    // module precedence_table
+    meta::override_typename<HashNodeInternal<std::pair<const String, std::tuple<int, bool>>, true>>(
+        "Pair[String, Tuple[int, bool]]");
+
+    // Keyword to string
+    meta::override_typename<HashNodeInternal<std::pair<const int, String>, false>>(
+        "Pair[int, String]");
+
+    // Set Keyword
+    meta::override_typename<HashNodeInternal<char, false>>("Set[char]");
+#endif
+
+#define INIT_METADATA(name, typname) meta::type_name<name>();
+
+    TYPES_METADATA(INIT_METADATA)
+
+    return true;
+}
+
+void _metadata_init_names_windows() {
+#if (!defined __linux__) && !BUILD_WEBASSEMBLY
     meta::override_typename<
         ListIterator<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Iterator[Pair[Ref, Classdef::Attr]]");
@@ -165,48 +211,15 @@ bool _metadata_init_names() {
                         typename std::allocator_traits<
                             std::allocator<Array<StringDatabase::StringEntry>>>::void_pointer>>(
         "ListNode[Array[StringEntry]]");
-
 #endif
-
-    // StringDatabase
-    meta::override_typename<HashNodeInternal<std::pair<const StringView, std::size_t>, true>>(
-        "Pair[StringView, size_t]");
-
-    meta::override_typename<HashNodeInternal<std::pair<const StringRef, lython::ExprNode*>, false>>(
-        "Pair[StringRef, ExprNode*]");
-
-    meta::override_typename<
-        HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
-        "Pair[StringRef, NativeBinaryOp]");
-
-    meta::override_typename<
-        HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
-        "Pair[StringRef, NativeUnaryOp]");
-
-    meta::override_typename<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
-        "Pair[StringRef, bool]");
-
-    // module
-    meta::override_typename<HashNodeInternal<std::pair<const String, int>, true>>(
-        "Pair[String, Index]");
-
-    // module precedence_table
-    meta::override_typename<HashNodeInternal<std::pair<const String, std::tuple<int, bool>>, true>>(
-        "Pair[String, Tuple[int, bool]]");
-
-    // Keyword to string
-    meta::override_typename<HashNodeInternal<std::pair<const int, String>, false>>(
-        "Pair[int, String]");
-
-    // Set Keyword
-    meta::override_typename<HashNodeInternal<char, false>>("Set[char]");
-
-#define INIT_METADATA(name, typname) meta::type_name<name>();
-
-    TYPES_METADATA(INIT_METADATA)
-
-    return true;
 }
+void _metadata_init_names_unix() {
+#ifdef __linux__
+    meta::override_typename<std::_List_node<Array<StringDatabase::StringEntry>>>(
+        "ListNode[StringEntry]");
+#endif
+}
+void _metadata_init_names_js() {}
 
 void track_static() {
     // Record the allocation count on startup

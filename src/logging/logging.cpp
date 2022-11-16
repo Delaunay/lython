@@ -1,6 +1,13 @@
-#include <spdlog/sinks/ostream_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/spdlog.h>
+#if WITH_LOG
+#    include <spdlog/sinks/ostream_sink.h>
+#    include <spdlog/sinks/stdout_color_sinks.h>
+#    include <spdlog/spdlog.h>
+#elif !(defined SPDLOG_COMPILED_LIB)
+#    define SPDLOG_COMPILED_LIB
+#    include <spdlog/fmt/bundled/format-inl.h>
+#    include <spdlog/fmt/fmt.h>
+#    include <spdlog/src/fmt.cpp>
+#endif
 
 #include "logging.h"
 
@@ -124,6 +131,7 @@ void show_backtrace() {}
 std::vector<std::string> get_backtrace(size_t size) { return std::vector<std::string>(); }
 #endif
 
+#if WITH_LOG
 using Logger = std::shared_ptr<spdlog::logger>;
 
 Logger new_logger(char const* name) {
@@ -186,6 +194,11 @@ static constexpr spdlog::level::level_enum log_level_spd[] = {spdlog::level::lev
 void show_log_backtrace() { spdlog::dump_backtrace(); }
 
 void spdlog_log(LogLevel level, std::string const& msg) { root()->log(log_level_spd[level], msg); }
+
+#else
+void                     show_log_backtrace() {}
+void                     spdlog_log(LogLevel level, std::string const& msg) {}
+#endif
 
 const char* log_level_str[] = {
     "[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN", "[E] ERROR", "[!] FATAL", ""};

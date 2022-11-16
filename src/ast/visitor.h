@@ -25,12 +25,6 @@ struct DefaultVisitorTrait {
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
-#ifdef __linux__
-#    define LYTHON_INLINE
-#else
-#    define LYTHON_INLINE __forceinline
-#endif
-
 /*!
  * Visitor implemented using static polymorphism.
  * This implementation has 2 advantages:
