@@ -31,47 +31,6 @@ void add_wip_expr(ParsingError& err, Node* expr) {
     }
 }
 
-//  python3 main.py
-//   File "/home/runner/ShyCalculatingGraph/main.py", line 1
-//     2 *
-//         ^
-// SyntaxError: invalid syntax
-// exit status 1
-
-// Python traceback example:
-// -------------------------
-
-// Traceback (most recent call last):
-//   File "/home/runner/ShyCalculatingGraph/main.py", line 11, in <module>
-//     rec(10)
-//   File "/home/runner/ShyCalculatingGraph/main.py", line 7, in rec
-//     return rec(n - 1)
-//   File "/home/runner/ShyCalculatingGraph/main.py", line 7, in rec
-//     return rec(n - 1)
-//   File "/home/runner/ShyCalculatingGraph/main.py", line 7, in rec
-//     return rec(n - 1)
-//   [Previous line repeated 7 more times]
-//   File "/home/runner/ShyCalculatingGraph/main.py", line 5, in rec
-//     raise RuntimeError()
-// RuntimeError
-
-// Lython parsing error messages
-// -----------------------------
-//
-// Note that python stops at the first syntax error while
-// lython can keep going and print more than one error.
-
-// Parsing error messages (2)
-//   File "<replay buffer>", line 0
-//     |self.x =
-//     |               ^
-// SyntaxError: Expected an expression
-//
-//   File "<replay buffer>", line 0
-//     |def __init__(self):
-//     |       ^
-// SyntaxError: Expected a body
-
 Node* get_expr(ParsingError const& error) {
     if (error.stmt) {
         return error.stmt;
@@ -158,7 +117,7 @@ void ParsingErrorPrinter::print_tok(ParsingError const& error, CommonAttributes*
 }
 
 void ParsingErrorPrinter::print(ParsingError const& error) {
-    String            filename = get_filename(this);
+    String            filename = get_filename();
     Node*             node     = get_expr(error);
     CommonAttributes* srcloc   = get_code_loc(error);
     String            parent   = get_parent(error);
@@ -197,24 +156,6 @@ void ParsingErrorPrinter::print(ParsingError const& error) {
     }
 
     end();
-}
-
-void ParsingErrorPrinter::underline(CommonAttributes const& attr) {
-
-    int32 size = 1;
-
-    if (attr.end_col_offset.has_value()) {
-        size = std::max(attr.end_col_offset.value() - attr.col_offset, 1);
-    }
-
-    int32 start = std::max(1, attr.col_offset);
-    codeline() << String(start, ' ') << String(size, '^');
-}
-
-void ParsingErrorPrinter::underline(Token const& tok) {
-    int32 tok_size  = std::max(1, tok.end_col() - tok.begin_col());
-    int32 tok_start = std::max(1, tok.begin_col());
-    codeline() << String(tok_start, ' ') << String(tok_size, '^');
 }
 
 String shortprint(Node const* node) {

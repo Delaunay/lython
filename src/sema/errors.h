@@ -4,6 +4,7 @@
 #include <ostream>
 
 #include "ast/nodes.h"
+#include "printer/error_printer.h"
 #include "sema/builtin.h"
 
 namespace lython {
@@ -179,26 +180,12 @@ struct ImportError: public SemaException {
     StringRef name;
 };
 
-struct SemaErrorPrinter {
+struct SemaErrorPrinter: public BaseErrorPrinter {
     SemaErrorPrinter(std::ostream& out, class AbstractLexer* lexer = nullptr):
-        out(out), lexer(lexer)  //
+        BaseErrorPrinter(out, lexer)  //
     {}
 
-    int  indent = 1;
     void print(SemaException const& err);
-
-    String        indentation() { return String(indent * 2, ' '); }
-    std::ostream& firstline() { return out; }
-    std::ostream& newline() { return out << std::endl << indentation(); }
-    std::ostream& errorline() { return out << std::endl; }
-
-    void underline(CommonAttributes const& attr);
-
-    std::ostream& codeline() { return out << std::endl << indentation() << indentation() << "|"; }
-    void          end() { out << std::endl; }
-
-    std::ostream&        out;
-    class AbstractLexer* lexer;
 };
 
 }  // namespace lython

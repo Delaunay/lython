@@ -1,9 +1,10 @@
 #ifndef LYTHON_PARSER_ERROR_H
 #define LYTHON_PARSER_ERROR_H
 
-#include "../dtypes.h"
 #include "ast/nodes.h"
+#include "dtypes.h"
 #include "lexer/token.h"
+#include "printer/error_printer.h"
 
 namespace lython {
 
@@ -34,31 +35,17 @@ class ParsingException: public LythonException {
 
 class EndOfFileError: public ParsingException {};
 
-class ParsingErrorPrinter {
+class ParsingErrorPrinter: public BaseErrorPrinter {
     public:
     ParsingErrorPrinter(std::ostream& out, class AbstractLexer* lexer = nullptr):
-        out(out), lexer(lexer) {}
+        BaseErrorPrinter(out, lexer)  //
+    {}
 
     void print(ParsingError const& err);
     void print_ast(ParsingError const& error, Node* node, CommonAttributes* srcloc);
     void print_tok(ParsingError const& error, CommonAttributes* srcloc);
 
-    bool          with_compiler_code_loc = false;
-    std::ostream& out;
-    int           indent = 0;
-
-    void underline(Token const& tok);
-    void underline(CommonAttributes const& attr);
-
-    String        indentation() { return String(indent * 2, ' '); }
-    std::ostream& firstline() { return out; }
-    std::ostream& newline() { return out << std::endl << indentation(); }
-    std::ostream& errorline() { return out << std::endl; }
-
-    std::ostream& codeline() { return out << std::endl << indentation() << indentation() << "|"; }
-    void          end() { out << std::endl; }
-
-    class AbstractLexer* lexer;
+    bool with_compiler_code_loc = false;
 };
 
 class SyntaxError: public ParsingException {

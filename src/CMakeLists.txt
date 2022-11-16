@@ -80,6 +80,7 @@ SET(ADD_SOURCE
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp
+    printer/error_printer.cpp
 
     sema/sema.cpp
     sema/sema_import.cpp
