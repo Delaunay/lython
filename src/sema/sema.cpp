@@ -1541,4 +1541,13 @@ TypeExpr* SemanticAnalyser::interactive(Interactive* n, int depth) { return null
 TypeExpr* SemanticAnalyser::functiontype(FunctionType* n, int depth) { return Type_t(); }
 TypeExpr* SemanticAnalyser::expression(Expression* n, int depth) { return exec(n->body, depth); }
 
+void SemanticAnalyser::show_diagnostic(std::ostream& out, class AbstractLexer* lexer) {
+    SemaErrorPrinter printer(std::cout, lexer);
+
+    for (auto& diag: errors) {
+        std::cout << "  ";
+        printer.print(*diag.get());
+        std::cout << "\n";
+    }
+}
 }  // namespace lython

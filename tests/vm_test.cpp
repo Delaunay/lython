@@ -18,7 +18,9 @@ using namespace lython;
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
-String eval_it(String code, String expr, Module*& mod) {
+String eval_it(String const& code, String const& expr, Module*& mod) {
+    std::cout << ">>>>>> Start\n";
+
     StringBuffer reader(code);
     Lexer        lex(reader);
     Parser       parser(lex);
@@ -26,18 +28,21 @@ String eval_it(String code, String expr, Module*& mod) {
     info("{}", "Parse");
     mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
+    parser.show_diagnostics(std::cout);
 
     info("{}", "Sema");
     SemanticAnalyser sema;
     sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
+    sema.show_diagnostic(std::cout);
 
+    // Parse the expression itself
     StringBuffer expr_reader(expr);
     Lexer        expr_lex(expr_reader);
     Parser       expr_parser(expr_lex);
 
-    auto emod = expr_parser.parse_module();
-    auto stmt = emod->body[0];
+    auto* emod = expr_parser.parse_module();
+    auto* stmt = emod->body[0];
 
     // Sema the code with module sema
     sema.exec(stmt, 0);
@@ -46,13 +51,19 @@ String eval_it(String code, String expr, Module*& mod) {
     TreeEvaluator eval(sema.bindings);
     auto          partial = str(eval.eval(stmt));
 
+    std::cout << "Value Tree\n";
     eval.root.dump(std::cout);
+
+    std::cout << "Module dump\n";
     emod->dump(std::cout);
     delete emod;
+
+    std::cout << "<<<<<< End\n";
+
     return partial;
 }
 
-void run_test_case(String code, String expr, String expected) {
+void run_test_case(String const& code, String const& expr, String const& expected) {
     Module* mod = nullptr;
 
     auto result = eval_it(code, expr, mod);

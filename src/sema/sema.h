@@ -25,9 +25,8 @@ struct SemaVisitorTrait {
     using IsConst = std::false_type;
     using Trace   = std::true_type;
 
-    enum {
-        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
-    };
+    enum
+    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
 struct SemaContext {
@@ -115,6 +114,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
         }
         return semactx[semactx.size() - 1];
     }
+
+    void show_diagnostic(std::ostream& out, class AbstractLexer* lexer = nullptr);
 
     bool is_type(TypeExpr* node, int depth, lython::CodeLocation const& loc);
 

@@ -1482,7 +1482,7 @@ ConstantValue Parser::get_value(Node* parent) {
     }
     case tok_int: {
         // FIXME handle different sizes
-        return ConstantValue(int(token().as_integer()));
+        return ConstantValue(int32(token().as_integer()));
     }
     case tok_float: {
         return ConstantValue(token().as_float());

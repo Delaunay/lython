@@ -78,10 +78,7 @@ struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
         // #ifdef __linux__
         //         return std::_Hash_impl::hash(k.data(), k.length() * sizeof(Char));
         // #else
-        //         // FIXME: find a way to reuse the string hashing without transforming the string
-
-        //         auto a = std::hash<std::string>();
-        //         return a(std::string(k.c_str()));
+        //         return stdext::hash_value(k);
         // #endif
     }
 };

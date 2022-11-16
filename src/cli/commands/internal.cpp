@@ -158,15 +158,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
                 std::cout << "Sema Diagnostic dump\n";
                 std::cout << std::string(80, '-') << '\n';
 
-                SemaErrorPrinter printer(std::cout, &lex);
-
-                std::stringstream ss;
-                for (auto& diag: sema.errors) {
-                    std::cout << "  ";
-                    printer.print(*diag.get());
-                    std::cout << "\n";
-                }
-
+                sema.show_diagnostic(std::cout, &lex);
                 std::cout << std::string(80, '-') << '\n';
             }
 

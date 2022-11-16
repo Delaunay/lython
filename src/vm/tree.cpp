@@ -613,7 +613,7 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
     // This should a Name
     auto* name = cast<Name>(n->target);
 
-    if (name != nullptr) {
+    if (name == nullptr) {
         error("Assign to {}", str(n->target->kind));
         return None();
     }
@@ -809,7 +809,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
         }
 
         if (return_value != nullptr) {
-            break;
+            return return_value;
         }
     }
 
@@ -857,6 +857,10 @@ PartialResult* TreeEvaluator::inlinestmt(Inline_t* n, int depth) {
 
         if (has_exceptions()) {
             return None();
+        }
+
+        if (return_value != nullptr) {
+            break;
         }
     }
     return None();
