@@ -57,7 +57,7 @@ struct BaseErrorPrinter {
     virtual std::ostream& codeline();
     virtual void          end();
 
-    void underline(struct Token const& tok);
+    void underline(class Token const& tok);
     void underline(struct CommonAttributes const& attr);
 
     //

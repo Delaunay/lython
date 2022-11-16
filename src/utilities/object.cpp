@@ -82,7 +82,7 @@ int in(GCObject* obj, Array<GCObject*>& visited) {
 
 void GCObject::dump_recursive(std::ostream& out, Array<GCObject*>& visited, int prev, int depth) {
     // Cycles should be impossible here
-    int    index   = prev < 0 ? visited.size() : prev;
+    int    index   = prev < 0 ? int(visited.size()) : prev;
     String warning = prev >= 0 ? "DUPLICATE" : "";
 
     out << String(depth * 2, ' ') << index << ". " << meta::type_name(class_id) << warning

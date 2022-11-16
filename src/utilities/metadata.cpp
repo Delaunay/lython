@@ -123,7 +123,10 @@ bool _metadata_init_names() {
     // String Database
     meta::register_type<Array<StringDatabase::StringEntry>*>("Array[StringEntry]*");
 
-#if !__linux__
+#if __linux__
+    meta::register_type<std::_List_node<Array<StringDatabase::StringEntry>>>(
+        "ListNode[StringEntry]");
+#else
     // hashtable internal stuff
     // windows only
     meta::register_type<ListIterator<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
@@ -159,6 +162,7 @@ bool _metadata_init_names() {
                                         typename std::allocator_traits<std::allocator<
                                             Array<StringDatabase::StringEntry>>>::void_pointer>>(
         "ListNode[Array[StringEntry]]");
+
 #endif
 
     // StringDatabase
@@ -178,9 +182,6 @@ bool _metadata_init_names() {
 
     meta::register_type<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
         "Pair[StringRef, bool]");
-
-    meta::register_type<std::_List_node<Array<StringDatabase::StringEntry>>>(
-        "ListNode[StringEntry]");
 
     // module
     meta::register_type<HashNodeInternal<std::pair<const String, int>, true>>(

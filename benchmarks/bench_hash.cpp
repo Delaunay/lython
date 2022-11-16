@@ -20,9 +20,17 @@ std::size_t old_hash(String const& k) noexcept {
     return a(std::string(k.c_str()));
 }
 
+#if __linux__
 std::size_t new_hash(String const& k) noexcept {
     return std::_Hash_impl::hash(k.data(), k.length());
 }
+#else
+std::size_t new_hash(String const& k) noexcept {
+    // Windows FIXME
+    auto a = std::hash<std::string>();
+    return a(std::string(k.c_str()));
+}
+#endif
 std::size_t xx_hash_32(String const& k) noexcept { return XXH32(k.data(), k.length(), 0); }
 std::size_t xx_hash_64(String const& k) noexcept { return XXH64(k.data(), k.length(), 0); }
 std::size_t xx_hash_3(String const& k) noexcept { return XXH3_64bits(k.data(), k.length()); }

@@ -69,14 +69,14 @@ template <typename Key, typename Value, typename H = Hash<Key>>
 struct HashTable {
     private:
     struct _Item {
-        _Item(): key(Key()) {}
+        _Item(): key(Key()), used(false), deleted(true) {}
 
-        _Item(Key const& k, Value const& v): key(k), value(v), used(true) {}
+        _Item(Key const& k, Value const& v): key(k), value(v), used(true), deleted(true) {}
 
         Key const key;
         Value     value;
-        bool      used : 1    = false;
-        bool      deleted : 1 = true;
+        bool      used : 1;
+        bool      deleted : 1;
 
         inline void set_hash(uint64_t) {}
 

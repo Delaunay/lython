@@ -35,7 +35,9 @@ struct ValueStream {
 
 template <class T>
 void fakeuse(T&& datum) {
+#ifdef __linux__
     asm volatile("" : "+r"(datum));
+#endif
 }
 
 template <typename... Args>

@@ -18,7 +18,8 @@ using Identifier = StringRef;
 
 String str(NodeKind k);
 
-enum class NodeFamily : int8_t {
+enum class NodeFamily : int8_t
+{
     Module,
     Statement,
     Expression,
@@ -35,9 +36,8 @@ struct CommonAttributes {
 
 template <typename T>
 struct NodeTrait {
-    enum Constants {
-        kind = int(NodeKind::Invalid)
-    };
+    enum Constants
+    { kind = int(NodeKind::Invalid) };
 };
 
 template <typename T>
@@ -101,14 +101,16 @@ struct ExprNode: public CommonAttributes, public Node {
     NodeFamily family() const override { return NodeFamily::Expression; }
 };
 
-enum class ConversionKind : int8_t {
+enum class ConversionKind : int8_t
+{
     None           = -1,
     String         = 115,
     Representation = 114,
     ASCII          = 97
 };
 
-enum class BinaryOperator : int8_t {
+enum class BinaryOperator : int8_t
+{
 #define BINARY_OPERATORS(OP)     \
     OP(None, "", na)             \
     OP(Add, "+", add)            \
@@ -132,7 +134,8 @@ enum class BinaryOperator : int8_t {
 #undef OP
 };
 
-enum class BoolOperator : int8_t {
+enum class BoolOperator : int8_t
+{
     None,
 #define BOOL_OPERATORS(OP) \
     OP(And, and, and)      \
@@ -143,7 +146,8 @@ enum class BoolOperator : int8_t {
 #undef OP
 };
 
-enum class UnaryOperator : int8_t {
+enum class UnaryOperator : int8_t
+{
 #define UNARY_OPERATORS(OP) \
     OP(None, "", na)        \
     OP(Invert, "~", invert) \
@@ -167,7 +171,8 @@ enum class UnaryOperator : int8_t {
 #undef OP
 };
 
-enum class CmpOperator : int8_t {
+enum class CmpOperator : int8_t
+{
 
 #define COMP_OPERATORS(OP)     \
     OP(None, "", na)           \
@@ -187,7 +192,8 @@ enum class CmpOperator : int8_t {
 #undef OP
 };
 
-enum class ExprContext : int8_t {
+enum class ExprContext : int8_t
+{
     Load,
     Store,
     Del
@@ -1006,7 +1012,7 @@ struct Arrow: public ExprNode {
     Dict<StringRef, bool> defaults;  //
     ExprNode*             returns = nullptr;
 
-    int arg_count() const { return args.size(); }
+    int arg_count() const { return int(args.size()); }
 
     Array<ExprNode*> args;
 };
@@ -1060,12 +1066,11 @@ struct ClassType: public ExprNode {
 
 // This is essentially compile time lookup
 // no-need for the function to actually exist at runtime
-#define SPECGEN(name)                  \
-    template <>                        \
-    struct NodeTrait<name> {           \
-        enum Constants {               \
-            kind = int(NodeKind::name) \
-        };                             \
+#define SPECGEN(name)                   \
+    template <>                         \
+    struct NodeTrait<name> {            \
+        enum Constants                  \
+        { kind = int(NodeKind::name) }; \
     };
 
 #define X(name, _)
