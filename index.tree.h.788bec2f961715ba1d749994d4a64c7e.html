@@ -27,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2022-11-16 04:21:19</td>
+      <td>2022-11-16 06:19:23</td>
     </tr>
   </table>
 </div>
@@ -97,57 +97,57 @@
     </tr>
     <tr>
       <td>
-        <a href="#l157">lython::TreeEvaluator::exec(lython::ExprNode*, int)</a>
+        <a href="#l154">lython::TreeEvaluator::exec(lython::ExprNode*, int)</a>
       </td>
       <td>
-        <a href="#l157">157</a>
+        <a href="#l154">154</a>
       </td>
       <td>
-        <a href="#l157"> called 530 times</a>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <a href="#l151">lython::TreeEvaluator::exec(lython::StmtNode*, int)</a>
-      </td>
-      <td>
-        <a href="#l151">151</a>
-      </td>
-      <td>
-        <a href="#l151"> called 167 times</a>
+        <a href="#l154"> called 530 times</a>
       </td>
     </tr>
     <tr>
       <td>
-        <a href="#l163">lython::TreeEvaluator::get_trace()</a>
+        <a href="#l148">lython::TreeEvaluator::exec(lython::StmtNode*, int)</a>
       </td>
       <td>
-        <a href="#l163">163</a>
+        <a href="#l148">148</a>
       </td>
       <td>
-        <a href="#l163"> called 746 times</a>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <a href="#l144">lython::TreeEvaluator::has_exceptions() const</a>
-      </td>
-      <td>
-        <a href="#l144">144</a>
-      </td>
-      <td>
-        <a href="#l144"> called 167 times</a>
+        <a href="#l148"> called 169 times</a>
       </td>
     </tr>
     <tr>
       <td>
-        <a href="#l168">lython::TreeEvaluator::set_return_value(lython::Node*)</a>
+        <a href="#l160">lython::TreeEvaluator::get_trace()</a>
       </td>
       <td>
-        <a href="#l168">168</a>
+        <a href="#l160">160</a>
       </td>
       <td>
-        <a href="#l168"> called 44 times</a>
+        <a href="#l160"> called 748 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l141">lython::TreeEvaluator::has_exceptions() const</a>
+      </td>
+      <td>
+        <a href="#l141">141</a>
+      </td>
+      <td>
+        <a href="#l141"> called 169 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l165">lython::TreeEvaluator::set_return_value(lython::Node*)</a>
+      </td>
+      <td>
+        <a href="#l165">165</a>
+      </td>
+      <td>
+        <a href="#l165"> called 46 times</a>
       </td>
     </tr>
     <tr>
@@ -1253,7 +1253,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute_body</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">raise_exception</span><span class="p">(</span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exception</span><span class="p">,</span><span class="w"> </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1261,7 +1261,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">execute_loop_body</span><span class="p">(</span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StmtNode</span><span class="o">*&gt;&amp;</span><span class="w"> </span><span class="n">body</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1269,7 +1269,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// Only returns true when new exceptions pop up</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1277,7 +1277,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">raise_exception</span><span class="p">(</span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exception</span><span class="p">,</span><span class="w"> </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// we usually expect 0 exceptions,</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1285,7 +1285,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="c1">// during exceptions handling we will execpt n and this will only be true</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1293,7 +1293,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// Only returns true when new exceptions pop up</span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// if new exceptions are raised during the previous exceptions handling</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1301,7 +1301,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// we usually expect 0 exceptions,</span></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">has_exceptions</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">exceptions</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">handling_exceptions</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1309,7 +1309,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// during exceptions handling we will execpt n and this will only be true</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1317,7 +1317,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// if new exceptions are raised during the previous exceptions handling</span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="n">StmtNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1325,7 +1325,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="nf">has_exceptions</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="kt">int</span><span class="p">(</span><span class="n">exceptions</span><span class="p">.</span><span class="n">size</span><span class="p">())</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">handling_exceptions</span><span class="p">;</span><span class="w"> </span><span class="p">}</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1333,7 +1333,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">Constant</span><span class="o">*</span><span class="w"> </span><span class="nf">make</span><span class="p">(</span><span class="n">ClassDef</span><span class="o">*</span><span class="w"> </span><span class="n">class_t</span><span class="p">,</span><span class="w"> </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">Constant</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">args</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1341,7 +1341,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="n">StmtNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1349,7 +1349,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1357,59 +1357,35 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Constant</span><span class="o">*</span><span class="w"> </span><span class="nf">make</span><span class="p">(</span><span class="n">ClassDef</span><span class="o">*</span><span class="w"> </span><span class="n">class_t</span><span class="p">,</span><span class="w"> </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">Constant</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">args</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exec</span><span class="p">(</span><span class="n">StmtNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l149" href="#l149">149</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="linecount coveredLine">169</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">StackTrace</span><span class="o">&amp;</span><span class="w"> </span><span class="n">trace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_trace</span><span class="p">();</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l150" href="#l150">150</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
+      <td class="linecount coveredLine">169</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">trace</span><span class="p">.</span><span class="n">stmt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">stmt</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l151" href="#l151">151</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">exec</span><span class="p">(</span><span class="n">StmtNode_t</span><span class="o">*</span><span class="w"> </span><span class="n">stmt</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l152" href="#l152">152</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount coveredLine">167</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">StackTrace</span><span class="o">&amp;</span><span class="w"> </span><span class="n">trace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_trace</span><span class="p">();</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l153" href="#l153">153</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount coveredLine">167</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">trace</span><span class="p">.</span><span class="n">stmt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">stmt</span><span class="p">;</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l154" href="#l154">154</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount coveredLine">167</td>
+      <td class="linecount coveredLine">169</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">Super</span><span class="o">::</span><span class="n">exec</span><span class="p">(</span><span class="n">stmt</span><span class="p">,</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l155" href="#l155">155</a></td>
+      <td class="lineno"><a id="l152" href="#l152">152</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1417,7 +1393,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l156" href="#l156">156</a></td>
+      <td class="lineno"><a id="l153" href="#l153">153</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1425,7 +1401,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l157" href="#l157">157</a></td>
+      <td class="lineno"><a id="l154" href="#l154">154</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1433,7 +1409,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l158" href="#l158">158</a></td>
+      <td class="lineno"><a id="l155" href="#l155">155</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">530</td>
@@ -1441,7 +1417,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l159" href="#l159">159</a></td>
+      <td class="lineno"><a id="l156" href="#l156">156</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">530</td>
@@ -1449,7 +1425,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l160" href="#l160">160</a></td>
+      <td class="lineno"><a id="l157" href="#l157">157</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount coveredLine">530</td>
@@ -1457,7 +1433,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l161" href="#l161">161</a></td>
+      <td class="lineno"><a id="l158" href="#l158">158</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1465,7 +1441,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l162" href="#l162">162</a></td>
+      <td class="lineno"><a id="l159" href="#l159">159</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1473,7 +1449,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l163" href="#l163">163</a></td>
+      <td class="lineno"><a id="l160" href="#l160">160</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1481,7 +1457,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l164" href="#l164">164</a></td>
+      <td class="lineno"><a id="l161" href="#l161">161</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1489,7 +1465,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l165" href="#l165">165</a></td>
+      <td class="lineno"><a id="l162" href="#l162">162</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1497,7 +1473,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l166" href="#l166">166</a></td>
+      <td class="lineno"><a id="l163" href="#l163">163</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1505,7 +1481,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l167" href="#l167">167</a></td>
+      <td class="lineno"><a id="l164" href="#l164">164</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1513,7 +1489,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l168" href="#l168">168</a></td>
+      <td class="lineno"><a id="l165" href="#l165">165</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1521,7 +1497,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l169" href="#l169">169</a></td>
+      <td class="lineno"><a id="l166" href="#l166">166</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1529,7 +1505,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l170" href="#l170">170</a></td>
+      <td class="lineno"><a id="l167" href="#l167">167</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1537,7 +1513,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l171" href="#l171">171</a></td>
+      <td class="lineno"><a id="l168" href="#l168">168</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1545,11 +1521,35 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l172" href="#l172">172</a></td>
+      <td class="lineno"><a id="l169" href="#l169">169</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
       <td class="src "><span class="w">        </span><span class="c1">// but the value belongs to the upper scope</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l170" href="#l170">170</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="c1">//</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l171" href="#l171">171</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="c1">// Maybe just make a stack of scopes and return makes the value belong to the upper scope</span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l172" href="#l172">172</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">        </span><span class="c1">// or promote it to the upper scope so it does not get deleted</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1565,7 +1565,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// Maybe just make a stack of scopes and return makes the value belong to the upper scope</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// I thought about allocating the return value before the call is made</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1573,7 +1573,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// or promote it to the upper scope so it does not get deleted</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// so I do not have to promote the return value (it would already be on the right scope)</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1581,7 +1581,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">//</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// but it might get tricky with values referenced twice</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1589,7 +1589,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// I thought about allocating the return value before the call is made</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// when the variable is promoted the references are removed but not freed because it is</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1597,7 +1597,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// so I do not have to promote the return value (it would already be on the right scope)</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// still used as a return value</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1605,7 +1605,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// but it might get tricky with values referenced twice</span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1613,7 +1613,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// when the variable is promoted the references are removed but not freed because it is</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">// if (return_value != nullptr) {</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1621,7 +1621,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// still used as a return value</span></td>
+      <td class="src "><span class="w">        </span><span class="c1">//     root.remove_child_if_parent(return_value, true);</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1629,23 +1629,23 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">        </span><span class="c1">// }</span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l183" href="#l183">183</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// if (return_value != nullptr) {</span></td>
+      <td class="linecount coveredLine">46</td>
+      <td class="src coveredLine"><span class="w">        </span><span class="n">return_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
       <td class="lineno"><a id="l184" href="#l184">184</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">//     root.remove_child_if_parent(return_value, true);</span></td>
+      <td class="linecount coveredLine">46</td>
+      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1653,35 +1653,11 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">        </span><span class="c1">// }</span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l186" href="#l186">186</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount coveredLine">44</td>
-      <td class="src coveredLine"><span class="w">        </span><span class="n">return_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l187" href="#l187">187</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount coveredLine">44</td>
-      <td class="src coveredLine"><span class="w">    </span><span class="p">}</span><span class="w"></span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l188" href="#l188">188</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
       <td class="src "></td>
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l189" href="#l189">189</a></td>
+      <td class="lineno"><a id="l186" href="#l186">186</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1689,7 +1665,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l190" href="#l190">190</a></td>
+      <td class="lineno"><a id="l187" href="#l187">187</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1697,7 +1673,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l191" href="#l191">191</a></td>
+      <td class="lineno"><a id="l188" href="#l188">188</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1705,7 +1681,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l192" href="#l192">192</a></td>
+      <td class="lineno"><a id="l189" href="#l189">189</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1713,7 +1689,7 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l193" href="#l193">193</a></td>
+      <td class="lineno"><a id="l190" href="#l190">190</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
@@ -1721,11 +1697,35 @@
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l194" href="#l194">194</a></td>
+      <td class="lineno"><a id="l191" href="#l191">191</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
       <td class="src "><span class="w">    </span><span class="n">Expression</span><span class="w"> </span><span class="n">root</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l192" href="#l192">192</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l193" href="#l193">193</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">Bindings</span><span class="o">&amp;</span><span class="w">      </span><span class="n">bindings</span><span class="p">;</span><span class="w"></span></td>
+    </tr>
+
+    <tr class="source-line">
+      <td class="lineno"><a id="l194" href="#l194">194</a></td>
+      <td class="linebranch">
+      </td>
+      <td class="linecount "></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">return_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1741,7 +1741,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Bindings</span><span class="o">&amp;</span><span class="w">      </span><span class="n">bindings</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1749,7 +1749,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">return_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="c1">// `Registers`</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1765,7 +1765,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">private</span><span class="o">:</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">loop_break</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1773,7 +1773,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="c1">// `Registers`</span></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">loop_continue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1781,7 +1781,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">yielding</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1789,7 +1789,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">loop_break</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1797,7 +1797,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">loop_continue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1805,7 +1805,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">yielding</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="kt">int</span><span class="w">            </span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1821,7 +1821,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">PartialResult</span><span class="o">*</span><span class="w"> </span><span class="n">cause</span><span class="w">               </span><span class="o">=</span><span class="w"> </span><span class="n">nullptr</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="k">struct</span><span class="w"> </span><span class="nc">lyException</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">exceptions</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1829,7 +1829,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="kt">int</span><span class="w">            </span><span class="n">handling_exceptions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StackTrace</span><span class="o">&gt;</span><span class="w">          </span><span class="n">traces</span><span class="p">;</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1837,7 +1837,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
+      <td class="src "><span class="p">};</span><span class="w"></span></td>
     </tr>
 
     <tr class="source-line">
@@ -1845,7 +1845,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="k">struct</span><span class="w"> </span><span class="nc">lyException</span><span class="o">*&gt;</span><span class="w"> </span><span class="n">exceptions</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1853,7 +1853,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Array</span><span class="o">&lt;</span><span class="n">StackTrace</span><span class="o">&gt;</span><span class="w">          </span><span class="n">traces</span><span class="p">;</span><span class="w"></span></td>
+      <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
     </tr>
 
     <tr class="source-line">
@@ -1861,7 +1861,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="p">};</span><span class="w"></span></td>
+      <td class="src "></td>
     </tr>
 
     <tr class="source-line">
@@ -1869,35 +1869,11 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l213" href="#l213">213</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="p">}</span><span class="w">  </span><span class="c1">// namespace lython</span></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l214" href="#l214">214</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
-      <td class="src "></td>
-    </tr>
-
-    <tr class="source-line">
-      <td class="lineno"><a id="l215" href="#l215">215</a></td>
-      <td class="linebranch">
-      </td>
-      <td class="linecount "></td>
       <td class="src "><span class="cp">#endif</span></td>
     </tr>
 
     <tr class="source-line">
-      <td class="lineno"><a id="l216" href="#l216">216</a></td>
+      <td class="lineno"><a id="l213" href="#l213">213</a></td>
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
