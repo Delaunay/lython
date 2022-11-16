@@ -107,7 +107,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     // maybe conbine the semacontext with samespace
     Array<SemaContext> semactx;
 
-    bool has_errors();
+    bool has_errors() const;
 
     SemaContext& get_context() {
         static SemaContext global_ctx;
