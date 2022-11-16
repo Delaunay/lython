@@ -904,7 +904,7 @@ Arrow* SemanticAnalyser::functiondef_arrow(FunctionDef* n, StmtNode* class_t, in
         PopGuard ctx(semactx, SemaContext{false, true});
 
         if (n->returns.has_value()) {
-            auto return_t = n->returns.value();
+            auto* return_t = n->returns.value();
 
             if (is_type(return_t, depth, LOC)) {
                 type->returns = n->returns.value();
@@ -929,6 +929,18 @@ String SemanticAnalyser::generate_function_name(FunctionDef* n) {
     }
 
     return funname;
+}
+
+Array<TypeExpr*> SemanticAnalyser::exec_body(Array<StmtNode*>& body, int depth) {
+
+    Array<TypeExpr*> types;
+    for (auto* stmt: body) {
+        TypeExpr* tp = exec(stmt, depth);
+        if (tp != nullptr) {
+            types.push_back(tp);
+        }
+    }
+    return types;
 }
 
 TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
@@ -962,17 +974,21 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
 
     // Infer return type from the body
     PopGuard ctx(semactx, SemaContext());
-    auto     return_effective = exec<TypeExpr*>(n->body, depth);
+    auto     return_effective = exec_body(n->body, depth);
 
-    if (n->returns.has_value()) {
+    if (return_t != nullptr) {
         // Annotated type takes precedence
-        typecheck(n->returns.value(), return_t, nullptr, oneof(return_effective), LOC);
+        typecheck(nullptr,                  // lhs
+                  return_t,                 // lhs_t
+                  nullptr,                  // rhs
+                  oneof(return_effective),  // rhs_t
+                  LOC);
     }
 
     // do decorator last since we need to know our function signature to
     // typecheck them
     for (auto decorator: n->decorator_list) {
-        auto deco_t = exec(decorator.expr, depth);
+        auto* deco_t = exec(decorator.expr, depth);
         // TODO check the signature here
     }
 
@@ -1541,6 +1557,7 @@ TypeExpr* SemanticAnalyser::interactive(Interactive* n, int depth) { return null
 TypeExpr* SemanticAnalyser::functiontype(FunctionType* n, int depth) { return Type_t(); }
 TypeExpr* SemanticAnalyser::expression(Expression* n, int depth) { return exec(n->body, depth); }
 
+bool SemanticAnalyser::has_errors() { return !errors.empty(); }
 void SemanticAnalyser::show_diagnostic(std::ostream& out, class AbstractLexer* lexer) {
     SemaErrorPrinter printer(std::cout, lexer);
 

@@ -9,6 +9,19 @@
 
 #include "vm/tree.h"
 
+#define EXEC_BODY(body)                \
+    for (StmtNode * stmt: (body)) {    \
+        exec(stmt, depth);             \
+                                       \
+        if (has_exceptions()) {        \
+            return None();             \
+        }                              \
+                                       \
+        if (return_value != nullptr) { \
+            return return_value;       \
+        }                              \
+    }
+
 namespace lython {
 
 void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cause) {
@@ -361,18 +374,7 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
         bindings.add(StringRef(), arg, nullptr);
     }
 
-    for (StmtNode* stmt: function->body) {
-        exec(stmt, depth + 1);
-
-        if (has_exceptions()) {
-            return None();
-        }
-
-        // We are returning
-        if (return_value != nullptr) {
-            break;
-        }
-    }
+    EXEC_BODY(function->body);
 
     // TODO: check if the execution was partial or full
     // Actually; if we take ownership of the arguments
@@ -553,21 +555,9 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
 }
 
 PartialResult* TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
+    // this should not be called
     return_value = nullptr;
-
-    for (StmtNode* stmt: n->body) {
-        exec(stmt, depth + 1);
-
-        if (has_exceptions()) {
-            return None();
-        }
-
-        // We are returning
-        if (return_value != nullptr) {
-            break;
-        }
-    }
-
+    EXEC_BODY(n->body);
     return return_value;
 }
 
@@ -674,6 +664,10 @@ PartialResult* TreeEvaluator::forstmt(For_t* n, int depth) {
 
     PartialResult* iterator = exec(n->iter, depth);
 
+    bool broke    = false;
+    loop_break    = false;
+    loop_continue = false;
+
     while (true) {
         // Python does not create a new scope for `for`
         // Scope scope(bindings);
@@ -695,29 +689,36 @@ PartialResult* TreeEvaluator::forstmt(For_t* n, int depth) {
                 return None();
             }
 
+            if (return_value != nullptr) {
+                return return_value;
+            }
+
             if (loop_break) {
+                broke = true;
                 break;
             }
 
             if (loop_continue) {
-                continue;
+                break;
             }
         }
-    }
 
-    for (StmtNode* stmt: n->orelse) {
-        exec(stmt, depth);
+        loop_break    = false;
+        loop_continue = false;
 
-        if (has_exceptions()) {
-            return None();
+        if (broke) {
+            break;
         }
     }
 
+    EXEC_BODY(n->orelse);
     return None();
 }
 PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
 
-    bool broke = false;
+    bool broke    = false;
+    loop_break    = false;
+    loop_continue = false;
 
     while (true) {
         Constant* value = cast<Constant>(exec(n->test, depth));
@@ -738,6 +739,10 @@ PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
                 return None();
             }
 
+            if (return_value != nullptr) {
+                return return_value;
+            }
+
             if (loop_break) {
                 broke = true;
                 break;
@@ -751,15 +756,13 @@ PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
         // reset
         loop_break    = false;
         loop_continue = false;
-    }
 
-    for (StmtNode* stmt: n->orelse) {
-        exec(stmt, depth);
-
-        if (has_exceptions()) {
-            return None();
+        if (broke) {
+            break;
         }
     }
+
+    EXEC_BODY(n->orelse);
     return None();
 }
 
@@ -779,13 +782,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
             }
         }
 
-        for (StmtNode* stmt: body) {
-            exec(stmt, depth);
-
-            if (has_exceptions()) {
-                return None();
-            }
-        }
+        EXEC_BODY(body);
 
         return None();
     }
@@ -801,18 +798,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
         body = n->body;
     }
 
-    for (StmtNode* stmt: body) {
-        exec(stmt, depth);
-
-        if (has_exceptions()) {
-            return None();
-        }
-
-        if (return_value != nullptr) {
-            return return_value;
-        }
-    }
-
+    EXEC_BODY(body);
     return None();
 }
 
@@ -852,17 +838,8 @@ PartialResult* TreeEvaluator::continuestmt(Continue_t* n, int depth) {
 
 PartialResult* TreeEvaluator::inlinestmt(Inline_t* n, int depth) {
 
-    for (StmtNode* stmt: n->body) {
-        exec(stmt, depth);
+    EXEC_BODY(n->body);
 
-        if (has_exceptions()) {
-            return None();
-        }
-
-        if (return_value != nullptr) {
-            break;
-        }
-    }
     return None();
 }
 
@@ -885,48 +862,11 @@ PartialResult* TreeEvaluator::raise(Raise_t* n, int depth) {
     return nullptr;
 }
 
-void TreeEvaluator::execute_loop_body(Array<StmtNode*>& body, int depth) {
-    for (StmtNode* stmt: body) {
-        exec(stmt, depth);
-
-        if (has_exceptions()) {
-            break;
-        }
-
-        if (loop_break) {
-            break;
-        }
-
-        if (loop_continue) {
-            continue;
-        }
-    }
-}
-
-void TreeEvaluator::execute_body(Array<StmtNode*>& body, int depth) {
-    for (StmtNode* stmt: body) {
-        exec(stmt, depth);
-
-        if (has_exceptions()) {
-            break;
-        }
-    }
-}
-
 PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
 
-    bool received_exception = false;
+    EXEC_BODY(n->body);
 
-    for (StmtNode* stmt: n->body) {
-        exec(stmt, depth);
-
-        if (has_exceptions()) {
-            received_exception = true;
-            break;
-        }
-    }
-
-    if (received_exception) {
+    if (has_exceptions()) {
         // start handling all the exceptions we received
         auto _ = HandleException(this);
 
@@ -965,18 +905,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
                 bindings.add(matched->name.value(), &exception, nullptr);
             }
 
-            for (StmtNode* stmt: matched->body) {
-                exec(stmt, depth);
-
-                // new exception
-                if (has_exceptions()) {
-                    return None();
-                }
-
-                if (return_value != nullptr) {
-                    break;
-                }
-            }
+            EXEC_BODY(matched->body);
 
             // Exception was handled!
             exceptions.pop_back();
@@ -986,29 +915,12 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
         // leave the exception as is so we continue moving back
 
     } else {
-        for (StmtNode* stmt: n->orelse) {
-            exec(stmt, depth);
-
-            if (has_exceptions()) {
-                return None();
-            }
-
-            if (return_value != nullptr) {
-                break;
-            }
-        }
+        EXEC_BODY(n->orelse);
     }
 
     auto _ = HandleException(this);
 
-    for (StmtNode* stmt: n->finalbody) {
-        exec(stmt, depth);
-
-        // New exceptions
-        if (has_exceptions()) {
-            return None();
-        }
-    }
+    EXEC_BODY(n->finalbody);
 
     // we are not handling exception anymore
     handling_exceptions = 0;
@@ -1048,14 +960,7 @@ PartialResult* TreeEvaluator::with(With_t* n, int depth) {
         }
     }
 
-    for (StmtNode* stmt: n->body) {
-        exec(stmt, depth);
-
-        // New exceptions
-        if (has_exceptions()) {
-            return None();
-        }
-    }
+    EXEC_BODY(n->body);
 
     // Call exit regardless of exception status
     auto _ = HandleException(this);

@@ -29,12 +29,14 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
     parser.show_diagnostics(std::cout);
+    REQUIRE(parser.has_errors() == false);
 
     info("{}", "Sema");
     SemanticAnalyser sema;
     sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout);
+    REQUIRE(sema.has_errors() == false);
 
     // Parse the expression itself
     StringBuffer expr_reader(expr);
@@ -42,10 +44,16 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     Parser       expr_parser(expr_lex);
 
     auto* emod = expr_parser.parse_module();
+    expr_parser.show_diagnostics(std::cout);
+    REQUIRE(expr_parser.has_errors() == false);
+
     auto* stmt = emod->body[0];
 
     // Sema the code with module sema
     sema.exec(stmt, 0);
+
+    sema.show_diagnostic(std::cout);
+    REQUIRE(sema.has_errors() == false);
 
     info("{}", "Eval");
     TreeEvaluator eval(sema.bindings);
@@ -147,9 +155,10 @@ TEST_CASE("VM_IfStmt_True") {
 
 TEST_CASE("VM_assert_True") {
     run_test_case("def fun(a: i32) -> i32:\n"
-                  "    assert True, \"all good\"\n",
+                  "    assert True, \"all good\"\n"
+                  "    return 1\n",
                   "fun(0)",
-                  "None");
+                  "1");
 }
 
 // FIXME: tree should raise exception
@@ -161,7 +170,8 @@ TEST_CASE("VM_assert_True") {
 // AssertionError: false
 TEST_CASE("VM_assert_False") {
     run_test_case("def fun(a: i32) -> i32:\n"
-                  "    assert False, \"Very bad\"\n",
+                  "    assert False, \"Very bad\"\n"
+                  "    return 1\n",
                   "fun(0)",
                   "None");
 }
@@ -195,9 +205,11 @@ TEST_CASE("VM_assign") {
 
 TEST_CASE("VM_pass") {
     run_test_case("def fun(a: i32) -> i32:\n"
-                  "    pass\n",
+                  "    while False:\n"
+                  "        pass\n"
+                  "    return 0\n",
                   "fun(0)",
-                  "None");
+                  "0");
 }
 
 TEST_CASE("VM_inline_stmt") {
@@ -229,7 +241,8 @@ TEST_CASE("VM_exception_stop_recursion") {
 TEST_CASE("VM_exception_stop_loop") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    while True:\n"
-                  "        assert False, \"Very bad\"\n",
+                  "        assert False, \"Very bad\"\n"
+                  "    return 1\n",
                   "fun(2)",
                   "None");
 }

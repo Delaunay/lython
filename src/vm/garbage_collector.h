@@ -20,7 +20,7 @@ class GargabeCollector {
     T* new_object(Args... args) {
         T* obj = root.new_object(args...);
         tracked.push_back(RTGCObject{false, obj});
-        return obj
+        return obj;
     }
 
     void free_object(RTGCObject* obj);

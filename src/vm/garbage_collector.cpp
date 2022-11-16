@@ -21,7 +21,7 @@ void GargabeCollector::mark() {
 
         // TODO: fetch the GC metadata
         RTGCObject* mapped = nullptr;
-        if (mapped) {
+        if (mapped != nullptr) {
             mapped->cycle = cycle;
         }
     }

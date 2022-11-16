@@ -107,6 +107,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     // maybe conbine the semacontext with samespace
     Array<SemaContext> semactx;
 
+    bool has_errors();
+
     SemaContext& get_context() {
         static SemaContext global_ctx;
         if (semactx.size() == 0) {
@@ -168,6 +170,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     }
 
     Node* load_name(Name_t* variable);
+
+    Array<TypeExpr*> exec_body(Array<StmtNode*>& body, int depth);
 
     Name* make_ref(Node* parent, String const& name, int varid = -1) {
         return make_ref(parent, StringRef(name), varid);

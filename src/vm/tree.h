@@ -132,9 +132,6 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     PartialResult* call_constructor(Call_t* call, ClassDef_t* cls, int depth);
     PartialResult* make_generator(Call_t* call, FunctionDef_t* n, int depth);
 
-    void execute_body(Array<StmtNode*>& body, int depth);
-    void execute_loop_body(Array<StmtNode*>& body, int depth);
-
     void raise_exception(PartialResult* exception, PartialResult* cause);
 
     // Only returns true when new exceptions pop up
