@@ -41,6 +41,7 @@ SET(ADD_HEADERS
     codegen/cpp/cpp_gen.h
 
     vm/tree.h
+    vm/garbage_collector.h
 
     utilities/optional.h
     utilities/pool.h
@@ -90,6 +91,7 @@ SET(ADD_SOURCE
     codegen/cpp/cpp_gen.cpp
 
     vm/tree.cpp
+    vm/garbage_collector.cpp
 
     utilities/allocator.cpp
     utilities/metadata.cpp
