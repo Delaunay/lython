@@ -28,3 +28,6 @@
 [submodule "dependencies/xxHash"]
 	path = dependencies/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
+[submodule "dependencies/toolset/emsdk"]
+	path = dependencies/toolset/emsdk
+	url = https://github.com/emscripten-core/emsdk.git
