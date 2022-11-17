@@ -11,6 +11,30 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
+    const mimalloc = b.addStaticLibrary("mimalloc", null);
+    mimalloc.setTarget(target);
+    mimalloc.setBuildMode(mode);
+    mimalloc.linkLibC();
+    mimalloc.addIncludePath("dependencies/mimalloc/include");
+    mimalloc.addIncludePath("dependencies/mimalloc/src");
+    mimalloc.addCSourceFiles(&.{
+        "dependencies/mimalloc/src/alloc-aligned.c",
+        "dependencies/mimalloc/src/alloc-posix.c",
+        "dependencies/mimalloc/src/alloc.c",
+        "dependencies/mimalloc/src/arena.c",
+        "dependencies/mimalloc/src/heap.c",
+        "dependencies/mimalloc/src/init.c",
+        "dependencies/mimalloc/src/options.c",
+        "dependencies/mimalloc/src/os.c",
+        "dependencies/mimalloc/src/page.c",
+        "dependencies/mimalloc/src/random.c",
+        "dependencies/mimalloc/src/segment-cache.c",
+        "dependencies/mimalloc/src/segment.c",
+        "dependencies/mimalloc/src/stats.c",
+    }, &.{
+        "-std=c17",
+    });
+
     const spdlog = b.addStaticLibrary("spdlog", null);
     spdlog.setTarget(target);
     spdlog.setBuildMode(mode);
@@ -34,19 +58,21 @@ pub fn build(b: *std.build.Builder) void {
     liblython.setBuildMode(mode);
     liblython.linkLibC();
     liblython.linkSystemLibrary("c++");
-    liblython.defineCMacro("BUILD_WEBASSEMBLY", "1");
-    liblython.defineCMacro("BUILD_UNIX", "0");
+    liblython.defineCMacro("BUILD_WEBASSEMBLY", "0");
+    liblython.defineCMacro("BUILD_UNIX", "1");
     liblython.defineCMacro("WITH_LOG", "0");
     liblython.defineCMacro("WITH_COZ", "0");
-    liblython.defineCMacro("WITH_VALGRIND", "1");
+    liblython.defineCMacro("WITH_VALGRIND", "0");
     liblython.defineCMacro("WITH_COVERAGE", "0");
     liblython.force_pic = true;
     liblython.addIncludePath("dependencies/argparse/include");
     liblython.addIncludePath("dependencies/spdlog/include");
+    liblython.addIncludePath("dependencies/mimalloc/include");
     liblython.addIncludePath("dependencies");
     liblython.addIncludePath("src/");
     liblython.addIncludePath("build/");
     // liblython.linkLibrary(spdlog);
+    liblython.linkLibrary(mimalloc);
     liblython.addCSourceFiles(&.{
         "src/ast/nodes.cpp",
         "src/ast/values/native.cpp",
@@ -98,12 +124,13 @@ pub fn build(b: *std.build.Builder) void {
     lython.linkLibC();
     lython.linkSystemLibrary("c++");
     // lython.linkLibrary(spdlog);
+    lython.linkLibrary(mimalloc);
     lython.linkLibrary(liblython);
-    lython.defineCMacro("BUILD_WEBASSEMBLY", "1");
-    lython.defineCMacro("BUILD_UNIX", "0");
+    lython.defineCMacro("BUILD_WEBASSEMBLY", "0");
+    lython.defineCMacro("BUILD_UNIX", "1");
     lython.defineCMacro("WITH_LOG", "0");
     lython.defineCMacro("WITH_COZ", "0");
-    lython.defineCMacro("WITH_VALGRIND", "1");
+    lython.defineCMacro("WITH_VALGRIND", "0");
     lython.defineCMacro("WITH_COVERAGE", "0");
 
     lython.install();
@@ -111,6 +138,7 @@ pub fn build(b: *std.build.Builder) void {
     lython.addIncludePath("build/");
     lython.addIncludePath("dependencies/argparse/include");
     lython.addIncludePath("dependencies/spdlog/include");
+    lython.addIncludePath("dependencies/mimalloc/include");
     lython.addIncludePath("dependencies");
     lython.addCSourceFiles(&.{
         "src/cli/cli.cpp",
