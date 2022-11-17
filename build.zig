@@ -39,7 +39,7 @@ pub fn build(b: *std.build.Builder) void {
     spdlog.setTarget(target);
     spdlog.setBuildMode(mode);
     spdlog.linkLibC();
-    spdlog.defineCMacro("SPDLOG_COMPILED_LIB", null);
+    spdlog.defineCMacro("SPDLOG_COMPILED_LIB", "1");
     spdlog.linkSystemLibrary("c++");
     spdlog.addIncludePath("dependencies/spdlog/include");
     spdlog.addCSourceFiles(&.{
@@ -50,8 +50,11 @@ pub fn build(b: *std.build.Builder) void {
         "dependencies/spdlog/src/spdlog.cpp",
         "dependencies/spdlog/src/stdout_sinks.cpp",
     }, &.{
-        "-std=c++20",
+        "-std=c++17",
     });
+
+    // logging does not work
+    const with_log = "0";
 
     const liblython = b.addStaticLibrary("liblython", null);
     liblython.setTarget(target);
@@ -60,10 +63,11 @@ pub fn build(b: *std.build.Builder) void {
     liblython.linkSystemLibrary("c++");
     liblython.defineCMacro("BUILD_WEBASSEMBLY", "0");
     liblython.defineCMacro("BUILD_UNIX", "1");
-    liblython.defineCMacro("WITH_LOG", "0");
+    liblython.defineCMacro("WITH_LOG", with_log);
     liblython.defineCMacro("WITH_COZ", "0");
     liblython.defineCMacro("WITH_VALGRIND", "0");
     liblython.defineCMacro("WITH_COVERAGE", "0");
+    liblython.defineCMacro("FMT_USE_CONSTEXPR", "0");
     liblython.force_pic = true;
     liblython.addIncludePath("dependencies/argparse/include");
     liblython.addIncludePath("dependencies/spdlog/include");
@@ -71,8 +75,10 @@ pub fn build(b: *std.build.Builder) void {
     liblython.addIncludePath("dependencies");
     liblython.addIncludePath("src/");
     liblython.addIncludePath("build/");
-    // liblython.linkLibrary(spdlog);
     liblython.linkLibrary(mimalloc);
+    if (with_log == "1") {
+        liblython.linkLibrary(spdlog);
+    }
     liblython.addCSourceFiles(&.{
         "src/ast/nodes.cpp",
         "src/ast/values/native.cpp",
@@ -114,7 +120,7 @@ pub fn build(b: *std.build.Builder) void {
         // "-Wstrict-prototypes",
         // "-Wwrite-strings",
         // "-Wno-missing-field-initializers",
-        "-std=c++20",
+        "-std=c++17",
     });
 
 
@@ -123,15 +129,18 @@ pub fn build(b: *std.build.Builder) void {
     lython.setBuildMode(mode);
     lython.linkLibC();
     lython.linkSystemLibrary("c++");
-    // lython.linkLibrary(spdlog);
+    if (with_log == "1") {
+        lython.linkLibrary(spdlog);
+    }
     lython.linkLibrary(mimalloc);
     lython.linkLibrary(liblython);
     lython.defineCMacro("BUILD_WEBASSEMBLY", "0");
     lython.defineCMacro("BUILD_UNIX", "1");
-    lython.defineCMacro("WITH_LOG", "0");
+    lython.defineCMacro("WITH_LOG", with_log);
     lython.defineCMacro("WITH_COZ", "0");
     lython.defineCMacro("WITH_VALGRIND", "0");
     lython.defineCMacro("WITH_COVERAGE", "0");
+    lython.defineCMacro("FMT_USE_CONSTEXPR", "0");
 
     lython.install();
     lython.addIncludePath("src/");
@@ -153,22 +162,6 @@ pub fn build(b: *std.build.Builder) void {
         "src/cli/commands/profile.cpp",
         "src/cli/commands/tests.cpp"
     }, &.{
-        "-std=c++20",
+        "-std=c++17",
     });
-
-    // const run_cmd = exe.run();
-    // run_cmd.step.dependOn(b.getInstallStep());
-    // if (b.args) |args| {
-    //     run_cmd.addArgs(args);
-    // }
-
-    // const run_step = b.step("run", "Run the app");
-    // run_step.dependOn(&run_cmd.step);
-
-    // const exe_tests = b.addTest("src/main.zig");
-    // exe_tests.setTarget(target);
-    // exe_tests.setBuildMode(mode);
-
-    // const test_step = b.step("test", "Run unit tests");
-    // test_step.dependOn(&exe_tests.step);
 }

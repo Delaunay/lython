@@ -1,6 +1,5 @@
 #pragma once
 
-#include <spdlog/fmt/bundled/core.h>
 #include <spdlog/fmt/bundled/ostream.h>
 
 #include "dtypes.h"
