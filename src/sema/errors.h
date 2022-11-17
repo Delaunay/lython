@@ -13,7 +13,7 @@ struct SemaError {};
 
 StmtNode* get_parent_stmt(Node* node);
 
-struct SemaException: LythonException {
+struct SemaException: public LythonException {
     ExprNode* expr = nullptr;
     StmtNode* stmt = nullptr;
 

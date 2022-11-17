@@ -45,3 +45,6 @@ hardening/coz/nothing.ly
 hardening/fuzzing/in/
 hardening/fuzzing/results/
 dependencies/toolset/zig/
+
+
+zig-out/
