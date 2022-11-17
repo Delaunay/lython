@@ -13,7 +13,7 @@
 #elif BUILD_WEBASSEMBLY
 #    define LY_ALIGN(X) __attribute__((aligned(X)))
 #    define LY_PACKED   __attribute__((packed))
-#    define LY_NOEXCEPT noexcept
+#    define LY_NOEXCEPT
 #    define LY_INLINE
 #    define XXH_VECTOR XXH_SCALAR
 
@@ -30,5 +30,13 @@
 #    define LY_NOEXCEPT
 #    define LY_INLINE
 #    define XXH_VECTOR XXH_SCALAR
+
+#endif
+
+// Fixes for zigg
+#if __clang__
+#    undef LY_NOEXCEPT
+#    define LY_NOEXCEPT noexcept
+#else __GNUC__
 
 #endif

@@ -68,8 +68,8 @@ using StringView = std::string_view;
 // ------------
 namespace std {
 
-//*
-#if !BUILD_WEBASSEMBLY
+// FIXME: BUILD_WEBASSEMBLY use clang by default so this is the same check
+#if !BUILD_WEBASSEMBLY && !__clang__
 template <typename Char, typename Allocator>
 struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
     using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;

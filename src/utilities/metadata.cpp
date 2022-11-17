@@ -21,7 +21,7 @@ using SharedPtrInternal =
     std::_Sp_counted_ptr_inplace<T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
 template <typename T, bool cache>
 using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
-#elif !BUILD_WEBASSEMBLY
+#elif !BUILD_WEBASSEMBLY && !__clang__
 template <typename T>
 using SharedPtrInternal = std::shared_ptr<T>;
 
@@ -37,12 +37,16 @@ using UniquePtrInternal = std::unique_ptr<T>;
 
 void _metadata_init_names_windows();
 void _metadata_init_names_unix();
+void _metadata_init_names_gcc();
+void _metadata_init_names_clang();
 void _metadata_init_names_js();
 
 bool _metadata_init_names() {
     _metadata_init_names_windows();
     _metadata_init_names_unix();
     _metadata_init_names_js();
+    _metadata_init_names_gcc();
+    _metadata_init_names_clang();
 
     meta::override_typename<char>("char");
     meta::override_typename<int>("int");
@@ -99,7 +103,7 @@ bool _metadata_init_names() {
 #undef MOD
 #undef MATCH
 
-#if __linux__ || !BUILD_WEBASSEMBLY
+#if __linux__ || (!BUILD_WEBASSEMBLY && !__clang__)
     meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Pair[Ref, Classdef::Attr]");
@@ -174,8 +178,11 @@ bool _metadata_init_names() {
     return true;
 }
 
+void _metadata_init_names_gcc() {}
+void _metadata_init_names_clang() {}
+
 void _metadata_init_names_windows() {
-#if (!defined __linux__) && !BUILD_WEBASSEMBLY
+#if (!defined __linux__) && (!BUILD_WEBASSEMBLY && !__clang__)
     meta::override_typename<
         ListIterator<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Iterator[Pair[Ref, Classdef::Attr]]");
