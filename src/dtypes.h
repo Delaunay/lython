@@ -113,15 +113,4 @@ class LythonException: public std::exception {};
 
 }  // namespace lython
 
-#if __linux__
-#    define NOTHROW _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
-#    define LYTHON_INLINE
-#elif BUILD_WEBASSEMBLY
-#    define NOTHROW _NOEXCEPT
-#    define LYTHON_INLINE
-#else
-#    define NOTHROW
-#    define LYTHON_INLINE __forceinline
-#endif
-
 #endif

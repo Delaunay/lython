@@ -1,11 +1,11 @@
 #include "ast/magic.h"
 #include "ast/nodes.h"
 #include "ast/visitor.h"
+#include "compatibility/compatibility.h"
 #include "dependencies/fmt.h"
 #include "lexer/unlex.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
-#include "perf/perf.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -17,9 +17,8 @@ struct CircleTrait {
     using ModRet  = bool;
     using PatRet  = bool;
 
-    enum {
-        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
-    };
+    enum
+    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
 #define ReturnType bool

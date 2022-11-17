@@ -1,10 +1,5 @@
 #include "xx_hash.h"
-
-#if BUILD_WEBASSEMBLY
-#    define XXH_VECTOR XXH_SCALAR
-#else
-#    define XXH_VECTOR XXH_AVX2
-#endif
+#include "compatibility/compatibility.h"
 
 // only from Zen 4
 // #define XXH_VECTOR XXH_AVX512

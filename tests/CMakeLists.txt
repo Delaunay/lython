@@ -2,28 +2,31 @@
 # issue: what if *_test need a specific library ?
 #
 
-# tests need source header
+# Includes
 INCLUDE_DIRECTORIES(../src)
 INCLUDE(CTest)
-
-SET(TEST_HEADERS
-)
-
-# find_package(Catch2)
-# INCLUDE(catch)
 INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
 
+# Testing utility
 ADD_LIBRARY(liblythontest cases_errors.cpp cases.cpp samples.cpp)
 TARGET_LINK_LIBRARIES(liblythontest spdlog::spdlog Catch2::Catch2 liblython liblogging)
 
+SET(TEST_LIBRARIES
+  spdlog::spdlog
+  Catch2::Catch2
+  liblython
+  liblogging
+  liblythontest
+)
+
 # Add your test to CMAKE
 # to run all tests run 'make test'
-MACRO(TEST_MACRO NAME) # LIBRARIES
+MACRO(TEST_MACRO NAME)
   ADD_EXECUTABLE(${NAME}_test main.cpp ${NAME}_test.cpp ${TEST_HEADERS})
-  TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 liblython liblogging liblythontest)
+  TARGET_LINK_LIBRARIES(${NAME}_test ${TEST_LIBRARIES})
   ADD_DEPENDENCIES(${NAME}_test liblython liblogging liblythontest)
 
-  IF(UNIX AND WITH_COVERAGE)
+  IF(WITH_COVERAGE)
     ADD_DEPENDENCIES(coverage ${NAME}_test)
   ENDIF()
 
@@ -73,11 +76,10 @@ ADD_TEST(
 )
 
 # ADD_TEST(
-#   NAME lython_fmt
-#   WORKING_DIRECTORY .
-#   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt --ast ../code/comment.ly
+# NAME lython_fmt
+# WORKING_DIRECTORY .
+# COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython fmt --ast ../code/comment.ly
 # )
-
 ADD_TEST(
   NAME lython_codegen
   WORKING_DIRECTORY .

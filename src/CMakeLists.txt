@@ -2,21 +2,34 @@
 # Project Source
 # ===============================================================================
 
+# Includes
+# ========
+
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(../dependencies/spdlog/include)
 INCLUDE_DIRECTORIES(../dependencies)
+INCLUDE_DIRECTORIES(mimalloc)
 
-# INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-AUX_SOURCE_DIRECTORY(parser SRC_LIST)
+# Libraries
+# =========
+SET(LIBRARIES "")
 
-# directories
-# ADD_SUBDIRECTORY(ast)
-# ADD_SUBDIRECTORY(lexer)
-# ADD_SUBDIRECTORY(parser)
-# ADD_SUBDIRECTORY(generator)
-# ADD_SUBDIRECTORY(logging)
-# ADD_SUBDIRECTORY(sema)
-# ADD_SUBDIRECTORY(interpreter)
+IF(WITH_VALGRIND)
+    MESSAGE(STATUS "Disabling mimalloc")
+    ADD_DEFINITIONS(-DWITH_VALGRIND)
+ELSE()
+    LIST(APPEND LIBRARIES mimalloc-static)
+ENDIF(WITH_VALGRIND)
+
+IF(WITH_LOG)
+    LIST(APPEND LIBRARIES spdlog::spdlog)
+ENDIF(WITH_LOG)
+
+IF(WITH_COZ)
+    LIST(APPEND LIBRARIES dl)
+    ADD_COMPILE_OPTIONS(-g3 -gdwarf-3)
+    MESSAGE(STATUS "Compiling for coz")
+ENDIF(WITH_COZ)
 
 # Source
 SET(ADD_HEADERS
@@ -24,26 +37,23 @@ SET(ADD_HEADERS
     ast/ops.h
     ast/values/native.h
     ast/values/generator.h
-
-    utilities/names.h
-    utilities/object.h
     ast/magic.h
     ast/constant.h
     builtin/operators.h
+    compatibility/compatibility.h
+    codegen/cpp/cpp_gen.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
     lexer/unlex.h
+    lowering/lowering.h
     parser/parser.h
     parser/parsing_error.h
-    lowering/lowering.h
     sema/sema.h
-
-    codegen/cpp/cpp_gen.h
-
     vm/tree.h
     vm/garbage_collector.h
-
+    utilities/names.h
+    utilities/object.h
     utilities/optional.h
     utilities/pool.h
     utilities/trie.h
@@ -61,39 +71,30 @@ SET(ADD_SOURCE
     ast/nodes.cpp
     ast/values/native.cpp
     ast/values/generator.cpp
-
     ast/ops/context.cpp
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
     ast/ops/print.cpp
     ast/ops/circle.cpp
-
     builtin/operators.cpp
-
+    codegen/cpp/cpp_gen.cpp
     dependencies/xx_hash.cpp
-
     lexer/lexer.cpp
     lexer/buffer.cpp
     lexer/token.cpp
     lexer/unlex.cpp
     lowering/lowering.cpp
-
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp
     printer/error_printer.cpp
-
     sema/sema.cpp
     sema/sema_import.cpp
     sema/errors.cpp
     sema/bindings.cpp
     sema/builtin.cpp
-
-    codegen/cpp/cpp_gen.cpp
-
     vm/tree.cpp
     vm/garbage_collector.cpp
-
     utilities/allocator.cpp
     utilities/metadata.cpp
     utilities/pool.cpp
@@ -101,6 +102,73 @@ SET(ADD_SOURCE
     utilities/strings.cpp
     utilities/names.cpp
 )
+
+# Configure Platforms
+# ==============================================
+IF(BUILD_WINDOWS)
+ENDIF()
+
+IF(BUILD_UNIX)
+    ADD_COMPILE_OPTIONS(-mavx2)
+ENDIF()
+
+IF(BUILD_WEBASSEMBLY)
+    add_definitions("-s LINKABLE=1")
+    add_definitions("-s EXPORT_ALL=1")
+ENDIF()
+
+# Defintions
+ADD_DEFINITIONS(-DBUILD_WEBASSEMBLY=${BUILD_WEBASSEMBLY})
+ADD_DEFINITIONS(-DBUILD_UNIX=${BUILD_UNIX})
+ADD_DEFINITIONS(-DBUILD_WINDOWS=${BUILD_WINDOWS})
+
+ADD_DEFINITIONS(-DWIN32=${WIN32})
+ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
+ADD_DEFINITIONS(-DWITH_COZ=${WITH_COZ})
+ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
+
+# Compile
+# ==================
+
+# Support library for utilities
+ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
+TARGET_LINK_LIBRARIES(liblogging ${LIBRARIES})
+
+# Core language libraries
+ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
+TARGET_LINK_LIBRARIES(liblython ${LIBRARIES})
+
+ADD_LIBRARY(stblyb stdlib/siphash.cpp)
+SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD ${LY_CXX_STANDARD})
+
+# CLI
+SET(ADD_CLI_SOURCE
+    cli/cli.cpp
+    cli/commands/code.cpp
+    cli/commands/format.cpp
+    cli/commands/codegen.cpp
+    cli/commands/debug.cpp
+    cli/commands/doc.cpp
+    cli/commands/install.cpp
+    cli/commands/internal.cpp
+    cli/commands/linter.cpp
+    cli/commands/profile.cpp
+    cli/commands/tests.cpp
+)
+ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
+TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES})
+
+SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD ${LY_CXX_STANDARD})
+
+IF(UNIX AND WITH_COVERAGE)
+    setup_target_for_coverage_gcovr_html(
+        NAME coverage
+        EXECUTABLE ctest --timeout 10 --output-on-failure
+        BASE_DIRECTORY "."
+        DEPENDS test
+    )
+ENDIF()
 
 # SET (CUDA_SUPPORT
 # utilities/allocator.cu
@@ -125,80 +193,3 @@ SET(ADD_SOURCE
 # COMPILE_OPTIONS "--analyze"
 # EXCLUDE_FROM_DEFAULT_BUILD true)
 # ENDFUNCTION()
-INCLUDE_DIRECTORIES(mimalloc)
-
-SET(LIBRARIES "")
-
-IF(WITH_VALGRIND)
-    MESSAGE(STATUS "Disabling mimalloc")
-    ADD_DEFINITIONS(-DWITH_VALGRIND)
-ELSE()
-    LIST(APPEND LIBRARIES mimalloc-static)
-ENDIF(WITH_VALGRIND)
-
-IF(WITH_COZ AND UNIX)
-    LIST(APPEND LIBRARIES dl)
-    ADD_COMPILE_OPTIONS(-g3 -gdwarf-3)
-    MESSAGE(STATUS "Compiling for coz")
-ENDIF()
-
-IF(UNIX AND NOT BUILD_WEBASSEMBLY)
-    ADD_COMPILE_OPTIONS(-mavx2)
-ENDIF()
-
-ADD_DEFINITIONS(-DWIN32=${WIN32})
-ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
-ADD_DEFINITIONS(-DWITH_COZ=${WITH_COZ})
-ADD_DEFINITIONS(-DBUILD_WEBASSEMBLY=${BUILD_WEBASSEMBLY})
-ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
-
-# Compile
-# ==================
-SET(SPD_LOG)
-
-IF(WITH_LOG)
-    SET(SPD_LOG spdlog::spdlog)
-ELSE()
-    SET(SPD_LOG)
-ENDIF()
-
-# Support library for utilities
-ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
-TARGET_LINK_LIBRARIES(liblogging ${SPD_LOG})
-
-# Core language libraries
-ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython ${SPD_LOG} ${LIBRARIES})
-
-ADD_LIBRARY(stblyb stdlib/siphash.cpp)
-SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD 20)
-
-# CLI
-SET(ADD_CLI_SOURCE
-    cli/cli.cpp
-
-    cli/commands/code.cpp
-    cli/commands/format.cpp
-    cli/commands/codegen.cpp
-    cli/commands/debug.cpp
-    cli/commands/doc.cpp
-    cli/commands/install.cpp
-    cli/commands/internal.cpp
-    cli/commands/linter.cpp
-    cli/commands/profile.cpp
-    cli/commands/tests.cpp
-)
-ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
-TARGET_LINK_LIBRARIES(lython ${SPD_LOG} liblython liblogging argparse ${LIBRARIES})
-
-SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD 20)
-
-IF(UNIX AND WITH_COVERAGE)
-    setup_target_for_coverage_gcovr_html(
-        NAME coverage
-        EXECUTABLE ctest --timeout 10 --output-on-failure
-        BASE_DIRECTORY "."
-        DEPENDS test
-    )
-ENDIF()

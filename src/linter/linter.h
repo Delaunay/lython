@@ -38,7 +38,7 @@ struct LinterException: LythonException {
 
     LinterException(): cached_message("") {}
 
-    virtual const char* what() const NOTHROW override final {
+    virtual const char* what() const LY_NOEXCEPT override final {
         generate_message();
         return cached_message.c_str();
     }

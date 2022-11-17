@@ -2,6 +2,7 @@
 #define LYTHON_AST_VISITOR_HEADER
 
 #include "ast/nodes.h"
+#include "compatibility/compatibility.h"
 #include "dependencies/coz_wrap.h"
 #include "logging/logging.h"
 
@@ -246,7 +247,7 @@ struct BaseVisitor {
     }
 
 #define FUNCTION_GEN(name, fun, rtype)                                          \
-    LYTHON_INLINE rtype fun(name##_t* node, int depth, Args... args) {          \
+    LY_INLINE rtype fun(name##_t* node, int depth, Args... args) {              \
         if (Trace::value) {                                                     \
             trace(depth, #name);                                                \
         }                                                                       \

@@ -52,7 +52,7 @@ class SyntaxError: public ParsingException {
     public:
     SyntaxError(String const& message = ""): msg(message) {}
 
-    virtual const char* what() const NOTHROW { return msg.c_str(); }
+    virtual const char* what() const LY_NOEXCEPT { return msg.c_str(); }
 
     String msg;
 };

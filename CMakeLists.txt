@@ -44,56 +44,44 @@ OPTION(WITH_COVERAGE "Enable coverage generation" ON)
 OPTION(WITH_LOG "Enable compiler log" ON)
 OPTION(WITH_COZ "Enable coz profiler" OFF)
 
-# OPTION(BUILD_WEBASSEMBLY "Webassembly" OFF)
-IF(WIN32)
-ENDIF(WIN32)
+# Identify Targets
+SET(BUILD_WEBASSEMBLY 0)
+SET(BUILD_UNIX 0)
+SET(BUILD_WINDOWS 0)
 
 IF(CMAKE_CXX_COMPILER MATCHES "/em.*$")
-    message(" * C++ compiler: Emscripten")
+    MESSAGE(" * Platform: Emscripten")
     SET(BUILD_WEBASSEMBLY 1)
-    SET(WITH_COVERAGE OFF)
-    SET(BUILD_TESTING OFF)
-    SET(BUILD_BENCHMARKS OFF)
-    SET(WITH_VALGRIND ON)
-    SET(WIN32 0)
-ELSE()
-    message(" * not webassembly ${CMAKE_CXX_COMPILER}")
+
+    # Disable not supported targets
+    SET(BUILD_TESTING OFF) #
+    SET(BUILD_BENCHMARKS OFF) #
+
+    # Disable not supported features
+    SET(WITH_COZ 0)
+    SET(WITH_COVERAGE 0)
+    SET(WITH_LOG 0)
+    SET(WITH_VALGRIND 1)
+
+ELSEIF(UNIX)
+    MESSAGE(" * Platform: Unix")
+    SET(BUILD_UNIX 1)
+
+ELSEIF(WIN32)
+    MESSAGE(" * Platform: Windows")
+    SET(BUILD_WINDOWS 1)
+
+    # Disable not supported features
+    SET(WITH_COZ 0)
+    SET(WITH_COVERAGE 0)
 ENDIF()
-
-IF(BUILD_WEBASSEMBLY)
-    # https://depth-first.com/articles/2019/10/16/compiling-c-to-webassembly-and-running-it-without-emscripten/
-    # https://medium.com/@dougschaefer/going-straight-to-clang-for-webassembly-928df1484430
-
-    # Looks like I have to use emacscripten
-    # maybe I could use things like:
-    # - https://github.com/WebAssembly/wasi-libc
-    #
-    # set(CMAKE_SYSTEM_NAME Linux)
-    # set(CMAKE_SYSTEM_PROCESSOR wasm32)
-
-    # set(CMAKE_C_COMPILER clang)
-    # set(CMAKE_CXX_COMPILER clang++)
-
-    # set(triple)
-    # set(CMAKE_C_COMPILER_TARGET ${triple})
-    # set(CMAKE_CXX_COMPILER_TARGET ${triple})
-
-    # -Wall
-    # --target=wasm32
-    # -Os
-    # -flto
-    # -nostdlib
-    # -fvisibility=hidden
-    # -std=c++14
-    # -ffunction-sections
-    # -fdata-sections
-ENDIF(BUILD_WEBASSEMBLY)
 
 # Binary/pre-compiled Dependencies
 # ====================================
 
-# C++20 does not work as of Nov - 2022
-SET(CMAKE_CXX_STANDARD 17)
+# C++20 does not work for gcc & fmt as of Nov - 2022
+SET(LY_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD ${LY_CXX_STANDARD})
 SET(CXX_STANDARD_REQUIRED ON)
 
 # FIND_PACKAGE(Boost REQUIRED)

@@ -1,14 +1,9 @@
 #pragma once
 
+#include "compatibility/compatibility.h"
 #include "dependencies/fmt.h"
 
 #include <exception>
-
-#ifdef __linux__
-#    define LY_NOEXCEPT _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
-#else
-#define LY_NOEXCEPT noexcept
-#endif
 
 namespace lython {
 

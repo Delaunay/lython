@@ -116,7 +116,8 @@
     "any": "cpp",
     "cfenv": "cpp",
     "csignal": "cpp",
-    "xxh_x86dispatch.c": "cpp"
+    "xxh_x86dispatch.c": "cpp",
+    "execution": "cpp"
   },
   "python.formatting.provider": "black",
   "files.exclude": {
