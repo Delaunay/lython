@@ -5,6 +5,9 @@
 
 namespace lython {
 
+#if BUILD_WEBASSEMBLY
+#else
+
 void worker_loop(ThreadPool* pool, std::size_t n);
 
 ThreadPool::ThreadPool(std::size_t thread_count) {
@@ -96,4 +99,5 @@ void worker_loop(ThreadPool* pool, std::size_t n) {
     }
 }
 
+#endif
 }  // namespace lython

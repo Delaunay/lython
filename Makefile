@@ -15,3 +15,7 @@ format-run:
 
 zig-build:
 	.\dependencies\toolset\zig\zig.exe build --cache-dir build/cache
+
+zig-wasm-build:
+	.\dependencies\toolset\zig\zig.exe build -Dtarget=wasm32-freestanding-musl
+

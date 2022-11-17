@@ -83,9 +83,11 @@ class StringDatabase {
         return (*reverse[block])[entry];
     }
 
-    // Array<StringEntry>            strings; // String storage
+// Array<StringEntry>            strings; // String storage
+#if !BUILD_WEBASSEMBLY
     mutable std::recursive_mutex mu;
-    mutable double               wait_time;
+#endif
+    mutable double wait_time;
 
     friend class StringRef;
     friend bool _metadata_init_names();

@@ -64,11 +64,13 @@ StringDatabase& StringDatabase::instance() {
 }
 
 StringView StringDatabase::operator[](std::size_t i) const {
-    // we need to lock here in case the array gets reallocated
-    // during a parallel insert
+// we need to lock here in case the array gets reallocated
+// during a parallel insert
+#if !BUILD_WEBASSEMBLY
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
     wait_time += timer.stop();
+#endif
 
     assert(i < size, "array out of bound");
 
@@ -84,10 +86,12 @@ std::size_t StringDatabase::dec(std::size_t n) {
         return n;
     }
 
+#if !BUILD_WEBASSEMBLY
     // we need to lock here in case the array gets reallocated during a parallel insert
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
     wait_time += timer.stop();
+#endif
 
     // Easiest way to keep track of every StringRef in the code
     auto& entry = get(n);
@@ -107,10 +111,12 @@ std::size_t StringDatabase::inc(std::size_t i) {
         return 0;
     }
 
+#if !BUILD_WEBASSEMBLY
     // we need to lock here in case the array gets reallocated during a parallel insert
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
     wait_time += timer.stop();
+#endif
 
     get(i).in_use += 1;
     return i;
@@ -153,9 +159,11 @@ StringRef StringDatabase::insert_string(String const& name) {
 
 StringRef StringDatabase::lookup_or_insert_string(String const& name) {
 
+#if !BUILD_WEBASSEMBLY
     StopWatch<>                           timer;
     std::lock_guard<std::recursive_mutex> guard(mu);
     wait_time += timer.stop();
+#endif
 
     auto val = defined.find(name);
 

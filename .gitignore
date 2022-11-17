@@ -48,3 +48,4 @@ dependencies/toolset/zig/
 
 
 zig-out/
+zig-cache/

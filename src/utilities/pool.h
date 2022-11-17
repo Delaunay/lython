@@ -1,13 +1,23 @@
 #include <functional>
-#include <future>
+
 #include <optional>
-#include <thread>
+
+#if !BUILD_WEBASSEMBLY
+#    include <future>
+#    include <thread>
+#endif
+
 #include <type_traits>
 #include <vector>
 
 #include "utilities/stopwatch.h"
 
 namespace lython {
+
+#if BUILD_WEBASSEMBLY
+
+class ThreadPool {};
+#else
 
 class ThreadPool;
 void worker_loop(ThreadPool* pool, std::size_t n);
@@ -24,14 +34,14 @@ class ThreadPool {
     //! use system default as the number of threads
     ThreadPool(std::size_t thread_count = std::thread::hardware_concurrency());
 
-#ifdef __linux__
+#    ifdef __linux__
     template <typename Fun, typename... Args>
     using Return_t = typename std::result_of<typename std::decay<Fun>::type(
         typename std::decay<Args>::type...)>::type;
-#else
+#    else
     template <typename Fun, typename... Args>
     using Return_t = typename std::invoke_result<Fun, Args...>::type;
-#endif
+#    endif
 
     //! Queue a new Task
     template <typename Fun, typename... Args>
@@ -89,4 +99,6 @@ class ThreadPool {
     std::vector<Stat_t>      stats;
     std::vector<Task_t>      tasks;
 };
+
+#endif
 }  // namespace lython
