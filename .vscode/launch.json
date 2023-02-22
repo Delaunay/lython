@@ -27,7 +27,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
             "args": [
-                "VM_exception_stop_loop"
+                "VM_ClassDef"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,

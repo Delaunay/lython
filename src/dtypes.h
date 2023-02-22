@@ -70,16 +70,16 @@ namespace std {
 
 // FIXME: BUILD_WEBASSEMBLY use clang by default so this is the same check
 #if !BUILD_WEBASSEMBLY && !__clang__
-template <typename Char, typename Allocator>
-struct hash<std::basic_string<Char, std::char_traits<Char>, Allocator>> {
-    using Key = std::basic_string<Char, std::char_traits<Char>, Allocator>;
+template <>
+struct hash<lython::String> {
+    using Key = lython::String;
 
     std::size_t operator()(Key const& k) const noexcept {
         return lython::xx_hash_3((void*)k.data(), k.length());
         // #ifdef __linux__
         //         return std::_Hash_impl::hash(k.data(), k.length() * sizeof(Char));
         // #else
-        //         return stdext::hash_value(k);
+        //         return std::_Hash_array_representation(k.c_str(), k.size());
         // #endif
     }
 };

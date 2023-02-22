@@ -14,6 +14,18 @@ struct GCObject {
     T* new_object(Args&&... args) {
         COZ_BEGIN("T::GCObject::new_object");
 
+        T* obj = GCObject::new_root<T>(args...);
+
+        add_child(obj);
+
+        COZ_PROGRESS_NAMED("GCObject::new_object");
+        COZ_END("T::GCObject::new_object");
+        return obj;
+    }
+
+    template <typename T, typename... Args>
+    static T* new_root(Args&&... args) {
+
         auto& alloc = get_allocator<T>();
 
         // allocate
@@ -23,10 +35,6 @@ struct GCObject {
         T* obj        = new ((void*)memory) T(std::forward<Args>(args)...);
         obj->class_id = meta::type_id<T>();
 
-        add_child(obj);
-
-        COZ_PROGRESS_NAMED("GCObject::new_object");
-        COZ_END("T::GCObject::new_object");
         return obj;
     }
 
@@ -86,7 +94,7 @@ struct GCObject {
     void dump_recursive(std::ostream& out, Array<GCObject*>& visited, int prev, int depth);
 
     template <typename T>
-    AllocatorCPU<T>& get_allocator() {
+    static AllocatorCPU<T>& get_allocator() {
         static auto alloc = AllocatorCPU<T>();
         return alloc;
     }

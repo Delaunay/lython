@@ -1,10 +1,13 @@
 #include "ast/magic.h"
 #include "ast/nodes.h"
+#include "ast/values/native.h"
+#include "ast/values/object.h"
 #include "ast/visitor.h"
 #include "dependencies/fmt.h"
 #include "lexer/unlex.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
+#include "utilities/allocator.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -16,9 +19,8 @@ struct PrintTrait {
     using ModRet  = bool;
     using PatRet  = bool;
 
-    enum {
-        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
-    };
+    enum
+    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
 int  get_precedence(Node const* node);
@@ -1067,10 +1069,26 @@ void ConstantValue::print(std::ostream& out) const {
 
     case TString: out << "\"" << value.string << "\""; break;
 
-    case TObject: out << "<object>"; break;
+    case TObject: _print_object(out); break;
 
     default: break;
     }
+}
+
+void ConstantValue::_print_object(std::ostream& out) const {
+
+    if (value.object->class_id == meta::type_id<Object>()) {
+        Array<String> frags;
+        Object const* obj = reinterpret_cast<Object const*>(value.object);
+
+        for (auto const& attr: obj->attributes) {
+            frags.push_back(str(attr));
+        }
+
+        out << String("(") << join(", ", frags) << String(")");
+        return;
+    }
+    out << "<object>";
 }
 
 String Node::__str__() const {

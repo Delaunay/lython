@@ -386,18 +386,48 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
     return return_value;
 }
 
-PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) {
-    return nullptr;
-}
-
 Constant* object__new__(GCObject* parent, ClassDef* class_t) {
     Constant* value = parent->new_object<Constant>();
 
     Object* obj = value->new_object<Object>();
     obj->attributes.resize(class_t->attributes.size());
 
+    for (int i = 0; i < class_t->attributes.size(); i++) {
+        obj->attributes[i] = obj->new_object<Constant>();
+    }
+
     value->value = ConstantValue(obj);
     return value;
+}
+
+PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) {
+    // Create the object
+    Constant* obj = object__new__(&root, cls);
+
+    // Fetch construtor
+    // TODO: this lookup should not exist
+    String       ctor_name = String(cls->name) + String(".__init__");
+    int          ctorvarid = bindings.get_varid(ctor_name);
+    FunctionDef* ctor      = cast<FunctionDef>(bindings.get_value(ctorvarid));
+
+    Scope scope(bindings);
+    if (ctor != nullptr) {
+        bindings.add(StringRef("self"), obj, nullptr);
+
+        for (auto& arg: call->args) {
+            bindings.add(StringRef(), arg, nullptr);
+        }
+
+        for (auto& stmt: ctor->body) {
+            exec(stmt, depth);
+
+            if (has_exceptions()) {
+                break;
+            }
+        }
+    }
+
+    return obj;
 }
 
 Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int depth) {
@@ -583,19 +613,35 @@ PartialResult* TreeEvaluator::returnstmt(Return_t* n, int depth) {
 PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
     PartialResult* value = exec(n->value, depth);
 
+    // Unpacking
     TupleExpr* targets = cast<TupleExpr>(n->targets[0]);
     TupleExpr* values  = cast<TupleExpr>(value);
-
     if (values != nullptr && targets != nullptr) {
         assert(values->elts.size() == targets->elts.size(), "Size must match");
 
+        // this probably does not work quite right in some cases
         for (int i = 0; i < values->elts.size(); i++) {
             bindings.add(StringRef(), values->elts[i], nullptr);
         }
-    } else {
-        bindings.add(StringRef(), value, nullptr);
+        return None();
     }
 
+    Constant* new_value = cast<Constant>(value);
+
+    if (n->targets.size() != 0 && new_value != nullptr) {
+
+        // resolve the target
+        // the target should always be a reference to a constant/value
+        auto* gtarg  = exec(n->targets[0], depth);
+        auto* target = cast<Constant>(gtarg);
+
+        if (target != nullptr) {
+            target->value = new_value->value;
+        }
+        return None();
+    }
+
+    bindings.add(StringRef(), value, nullptr);
     return None();
 }
 PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
@@ -1007,7 +1053,28 @@ PartialResult* TreeEvaluator::await(Await_t* n, int depth) { return nullptr; }
 
 // Objects
 PartialResult* TreeEvaluator::slice(Slice_t* n, int depth) { return nullptr; }
-PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) {
+    // a.b
+    Constant* obj = cast<Constant>(exec(n->value, depth));
+
+    if (obj != nullptr) {
+        NativeObject* nv = obj->value.get_object();
+
+        if (nv->class_id == meta::type_id<Object>()) {
+            Object* nvobj = reinterpret_cast<Object*>(nv);
+
+            // If Object held ConstantValue
+            // we would pass down a copy of the attribute not a reference to them
+            // return root.new_object<Constant>(nvobj->attributes[n->attrid]);
+
+            // Object is holding a Constant Node
+            // we pass a reference to it not a copy
+            return nvobj->attributes[n->attrid];
+        }
+    }
+
+    return nullptr;
+}
 PartialResult* TreeEvaluator::subscript(Subscript_t* n, int depth) { return nullptr; }
 
 // Call __next__ for a given object

@@ -14,7 +14,13 @@ namespace lython {
  * This is just an array of attributes, methods were move out during SEMA
  */
 struct Object: public NativeObject {
-    Array<ConstantValue> attributes;
+    Array<struct Constant*> attributes;
+    // Methods belong in the class
+    // The object type is not known
+    // we rely on the SEMA to guarante the type
+
+
+    virtual bool is_native() const override { return false; }
 };
 
 // Same as an object, but allocate a single block for all the attributes

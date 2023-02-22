@@ -6,9 +6,11 @@
 
 namespace lython {
 
-// TODO: allow native object to register their own method
+// TODO: allow native object to register their own methods
 struct NativeObject: GCObject {
-    //
+
+    virtual bool is_native() const { return true; }
+
 };
 }  // namespace lython
 

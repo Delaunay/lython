@@ -136,6 +136,13 @@ struct ConstantValue {
         return value.i64;
     }
 
+    NativeObject* get_object() {
+        if (kind == TObject) {
+            return value.object;
+        }
+        return nullptr;
+    }
+
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {
@@ -157,6 +164,8 @@ struct ConstantValue {
 
     ValueVariant value;
     Type         kind = TInvalid;
+
+    void _print_object(std::ostream& out) const;
 
     template <typename T>
     void set_cpx(Type ktype, T& memory, const T& data) {

@@ -1,5 +1,6 @@
 #include "sema/sema.h"
 #include "ast/magic.h"
+#include "ast/values/object.h"
 #include "builtin/operators.h"
 #include "dependencies/fmt.h"
 #include "utilities/guard.h"
@@ -509,7 +510,10 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         // to being the constructor of the class
         assert(fun->kind == NodeKind::Name, "Expect a reference to the class");
 
-        // update the ref to point to the constructor if we found it
+        // --update the ref to point to the constructor if we found it--
+        // We should not do that, we need the class definition to know
+        // the size of the object
+        /*
         Name* fun_ref = cast<Name>(fun);
         if (fun_ref != nullptr && ctorvarid != -1) {
             fun_ref->varid   = ctorvarid;
@@ -518,6 +522,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         } else {
             warn("Constructor was not found");
         }
+        */
 
         FunctionDef* init = cast<FunctionDef>(ctor);
         // auto init = getattr(cls, "__init__", arrow);
@@ -1016,7 +1021,7 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
         case NodeKind::FunctionDef: {
             // Look for special functions
             auto* fun = cast<FunctionDef>(stmt);
-            n->insert_attribute(fun->name, fun);
+            n->insert_method(fun->name, fun);
 
             if (str(fun->name) == "__init__") {
                 info("Found ctor");
@@ -1144,6 +1149,7 @@ void SemanticAnalyser::record_ctor_attributes(ClassDef* n, FunctionDef* ctor, in
         n->insert_attribute(attr->attr, stmt, type);
     }
 }
+
 TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     PopGuard _(nested, n);
     PopGuard _n(namespaces, str(n->name));

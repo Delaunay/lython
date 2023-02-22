@@ -25,7 +25,9 @@ std::size_t new_hash(String const& k) noexcept {
     return std::_Hash_impl::hash(k.data(), k.length());
 }
 #else
-std::size_t new_hash(String const& k) noexcept { return stdext::hash_value(k); }
+std::size_t new_hash(String const& k) noexcept { 
+    return std::_Hash_array_representation(k.c_str(), k.size());
+}
 #endif
 std::size_t xx_hash_32(String const& k) noexcept { return XXH32(k.data(), k.length(), 0); }
 std::size_t xx_hash_64(String const& k) noexcept { return XXH64(k.data(), k.length(), 0); }
