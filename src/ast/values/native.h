@@ -12,6 +12,10 @@ struct NativeObject: GCObject {
     virtual bool is_native() const { return true; }
 
 };
+
+
+
+
 }  // namespace lython
 
 #endif

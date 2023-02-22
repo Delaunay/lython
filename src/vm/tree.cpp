@@ -628,7 +628,7 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
 
     Constant* new_value = cast<Constant>(value);
 
-    if (n->targets.size() != 0 && new_value != nullptr) {
+    if (!n->targets.empty() && new_value != nullptr) {
 
         // resolve the target
         // the target should always be a reference to a constant/value
