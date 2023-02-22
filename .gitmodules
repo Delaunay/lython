@@ -31,3 +31,6 @@
 [submodule "dependencies/toolset/emsdk"]
 	path = dependencies/toolset/emsdk
 	url = https://github.com/emscripten-core/emsdk.git
+[submodule "dependencies/fmt"]
+	path = dependencies/fmt
+	url = https://github.com/fmtlib/fmt.git
