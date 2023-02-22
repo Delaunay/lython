@@ -1,22 +1,18 @@
 #include "lexer/buffer.h"
 
-#ifdef __linux__
-#    define __STDC_WANT_LIB_EXT1__   1
-#    define __STDC_WANT_SECURE_LIB__ 1
-#endif
+// Does not work
+#define __STDC_WANT_LIB_EXT1__   1
+#define __STDC_WANT_SECURE_LIB__ 1
 
 #include <cstdio>
 
-#if WIN32
-#    define __STDC_LIB_EXT1__ 1
-#endif
 
 namespace lython {
 
 FILE* internal_fopen(String filename) {
     FILE* file;
 
-#if (defined __STDC_LIB_EXT1__) && __STDC_LIB_EXT1__
+#if (defined WIN32)
     auto err = fopen_s(&file, filename.c_str(), "r");
     if (err != 0) {
         throw FileError("{}: File `{}` does not exist", filename);

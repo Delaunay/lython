@@ -26,7 +26,7 @@ template <typename T, typename... Args> struct ArgumentCount {
   enum { value = 1 + ArgumentCount<Args...>::value };
 };
 
-template <typename T> struct ArgumentCount<T> {
+template <typename T> struct ArgumentCount<T> { 
   enum { value = 1 };
 };
 

@@ -5,7 +5,7 @@
 
 #include <cstdlib>
 
-#if WIN32
+#ifdef WIN32
 // windows use __STDC_WANT_SECURE_LIB__ instead
 #    define __STDC_LIB_EXT1__ 1
 #endif

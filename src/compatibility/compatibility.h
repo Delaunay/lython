@@ -37,6 +37,6 @@
 #if __clang__
 #    undef LY_NOEXCEPT
 #    define LY_NOEXCEPT noexcept
-#else __GNUC__
+#elif __GNUC__
 
 #endif
