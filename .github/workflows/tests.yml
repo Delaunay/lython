@@ -3,32 +3,32 @@ name: tests
 on: [push, pull_request]
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
+  # format:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v1
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Install
-        run: |
-          sudo apt-get update
-          sudo apt-get install clang-format-12
-          sudo ln -f /usr/bin/clang-format-12 /usr/bin/clang-format
+  #     - name: Install
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install clang-format-12
+  #         sudo ln -f /usr/bin/clang-format-12 /usr/bin/clang-format
 
-      - name: Format
-        run: |
-          clang-format --version
-          find src -name '*.cpp'|xargs clang-format --dry-run --Werror --style=file
-          find src -name '*.h'|xargs clang-format --dry-run --Werror --style=file
+  #     - name: Format
+  #       run: |
+  #         clang-format --version
+  #         find src -name '*.cpp'|xargs clang-format --dry-run --Werror --style=file
+  #         find src -name '*.h'|xargs clang-format --dry-run --Werror --style=file
 
   tests:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: always()
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

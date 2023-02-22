@@ -3,12 +3,8 @@
 #    define __STDC_WANT_SECURE_LIB__ 1
 #endif
 
+#include <cstdio>
 #include <cstdlib>
-
-#ifdef WIN32
-// windows use __STDC_WANT_SECURE_LIB__ instead
-#    define __STDC_LIB_EXT1__ 1
-#endif
 
 #include <filesystem>
 
@@ -27,7 +23,7 @@ namespace lython {
 String internal_getenv(String const& name) {
     const char* envname = name.c_str();
 
-#if (defined __STDC_LIB_EXT1__) && __STDC_LIB_EXT1__
+#if (defined __STDC_LIB_EXT1__) || BUILD_WINDOWS
     size_t size = 0;
 
     getenv_s(&size, nullptr, 0, envname);

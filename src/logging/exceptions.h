@@ -1,9 +1,10 @@
 #pragma once
 
+#include <exception>
+
+// 
 #include "compatibility/compatibility.h"
 #include "dependencies/fmt.h"
-
-#include <exception>
 
 namespace lython {
 

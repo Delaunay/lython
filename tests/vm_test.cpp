@@ -6,12 +6,12 @@
 #include "utilities/strings.h"
 #include "vm/tree.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <sstream>
 
 #include "logging/logging.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <iostream>
 
 using namespace lython;
@@ -412,8 +412,8 @@ TEST_CASE("VM_ClassDef") {
                   "        self.x = x\n"
                   "        self.y = y\n"
                   "\n",
-                  "Point(1.0, 2.0)",    
-                  "(1.0, 2.0)");        // Generates a tuple
+                  "Point(1.0, 2.0)",
+                  "(1.0, 2.0)");  // Generates a tuple
 }
 
 TEST_CASE("VM_ClassDef_2") {

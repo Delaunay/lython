@@ -4,7 +4,7 @@
 #include "lexer/lexer.h"
 #include "utilities/strings.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace lython;
 

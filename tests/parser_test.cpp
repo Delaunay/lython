@@ -1,7 +1,7 @@
 #include "cases.h"
 #include "samples.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <sstream>
 
 #include "lexer/buffer.h"

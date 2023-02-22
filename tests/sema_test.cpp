@@ -5,7 +5,7 @@
 #include "sema/sema.h"
 #include "utilities/strings.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <sstream>
 
 #include "logging/logging.h"

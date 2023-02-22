@@ -5,7 +5,7 @@
 #include "dtypes.h"
 #include "parser/parsing_error.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <sstream>
 
 using namespace lython;

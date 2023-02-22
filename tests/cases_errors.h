@@ -4,12 +4,12 @@
 #include "ast/nodes.h"
 #include "dtypes.h"
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <sstream>
 
 using namespace lython;
 
-#define GENCASES(name) Array<TestCase> const &name##_error_examples();
+#define GENCASES(name) Array<TestCase> const& name##_error_examples();
 
 #define X(name, _)
 #define SSECTION(name)
