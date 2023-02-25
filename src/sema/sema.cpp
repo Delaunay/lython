@@ -13,7 +13,7 @@ Arrow* get_arrow(
 bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type) {
     auto* name = cast<Name>(expr);
 
-    if (name) {
+    if (name != nullptr) {
         name->ctx = ExprContext::Store;
         bindings.add(name->id, value, type);
         return true;
