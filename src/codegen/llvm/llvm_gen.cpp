@@ -11,14 +11,18 @@
 #if WITH_LLVM_CODEGEN
 
 // LLVM
-#include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Type.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/IR/DIBuilder.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Transforms/Scalar.h"
 
 namespace lython {
 
@@ -29,16 +33,60 @@ using PatRet  = LLVMGen::PatRet;
 
 using namespace llvm;
 
-
-LLVMGen::LLVMGen() {
-    context  = std::make_unique<LLVMContext>();
-    llmodule = std::make_unique<llvm::Module>("KiwiJIT", *context);
-    builder  = std::make_unique<IRBuilder<>>(*context);
-}
-
 const char* tostr(StringRef const& ref) {
     return String(ref).c_str();
 }
+
+
+LLVMGen::LLVMGen() {
+    InitializeNativeTarget();
+    InitializeNativeTargetAsmPrinter();
+    InitializeNativeTargetAsmParser();
+
+    context  = std::make_unique<LLVMContext>();
+    llmodule = std::make_unique<llvm::Module>("KiwiJIT", *context);
+    builder  = std::make_unique<IRBuilder<>>(*context);
+
+    #if WITH_LLVM_DEBUG_SYMBOL
+    dbuilder = std::make_unique<DIBuilder>(*llmodule);
+    String sourcefile = "<string>";
+    debug_compile_unit = dbuilder->createCompileUnit(
+        dwarf::DW_LANG_C, 
+        dbuilder->createFile(tostr(sourcefile), "."),
+        "Kiwi Compiler", 
+        0, 
+        "",
+        0
+    );
+    #endif
+
+    // TODO put this somewhere
+    // dbuilder->finalize();
+}
+
+LLVMGen::~LLVMGen() {
+    // llvm::llvm_shutdown();
+}
+
+#if WITH_LLVM_DEBUG_SYMBOL
+void LLVMGen::emit_location(ExprNode* node) {
+    DIScope *scope;
+
+    if (scopes.empty())
+        scope = debug_compile_unit;
+    else
+        scope = scopes.back();
+
+    builder.SetCurrentDebugLocation(
+        DILocation::get(
+            scope->getContext(), 
+            node->lineno, 
+            node->col_offset, 
+            scope
+        )
+    );
+}
+#endif
 
 ExprRet LLVMGen::call(Call_t* n, int depth) {
     // Struct construction
@@ -214,7 +262,19 @@ ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 ExprRet LLVMGen::attribute(Attribute_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::subscript(Subscript_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::starred(Starred_t* n, int depth) { return ExprRet(); }
-ExprRet LLVMGen::name(Name_t* n, int depth) { return ExprRet(); }
+ExprRet LLVMGen::name(Name_t* n, int depth) { 
+
+    /*
+    Value *V = NamedValues[Name];
+
+    if (!V)
+        return LogErrorV("Unknown variable name");
+
+    KSDbgInfo.emitLocation(this);
+    // Load the value.
+    return Builder->CreateLoad(V, Name.c_str());
+    */
+}
 ExprRet LLVMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::slice(Slice_t* n, int depth) { return ExprRet(); }
@@ -241,12 +301,53 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
         tostr(n->name),                 //
         llmodule.get()                  //
     );
+#if WITH_LLVM_DEBUG_SYMBOL
+    DIFile *unit = dbuilder->createFile(
+        debug_compile_unit->getFilename(),
+        debug_compile_unit->getDirectory()
+    );
+    DIScope *debug_ctx = unit;
+    DISubprogram *debug_info = dbuilder->createFunction(
+        debug_ctx, 
+        tostr(n->name), 
+        llvm::StringRef(),
+        unit, 
+        n->lineno,
+        CreateFunctionType(fundef->arg_size(), unit),
+        false,           /* internal linkage */
+        true,            /* definition */
+        0,
+        DINode::FlagPrototyped, 
+        false
+    );
+    fundef->setSubprogram(debug_info);
+#endif
 
     unsigned i = 0;
     for (auto &arg : fundef->args()){
         Identifier argname = n->args.args[i].arg;
-
         arg.setName(tostr(argname));
+
+        /*
+        AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
+
+        DILocalVariable *vard = dbuilder->createParameterVariable(
+            SP, 
+            Arg.getName(), 
+            ++ArgIdx, Unit, 
+            LineNo, 
+            KSDbgInfo.getDoubleTy(),
+            true
+        );
+        
+        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
+                                DILocation::get(SP->getContext(), LineNo, 0, SP),
+                                Builder.GetInsertBlock());
+
+        // Store the initial value into the alloca.
+        Builder.CreateStore(&Arg, Alloca);
+        */
+            
         i += 1;
     }
 
@@ -330,7 +431,31 @@ StmtRet LLVMGen::annassign(AnnAssign_t* n, int depth) {
     return StmtRet(); 
 }
 
-StmtRet LLVMGen::forstmt(For_t* n, int depth) { return StmtRet(); }
+StmtRet LLVMGen::forstmt(For_t* n, int depth) { 
+    Function *fundef = builder->GetInsertBlock()->getParent();
+
+    /*
+    BasicBlock *body = BasicBlock::Create(*context, "loop", fundef);
+    BasicBlock *orelse = BasicBlock::Create(*context, "orelse", fundef);
+    BasicBlock *after = BasicBlock::Create(*context, "after", fundef);
+    builder->CreateBr(body);
+
+    builder->SetInsertPoint(body);
+    for(auto* stmt: n->body) {
+        exec(stmt, depth);
+    }
+
+    builder->SetInsertPoint(orelse);
+    for(auto* stmt: n->orelse) {
+        exec(stmt, depth);
+    }
+
+
+    builder->CreateCondBr(EndCond, body, after);
+    builder->SetInsertPoint(after);
+    */
+    return StmtRet();     
+}
 StmtRet LLVMGen::whilestmt(While_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::ifstmt(If_t* n, int depth) { 
     Value* cond = exec(n->test, depth);

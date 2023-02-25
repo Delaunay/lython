@@ -45,9 +45,19 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     Unique<llvm::IRBuilder<>> builder;
     Dict<String, ExprRet>     named_values;
 
+    #if WITH_LLVM_DEBUG_SYMBOL
+    Unique<llvm::DIBuilder>   dbuilder;
+    DICompileUnit*            debug_compile_unit;
+    Arrayr<DIScope *>         scopes;
+
+    void emit_location(ExprNode* node);
+    #endif
+
     ExprRet binary_operator(llvm::IRBuilder<>* builder, ExprNode* left, ExprNode* right, int op, int depth);
 
     LLVMGen();
+    ~LLVMGen();
+
 #define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
 
 #define X(name, _)
