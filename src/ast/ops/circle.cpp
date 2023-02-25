@@ -37,7 +37,7 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
 
         for (Node const* item: visited) {
             if (item == obj) {
-                trace(depth, "Duplicate is: {}", meta::type_name(item->class_id));
+                kwtrace(depth, "Duplicate is: {}", meta::type_name(item->class_id));
                 return true;
             }
         }

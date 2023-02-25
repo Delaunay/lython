@@ -1094,7 +1094,7 @@ void ConstantValue::_print_object(std::ostream& out) const {
 String Node::__str__() const {
     StringStream ss;
     if (kind <= NodeKind::Invalid) {
-        error("Node is invalid");
+        kwerror("Node is invalid");
         return "<Invalid>";
     }
     Printer p;

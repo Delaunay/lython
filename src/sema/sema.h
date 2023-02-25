@@ -10,7 +10,7 @@
 #include "utilities/strings.h"
 
 // #define SEMA_ERROR(exception)      \
-//     error("{}", exception.what()); \
+//     kwerror("{}", exception.what()); \
 //     errors.push_back(std::unique_ptr<SemaException>(new exception));
 
 namespace lython {

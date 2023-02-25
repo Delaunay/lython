@@ -72,13 +72,13 @@ String lookup_module(StringRef const& module_path, Array<String> const& paths) {
 
     namespace fs = std::filesystem;
 
-    debug("{}", str(paths));
+    kwdebug("{}", str(paths));
     auto module_frags = split('.', str(module_path));
 
     for (auto const& path: paths) {
         auto stat = fs::status(path);
         if (!fs::is_directory(stat)) {
-            debug("Not a directory {}", path);
+            kwdebug("Not a directory {}", path);
             continue;
         }
 
@@ -106,11 +106,11 @@ String lookup_module(StringRef const& module_path, Array<String> const& paths) {
 
         stat = fs::status(fspath);
         if (!fs::exists(stat)) {
-            debug("not a file {}", fspath);
+            kwdebug("not a file {}", fspath);
             continue;
         }
 
-        debug("Found file {}", fspath);
+        kwdebug("Found file {}", fspath);
         return fspath;
     }
 
@@ -248,7 +248,7 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
         StmtNode* value = find(mod->body, nm);
 
         if (value == nullptr) {
-            debug("{} not found", nm);
+            kwdebug("{} not found", nm);
             continue;
         }
 

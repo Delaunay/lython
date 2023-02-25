@@ -202,7 +202,7 @@ bool Arrow::add_arg_type(ExprNode* arg_type) {
 
         return true;
     }
-    warn("trying to assing self to an arrow argument");
+    kwwarn("trying to assing self to an arrow argument");
     return false;
 }
 
@@ -220,7 +220,7 @@ bool Arrow::set_arg_type(int i, ExprNode* arg_type) {
         return true;
     }
 
-    warn("trying to assing self to an arrow argument");
+    kwwarn("trying to assing self to an arrow argument");
     return false;
 }
 

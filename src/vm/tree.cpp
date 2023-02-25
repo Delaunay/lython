@@ -506,7 +506,7 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     using TraceGuard = PopGuard<Array<StackTrace>, StackTrace>;
 
     // Populate current stack with the expression that will branch out
-    get_trace().expr = n;
+    get_kwtrace().expr = n;
 
     TraceGuard  _(traces);
     StackTrace& trace = traces.emplace_back();
@@ -575,12 +575,12 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
     if (result != nullptr && result->kind == NodeKind::Constant) {
         strresult = str(result);
     }
-    debug("Name (varid: {}), (size: {}) (offset: {}) resolved: {}",
-          n->varid,
-          n->size,
-          n->offset,
-          varid);
-    debug("Looked for {} (id: {}) found {}: {}", n->id, n->varid, kindstr, strresult);
+    kwdebug("Name (varid: {}), (size: {}) (offset: {}) resolved: {}",
+            n->varid,
+            n->size,
+            n->offset,
+            varid);
+    kwdebug("Looked for {} (id: {}) found {}: {}", n->id, n->varid, kindstr, strresult);
     return result;
 }
 
@@ -598,11 +598,11 @@ PartialResult* TreeEvaluator::invalidstmt(InvalidStatement_t* n, int depth) {
 }
 
 PartialResult* TreeEvaluator::returnstmt(Return_t* n, int depth) {
-    debug("Compute return {}", str(n));
+    kwdebug("Compute return {}", str(n));
 
     if (n->value.has_value()) {
         set_return_value(exec(n->value.value(), depth));
-        debug("Returning {}", str(return_value));
+        kwdebug("Returning {}", str(return_value));
         return return_value;
     }
 
@@ -650,7 +650,7 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
     auto* name = cast<Name>(n->target);
 
     if (name == nullptr) {
-        error("Assign to {}", str(n->target->kind));
+        kwerror("Assign to {}", str(n->target->kind));
         return None();
     }
 
@@ -677,7 +677,7 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
             auto result = n->native_operator(left_v->value, right_v->value);
             value       = root.new_object<Constant>(result);
         } else {
-            error("Operator does not have implementation!");
+            kwerror("Operator does not have implementation!");
         }
 
         bindings.set_value(name->varid, value);  // store a
@@ -988,7 +988,7 @@ try:
     SUITE
 except:
     hit_except = True
-    if not exit(manager, *sys.exc_info()):
+    if not exit(manager, *sys.exc_kwinfo()):
         raise
 finally:
     if not hit_except:
@@ -1058,7 +1058,7 @@ PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) {
     Constant* obj = cast<Constant>(exec(n->value, depth));
 
     if (obj != nullptr) {
-        NativeObject* nv = obj->value.get_object();
+        NativeObject* nv = obj->value.get<NativeObject*>();
 
         if (nv->class_id == meta::type_id<Object>()) {
             Object* nvobj = reinterpret_cast<Object*>(nv);
@@ -1131,7 +1131,7 @@ PartialResult* TreeEvaluator::nonlocal(Nonlocal_t* n, int depth) {
 
 #define PRINT(msg) std::cout << (msg) << "\n";
 
-void printtrace(StackTrace& trace) {
+void printkwtrace(StackTrace& trace) {
     String file   = "<input>";
     int    line   = -1;
     String parent = "<module>";
@@ -1161,7 +1161,7 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
 
         fmt::print("Traceback (most recent call last):\n");
         for (StackTrace& st: except->traces) {
-            printtrace(st);
+            printkwtrace(st);
         }
 
         String exception_type = "AssertionError";

@@ -9,8 +9,8 @@
 #include "sema/errors.h"
 #include "utilities/strings.h"
 
-#define LINTER_ERROR(exception)    \
-    error("{}", exception.what()); \
+#define LINTER_ERROR(exception)      \
+    kwerror("{}", exception.what()); \
     errors.push_back(std::unique_ptr<SemaException>(new exception));
 
 namespace lython {
@@ -67,7 +67,7 @@ struct LinterAnalyser: BaseVisitor<LinterAnalyser, false, LinterVisitorTrait> {
     Node* load_name(Name_t* variable);
 
     template <typename T, typename... Args>
-    void linter_error(Node* Node, lython::CodeLocation const& loc, Args... args) {
+    void linter_kwerror(Node* Node, lython::CodeLocation const& loc, Args... args) {
         errors.push_back(std::unique_ptr<LinterException>(new T(std::forward(args)...)));
 
         LinterException* exception = errors[errors.size() - 1];
@@ -75,7 +75,7 @@ struct LinterAnalyser: BaseVisitor<LinterAnalyser, false, LinterVisitorTrait> {
         lython::log(lython::LogLevel::Error, loc, "{}", exception->what());
     }
 
-#define LINTER_ERROR(expr, exception, ...) linter_error(expr, exception, LOC, __VA_ARGS__)
+#define LINTER_ERROR(expr, exception, ...) linter_kwerror(expr, exception, LOC, __VA_ARGS__)
 
 #define FUNCTION_GEN(name, fun) virtual TypeExpr* fun(name* n, int depth);
 

@@ -251,7 +251,7 @@ TypeExpr* SemanticAnalyser::binop(BinOp* n, int depth) {
     if (blt) {
         String signature = join(String("-"), Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
 
-        debug("signature: {}", signature);
+        kwdebug("signature: {}", signature);
         n->native_operator = get_native_binary_operation(signature);
 
         // FIXME: get return type
@@ -491,7 +491,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         cls = get_class(fun, depth);
 
         if (cls == nullptr) {
-            warn("Could not resolve class");
+            kwwarn("Could not resolve class");
             return nullptr;
         }
         TypeExpr* arrow = nullptr;
@@ -520,7 +520,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
             fun_ref->size    = int(bindings.bindings.size()) - fun_ref->varid;
             fun_ref->dynamic = bindings.is_dynamic(fun_ref->varid);
         } else {
-            warn("Constructor was not found");
+            kwwarn("Constructor was not found");
         }
         */
 
@@ -529,7 +529,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         offset = 1;
 
         if (init == nullptr) {
-            debug("Use default ctor");
+            kwdebug("Use default ctor");
             auto*  cls_ref = make_ref(fun, cls->name);
             Arrow* arrow   = fun->new_object<Arrow>();
             arrow->add_arg_type(cls_ref);
@@ -719,7 +719,7 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         n->varid = id;
         n->size  = int(bindings.bindings.size());
 
-        debug("Storing value for {} ({})", n->id, n->varid);
+        kwdebug("Storing value for {} ({})", n->id, n->varid);
     } else {
         // Both delete & Load requires the variable to be defined first
         n->varid   = bindings.get_varid(n->id);
@@ -728,7 +728,7 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         n->dynamic = bindings.is_dynamic(n->varid);
 
         if (n->varid == -1) {
-            debug("Value {} not found", n->id);
+            kwdebug("Value {} not found", n->id);
             SEMA_ERROR(n, NameError, n, n->id);
         }
     }
@@ -737,9 +737,9 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
 
     auto* t = bindings.get_type(n->varid);
     if (t == nullptr) {
-        debug("Value {} does not have a type", n->id);
+        kwdebug("Value {} does not have a type", n->id);
     } else {
-        debug("Loading value {}: {} of type {}", n->id, n->varid, str(t));
+        kwdebug("Loading value {}: {} of type {}", n->id, n->varid, str(t));
     }
     return t;
 }
@@ -856,7 +856,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
         // if it is a method populate the type of self
         // TODO: fix for staticmethod & class methods
         if (class_t != nullptr && i == 0) {
-            debug("Insert class type");
+            kwdebug("Insert class type");
             type = class_t;
         }
 
@@ -950,7 +950,7 @@ Array<TypeExpr*> SemanticAnalyser::exec_body(Array<StmtNode*>& body, int depth) 
 TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     // if sema was already done on the function
     if (n->type) {
-        info("Send cached type {}", str(n->type));
+        kwinfo("Send cached type {}", str(n->type));
         return n->type;
     }
 
@@ -1024,7 +1024,7 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
             n->insert_method(fun->name, fun);
 
             if (str(fun->name) == "__init__") {
-                info("Found ctor");
+                kwinfo("Found ctor");
                 ctor[0] = fun;
             } else {
                 methods.push_back(stmt);
@@ -1044,7 +1044,7 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
             target_t  = is_type(ann->annotation, depth, LOC) ? ann->annotation : nullptr;
             break;
         }
-        default: debug("Unhandled statement {}", str(stmt->kind)); continue;
+        default: kwdebug("Unhandled statement {}", str(stmt->kind)); continue;
         }
 
         auto* name = cast<Name>(target);
@@ -1075,11 +1075,11 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
 
 void SemanticAnalyser::record_ctor_attributes(ClassDef* n, FunctionDef* ctor, int depth) {
     if (ctor->args.args.empty()) {
-        error("__init__ without self");
+        kwerror("__init__ without self");
         return;
     }
 
-    info("Looking for attributes inside the ctor");
+    kwinfo("Looking for attributes inside the ctor");
     auto self = ctor->args.args[0].arg;
 
     // we need the arguments in the scope so we can look them up
@@ -1256,7 +1256,7 @@ TypeExpr* SemanticAnalyser::assign(Assign* n, int depth) {
 
             typecheck(target, target_t, n->value, type, LOC);
         } else {
-            error("Assignment to an unsupported expression {}", str(target->kind));
+            kwerror("Assignment to an unsupported expression {}", str(target->kind));
         }
 
     } else {
@@ -1328,7 +1328,7 @@ TypeExpr* SemanticAnalyser::annassign(AnnAssign* n, int depth) {
 
     if (value_t != nullptr && !ann_valid) {
         constraint = value_t;
-        info("Could fix annotation here was {} should be {}", str(n->annotation), str(value_t));
+        kwinfo("Could fix annotation here was {} should be {}", str(n->annotation), str(value_t));
 
         // FIX annotation
         if (false) {

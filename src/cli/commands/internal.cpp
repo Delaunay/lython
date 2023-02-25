@@ -49,7 +49,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
     bool show_alloc_layout = true;
     bool show_parsing      = args.get<bool>("--parsing");
 
-    info("Enter");
+    kwinfo("Enter");
 
     std::unique_ptr<AbstractBuffer> reader;
     if (file != "") {
@@ -169,7 +169,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             }
 
             if (has_circle(mod)) {
-                warn("Circle will cause infinite recursion");
+                kwwarn("Circle will cause infinite recursion");
             }
 
             // Bindings Dump

@@ -107,7 +107,7 @@ std::size_t StringDatabase::inc(std::size_t i) {
     }
 
     if (i >= size) {
-        debug("Critical error {} < {}", i, size);
+        kwdebug("Critical error {} < {}", i, size);
         return 0;
     }
 

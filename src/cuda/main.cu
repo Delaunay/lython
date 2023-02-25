@@ -14,7 +14,7 @@ __global__ void add(float* a, float* b, float* c, int n) {
 
 int main() {
     // force signal handler to be installed
-    info("");
+    kwinfo("");
 
     int    size = 10;
     float *da, *db, *dc;

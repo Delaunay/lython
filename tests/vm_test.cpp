@@ -25,13 +25,13 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     Lexer        lex(reader);
     Parser       parser(lex);
 
-    info("{}", "Parse");
+    kwinfo("{}", "Parse");
     mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
     parser.show_diagnostics(std::cout);
     REQUIRE(parser.has_errors() == false);
 
-    info("{}", "Sema");
+    kwinfo("{}", "Sema");
     SemanticAnalyser sema;
     sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
@@ -55,7 +55,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     sema.show_diagnostic(std::cout);
     REQUIRE(sema.has_errors() == false);
 
-    info("{}", "Eval");
+    kwinfo("{}", "Eval");
     TreeEvaluator eval(sema.bindings);
     auto          partial = str(eval.eval(stmt));
 

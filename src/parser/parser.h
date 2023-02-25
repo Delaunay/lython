@@ -55,7 +55,7 @@ class Parser {
     Parser(AbstractLexer& lexer): _lex(lexer) { metadata_init_names(); }
 
     ParsingError&
-    parser_error(lython::CodeLocation const& loc, String const& exception, String const& msg) {
+    parser_kwerror(lython::CodeLocation const& loc, String const& exception, String const& msg) {
         current_error += 1;
         assert(current_error == errors.size(), "Only one error at a time can happen");
 

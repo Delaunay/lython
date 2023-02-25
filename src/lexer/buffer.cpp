@@ -99,7 +99,7 @@ String read_file(String const& name) {
         start += segment.size();
     }
 
-    debug("read {}", aggregated);
+    kwdebug("read {}", aggregated);
     return aggregated;
 }
 

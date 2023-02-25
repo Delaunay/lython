@@ -17,7 +17,7 @@
 using namespace lython;
 
 void fail(int signal) {
-    info("handling signal {}", signal);
+    kwinfo("handling signal {}", signal);
     raise(signal);
 }
 
@@ -32,7 +32,7 @@ std::string read(int fd) {
             if (errno == EINTR) {
                 continue;
             } else {
-                perror("read");
+                pkwerror("read");
                 break;
             }
         } else if (count == 0) {
@@ -50,7 +50,7 @@ template <class F, class... Args>
 std::string CHECK_ABORT(F&& f, Args&&... args) {
     int filedes[2];
     if (pipe(filedes) == -1) {
-        perror("pipe");
+        pkwerror("pipe");
         throw std::runtime_error("Could not open pipe");
     }
 
@@ -99,7 +99,7 @@ bool check_signal(int signal, std::string const& value) {
 
     auto output = CHECK_ABORT(fail, signal);
 
-    info("{}", output);
+    kwinfo("{}", output);
 
     return std::regex_search(output, regex);
 }

@@ -79,11 +79,11 @@ class LoggingScope {
     void set_log_level();
 
     void logerr();
-    void logwarn();
-    void logdebug();
-    void loginfo();
-    void logtrace();
-    void logfatal();
+    void logkwwarn();
+    void logkwdebug();
+    void logkwinfo();
+    void logkwtrace();
+    void logkwfatal();
 
     template <typename... Args>
     void _log_message(LogLevel            level,
@@ -105,15 +105,15 @@ void set_log_level(LogLevel level, bool enabled);
 bool is_log_enabled(LogLevel level);
 
 // Show backtrace using spdlog
-void show_log_backtrace();
+void show_log_backkwtrace();
 
 // Show backtrace using execinfo
-void show_backtrace();
+void show_backkwtrace();
 
 std::string demangle(std::string const& original_str);
 
 // retrieve backtrace using execinfo
-std::vector<std::string> get_backtrace(size_t size);
+std::vector<std::string> get_backkwtrace(size_t size);
 
 // remove namespace info
 std::string format_function(std::string const&);
@@ -137,12 +137,12 @@ void log(LogLevel level, CodeLocation const& loc, fmt::string_view fmtstr, const
 }
 
 template <typename... Args>
-void log_trace(LogLevel            level,
-               size_t              depth,
-               bool                end,
-               CodeLocation const& loc,
-               fmt::string_view    fmtstr,
-               const Args&... args) {
+void log_kwtrace(LogLevel            level,
+                 size_t              depth,
+                 bool                end,
+                 CodeLocation const& loc,
+                 fmt::string_view    fmtstr,
+                 const Args&... args) {
 
 #if WITH_LOG
     if (!is_log_enabled(level)) {
@@ -178,25 +178,25 @@ inline void assert_true(bool                        cond,
                     message,
                     assert_expr);
 
-        // lython::show_backtrace();
+        // lython::show_backkwtrace();
         assert(cond);
     }
 }
 }  // namespace lython
 
 #define SYM_LOG_HELPER(level, ...) lython::log(level, LOC, __VA_ARGS__)
-#define info(...)                  SYM_LOG_HELPER(lython::LogLevel::Info, __VA_ARGS__)
-#define warn(...)                  SYM_LOG_HELPER(lython::LogLevel::Warn, __VA_ARGS__)
-#define debug(...)                 SYM_LOG_HELPER(lython::LogLevel::Debug, __VA_ARGS__)
-#define error(...)                 SYM_LOG_HELPER(lython::LogLevel::Error, __VA_ARGS__)
-#define fatal(...)                 SYM_LOG_HELPER(lython::LogLevel::Fatal, __VA_ARGS__)
+#define kwinfo(...)                SYM_LOG_HELPER(lython::LogLevel::Info, __VA_ARGS__)
+#define kwwarn(...)                SYM_LOG_HELPER(lython::LogLevel::Warn, __VA_ARGS__)
+#define kwdebug(...)               SYM_LOG_HELPER(lython::LogLevel::Debug, __VA_ARGS__)
+#define kwerror(...)               SYM_LOG_HELPER(lython::LogLevel::Error, __VA_ARGS__)
+#define kwfatal(...)               SYM_LOG_HELPER(lython::LogLevel::Fatal, __VA_ARGS__)
 
 #define SYM_LOG_TRACE_HELPER(level, depth, end, ...) \
-    lython::log_trace(level, depth, end, LOC, __VA_ARGS__)
+    lython::log_kwtrace(level, depth, end, LOC, __VA_ARGS__)
 
-#define trace(depth, ...) SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
-#define trace_start(depth, ...) \
+#define kwtrace(depth, ...) SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
+#define kwtrace_start(depth, ...) \
     SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, false, __VA_ARGS__)
-#define trace_end(depth, ...) \
+#define kwtrace_end(depth, ...) \
     SYM_LOG_TRACE_HELPER(lython::LogLevel::Trace, depth, true, __VA_ARGS__)
 #endif

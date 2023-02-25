@@ -42,6 +42,8 @@ SET(ADD_HEADERS
     builtin/operators.h
     compatibility/compatibility.h
     codegen/cpp/cpp_gen.h
+    codegen/clang/clang_gen.h
+    codegen/llvm/llvm_gen.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
@@ -78,6 +80,8 @@ SET(ADD_SOURCE
     ast/ops/circle.cpp
     builtin/operators.cpp
     codegen/cpp/cpp_gen.cpp
+    codegen/clang/clang_gen.cpp
+    codegen/llvm/llvm_gen.cpp
     dependencies/xx_hash.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
@@ -102,6 +106,36 @@ SET(ADD_SOURCE
     utilities/strings.cpp
     utilities/names.cpp
 )
+SET(LLVM_PATH E:/llvm-install)
+SET(LLVM_DIR E:/llvm-install/lib/cmake/llvm)
+SET(Clang_DIR E:/llvm-install/lib/cmake/clang)
+
+SET(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/binaries/lib/zlib.lib)
+SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/binaries/include)
+
+find_package(LLVM CONFIG REQUIRED)
+find_package(Clang CONFIG REQUIRED)
+
+# link_directories(${CMAKE_SOURCE_DIR}/binaries/lib)
+# include_directories(${CMAKE_SOURCE_DIR}/binaries/include)
+IF(LLVM_FOUND)
+    SET(WITH_LLVM 1)
+
+    # Putting system here prevents the compiler from printing
+    # warnings inside the headers
+    include_directories(SYSTEM ${LLVM_PATH}/include)
+
+    SET(LLVM_LIRARIES
+        LLVMCore
+        LLVMSupport
+        clangAST
+        clangBasic
+    )
+ELSE(LLVM_FOUND)
+    SET(WITH_LLVM 0)
+    SET(LLVM_LIRARIES)
+    MESSAGE(STATUS "LLVM not found!")
+ENDIF(LLVM_FOUND)
 
 # Configure Platforms
 # ==============================================
@@ -121,6 +155,9 @@ ENDIF()
 ADD_DEFINITIONS(-DBUILD_WEBASSEMBLY=${BUILD_WEBASSEMBLY})
 ADD_DEFINITIONS(-DBUILD_UNIX=${BUILD_UNIX})
 ADD_DEFINITIONS(-DBUILD_WINDOWS=${BUILD_WINDOWS})
+ADD_DEFINITIONS(-DWITH_LLVM=${WITH_LLVM})
+ADD_DEFINITIONS(-DWITH_LLVM_CODEGEN=1)
+ADD_DEFINITIONS(-DWITH_CLANG_CODEGEN=0)
 
 ADD_DEFINITIONS(-DWIN32=${WIN32})
 ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
@@ -136,7 +173,7 @@ TARGET_LINK_LIBRARIES(liblogging ${LIBRARIES})
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython ${LIBRARIES})
+TARGET_LINK_LIBRARIES(liblython ${LIBRARIES} ${LLVM_LIRARIES})
 
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD ${LY_CXX_STANDARD})
@@ -156,7 +193,7 @@ SET(ADD_CLI_SOURCE
     cli/commands/tests.cpp
 )
 ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
-TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES})
+TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES} ${LLVM_LIRARIES})
 
 SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD ${LY_CXX_STANDARD})

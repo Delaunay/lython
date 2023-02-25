@@ -14,7 +14,7 @@ struct Event{
 
     operator cudaEvent_t& (){
         return event;
-    } 
+    }
 
     static float time(cudaEvent_t& start, cudaEvent_t& end){
         float f = 0;
@@ -193,5 +193,5 @@ void test_gemm_cuda(int size){
         average += float(chrono.stop());
     }
 
-    info("Total: {}", average / 10);
+    kwinfo("Total: {}", average / 10);
 }

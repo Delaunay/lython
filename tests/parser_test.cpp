@@ -111,7 +111,7 @@ bool allowed(AllowEntry const& v) {
     return false;
 }
 
-void show_debug(
+void show_kwdebug(
     String const& name, int j, int i, String const& code, Array<Token> const& tokens, Module* mod) {
     std::cout << "\n=========Module: " << name << " x " << j << " x " << i << "\n";
     std::cout << code;
@@ -147,7 +147,7 @@ void run_partial(String const& name, int j, TestCase const& test) {
                 parser.show_diagnostics(std::cout);
                 throw SyntaxError();
             }
-            show_debug(name, j, i, test.code, tokens, &mod);
+            show_kwdebug(name, j, i, test.code, tokens, &mod);
         };
 
         if (!allowed({name, j, i})) {
@@ -162,7 +162,7 @@ void run_partial(String const& name, int j, TestCase const& test) {
                     throw SyntaxError();
                 }
             } catch (SyntaxError const& err) {
-                show_debug(name, j, i, test.code, tokens, nullptr);
+                show_kwdebug(name, j, i, test.code, tokens, nullptr);
                 throw err;
             }
         }
@@ -170,11 +170,11 @@ void run_partial(String const& name, int j, TestCase const& test) {
 }
 
 void run_partials(String const& name, Array<TestCase> cases) {
-    info("Testing {}", name);
+    kwinfo("Testing {}", name);
     for (int i = 0; i < cases.size(); i++) {
         auto& c = cases[i];
         run_partial(name, i, c);
-        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }
 
@@ -244,7 +244,7 @@ void run_testcase(String const&                 name,
     for (auto& c: cases) {
         String const* fmt = get_exception(exceptions, FormatException{name, i});
 
-        info("Testing {} - {}", name, i);
+        kwinfo("Testing {} - {}", name, i);
         String new_code = Transformer(c.code);
 
         String parsed   = strip(parse_it(new_code));
@@ -252,7 +252,7 @@ void run_testcase(String const&                 name,
         bool   equal    = parsed == original;
 
         if (!equal) {
-            error("\n`{}`\n`{}`", parsed, original);
+            kwerror("\n`{}`\n`{}`", parsed, original);
         }
 
         if (fmt != nullptr) {
@@ -260,7 +260,7 @@ void run_testcase(String const&                 name,
         }
 
         REQUIRE(parsed == original);
-        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
         i += 1;
     }
 }

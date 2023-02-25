@@ -8,11 +8,28 @@
             "name": "Lython fmt",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
+            "program": "${workspaceFolder}/build/bin/Release/lython.exe",
             "args": [
-                "fmt",
-                "--ast",
-                "${workspaceFolder}/code/parsing_recovery.ly"
+                "codegen",
+                "--file",
+                "${workspaceFolder}/code/cppgen.ly"
+            ],
+            "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
+            "showDisplayString": true,
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        },
+        {
+            "name": "Debug CodeGen (Windows)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/Release/lython.exe",
+            "args": [
+                "codegen",
+                "--file",
+                "${workspaceFolder}/code/cppgen.ly"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,

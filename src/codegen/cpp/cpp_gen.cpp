@@ -70,6 +70,8 @@ StmtRet CPPGen::breakstmt(Break_t* n, int depth) { return StmtRet(); }
 StmtRet CPPGen::continuestmt(Continue_t* n, int depth) { return StmtRet(); }
 StmtRet CPPGen::match(Match_t* n, int depth) { return StmtRet(); }
 StmtRet CPPGen::inlinestmt(Inline_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::import(Import_t* n, int depth) { return StmtRet(); }
+StmtRet CPPGen::importfrom(ImportFrom_t* n, int depth) { return StmtRet(); }
 
 PatRet CPPGen::matchvalue(MatchValue_t* n, int depth) { return PatRet(); }
 PatRet CPPGen::matchsingleton(MatchSingleton_t* n, int depth) { return PatRet(); }

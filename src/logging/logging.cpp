@@ -59,16 +59,16 @@ std::string demangle(std::string const& original_str) {
     return result_str;
 }
 
-std::vector<std::string> get_backtrace(size_t size = 32) {
+std::vector<std::string> get_backkwtrace(size_t size = 32) {
     // avoid allocating memory dynamically
     std::vector<void*> ptrs(size);
     //    static std::vector<std::string> ignore = {
     //        "libstdc++.so",
     //        "lython::get_backtrace[abi:cxx11](unsigned long)",
-    //        "lython::show_backtrace()"
+    //        "lython::show_backkwtrace()"
     //    };
 
-    int    real_size = backtrace(ptrs.data(), int(size));
+    int    real_size = backkwtrace(ptrs.data(), int(size));
     char** symbols   = backtrace_symbols(ptrs.data(), int(real_size));
 
     std::vector<std::string> names;
@@ -97,8 +97,8 @@ std::vector<std::string> get_backtrace(size_t size = 32) {
     return names;
 }
 
-void show_backtrace() {
-    std::vector<std::string> symbols = get_backtrace(32);
+void show_backkwtrace() {
+    std::vector<std::string> symbols = get_backkwtrace(32);
     int                      i       = 0;
     for (auto& sym: symbols) {
         i += 1;
@@ -108,7 +108,7 @@ void show_backtrace() {
 
 [[noreturn]] void signal_handler(int sig) {
     spdlog_log(LogLevel::Fatal, fmt::format("Received signal {} >>>", sig));
-    show_backtrace();
+    show_backkwtrace();
     spdlog_log(LogLevel::Fatal, "<<< Exiting");
     exit(1);
 }
@@ -126,9 +126,9 @@ int register_signal_handler() {
 #else
 int register_signal_handler() { return 0; }
 
-void show_backtrace() {}
+void show_backkwtrace() {}
 
-std::vector<std::string> get_backtrace(size_t size) { return std::vector<std::string>(); }
+std::vector<std::string> get_backkwtrace(size_t size) { return std::vector<std::string>(); }
 #endif
 
 #if WITH_LOG
@@ -138,7 +138,7 @@ Logger new_logger(char const* name) {
     // Static so only executed once
     static int _ = register_signal_handler();
 
-    spdlog::enable_backtrace(32);
+    spdlog::enable_backkwtrace(32);
 
     auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
@@ -191,12 +191,12 @@ static constexpr spdlog::level::level_enum log_level_spd[] = {spdlog::level::lev
                                                               spdlog::level::level_enum::critical,
                                                               spdlog::level::level_enum::off};
 
-void show_log_backtrace() { spdlog::dump_backtrace(); }
+void show_log_backkwtrace() { spdlog::dump_backkwtrace(); }
 
 void spdlog_log(LogLevel level, std::string const& msg) { root()->log(log_level_spd[level], msg); }
 
 #else
-void                     show_log_backtrace() {}
+void                     show_log_backkwtrace() {}
 void                     spdlog_log(LogLevel level, std::string const& msg) {}
 #endif
 
@@ -207,7 +207,7 @@ std::string format_code_loc(const char* file, const char* function, int line) {
     return fmt::format("{} {}:{}", file, function, line);
 }
 
-std::string format_code_loc_trace(const char*, const char* function, int line) {
+std::string format_code_loc_kwtrace(const char*, const char* function, int line) {
     return fmt::format("{:>25}:{:4}", function, line);
 }
 

@@ -76,21 +76,21 @@ inline bool equal_it(String code_a) { return equal_it(code_a, code_a); }
 void run_testcase_notequal() {
     auto& cases = Not_Equal_examples();
 
-    info("Testing {}", "NotEqual");
+    kwinfo("Testing {}", "NotEqual");
     for (auto& c: cases) {
         auto a = c[0];
         auto b = c[1];
 
         REQUIRE(equal_it(a.code, b.code) == false);
-        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }
 
 void run_testcase(String const& name, Array<TestCase> cases) {
-    info("Testing {}", name);
+    kwinfo("Testing {}", name);
     for (auto& c: cases) {
         REQUIRE(equal_it(c.code) == true);
-        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }
 

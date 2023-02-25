@@ -20,6 +20,7 @@ IF(NOT ${WITH_VALGRIND})
 ENDIF()
 
 ADD_SUBDIRECTORY(argparse EXCLUDE_FROM_ALL)
+# ADD_SUBDIRECTORY(zlib EXCLUDE_FROM_ALL)
 
 # this has dependencies on libtommath
 # ADD_SUBDIRECTORY(libtomcrypt)

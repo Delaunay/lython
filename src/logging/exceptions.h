@@ -2,7 +2,7 @@
 
 #include <exception>
 
-// 
+//
 #include "compatibility/compatibility.h"
 #include "dependencies/fmt.h"
 
@@ -17,7 +17,7 @@ class Exception: public std::exception {
 
     const char* what() const LY_NOEXCEPT final {
         spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
-        show_backtrace();
+        show_backkwtrace();
         return message.c_str();
     }
 

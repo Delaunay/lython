@@ -272,11 +272,11 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
     Lexer        lex(reader);
     Parser       parser(lex);
 
-    info("{}", "Parse");
+    kwinfo("{}", "Parse");
     mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
 
-    info("{}", "Sema");
+    kwinfo("{}", "Sema");
     SemanticAnalyser sema;
     sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
@@ -292,7 +292,7 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
 }
 
 void run_testcase(String const& name, Array<TestCase> cases) {
-    info("Testing {}", name);
+    kwinfo("Testing {}", name);
 
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
@@ -315,7 +315,7 @@ void run_testcase(String const& name, Array<TestCase> cases) {
         }
         delete mod;
 
-        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
         i += 1;
     }
 }

@@ -74,6 +74,7 @@ struct BaseVisitor {
 #undef MOD
 #undef MATCH
 #undef TYPE_GEN
+    bool log_trace = false;
 
     template <typename U, typename T>
     Array<U> exec(Array<T>& body, int depth, Args... args) {
@@ -108,7 +109,7 @@ struct BaseVisitor {
 
     ModRet exec(ModNode_t* mod, int depth, Args... args) {
         // clang-format off
-        // trace(depth, "{}", mod->kind);
+        // kwtrace(depth, "{}", mod->kind);
 
         check_depth(depth);
 
@@ -145,7 +146,7 @@ struct BaseVisitor {
 
         check_depth(depth);
 
-        // trace(depth, "{}", pat->kind);
+        // kwtrace(depth, "{}", pat->kind);
         // clang-format off
         switch (pat->kind) {
 
@@ -179,7 +180,7 @@ struct BaseVisitor {
 
         check_depth(depth);
 
-        // trace(depth, "{}", expr->kind);
+        // kwtrace(depth, "{}", expr->kind);
         // clang-format off
         switch (expr->kind) {
 
@@ -214,7 +215,7 @@ struct BaseVisitor {
 
     StmtRet exec(StmtNode_t* stmt, int depth, Args... args) {
         if (!stmt) {
-            debug("Null statement");
+            kwdebug("Null statement");
             return StmtRet();
         }
 
@@ -249,7 +250,7 @@ struct BaseVisitor {
 #define FUNCTION_GEN(name, fun, rtype)                                          \
     LY_INLINE rtype fun(name##_t* node, int depth, Args... args) {              \
         if (Trace::value) {                                                     \
-            trace(depth, #name);                                                \
+            kwtrace(depth, #name);                                              \
         }                                                                       \
         return static_cast<Implementation*>(this)->fun(node, depth, (args)...); \
     }

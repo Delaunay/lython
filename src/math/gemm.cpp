@@ -153,7 +153,7 @@ void gemm_parallel_block(Matrix a, Matrix b, Matrix c) {
 
 // [I] [16-02-2020 16:04:07.897] [8243] src/math/gemm.cpp:159 test_gemm_parallel - Total: 1467.5
 std::vector<float> test_gemm_parallel(int size) {
-    info("Vector size {} => {}", size, size * size);
+    kwinfo("Vector size {} => {}", size, size * size);
 
     std::vector<float> a_ptr(std::size_t(size * size), 0);
     std::vector<float> b_ptr(std::size_t(size * size), 0);
@@ -184,6 +184,6 @@ std::vector<float> test_gemm_parallel(int size) {
         average += float(chrono.stop());
     }
 
-    info("Total: {}", average / 10);
+    kwinfo("Total: {}", average / 10);
     return c_ptr;
 }

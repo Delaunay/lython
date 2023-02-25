@@ -16,14 +16,14 @@ void GCObject::remove_child(GCObject* child, bool dofree) {
 
     // FIXME: this should never happen
     if (i == -1) {
-        error("Trying to remove (child: {}) from (parent: {}), (child->parent: {});"
-              "but the child was not found",
-              (void*)child,
-              (void*)this,
-              (void*)child->parent);
+        kwerror("Trying to remove (child: {}) from (parent: {}), (child->parent: {});"
+                "but the child was not found",
+                (void*)child,
+                (void*)this,
+                (void*)child->parent);
         return;
     } else {
-        info("Removed (child: {}) from (parent: {})", (void*)child, (void*)this);
+        kwinfo("Removed (child: {}) from (parent: {})", (void*)child, (void*)this);
     }
     // assert(i != -1, "Should find child");
 

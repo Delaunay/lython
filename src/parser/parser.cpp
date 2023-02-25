@@ -5,9 +5,9 @@
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
-    trace_start(depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
+    kwtrace_start(depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
 
-#define TRACE_END2(tok) trace_end(depth, "{}: {}", to_string(tok.type()).c_str(), tok.type())
+#define TRACE_END2(tok) kwtrace_end(depth, "{}: {}", to_string(tok.type()).c_str(), tok.type())
 
 #define TRACE_START() TRACE_START2(token())
 
@@ -20,7 +20,7 @@
 
 namespace lython {
 
-#define SHOW_TOK(tok) error("{}", str(tok));
+#define SHOW_TOK(tok) kwerror("{}", str(tok));
 
 // Reduce the number of dynamic alloc
 // but debug info is not kept for the nodes
@@ -105,7 +105,7 @@ void Parser::expect_operator(String const&       op,
         return;
     }
 
-    ParsingError& error = parser_error(                                           //
+    ParsingError& error = parser_kwerror(                                         //
         loc,                                                                      //
         "SyntaxError",                                                            //
         fmtstr("Wrong operator expected {} but got {}", op, tok.operator_name())  //
@@ -137,7 +137,7 @@ void Parser::expect_tokens(Array<int> const&   expected,
         expected_str.push_back(str(TokenType(ex)));
     }
 
-    ParsingError& error   = parser_error(                              //
+    ParsingError& error   = parser_kwerror(                            //
         loc,                                                         //
         "SyntaxError",                                               //
         fmtstr("Expected {} got {}", join(", ", expected), toktype)  //
@@ -157,10 +157,10 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
         // Found an unexpected token
         // eat the full line to try to recover and emit an error
         if (token().type() == tok_incorrect) {
-            ParsingError& error = parser_error(  //
-                LOC,                             //
-                "SyntaxError",                   //
-                "Unexpected token"               //
+            ParsingError& error = parser_kwerror(  //
+                LOC,                               //
+                "SyntaxError",                     //
+                "Unexpected token"                 //
             );
             add_wip_expr(error, parent);
             error_recovery(&error);
@@ -224,10 +224,10 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     }
 
     if (out.size() <= 0) {
-        ParsingError& error = parser_error(  //
-            LOC,                             //
-            "SyntaxError",                   //
-            "Expected a body"                //
+        ParsingError& error = parser_kwerror(  //
+            LOC,                               //
+            "SyntaxError",                     //
+            "Expected a body"                  //
         );
         add_wip_expr(error, parent);
         PARSER_THROW(SyntaxError, error);
@@ -355,7 +355,7 @@ StmtNode* Parser::parse_class_def(Node* parent, int depth) {
 
         // Comments are fine though
         if (exprstmt && exprstmt->value->kind != NodeKind::Comment) {
-            ParsingError& error = parser_error(            //
+            ParsingError& error = parser_kwerror(          //
                 LOC,                                       //
                 "SyntaxError",                             //
                 "Unsupported statement inside a classdef"  //
@@ -751,7 +751,7 @@ Pattern* Parser::parse_match_or(Node* parent, Pattern* child, int depth) {
     start_code_loc(pat, token());
 
     if (token().operator_name() != "|") {
-        error("Unexpected operator {}", token().operator_name());
+        kwerror("Unexpected operator {}", token().operator_name());
     }
 
     next_token();
@@ -1119,10 +1119,10 @@ String Parser::parse_module_path(Node* parent, int& level, int depth) {
 
             // need an identifier after a `.`
             if (token().type() != tok_identifier) {
-                ParsingError& error = parser_error(  //
-                    LOC,                             //
-                    "SyntaxError",                   //
-                    "expect name after ."            //
+                ParsingError& error = parser_kwerror(  //
+                    LOC,                               //
+                    "SyntaxError",                     //
+                    "expect name after ."              //
                 );
                 add_wip_expr(error, parent);
                 PARSER_THROW(SyntaxError, error);
@@ -1161,10 +1161,10 @@ void Parser::parse_alias(Node* parent, Array<Alias>& out, int depth) {
         if (token().type() == ',') {
             next_token();
             if (token().type() != tok_identifier) {
-                ParsingError& error = parser_error(  //
-                    LOC,                             //
-                    "SyntaxError",                   //
-                    "Expect identifier after ,"      //
+                ParsingError& error = parser_kwerror(  //
+                    LOC,                               //
+                    "SyntaxError",                     //
+                    "Expect identifier after ,"        //
                 );
                 add_wip_expr(error, parent);
                 PARSER_THROW(SyntaxError, error);
@@ -1175,10 +1175,10 @@ void Parser::parse_alias(Node* parent, Array<Alias>& out, int depth) {
     }
 
     if (out.size() <= 0) {
-        ParsingError& error = parser_error(  //
-            LOC,                             //
-            "SyntaxError",                   //
-            "Expect packages"                //
+        ParsingError& error = parser_kwerror(  //
+            LOC,                               //
+            "SyntaxError",                     //
+            "Expect packages"                  //
         );
         add_wip_expr(error, parent);
         PARSER_THROW(SyntaxError, error);
@@ -1466,10 +1466,10 @@ bool Parser::is_valid_value() {
 
 ConstantValue Parser::get_value(Node* parent) {
     if (!is_valid_value()) {
-        ParsingError& error = parser_error(  //
-            LOC,                             //
-            "SyntaxError",                   //
-            "Value is out of range"          //
+        ParsingError& error = parser_kwerror(  //
+            LOC,                               //
+            "SyntaxError",                     //
+            "Value is out of range"            //
         );
         add_wip_expr(error, parent);
         PARSER_THROW(SyntaxError, error);
@@ -1815,7 +1815,7 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
             expr = parse_dictcomprehension(parser, parent, child, value, kind, depth);
         } else {
             expr = parse_comprehension<Comp>(parser, parent, child, kind, depth);
-            error("Done {}", str(expr));
+            kwerror("Done {}", str(expr));
         }
     } else if (parser->token().type() == ',') {
         parser->next_token();
@@ -1834,14 +1834,14 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
             return p;
         }
 
-        error("Unhandled list-comprehension case");
+        kwerror("Unhandled list-comprehension case");
     }
 
     if (expr == nullptr) {
-        ParsingError& error = parser->parser_error(  //
-            LOC,                                     //
-            "SyntaxError",                           //
-            "Comprehension is null"                  //
+        ParsingError& error = parser->parser_kwerror(  //
+            LOC,                                       //
+            "SyntaxError",                             //
+            "Comprehension is null"                    //
         );
         add_wip_expr(error, parent);
         PARSER_THROW(SyntaxError, error);
@@ -1948,7 +1948,7 @@ ExprNode* Parser::parse_prefix_unary(Node* parent, int depth) {
     }
 
     if (conf.unarykind == UnaryOperator::None) {
-        ParsingError& error = parser_error(              //
+        ParsingError& error = parser_kwerror(            //
             LOC,                                         //
             "SyntaxError",                               //
             fmtstr("Expected an unary operator not {}",  //
@@ -2081,7 +2081,7 @@ ExprNode* Parser::parse_subscript(Node* parent, ExprNode* primary, int depth) {
     }
 
     if (elts.size() == 0) {
-        ParsingError& error = parser_error(          //
+        ParsingError& error = parser_kwerror(        //
             LOC,                                     //
             "SyntaxError",                           //
             "Substript needs at least one argument"  //
@@ -2120,7 +2120,7 @@ void Parser::error_recovery(ParsingError* error) {
             error->received_token = end;
         }
     } else {
-        error("Was not able to retrieve the tok line for an error");
+        kwerror("Was not able to retrieve the tok line for an error");
     }
 }
 
@@ -2128,7 +2128,7 @@ ExprNode* Parser::parse_slice(Node* parent, ExprNode* primary, int depth) {
     TRACE_START();
 
     if (!allow_slice()) {
-        ParsingError& error = parser_error(         //
+        ParsingError& error = parser_kwerror(       //
             LOC,                                    //
             "SyntaxError",                          //
             "Slice is not allowed in this context"  //
@@ -2247,7 +2247,7 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     TRACE_START();
 
     if (previous == token()) {
-        ParsingError& error = parser_error(                          //
+        ParsingError& error = parser_kwerror(                        //
             LOC,                                                     //
             "SyntaxError",                                           //
             fmtstr("Unhandled token {} `{}` previous tok was `{}`",  //
@@ -2413,7 +2413,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
                 if (comp->safe_comparator_add(lhs)) {
                     comp->ops.push_back(op_conf.cmpkind);
                 } else {
-                    ParsingError& err = parser_error(          //
+                    ParsingError& err = parser_kwerror(        //
                         LOC,                                   //
                         "SyntaxError",                         //
                         fmtstr("Unable to parse comparators")  //
@@ -2439,7 +2439,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
                 if (boolop->safe_value_add(lhs)) {
                     boolop->opcount += 1;
                 } else {
-                    ParsingError& err = parser_error(                     //
+                    ParsingError& err = parser_kwerror(                   //
                         LOC,                                              //
                         "SyntaxError",                                    //
                         fmtstr("Unable to finish parsing bool operator")  //
@@ -2501,7 +2501,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
             }
             lhs = boolop;
         } else {
-            error("unknow operator {}", str(op_conf));
+            kwerror("unknow operator {}", str(op_conf));
         }
     }
 
@@ -2618,9 +2618,9 @@ ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
     // Left Unary operator
     // + <expr> | - <expr> | ! <expr> | ~ <expr>
 
-    ParsingError& error = parser_error(  //
-        LOC,                             //
-        "SyntaxError",                   //
+    ParsingError& error = parser_kwerror(  //
+        LOC,                               //
+        "SyntaxError",                     //
         // fmtstr("Could not deduce the expression {}", str(TokenType(token().type())))  //
         "Expected an expression"  //
     );

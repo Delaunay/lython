@@ -1,5 +1,10 @@
 {
   "files.eol": "\n",
+  "c_cpp_properties": {
+    "suppressWarnings": [
+        "*llvm*"
+    ]
+  },
   "C_Cpp_Runner.cCompilerPath": "/bin/gcc",
   "C_Cpp_Runner.debuggerPath": "/bin/gdb",
   "C_Cpp_Runner.makePath": "/bin/make",

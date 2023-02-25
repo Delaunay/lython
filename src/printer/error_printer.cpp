@@ -47,7 +47,7 @@ StmtNode* get_parent_stmt(Node* node) {
 
         for (auto const* prev: nodes) {
             if (prev == n) {
-                error("Circle found inside GC nodes");
+                kwerror("Circle found inside GC nodes");
                 // circle should not happen
                 return nullptr;
             }

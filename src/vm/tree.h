@@ -146,18 +146,18 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     private:
     PartialResult* exec(StmtNode_t* stmt, int depth) {
-        StackTrace& trace = get_trace();
+        StackTrace& trace = get_kwtrace();
         trace.stmt        = stmt;
         return Super::exec(stmt, depth);
     }
 
     PartialResult* exec(ExprNode_t* expr, int depth) {
-        StackTrace& trace = get_trace();
+        StackTrace& trace = get_kwtrace();
         trace.expr        = expr;
         return Super::exec(expr, depth);
     }
 
-    StackTrace& get_trace() { return traces[traces.size() - 1]; }
+    StackTrace& get_kwtrace() { return traces[traces.size() - 1]; }
 
     // private:
     // --------

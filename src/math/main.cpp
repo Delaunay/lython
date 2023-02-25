@@ -5,11 +5,11 @@
 int main() {
     int size = 256;
 
-    info("{}", size);
+    kwinfo("{}", size);
 
     // test_gemm_parallel(size);
 
-    info("GPU");
+    kwinfo("GPU");
 
     test_gemm_cuda(2048);
 

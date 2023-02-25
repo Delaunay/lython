@@ -136,11 +136,8 @@ struct ConstantValue {
         return value.i64;
     }
 
-    NativeObject* get_object() {
-        if (kind == TObject) {
-            return value.object;
-        }
-        return nullptr;
+    Type get_kind() const {
+        return kind;
     }
 
     private:

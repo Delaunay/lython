@@ -27,10 +27,10 @@ TEST_CASE("Lexer") {
 
 /*
 void run_testcase(String const &name, Array<TestCase> cases) {
-    info("Testing {}", name);
+    kwinfo("Testing {}", name);
     for (auto &c: cases) {
         REQUIRE(strip(lex_it(c.code)) == strip(c.code));
-        info("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }
 
