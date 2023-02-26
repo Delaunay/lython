@@ -1,15 +1,15 @@
 #include "dtypes.h"
 
+namespace lython {
 
-struct VMVMTestCase {
-    VMVMTestCase(String const &c, String const& call, String const &t = ""):
-        code(c), errors(u), expected_type(t) {}
+struct VMTestCase {
+    VMTestCase(String const& c, String const& call, String const& t = ""):
+        code(c), expected_type(t) {}
 
     String code;
     String call;
     String expected_type;
 };
-
 
 Array<VMTestCase> const& Match_vm_examples() {
     static Array<VMTestCase> ex = {
@@ -46,7 +46,7 @@ Array<VMTestCase> const& Match_vm_examples() {
             "            pass\n"
             "        case {1: value, **remainder}:\n"
             "            pass\n",
-             "fun()",
+            "fun()",
         },
     };
     return ex;
@@ -56,7 +56,7 @@ Array<VMTestCase> const& Pass_vm_examples() {
     static Array<VMTestCase> ex = {
         {
             "def fun():\n"
-            "    pass\n"
+            "    pass\n",
             "fun()",
         },
     };
@@ -73,9 +73,8 @@ Array<VMTestCase> const& Nonlocal_vm_examples() {
         {
             "def fun():\n"
             "    nonlocal a\n",
-         {
-             NE("a"),
-         }},
+            "fun()",
+        },
     };
     return ex;
 }
@@ -85,9 +84,8 @@ Array<VMTestCase> const& Global_vm_examples() {
         {
             "def fun():\n"
             "    global a\n",
-         {
-             NE("a"),
-         }},
+            "fun()",
+        },
     };
     return ex;
 }
@@ -96,14 +94,12 @@ Array<VMTestCase> const& ImportFrom_vm_examples() {
     static Array<VMTestCase> ex = {
         {
             "from aa.b import c as d, e.f as g",
-            {
-                MNFE("aa.b"),
-            },
+            "fun()",
         },
         {
             // import_test should be inside the path
             "from import_test import cls as Klass, fun as Fun, ann as Ann, var as Var",
-            {},
+            "fun()",
         }};
     return ex;
 }
@@ -112,16 +108,12 @@ Array<VMTestCase> const& Import_vm_examples() {
     static Array<VMTestCase> ex = {
         {
             "import aa as b, c as d, e.f as g",
-            {
-                MNFE("aa"),
-                MNFE("c"),
-                MNFE("e.f"),
-            },
+            "fun()",
         },
         {
             // import_test should be inside the path
             "import import_test as imp_test",
-            {},
+            "fun()",
         },
     };
     return ex;
@@ -229,14 +221,15 @@ Array<VMTestCase> const& While_vm_examples() {
 
 Array<VMTestCase> const& Continue_vm_examples() {
     static Array<VMTestCase> ex = {
-        {"def fun(b):\n"
-         "    sum = 0\n"
-         "    for a in b:\n"
-         "        if a:\n"
-         "            continue\n"
-         "        sum +=1\n"
-         "    return sum\n",
-             "fun()",
+        {
+            "def fun(b):\n"
+            "    sum = 0\n"
+            "    for a in b:\n"
+            "        if a:\n"
+            "            continue\n"
+            "        sum +=1\n"
+            "    return sum\n",
+            "fun()",
         },
     };
     return ex;
@@ -244,19 +237,19 @@ Array<VMTestCase> const& Continue_vm_examples() {
 
 Array<VMTestCase> const& Break_vm_examples() {
     static Array<VMTestCase> ex = {
-        {"def fun(b):\n"
-         "    sum = 0\n"
-         "    for a in b:\n"
-         "        if a:\n"
-         "            break\n"
-         "        sum +=1\n"
-         "    return sum\n",
-             "fun()",
+        {
+            "def fun(b):\n"
+            "    sum = 0\n"
+            "    for a in b:\n"
+            "        if a:\n"
+            "            break\n"
+            "        sum +=1\n"
+            "    return sum\n",
+            "fun()",
         },
     };
     return ex;
 }
-
 
 Array<VMTestCase> const& For_vm_examples() {
     static Array<VMTestCase> ex = {
@@ -269,12 +262,12 @@ Array<VMTestCase> const& For_vm_examples() {
             "    else:\n"
             "        pass\n",
             "fun()",
-        }
+        },
         {
             "def fun():\n"
             "    for a, (b, c), d in b:\n"
             "        pass\n",
-             "fun()",
+            "fun()",
         },
     };
     return ex;
@@ -286,7 +279,7 @@ Array<VMTestCase> const& AnnAssign_vm_examples() {
             "def fun():\n"
             "    a: bool = True\n"
             "    return a\n",
-            "fun()",    
+            "fun()",
         },
         // TODO: those a lexer tests!
         // make sure "int" is not read as "in t"
@@ -305,7 +298,7 @@ Array<VMTestCase> const& AnnAssign_vm_examples() {
         },
         {
             "def fun():\n"
-            "    a: f32 = 2.0\n", 
+            "    a: f32 = 2.0\n",
             "fun()",
         },
     };
@@ -347,97 +340,73 @@ Array<VMTestCase> const& Assign_vm_examples() {
         },
 
         // Type deduction check
-        {
-            "def fun():\n"
-            "    a = 1\n"
-            "    return a\n",
-            "fun()", 
-            "i32"
-        },
-        {
-            "def fun():\n"
-            "    a = 1.0\n"
-            "    return a\n",
-            "fun()",
-            "f64"
-        },
-        {
-            "def fun():\n"
-            "    a = \"str\"\n"
-            "    return a\n", 
-            "fun()",
-            "str"
-        },
-        {
-            "def fun():\n"
-            "    a = [1, 2]\n"
-            "    return a\n",     
-            "fun()", 
-            "Array[i32]"
-        },
-        {
-            "def fun():\n"
-            "    a = [1.0, 2.0]\n"
-            "    return a\n",     
-            "fun()", 
-            "Array[f64]"
-        },
-        {
-            "def fun():\n"
-            "    a = [\"1\", \"2\"]\n"
-            "    return a\n", 
-            "fun()", 
-            "Array[str]"
-        },
-        {
-            "def fun():\n"
-            "    a = {1, 2}\n"
-            "    return a\n",
-            "fun()", 
-            "Set[i32]"
-        },
+        {"def fun():\n"
+         "    a = 1\n"
+         "    return a\n",
+         "fun()",
+         "i32"},
+        {"def fun():\n"
+         "    a = 1.0\n"
+         "    return a\n",
+         "fun()",
+         "f64"},
+        {"def fun():\n"
+         "    a = \"str\"\n"
+         "    return a\n",
+         "fun()",
+         "str"},
+        {"def fun():\n"
+         "    a = [1, 2]\n"
+         "    return a\n",
+         "fun()",
+         "Array[i32]"},
+        {"def fun():\n"
+         "    a = [1.0, 2.0]\n"
+         "    return a\n",
+         "fun()",
+         "Array[f64]"},
+        {"def fun():\n"
+         "    a = [\"1\", \"2\"]\n"
+         "    return a\n",
+         "fun()",
+         "Array[str]"},
+        {"def fun():\n"
+         "    a = {1, 2}\n"
+         "    return a\n",
+         "fun()",
+         "Set[i32]"},
         {
             "def fun():\n"
             "    a = {1.0, 2.0}\n"
-            "    return a\n",     
-            "fun()", 
+            "    return a\n",
+            "fun()",
             "Set[f64]",
         },
-        {
-            "def fun():\n"
-            "    a = {\"1\", \"2\"}\n"
-            "    return a\n",
-            "fun()", 
-            "Set[str]"
-        },
-        {
-            "def fun():\n"
-            "    a = {1: 1, 2: 2}\n"
-            "    return a\n",     
-            "fun()", 
-            "Dict[i32, i32]"
-        },
-        {
-            "def fun():\n"
-            "    a = {1: 1.0, 2: 2.0}\n"
-            "    return a\n",     
-            "fun()", 
-            "Dict[i32, f64]"
-        },
-        {
-            "def fun():\n"
-            "    a = {\"1\": 1, \"2\": 2}\n"
-            "    return a\n",     
-            "fun()",
-            "Dict[str, i32]"
-        },
-        {
-            "def fun():\n"
-            "    a = 1, 2.0, \"str\"\n"
-            "    return a\n",     
-            "fun()",
-            "Tuple[i32, f64, str]"
-        },
+        {"def fun():\n"
+         "    a = {\"1\", \"2\"}\n"
+         "    return a\n",
+         "fun()",
+         "Set[str]"},
+        {"def fun():\n"
+         "    a = {1: 1, 2: 2}\n"
+         "    return a\n",
+         "fun()",
+         "Dict[i32, i32]"},
+        {"def fun():\n"
+         "    a = {1: 1.0, 2: 2.0}\n"
+         "    return a\n",
+         "fun()",
+         "Dict[i32, f64]"},
+        {"def fun():\n"
+         "    a = {\"1\": 1, \"2\": 2}\n"
+         "    return a\n",
+         "fun()",
+         "Dict[str, i32]"},
+        {"def fun():\n"
+         "    a = 1, 2.0, \"str\"\n"
+         "    return a\n",
+         "fun()",
+         "Tuple[i32, f64, str]"},
     };
     return ex;
 }
@@ -459,6 +428,7 @@ Array<VMTestCase> const& Return_vm_examples() {
             "def fun():\n"
             "    return a\n",
             "fun()",
+        },
         {
             "def fun():\n"
             "    return 1, 2\n",
@@ -467,12 +437,12 @@ Array<VMTestCase> const& Return_vm_examples() {
         {
             "def fun():\n"
             "    return a + b\n",
-             "fun()",
+            "fun()",
         },
         {
             "def fun():\n"
             "    return p.x + p.y\n",
-             "fun()",
+            "fun()",
         },
     };
     return ex;
@@ -480,12 +450,13 @@ Array<VMTestCase> const& Return_vm_examples() {
 
 Array<VMTestCase> const& ClassDef_vm_examples() {
     static Array<VMTestCase> ex = {
-        {"@e(g, h, i=j)\n"
-         "@f\n"
-         "class a(b, c=d):\n"
-         "    \"\"\"docstring\"\"\"\n"
-         "    pass",
-          "fun()",
+        {
+            "@e(g, h, i=j)\n"
+            "@f\n"
+            "class a(b, c=d):\n"
+            "    \"\"\"docstring\"\"\"\n"
+            "    pass",
+            "fun()",
         },
 
         {
@@ -495,12 +466,13 @@ Array<VMTestCase> const& ClassDef_vm_examples() {
             "    z = 1.2\n"              // c4
             "\n"                         // c5
             "    def __init__(self):\n"  // c7
-            "        self.x = 2\n"       // c8
+            "        self.x = 2\n",      // c8
+            "fun()",
             //"\n"
             //"    class Nested:\n"
             //"        xx: i32 = 0\n"
             //"\n"
-        },
+        }
         // {
         //     "class Name:\n"
         //     "    x: i32 = 0\n"
@@ -526,18 +498,20 @@ Array<VMTestCase> const& Comment_vm_examples() {
 
 Array<VMTestCase> const& FunctionDef_vm_examples() {
     static Array<VMTestCase> ex = {
-        {"@j\n"
-         "def a(b, c=d, *e, f=g, **h) -> bool:\n"
-         "    \"\"\"docstring\"\"\"\n"
-         "    return True\n",
-        "fun()",
+        {
+            "@j\n"
+            "def a(b, c=d, *e, f=g, **h) -> bool:\n"
+            "    \"\"\"docstring\"\"\"\n"
+            "    return True\n",
+            "fun()",
         },
 
-        {"@j(l, m, c=n)\n"
-         "@k\n"
-         "def a(b: bool, d: bool = True):\n"
-         "    pass\n",
-        "fun()",
+        {
+            "@j(l, m, c=n)\n"
+            "@k\n"
+            "def a(b: bool, d: bool = True):\n"
+            "    pass\n",
+            "fun()",
         },
     };
     return ex;
@@ -549,7 +523,7 @@ Array<VMTestCase> const& Inline_vm_examples() {
             "def fun():\n"
             "    a = 2; b = c; d = e\n"
             "   return a, b, d\n",
-             "fun()",
+            "fun()",
 
         },
     };
@@ -670,13 +644,12 @@ Array<VMTestCase> const& Constant_vm_examples() {
         {
             "def fun():\n"
             "    return 1\n",
-            "fun()"
-        
+            "fun()",
         },
         {
             "def fun():\n"
             "    return 2.1\n",
-            "fun()"
+            "fun()",
         },
         // "'str'",
         {
@@ -686,18 +659,18 @@ Array<VMTestCase> const& Constant_vm_examples() {
         },
         {
             "def fun():\n"
-            "    return None\n".
-            "fun()"
+            "    return None\n",
+            "fun()",
         },
         {
             "def fun():\n"
-            "    return True\n", 
-            "fun()"
+            "    return True\n",
+            "fun()",
         },
         {
             "def fun():\n"
-            "    return False\n", 
-            "fun()"
+            "    return False\n",
+            "fun()",
         },
     };
     return ex;
@@ -807,11 +780,9 @@ Array<VMTestCase> const& DictComp_vm_examples() {
 
 Array<VMTestCase> const& SetComp_vm_examples() {
     static Array<VMTestCase> ex = {
-        {
-            "def fun():\n"
-            "    return {a for a in b if a > c}\n",
-            "fun()"
-        },
+        {"def fun():\n"
+         "    return {a for a in b if a > c}\n",
+         "fun()"},
     };
     return ex;
 }
@@ -821,7 +792,7 @@ Array<VMTestCase> const& GeneratorExp_vm_examples() {
         {
             "def fun():\n"
             "    return (a for a in b if a > c)\n",
-            "fun()", 
+            "fun()",
         },
     };
     return ex;
@@ -832,7 +803,7 @@ Array<VMTestCase> const& ListComp_vm_examples() {
         {
             "def fun():\n"
             "    return [a for a in b if a > c]\n",
-            "fun()", 
+            "fun()",
         },
     };
     return ex;
@@ -865,7 +836,7 @@ Array<VMTestCase> const& IfExp_vm_examples() {
         {
             "def fun():\n"
             "    return a = c if True else d\n",
-            "fun()", 
+            "fun()",
         },
         // this is the real python version
         // "a = b if c else d",
@@ -888,22 +859,22 @@ Array<VMTestCase> const& UnaryOp_vm_examples() {
         {
             "def fun():\n"
             "    return + a\n",
-            "fun()", 
+            "fun()",
         },
         {
             "def fun():\n"
             "    return - a\n",
-            "fun()", 
+            "fun()",
         },
         {
             "def fun():\n"
             "    return ~ a\n",
-            "fun()", 
+            "fun()",
         },
         {
             "def fun():\n"
             "    return ! a\n",
-            "fun()", 
+            "fun()",
         },
     };
     return ex;
@@ -914,7 +885,7 @@ Array<VMTestCase> const& BinOp_vm_examples() {
         {
             "def fun():\n"
             "    return a + b\n",
-            "fun()", 
+            "fun()",
         },
         {
             "def fun():\n"
@@ -1011,3 +982,9 @@ Array<VMTestCase> const& Expr_vm_examples() {
     static Array<VMTestCase> ex = {};
     return ex;
 }
+
+Array<VMTestCase> const& InvalidStatement_vm_examples() {
+    static Array<VMTestCase> ex = {};
+    return ex;
+}
+}  // namespace lython

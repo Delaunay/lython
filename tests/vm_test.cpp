@@ -14,6 +14,8 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 
+#include "vm_cases.cpp"
+
 using namespace lython;
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
@@ -428,4 +430,56 @@ TEST_CASE("VM_ClassDef_2") {
                   "fun(Point(1.0, 2.0))",
                   "3.0");
 }
+
 #endif
+
+void run_testcases(String const& name, Array<VMTestCase> const& cases) {
+    kwinfo("Testing {}", name);
+
+    Array<String> errors;
+    TypeExpr*     deduced_type = nullptr;
+
+    int i = 0;
+    for (auto& c: cases) {
+        Module* mod;
+
+        StringStream ss;
+        ss << "_" << i;
+
+        // write_fuzz_file(name + ss.str(), c.code);
+        String result = eval_it(c.code, c.call, mod);
+
+        // REQUIRE(errors == c.errors);
+
+        if (c.expected_type != "") {
+            REQUIRE(c.expected_type == str(deduced_type));
+        }
+        delete mod;
+
+        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        i += 1;
+    }
+}
+
+#define GENTEST(name)                                                   \
+    TEMPLATE_TEST_CASE("VM_" #name, #name, name) {                      \
+        run_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
+    }
+
+#define X(name, _)
+#define SSECTION(name)
+#define EXPR(name, _) GENTEST(name)
+#define STMT(name, _) GENTEST(name)
+#define MOD(name, _)
+#define MATCH(name, _)
+
+NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+#undef X
+#undef SSECTION
+#undef EXPR
+#undef STMT
+#undef MOD
+#undef MATCH
+
+#undef GENTEST
