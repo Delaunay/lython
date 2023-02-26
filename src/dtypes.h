@@ -69,7 +69,7 @@ using StringView = std::string_view;
 namespace std {
 
 // FIXME: BUILD_WEBASSEMBLY use clang by default so this is the same check
-#if !BUILD_WEBASSEMBLY && !__clang__
+#if !BUILD_WEBASSEMBLY
 template <>
 struct hash<lython::String> {
     using Key = lython::String;

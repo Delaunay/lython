@@ -106,12 +106,18 @@ SET(ADD_SOURCE
     utilities/strings.cpp
     utilities/names.cpp
 )
-SET(LLVM_PATH E:/llvm-install)
-SET(LLVM_DIR E:/llvm-install/lib/cmake/llvm)
-SET(Clang_DIR E:/llvm-install/lib/cmake/clang)
 
-SET(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/binaries/lib/zlib.lib)
-SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/binaries/include)
+if (WIN32)
+    SET(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/binaries/lib/zlib.lib)
+    SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/binaries/include)
+        
+    SET(LLVM_PATH E:/llvm-install)
+    SET(LLVM_DIR E:/llvm-install/lib/cmake/llvm)
+    SET(Clang_DIR E:/llvm-install/lib/cmake/clang)  
+else()
+    SET(ZLIB_INCLUDE_DIR /usr/lib/x86_64-linux-gnu)
+    find_package(ZLIB)
+endif(WIN32)
 
 find_package(LLVM CONFIG REQUIRED)
 find_package(Clang CONFIG REQUIRED)
@@ -123,7 +129,10 @@ IF(LLVM_FOUND)
 
     # Putting system here prevents the compiler from printing
     # warnings inside the headers
-    include_directories(SYSTEM ${LLVM_PATH}/include)
+    # include_directories(SYSTEM ${LLVM_PATH}/include)
+    # include_directories()
+
+    include_directories(${LLVM_INCLUDE_DIRS})
 
     SET(LLVM_LIRARIES
         LLVMCore

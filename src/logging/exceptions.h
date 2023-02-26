@@ -17,7 +17,7 @@ class Exception: public std::exception {
 
     const char* what() const LY_NOEXCEPT final {
         spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
-        show_backkwtrace();
+        show_backtrace();
         return message.c_str();
     }
 

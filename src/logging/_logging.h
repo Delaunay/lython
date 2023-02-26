@@ -58,8 +58,7 @@ using CodeLocationConstRef = CodeLocation const&;
 #    define LOC lython::CodeLocation::noloc()
 #endif
 
-enum LogLevel
-{
+enum LogLevel {
     Trace,
     Debug,
     Info,
@@ -105,15 +104,15 @@ void set_log_level(LogLevel level, bool enabled);
 bool is_log_enabled(LogLevel level);
 
 // Show backtrace using spdlog
-void show_log_backkwtrace();
+void show_log_backtrace();
 
 // Show backtrace using execinfo
-void show_backkwtrace();
+void show_backtrace();
 
 std::string demangle(std::string const& original_str);
 
 // retrieve backtrace using execinfo
-std::vector<std::string> get_backkwtrace(size_t size);
+std::vector<std::string> get_backtrace(size_t size);
 
 // remove namespace info
 std::string format_function(std::string const&);

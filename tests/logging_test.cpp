@@ -32,7 +32,7 @@ std::string read(int fd) {
             if (errno == EINTR) {
                 continue;
             } else {
-                pkwerror("read");
+                perror("read");
                 break;
             }
         } else if (count == 0) {
@@ -50,7 +50,7 @@ template <class F, class... Args>
 std::string CHECK_ABORT(F&& f, Args&&... args) {
     int filedes[2];
     if (pipe(filedes) == -1) {
-        pkwerror("pipe");
+        perror("pipe");
         throw std::runtime_error("Could not open pipe");
     }
 

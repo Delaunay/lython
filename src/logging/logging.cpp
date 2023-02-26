@@ -59,7 +59,7 @@ std::string demangle(std::string const& original_str) {
     return result_str;
 }
 
-std::vector<std::string> get_backkwtrace(size_t size = 32) {
+std::vector<std::string> get_backtrace(size_t size = 32) {
     // avoid allocating memory dynamically
     std::vector<void*> ptrs(size);
     //    static std::vector<std::string> ignore = {
@@ -68,7 +68,7 @@ std::vector<std::string> get_backkwtrace(size_t size = 32) {
     //        "lython::show_backkwtrace()"
     //    };
 
-    int    real_size = backkwtrace(ptrs.data(), int(size));
+    int    real_size = backtrace(ptrs.data(), int(size));
     char** symbols   = backtrace_symbols(ptrs.data(), int(real_size));
 
     std::vector<std::string> names;
@@ -97,8 +97,8 @@ std::vector<std::string> get_backkwtrace(size_t size = 32) {
     return names;
 }
 
-void show_backkwtrace() {
-    std::vector<std::string> symbols = get_backkwtrace(32);
+void show_backtrace() {
+    std::vector<std::string> symbols = get_backtrace(32);
     int                      i       = 0;
     for (auto& sym: symbols) {
         i += 1;
@@ -108,7 +108,7 @@ void show_backkwtrace() {
 
 [[noreturn]] void signal_handler(int sig) {
     spdlog_log(LogLevel::Fatal, fmt::format("Received signal {} >>>", sig));
-    show_backkwtrace();
+    show_backtrace();
     spdlog_log(LogLevel::Fatal, "<<< Exiting");
     exit(1);
 }

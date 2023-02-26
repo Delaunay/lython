@@ -12,9 +12,9 @@
 #if WITH_LLVM_CODEGEN
 
 // LLVM
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h" 
+#    include "llvm/IR/IRBuilder.h"
+#    include "llvm/IR/LLVMContext.h"
+#    include "llvm/IR/Module.h"
 
 namespace lython {
 
@@ -26,8 +26,9 @@ struct LLVMGenVisitorTrait {
     using IsConst = std::false_type;
     using Trace   = std::true_type;
 
-    enum
-    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
+    enum {
+        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH
+    };
 };
 
 /*
@@ -40,70 +41,64 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     using ModRet  = Super::ModRet;
     using PatRet  = Super::PatRet;
 
-    Unique<llvm::LLVMContext> context;;
+    Unique<llvm::LLVMContext> context;
+    ;
     Unique<llvm::Module>      llmodule;
     Unique<llvm::IRBuilder<>> builder;
     Dict<String, ExprRet>     named_values;
 
-    #if WITH_LLVM_DEBUG_SYMBOL
-    Unique<llvm::DIBuilder>   dbuilder;
-    DICompileUnit*            debug_compile_unit;
-    Arrayr<DIScope *>         scopes;
+#    if WITH_LLVM_DEBUG_SYMBOL
+    Unique<llvm::DIBuilder> dbuilder;
+    DICompileUnit*          debug_compile_unit;
+    Arrayr<DIScope*>        scopes;
 
     void emit_location(ExprNode* node);
-    #endif
+#    endif
 
-    ExprRet binary_operator(llvm::IRBuilder<>* builder, ExprNode* left, ExprNode* right, int op, int depth);
+    ExprRet
+    binary_operator(llvm::IRBuilder<>* builder, ExprNode* left, ExprNode* right, int op, int depth);
 
     LLVMGen();
     ~LLVMGen();
 
-#define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
+#    define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
 
-#define X(name, _)
-#define SSECTION(name)
-#define EXPR(name, fun)  TYPE_GEN(name)
-#define STMT(name, fun)  TYPE_GEN(name)
-#define MOD(name, fun)   TYPE_GEN(name)
-#define MATCH(name, fun) TYPE_GEN(name)
-
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
-
-#undef X
-#undef SSECTION
-#undef EXPR
-#undef STMT
-#undef MOD
-#undef MATCH
-#undef TYPE_GEN
-
-#define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth);
-
-#define X(name, _)
-#define SSECTION(name)
-#define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
-#define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
-#define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
-#define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
+#    define X(name, _)
+#    define SSECTION(name)
+#    define EXPR(name, fun)  TYPE_GEN(name)
+#    define STMT(name, fun)  TYPE_GEN(name)
+#    define MOD(name, fun)   TYPE_GEN(name)
+#    define MATCH(name, fun) TYPE_GEN(name)
 
     NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
-#undef X
-#undef SSECTION
-#undef EXPR
-#undef STMT
-#undef MOD
-#undef MATCH
+#    undef X
+#    undef SSECTION
+#    undef EXPR
+#    undef STMT
+#    undef MOD
+#    undef MATCH
+#    undef TYPE_GEN
 
-#undef FUNCTION_GEN
+#    define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth);
 
-    Bindings              bindings;
-    bool                  forwardpass = false;
-    Array<StmtNode*>      nested;
-    Array<String>         namespaces;
-    Dict<StringRef, bool> flags;
+#    define X(name, _)
+#    define SSECTION(name)
+#    define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
+#    define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
+#    define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
+#    define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
 
-    virtual ~LLVMGen() {}
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+#    undef X
+#    undef SSECTION
+#    undef EXPR
+#    undef STMT
+#    undef MOD
+#    undef MATCH
+
+#    undef FUNCTION_GEN
 };
 
 }  // namespace lython
