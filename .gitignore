@@ -49,3 +49,6 @@ dependencies/toolset/zig/
 
 zig-out/
 zig-cache/
+
+
+.vscode/BROWSE.VC.DB*

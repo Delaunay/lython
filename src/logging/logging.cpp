@@ -126,7 +126,7 @@ int register_signal_handler() {
 #else
 int register_signal_handler() { return 0; }
 
-void show_backkwtrace() {}
+void show_backtrace() {}
 
 std::vector<std::string> get_backkwtrace(size_t size) { return std::vector<std::string>(); }
 #endif

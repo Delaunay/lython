@@ -42,10 +42,9 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     using PatRet  = Super::PatRet;
 
     Unique<llvm::LLVMContext> context;
-    ;
     Unique<llvm::Module>      llmodule;
     Unique<llvm::IRBuilder<>> builder;
-    Dict<String, ExprRet>     named_values;
+    Dict<Identifier, llvm::Value*> named_values;
 
 #    if WITH_LLVM_DEBUG_SYMBOL
     Unique<llvm::DIBuilder> dbuilder;
@@ -60,6 +59,8 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 
     LLVMGen();
     ~LLVMGen();
+
+    void dump();
 
 #    define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
 

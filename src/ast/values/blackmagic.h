@@ -1,5 +1,6 @@
 #include <type_traits>
 
+// -ftemplate-depth=1024
 template <std::size_t N> struct ArrayStruct {
   static_assert(N <= 1024, "Hitting template recursion limit");
 

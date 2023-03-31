@@ -6,7 +6,9 @@
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 #include "sema/sema.h"
+
 #include "codegen/clang/clang_gen.h"
+#include "codegen/llvm/llvm_gen.h"
 
 
 namespace lython {
@@ -21,7 +23,7 @@ argparse::ArgumentParser* CodegenCmd::parser() {
 }
 
 int CodegenCmd::main(argparse::ArgumentParser const& args) {
-    std::cout << "HELLLOO\n";
+    
 
     std::string file;
     if (args.is_used("--file")) {
@@ -42,10 +44,15 @@ int CodegenCmd::main(argparse::ArgumentParser const& args) {
     sema.show_diagnostic(std::cout, &lex);
 
 #if WITH_CLANG_CODEGEN
+    std::cout << "CLANG_CODE_GEN\n";
     ClangGen generator;
     generator.exec(mod, 0);
     generator.dump();
 #elif WITH_LLVM_CODEGEN
+    std::cout << "LLVM_CODE_GEN\n";
+    LLVMGen generator;
+    generator.exec(mod, 0);
+    generator.dump();
 #endif
 
     return 0;

@@ -129,10 +129,11 @@ IF(LLVM_FOUND)
 
     # Putting system here prevents the compiler from printing
     # warnings inside the headers
-    # include_directories(SYSTEM ${LLVM_PATH}/include)
-    # include_directories()
+    include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
+    add_definitions(${LLVM_DEFINITIONS})
+    link_directories(${LLVM_LIBRARY_DIRS})
 
-    include_directories(${LLVM_INCLUDE_DIRS})
+    llvm_map_components_to_libnames(LLVM_LIBS support core irreader X86)
 
     SET(LLVM_LIRARIES
         LLVMCore
@@ -140,6 +141,8 @@ IF(LLVM_FOUND)
         clangAST
         clangBasic
     )
+
+    
 ELSE(LLVM_FOUND)
     SET(WITH_LLVM 0)
     SET(LLVM_LIRARIES)
@@ -182,7 +185,7 @@ TARGET_LINK_LIBRARIES(liblogging ${LIBRARIES})
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
-TARGET_LINK_LIBRARIES(liblython ${LIBRARIES} ${LLVM_LIRARIES})
+TARGET_LINK_LIBRARIES(liblython ${LIBRARIES} ${LLVM_LIBS})
 
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD ${LY_CXX_STANDARD})
@@ -202,7 +205,7 @@ SET(ADD_CLI_SOURCE
     cli/commands/tests.cpp
 )
 ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
-TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES} ${LLVM_LIRARIES})
+TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES} ${LLVM_LIBS})
 
 SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD ${LY_CXX_STANDARD})
