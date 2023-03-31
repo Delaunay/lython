@@ -1,16 +1,16 @@
+#if WITH_LLVM_CODEGEN
+
 // include
-#include "codegen/llvm/llvm_gen.h"
+#    include "codegen/llvm/llvm_gen.h"
 
 // Kiwi
-#include "ast/magic.h"
-#include "builtin/operators.h"
-#include "utilities/guard.h"
-#include "utilities/strings.h"
+#    include "ast/magic.h"
+#    include "builtin/operators.h"
+#    include "utilities/guard.h"
+#    include "utilities/strings.h"
 
 // STL
-#include <iostream>
-
-#if WITH_LLVM_CODEGEN
+#    include <iostream>
 
 // LLVM
 #    include "llvm/ADT/STLExtras.h"
@@ -35,12 +35,9 @@ using PatRet  = LLVMGen::PatRet;
 
 using namespace llvm;
 
-const char* tostr(StringRef const& ref) { return String(ref).c_str(); }
+std::string tostr(StringRef const& ref) { return std::string(String(ref).c_str()); }
 
-
-void LLVMGen::dump() {
-    llmodule->print(llvm::outs(), nullptr);
-}
+void LLVMGen::dump() { llmodule->print(llvm::outs(), nullptr); }
 
 LLVMGen::LLVMGen() {
     InitializeNativeTarget();
@@ -274,8 +271,11 @@ ExprRet LLVMGen::comment(Comment_t* n, int depth) { return ExprRet(); }
 
 StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     Array<Type*>        arg_types(n->args.size(), Type::getDoubleTy(*context));
-    llvm::FunctionType* arrow =
-        llvm::FunctionType::get(Type::getDoubleTy(*context), arg_types, false);
+    llvm::FunctionType* arrow = llvm::FunctionType::get(  //
+        Type::getDoubleTy(*context),                      //
+        arg_types,                                        //
+        false                                             //
+    );
 
     Function* fundef = Function::Create(  //
         arrow,                            //

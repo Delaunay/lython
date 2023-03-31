@@ -128,7 +128,7 @@ int register_signal_handler() { return 0; }
 
 void show_backtrace() {}
 
-std::vector<std::string> get_backkwtrace(size_t size) { return std::vector<std::string>(); }
+std::vector<std::string> get_backtrace(size_t size) { return std::vector<std::string>(); }
 #endif
 
 #if WITH_LOG
@@ -138,7 +138,7 @@ Logger new_logger(char const* name) {
     // Static so only executed once
     static int _ = register_signal_handler();
 
-    spdlog::enable_backkwtrace(32);
+    spdlog::enable_backtrace(32);
 
     auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
@@ -191,12 +191,12 @@ static constexpr spdlog::level::level_enum log_level_spd[] = {spdlog::level::lev
                                                               spdlog::level::level_enum::critical,
                                                               spdlog::level::level_enum::off};
 
-void show_log_backkwtrace() { spdlog::dump_backkwtrace(); }
+void show_log_backkwtrace() { spdlog::dump_backtrace(); }
 
 void spdlog_log(LogLevel level, std::string const& msg) { root()->log(log_level_spd[level], msg); }
 
 #else
-void                     show_log_backkwtrace() {}
+void                     show_log_backtrace() {}
 void                     spdlog_log(LogLevel level, std::string const& msg) {}
 #endif
 
