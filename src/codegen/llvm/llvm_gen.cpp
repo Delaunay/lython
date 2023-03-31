@@ -25,6 +25,7 @@
 #    include "llvm/Support/Host.h"
 #    include "llvm/Support/TargetSelect.h"
 #    include "llvm/Transforms/Scalar.h"
+#include "llvm/IR/Intrinsics.h"
 
 namespace lython {
 
@@ -37,7 +38,15 @@ using namespace llvm;
 
 std::string tostr(StringRef const& ref) { return std::string(String(ref).c_str()); }
 
-void LLVMGen::dump() { llmodule->print(llvm::outs(), nullptr); }
+template <typename T>
+std::string llvmstr(T* const obj) {
+    std::string              str;
+    llvm::raw_string_ostream ss(str);
+    obj->print(ss);
+    return str;
+}
+
+void LLVMGen::dump() const { llmodule->print(llvm::outs(), nullptr); }
 
 LLVMGen::LLVMGen() {
     InitializeNativeTarget();
@@ -84,10 +93,15 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     // values.push_back(llvm::ConstantFP::get(llvm::Type::getFloatTy(*context), 3.14));
     // llvm::Constant* myStructInstance = llvm::ConstantStruct::get(struct_type, values);
 
-    Value*              function = exec(n->func, depth);
-    llvm::FunctionType* ftype    = nullptr;
+    Value*                    callee   = exec(n->func, depth);
+    Function*                 function = dyn_cast_or_null<Function>(callee);
+    llvm::FunctionType const* ftype    = nullptr;
 
-    FunctionCallee callee(ftype, function);
+    if (function == nullptr) {
+        kwerror("Function is not callable");
+        return nullptr;
+    }
+    ftype = function->getFunctionType();
 
     Array<Value*> args;
     for (size_t i = 0, end = n->args.size(); i != end; ++i) {
@@ -100,7 +114,18 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
         }
     }
 
-    return builder->CreateCall(callee, args, "calltmp");
+    kwassert(function->arg_size() == args.size(), "Argument should match");
+    for (size_t i = 0; i < args.size(); i++) {
+        auto* arg_type = ftype->getParamType(i);
+        auto* val_type = args[i]->getType();
+
+        if (arg_type != val_type) {
+            kwerror("Type mistmatch expected {} got {}", llvmstr(arg_type), llvmstr(val_type));
+        }
+    }
+
+    return builder->CreateCall(function, args, "calltmp");
+    // return builder->CreateCall(callee, args, "calltmp");
 }
 
 using BuiltinBinaryOperators = Dict<String, std::function<Value*(IRBuilder<>*, Value*, Value*)>>;
@@ -218,22 +243,27 @@ ExprRet LLVMGen::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet
 ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 
     ConstantValue const& val = n->value;
+    using Ty                 = double;
 
+    // clang-format off
     switch (n->value.get_kind()) {
-    case ConstantValue::Ti8: return ConstantFP::get(*context, APFloat((float)val.get<int8>()));
-    case ConstantValue::Ti16: return ConstantFP::get(*context, APFloat((float)val.get<int16>()));
-    case ConstantValue::Ti32: return ConstantFP::get(*context, APFloat((float)val.get<int32>()));
-    case ConstantValue::Ti64: return ConstantFP::get(*context, APFloat((float)val.get<int64>()));
-    case ConstantValue::Tu8: return ConstantFP::get(*context, APFloat((float)val.get<uint8>()));
-    case ConstantValue::Tu16: return ConstantFP::get(*context, APFloat((float)val.get<uint16>()));
-    case ConstantValue::Tu32: return ConstantFP::get(*context, APFloat((float)val.get<uint32>()));
-    case ConstantValue::Tu64: return ConstantFP::get(*context, APFloat((float)val.get<uint64>()));
-    case ConstantValue::Tf32: return ConstantFP::get(*context, APFloat((float)val.get<float32>()));
-    case ConstantValue::Tf64: return ConstantFP::get(*context, APFloat((float)val.get<float64>()));
-    case ConstantValue::TBool: return ConstantFP::get(*context, APFloat((float)val.get<int8>()));
+    case ConstantValue::Ti8:  return ConstantInt::get(*context, APInt(8,  (int8)   val.get<int8>   (), true));
+    case ConstantValue::Ti16: return ConstantInt::get(*context, APInt(16, (int16)  val.get<int16>  (), true));
+    case ConstantValue::Ti32: return ConstantInt::get(*context, APInt(32, (int32)  val.get<int32>  (), true));
+    case ConstantValue::Ti64: return ConstantInt::get(*context, APInt(64, (int64)  val.get<int64>  (), true));
+    case ConstantValue::Tu8:  return ConstantInt::get(*context, APInt(8,  (uint8)  val.get<uint8>  ()));
+    case ConstantValue::Tu16: return ConstantInt::get(*context, APInt(16, (uint16) val.get<uint16> ()));
+    case ConstantValue::Tu32: return ConstantInt::get(*context, APInt(32, (uint32) val.get<uint32> ()));
+    case ConstantValue::Tu64: return ConstantInt::get(*context, APInt(64, (uint64) val.get<uint64> ()));
+    case ConstantValue::Tf32: return ConstantFP ::get(*context, APFloat(  (float32)val.get<float32>()));
+    case ConstantValue::Tf64: return ConstantFP ::get(*context, APFloat(  (float64)val.get<float64>()));
+    case ConstantValue::TBool:return ConstantInt::get(*context, APInt(8,  (int8)   val.get<int8>   ()));
     }
+    // clang-format on
 
     // TODO: object are a bit more complex
+    // llvm::ConstantStruct::get();
+    // llvm::ConstantArray
 
     return nullptr;
 }
@@ -242,10 +272,12 @@ ExprRet LLVMGen::subscript(Subscript_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::starred(Starred_t* n, int depth) { return ExprRet(); }
 
 ExprRet LLVMGen::name(Name_t* n, int depth) {
-    Value* value = named_values[n->id];
+
+    auto index = index_to_index[n->id];
+    kwinfo("Size: {} varid: {} index: {}", named_values.size(), n->varid, index);
+    Value* value = named_values[index];
 
     if (value == nullptr) {
-
         return nullptr;
     }
 
@@ -253,8 +285,12 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
     KSDbgInfo.emitLocation(this);
 #    endif
 
+    if (!value->getType()->getPointerElementType()->isSized()) {
+        return value;
+    }
+
     // Load the value.
-    return builder->CreateLoad(value, String(n->id).c_str());
+    return builder->CreateLoad(value, tostr(n->id));
 }
 
 ExprRet LLVMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
@@ -283,55 +319,69 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
         tostr(n->name),                   //
         llmodule.get()                    //
     );
-#    if WITH_LLVM_DEBUG_SYMBOL
-    DIFile* unit =
-        dbuilder->createFile(debug_compile_unit->getFilename(), debug_compile_unit->getDirectory());
-    DIScope*      debug_ctx = unit;
-    DISubprogram* debug_info =
-        dbuilder->createFunction(debug_ctx,
-                                 tostr(n->name),
-                                 llvm::StringRef(),
-                                 unit,
-                                 n->lineno,
-                                 CreateFunctionType(fundef->arg_size(), unit),
-                                 false, /* internal linkage */
-                                 true,  /* definition */
-                                 0,
-                                 DINode::FlagPrototyped,
-                                 false);
-    fundef->setSubprogram(debug_info);
-#    endif
 
-    unsigned i = 0;
-    for (auto& arg: fundef->args()) {
-        Identifier argname = n->args.args[i].arg;
-        arg.setName(tostr(argname));
-
-        /*
-        AllocaInst *Alloca = CreateEntryBlockAlloca(TheFunction, Arg.getName());
-
-        DILocalVariable *vard = dbuilder->createParameterVariable(
-            SP,
-            Arg.getName(),
-            ++ArgIdx, Unit,
-            LineNo,
-            KSDbgInfo.getDoubleTy(),
-            true
-        );
-
-        DBuilder->insertDeclare(Alloca, D, DBuilder->createExpression(),
-                                DILocation::get(SP->getContext(), LineNo, 0, SP),
-                                Builder.GetInsertBlock());
-
-        // Store the initial value into the alloca.
-        Builder.CreateStore(&Arg, Alloca);
-        */
-
-        i += 1;
-    }
+    index_to_index[n->name] = named_values.size();
+    named_values.push_back(fundef);
 
     BasicBlock* block = BasicBlock::Create(*context, "entry", fundef);
     builder->SetInsertPoint(block);
+
+#    if WITH_LLVM_DEBUG_SYMBOL
+    DIFile* unit =
+        dbuilder->createFile(debug_compile_unit->getFilename(), debug_compile_unit->getDirectory());
+    DIScope*      debug_ctx  = unit;
+    DISubprogram* debug_info = dbuilder->createFunction(  //
+        debug_ctx,                                        //
+        tostr(n->name),                                   //
+        llvm::StringRef(),                                //
+        unit,                                             //
+        n->lineno,                                        //
+        CreateFunctionType(fundef->arg_size(), unit),     //
+        false,                                            // internal linkage
+        true,                                             // definition
+        0,                                                //
+        DINode::FlagPrototyped,                           //
+        false                                             //
+    );
+    fundef->setSubprogram(debug_info);
+#    endif
+
+    unsigned                 i = 0;
+    ArrayScope<llvm::Value*> scope(named_values);
+
+    for (auto& arg: fundef->args()) {
+        Identifier  argname_ref = n->args.args[i].arg;
+        std::string argname     = tostr(argname_ref);
+        arg.setName(argname);
+
+        IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
+        AllocaInst* arg_mem         = allocabuilder.CreateAlloca(  //
+            Type::getDoubleTy(*context),                   //
+            nullptr,                                       //
+            arg.getName()                                  //
+        );
+        index_to_index[argname_ref] = named_values.size();
+        named_values.push_back(arg_mem);
+
+        // CreateEntryBlockAlloca(fundef, arg.getName());
+
+#    if WITH_LLVM_DEBUG_SYMBOL
+        DILocalVariable* vard = dbuilder->createParameterVariable(
+            SP, arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(), true);
+
+        dbuilder->insertDeclare(Alloca,
+                                D,
+                                dbuilder->createExpression(),
+                                DILocation::get(SP->getContext(), LineNo, 0, SP),
+                                Builder.GetInsertBlock());
+#    endif
+
+        // Store the initial value into the alloca.
+        builder->CreateStore(&arg, arg_mem);
+        //*/
+
+        i += 1;
+    }
 
     for (auto* stmt: n->body) {
         exec(stmt, depth);
@@ -341,13 +391,53 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
 
     return StmtRet();
 }
+
+llvm::Type* LLVMGen::builtin_type(StringRef name) {
+    static Dict<StringRef, llvm::Type*> builtin_types = {
+        {StringRef("i8"), IntegerType::get(*context, 8)},
+        {StringRef("i16"), IntegerType::get(*context, 16)},
+        {StringRef("i32"), IntegerType::get(*context, 32)},
+        {StringRef("i64"), IntegerType::get(*context, 64)},
+
+        {StringRef("u8"), IntegerType::get(*context, 8)},
+        {StringRef("u16"), IntegerType::get(*context, 16)},
+        {StringRef("u32"), IntegerType::get(*context, 32)},
+        {StringRef("u64"), IntegerType::get(*context, 64)},
+
+        {StringRef("f32"), Type::getFloatTy(*context)},
+        {StringRef("f64"), Type::getDoubleTy(*context)},
+    };
+    return builtin_types[name];
+}
+
+llvm::Type* LLVMGen::retrieve_type(ExprNode* type, int depth) {
+    kwinfo("{}", str(type));
+
+    switch (type->kind) {
+    case NodeKind::BuiltinType: return builtin_type(cast<BuiltinType>(type)->name);
+    case NodeKind::Name: return builtin_type(cast<Name>(type)->id);
+    }
+    return nullptr;
+}
+
 StmtRet LLVMGen::classdef(ClassDef_t* n, int depth) {
     // Create the type definition
     Array<llvm::Type*> fields;
     llvm::Type*        int_type = llvm::Type::getInt32Ty(*context);
-    fields.push_back(int_type);
 
-    llvm::StructType::create(*context, fields, "my_struct");
+    for (ClassDef::Attr const& attr: n->attributes) {
+        llvm::Type* field_type = retrieve_type(attr.type, depth);
+        if (field_type == nullptr) {
+            kwerror("Could not find type for {}", str(attr.type));
+        }
+        fields.push_back(field_type);
+    }
+
+    StructType* clstype = llvm::StructType::create(*context, fields, tostr(n->name));
+    llmodule->getOrInsertGlobal(tostr(n->name), clstype);
+
+    // index_to_index[n->name] = named_values.size();
+    // named_values.push_back(clstype);
 
     // TODO:
     // Runtime Reflection
@@ -409,29 +499,58 @@ StmtRet LLVMGen::annassign(AnnAssign_t* n, int depth) {
 StmtRet LLVMGen::forstmt(For_t* n, int depth) {
     Function* fundef = builder->GetInsertBlock()->getParent();
 
-    /*
-    BasicBlock *body = BasicBlock::Create(*context, "loop", fundef);
-    BasicBlock *orelse = BasicBlock::Create(*context, "orelse", fundef);
-    BasicBlock *after = BasicBlock::Create(*context, "after", fundef);
-    builder->CreateBr(body);
+    BasicBlock* preheader = builder->GetInsertBlock();
+    BasicBlock* body      = BasicBlock::Create(*context, "loop", fundef);
+    BasicBlock* orelse    = BasicBlock::Create(*context, "orelse", fundef);
+    BasicBlock* after     = BasicBlock::Create(*context, "after", fundef);
 
+    start_block = body;
+    end_block   = after;
+
+    builder->CreateBr(body);
     builder->SetInsertPoint(body);
-    for(auto* stmt: n->body) {
+
+    // Initialization
+    // exec(n->target, depth);
+    // PHINode *var = builder->CreatePHI(Type::getDoubleTy(*context), 2, VarName);
+    // var->addIncoming(StartVal, preheader);
+
+    for (auto* stmt: n->body) {
         exec(stmt, depth);
     }
+
+    // Step val
+    //
+    //
+
+    // Comparison
+    // EndCond = builder->CreateFCmpONE(EndCond, ConstantFP::get(*context, APFloat(0.0)),
+    // "loopcond");
+    BasicBlock* loop_end = builder->GetInsertBlock();
+
+    // builder->CreateCondBr(EndCond, loop_end, after);
+
+    // var->addIncoming(NextVar, loop_end);
 
     builder->SetInsertPoint(orelse);
-    for(auto* stmt: n->orelse) {
+    for (auto* stmt: n->orelse) {
         exec(stmt, depth);
     }
 
-
-    builder->CreateCondBr(EndCond, body, after);
+    // builder->CreateCondBr(EndCond, body, after);
     builder->SetInsertPoint(after);
-    */
+
+    start_block = nullptr;
+    end_block   = nullptr;
     return StmtRet();
 }
-StmtRet LLVMGen::whilestmt(While_t* n, int depth) { return StmtRet(); }
+StmtRet LLVMGen::whilestmt(While_t* n, int depth) {
+    //
+
+    //
+    return StmtRet();
+}
+
 StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
     Value* cond = exec(n->test, depth);
 
@@ -477,8 +596,39 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
     return StmtRet();
 }
 StmtRet LLVMGen::with(With_t* n, int depth) { return StmtRet(); }
-StmtRet LLVMGen::raise(Raise_t* n, int depth) { return StmtRet(); }
-StmtRet LLVMGen::trystmt(Try_t* n, int depth) { return StmtRet(); }
+StmtRet LLVMGen::raise(Raise_t* n, int depth) { 
+    Function* fundef = builder->GetInsertBlock()->getParent();
+
+    Function* raisefun = nullptr;
+    // Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(), Intrinsic::eh_throw);
+    Value* exception = nullptr;
+    CallInst* raise = builder->CreateCall(raisefun, {exception});
+    raise->setDoesNotReturn();
+    builder->GetInsertBlock()->getInstList().push_back(raise);
+
+    return StmtRet(); 
+}
+StmtRet LLVMGen::trystmt(Try_t* n, int depth) {
+
+    // Body
+
+    BasicBlock* body      = BasicBlock::Create(*context, "body");
+    BasicBlock* handlers  = BasicBlock::Create(*context, "catch");
+    BasicBlock* orelse    = BasicBlock::Create(*context, "orelse");
+    BasicBlock* finalbody = BasicBlock::Create(*context, "finalbody");
+
+    // Landing Pad for exception handling
+    Type*     Int8PtrTy = PointerType::getUnqual(Type::getInt8Ty(*context));
+    // Constant* NullPtr   = ConstantPointerNull::get(Int8PtrTy);
+
+    LandingPadInst* LPInst = LandingPadInst::Create(Int8PtrTy, 1, "landingpad", handlers);
+    // LPInst->addClause(NullPtr);
+
+    // InvokeInst* InvokeInst = InvokeInst::Create(Func, NormalBB, CatchBB, Args, "invoke",
+    // EntryBB);
+
+    return StmtRet();
+}
 StmtRet LLVMGen::assertstmt(Assert_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::global(Global_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::nonlocal(Nonlocal_t* n, int depth) { return StmtRet(); }
@@ -490,15 +640,19 @@ StmtRet LLVMGen::exprstmt(Expr_t* n, int depth) {
 
 StmtRet LLVMGen::pass(Pass_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::breakstmt(Break_t* n, int depth) {
-    // llvm::BranchInst::Create(exitblock, currentblock);
-    // llvm::BasicBlock::getInstList().push_back()
+    BasicBlock* current_block = builder->GetInsertBlock();
+    BranchInst* breakbr       = llvm::BranchInst::Create(end_block, current_block);
+    current_block->getInstList().push_back(breakbr);
     return StmtRet();
 }
+
 StmtRet LLVMGen::continuestmt(Continue_t* n, int depth) {
-    // llvm::BranchInst::Create(loopBlock, currentBlock);
-    // llvm::BasicBlock::getInstList().push_back()
+    BasicBlock* current_block = builder->GetInsertBlock();
+    BranchInst* continuebr    = llvm::BranchInst::Create(start_block, current_block);
+    current_block->getInstList().push_back(continuebr);
     return StmtRet();
 }
+
 StmtRet LLVMGen::match(Match_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::inlinestmt(Inline_t* n, int depth) {
     for (auto* stmt: n->body) {

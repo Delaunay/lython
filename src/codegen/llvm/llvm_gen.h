@@ -10,7 +10,6 @@
 #include "utilities/strings.h"
 
 #if WITH_LLVM_CODEGEN
-
 // LLVM
 #    include "llvm/IR/IRBuilder.h"
 #    include "llvm/IR/LLVMContext.h"
@@ -31,6 +30,24 @@ struct LLVMGenVisitorTrait {
     };
 };
 
+
+template<typename T>
+struct ArrayScope {
+    ArrayScope(Array<T>& array): array(array), oldsize(array.size()) {
+    }
+
+    ~ArrayScope() {
+        for (std::size_t i = oldsize; i < array.size(); i++) {
+            array[oldsize] = nullptr;
+        }
+        array.resize(oldsize);
+    }
+
+    Array<T>&   array;
+    std::size_t oldsize;
+};
+
+
 /*
  */
 struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
@@ -44,7 +61,15 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     Unique<llvm::LLVMContext> context;
     Unique<llvm::Module>      llmodule;
     Unique<llvm::IRBuilder<>> builder;
-    Dict<Identifier, llvm::Value*> named_values;
+
+    Array<llvm::Value*> named_values;
+    Dict<Identifier, std::size_t> index_to_index;
+
+    llvm::Type* builtin_type(StringRef name);
+    llvm::Type* retrieve_type(ExprNode* type, int depth);
+
+    llvm::BasicBlock* start_block = nullptr;
+    llvm::BasicBlock* end_block = nullptr;
 
 #    if WITH_LLVM_DEBUG_SYMBOL
     Unique<llvm::DIBuilder> dbuilder;
@@ -60,7 +85,7 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     LLVMGen();
     ~LLVMGen();
 
-    void dump();
+    void dump() const;
 
 #    define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
 

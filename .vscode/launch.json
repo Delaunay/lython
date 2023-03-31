@@ -25,11 +25,11 @@
             "name": "Debug CodeGen (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Release/lython.exe",
+            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
             "args": [
                 "codegen",
                 "--file",
-                "${workspaceFolder}/code/cppgen.ly"
+                "${workspaceFolder}/code/scratch.ly"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,

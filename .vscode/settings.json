@@ -2,7 +2,7 @@
   "files.eol": "\n",
   "c_cpp_properties": {
     "suppressWarnings": [
-        "*llvm*"
+      "*llvm*"
     ]
   },
   "C_Cpp_Runner.cCompilerPath": "/bin/gcc",
@@ -140,7 +140,8 @@
     "__tuple": "cpp",
     "__verbose_abort": "cpp",
     "coroutine": "cpp",
-    "*.ipp": "cpp"
+    "*.ipp": "cpp",
+    "strstream": "cpp"
   },
   "python.formatting.provider": "black",
   "files.exclude": {
