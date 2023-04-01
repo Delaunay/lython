@@ -2,6 +2,10 @@ name: tests
 
 on: [push, pull_request]
 
+env:
+  LLVM_VERSION: 12
+  GCC_VERSION: 12
+
 jobs:
   # format:
   #   runs-on: ubuntu-latest
@@ -32,7 +36,9 @@ jobs:
         run: |
           echo ">>>>"
           apt list --installed | grep llvm 
-          sudo apt remove -y llvm-12-dev llvm-13-dev llvm-14-dev
+          LLVM_PACKAGES=$(apt list --installed "*llvm*" 2>/dev/null |awk -F'/' 'NR>1{print $1}')
+          CLANG_PACKAGES=$(apt list --installed "*clang*" 2>/dev/null |awk -F'/' 'NR>1{print $1}')
+          sudo apt remove -y $LLVM_PACKAGES $CLANG_PACKAGES
           sudo apt autoremove -y
           echo "<<<<"
           sudo rm -rf /usr/lib/llvm-*
@@ -49,10 +55,15 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-12 g++-12 clang-tidy-15 llvm-15-dev libclang-15-dev clang-15 zlib1g-dev
-          sudo ln -f /usr/bin/clang-tidy-15 /usr/bin/clang-tidy
-          sudo ln -f /usr/bin/llvm-symbolizer-15 /usr/bin/llvm-symbolizer
-          sudo ln -f /usr/bin/gcov-12 /usr/bin/gcov
+          sudo apt-get install -f -y "gcc-${GCC_VERSION}" "g++-${GCC_VERSION}"                      \
+                                     "llvm-${LLVM_VERSION}-dev" "llvm-${LLVM_VERSION}-linker-tools" \
+                                     "libclang-${LLVM_VERSION}-dev" "clang-${LLVM_VERSION}"         \
+                                     "clang-tidy-${LLVM_VERSION}" "libclang-cpp${LLVM_VERSION}-dev" \
+                                     "libclang-cpp${LLVM_VERSION}"
+          sudo apt-get install -f -y zlib1g-dev
+          sudo ln -f "/usr/bin/clang-tidy-${LLVM_VERSION}" /usr/bin/clang-tidy
+          sudo ln -f "/usr/bin/llvm-symbolizer-${LLVM_VERSION}" /usr/bin/llvm-symbolizer
+          sudo ln -f "/usr/bin/gcov-${GCC_VERSION}" /usr/bin/gcov
           pip install gcovr
           mkdir -p build
 
@@ -60,7 +71,7 @@ jobs:
         run: |
           git submodule update --init
           cd build
-          GCOV=gcov-12 CC=gcc-12 CXX=g++-12 cmake \
+          GCOV=gcov-${GCC_VERSION} CC=gcc-${GCC_VERSION} CXX=g++-${GCC_VERSION} cmake \
               -DCMAKE_BUILD_TYPE=Debug            \
               -DBUILD_TESTING=ON                  \
               ..
