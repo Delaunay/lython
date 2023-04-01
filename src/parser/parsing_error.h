@@ -5,6 +5,7 @@
 #include "dtypes.h"
 #include "lexer/token.h"
 #include "printer/error_printer.h"
+#include "compatibility/compatibility.h"
 
 namespace lython {
 

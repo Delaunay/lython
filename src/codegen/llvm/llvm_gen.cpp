@@ -18,6 +18,7 @@
 #    include "llvm/Analysis/Passes.h"
 #    include "llvm/IR/DIBuilder.h"
 #    include "llvm/IR/IRBuilder.h"
+#    include "llvm/IR/Intrinsics.h"
 #    include "llvm/IR/LLVMContext.h"
 #    include "llvm/IR/LegacyPassManager.h"
 #    include "llvm/IR/Module.h"
@@ -25,7 +26,6 @@
 #    include "llvm/Support/Host.h"
 #    include "llvm/Support/TargetSelect.h"
 #    include "llvm/Transforms/Scalar.h"
-#include "llvm/IR/Intrinsics.h"
 
 namespace lython {
 
@@ -290,7 +290,8 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
     }
 
     // Load the value.
-    return builder->CreateLoad(value, tostr(n->id));
+    // return builder->CreateLoad(value, tostr(n->id));
+    return builder->CreateLoad(value->getType(), value, tostr(n->id));
 }
 
 ExprRet LLVMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
@@ -596,17 +597,17 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
     return StmtRet();
 }
 StmtRet LLVMGen::with(With_t* n, int depth) { return StmtRet(); }
-StmtRet LLVMGen::raise(Raise_t* n, int depth) { 
+StmtRet LLVMGen::raise(Raise_t* n, int depth) {
     Function* fundef = builder->GetInsertBlock()->getParent();
 
     Function* raisefun = nullptr;
     // Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(), Intrinsic::eh_throw);
-    Value* exception = nullptr;
-    CallInst* raise = builder->CreateCall(raisefun, {exception});
+    Value*    exception = nullptr;
+    CallInst* raise     = builder->CreateCall(raisefun, {exception});
     raise->setDoesNotReturn();
     builder->GetInsertBlock()->getInstList().push_back(raise);
 
-    return StmtRet(); 
+    return StmtRet();
 }
 StmtRet LLVMGen::trystmt(Try_t* n, int depth) {
 
@@ -618,7 +619,7 @@ StmtRet LLVMGen::trystmt(Try_t* n, int depth) {
     BasicBlock* finalbody = BasicBlock::Create(*context, "finalbody");
 
     // Landing Pad for exception handling
-    Type*     Int8PtrTy = PointerType::getUnqual(Type::getInt8Ty(*context));
+    Type* Int8PtrTy = PointerType::getUnqual(Type::getInt8Ty(*context));
     // Constant* NullPtr   = ConstantPointerNull::get(Int8PtrTy);
 
     LandingPadInst* LPInst = LandingPadInst::Create(Int8PtrTy, 1, "landingpad", handlers);

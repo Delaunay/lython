@@ -6,7 +6,7 @@
 #if BUILD_UNIX
 #    define LY_ALIGN(X) __attribute__((aligned(X)))
 #    define LY_PACKED   __attribute__((packed))
-#    define LY_NOEXCEPT _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
+#    define LY_NOEXCEPT noexcept
 #    define LY_INLINE
 #    define XXH_VECTOR XXH_AVX2
 
@@ -35,8 +35,7 @@
 
 // Fixes for zigg
 #if __clang__
-#    undef LY_NOEXCEPT
-#    define LY_NOEXCEPT noexcept
 #elif __GNUC__
-
+#    undef LY_NOEXCEPT
+#    define LY_NOEXCEPT _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
 #endif

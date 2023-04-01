@@ -66,7 +66,7 @@ IF(CMAKE_CXX_COMPILER MATCHES "/em.*$")
 ELSEIF(UNIX)
     MESSAGE(" * Platform: Unix")
     SET(BUILD_UNIX 1)
-
+    SET(WITH_LOG 1)
 ELSEIF(WIN32)
     MESSAGE(" * Platform: Windows")
     SET(BUILD_WINDOWS 1)
@@ -74,6 +74,7 @@ ELSEIF(WIN32)
     # Disable not supported features
     SET(WITH_COZ 0)
     SET(WITH_COVERAGE 0)
+    SET(WITH_LOG 1)
 ENDIF()
 
 # Binary/pre-compiled Dependencies
