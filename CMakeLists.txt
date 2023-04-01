@@ -94,6 +94,7 @@ FIND_PACKAGE(Git REQUIRED)
 # Find revision ID and hash of the sourcetree
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
+INCLUDE(ConfigureLLVM)
 
 IF(UNIX AND WITH_COVERAGE)
     INCLUDE(CodeCoverage)

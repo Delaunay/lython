@@ -54,6 +54,21 @@
             "console": "externalTerminal"
         },
         {
+            "name": "Debug CODEGEN (Windows)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/Debug/llvm_test.exe",
+            "args": [
+                ""
+            ],
+            "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
+            "showDisplayString": true,
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal"
+        },
+        {
             "name": "Debug VM (Unix)",
             "type": "cppdbg",
             "request": "launch",

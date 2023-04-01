@@ -49,11 +49,16 @@ TEST_MACRO(utilities)
 TEST_MACRO(attribute)
 TEST_MACRO(vm)
 
+if (WITH_LLVM)
+  TEST_MACRO(llvm)
+  ADD_DEFINITIONS(-DWITH_LLVM_CODEGEN=${WITH_LLVM})
+endif()
+ 
 MACRO(STDLIB_TEST_MACRO NAME)
   ADD_EXECUTABLE(${NAME}_test standalone_main.cpp ${NAME}_test.cpp ${TEST_HEADERS})
   TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 stblyb ${LIBRARIES})
   ADD_DEPENDENCIES(${NAME}_test stblyb)
-
+ 
   IF(UNIX AND WITH_COVERAGE)
     ADD_DEPENDENCIES(coverage ${NAME}_test)
   ENDIF()
