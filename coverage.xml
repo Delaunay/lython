@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE coverage SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-04.dtd'>
-<coverage line-rate="0.7517263529789626" branch-rate="0.6046586517818806" lines-covered="4681" lines-valid="6227" branches-covered="5633" branches-valid="9316" complexity="0.0" timestamp="1680387819" version="gcovr 6.0">
+<coverage line-rate="0.7517263529789626" branch-rate="0.6046586517818806" lines-covered="4681" lines-valid="6227" branches-covered="5633" branches-valid="9316" complexity="0.0" timestamp="1680388383" version="gcovr 6.0">
   <sources>
     <source>..</source>
   </sources>
@@ -17306,25 +17306,25 @@
               </conditions>
             </line>
             <line number="20" hits="6" branch="false"/>
-            <line number="23" hits="109" branch="true" condition-coverage="100% (1/1)">
+            <line number="23" hits="93" branch="true" condition-coverage="100% (1/1)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="24" hits="109" branch="false"/>
-            <line number="26" hits="109" branch="true" condition-coverage="100% (2/2)">
+            <line number="24" hits="93" branch="false"/>
+            <line number="26" hits="93" branch="true" condition-coverage="100% (2/2)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="27" hits="5" branch="true" condition-coverage="100% (1/1)">
+            <line number="27" hits="7" branch="true" condition-coverage="100% (1/1)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="28" hits="5" branch="false"/>
-            <line number="31" hits="218" branch="false"/>
-            <line number="32" hits="109" branch="false"/>
+            <line number="28" hits="7" branch="false"/>
+            <line number="31" hits="186" branch="false"/>
+            <line number="32" hits="93" branch="false"/>
             <line number="35" hits="14" branch="false"/>
             <line number="36" hits="14" branch="true" condition-coverage="100% (1/1)">
               <conditions>
@@ -17411,66 +17411,66 @@
             </line>
             <line number="76" hits="1" branch="false"/>
             <line number="80" hits="14" branch="false"/>
-            <line number="82" hits="123" branch="true" condition-coverage="100% (2/2)">
+            <line number="82" hits="107" branch="true" condition-coverage="100% (2/2)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="83" hits="109" branch="true" condition-coverage="100% (1/1)">
+            <line number="83" hits="93" branch="true" condition-coverage="100% (1/1)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="85" hits="109" branch="true" condition-coverage="100% (2/2)">
+            <line number="85" hits="93" branch="true" condition-coverage="100% (2/2)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="86" hits="5" branch="false"/>
-            <line number="87" hits="5" branch="false"/>
-            <line number="89" hits="5" branch="true" condition-coverage="100% (2/2)">
+            <line number="86" hits="7" branch="false"/>
+            <line number="87" hits="7" branch="false"/>
+            <line number="89" hits="7" branch="true" condition-coverage="100% (2/2)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="90" hits="5" branch="true" condition-coverage="100% (1/1)">
+            <line number="90" hits="7" branch="true" condition-coverage="100% (1/1)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="92" hits="5" branch="true" condition-coverage="100% (1/1)">
+            <line number="92" hits="7" branch="true" condition-coverage="100% (1/1)">
               <conditions>
                 <condition number="0" type="jump" coverage="100%"/>
               </conditions>
             </line>
-            <line number="93" hits="5" branch="false"/>
-            <line number="94" hits="5" branch="false"/>
-            <line number="95" hits="5" branch="false"/>
-            <line number="96" hits="104" branch="false"/>
-            <line number="98" hits="109" branch="false"/>
+            <line number="93" hits="7" branch="false"/>
+            <line number="94" hits="7" branch="false"/>
+            <line number="95" hits="7" branch="false"/>
+            <line number="96" hits="86" branch="false"/>
+            <line number="98" hits="93" branch="false"/>
             <line number="99" hits="14" branch="false"/>
           </lines>
         </class>
         <class name="stopwatch_h" filename="src/utilities/stopwatch.h" line-rate="1.0" branch-rate="0.5" complexity="0.0">
           <methods/>
           <lines>
-            <line number="18" hits="168231" branch="false"/>
-            <line number="19" hits="336462" branch="true" condition-coverage="50% (1/2)">
+            <line number="18" hits="168233" branch="false"/>
+            <line number="19" hits="336466" branch="true" condition-coverage="50% (1/2)">
               <conditions>
                 <condition number="0" type="jump" coverage="50%"/>
               </conditions>
             </line>
-            <line number="23" hits="168233" branch="true" condition-coverage="50% (2/4)">
+            <line number="23" hits="168235" branch="true" condition-coverage="50% (2/4)">
               <conditions>
                 <condition number="0" type="jump" coverage="50%"/>
               </conditions>
             </line>
-            <line number="24" hits="168233" branch="true" condition-coverage="50% (1/2)">
+            <line number="24" hits="168235" branch="true" condition-coverage="50% (1/2)">
               <conditions>
                 <condition number="0" type="jump" coverage="50%"/>
               </conditions>
             </line>
-            <line number="25" hits="168233" branch="false"/>
+            <line number="25" hits="168234" branch="false"/>
           </lines>
         </class>
         <class name="strings_cpp" filename="src/utilities/strings.cpp" line-rate="0.95" branch-rate="0.8032786885245902" complexity="0.0">
