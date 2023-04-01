@@ -44,7 +44,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/vm_test.exe",
             "args": [
-                "VM_ClassDef"
+                "VM_FunctionDef_with_temporaries"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,
