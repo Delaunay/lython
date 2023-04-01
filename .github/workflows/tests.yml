@@ -3,7 +3,7 @@ name: tests
 on: [push, pull_request]
 
 env:
-  LLVM_VERSION: 15
+  LLVM_VERSION: 14
   GCC_VERSION: 12
 
 jobs:
