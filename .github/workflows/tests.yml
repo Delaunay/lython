@@ -3,7 +3,7 @@ name: tests
 on: [push, pull_request]
 
 env:
-  LLVM_VERSION: 12
+  LLVM_VERSION: 13
   GCC_VERSION: 12
 
 jobs:
@@ -41,12 +41,7 @@ jobs:
           sudo apt remove -y $LLVM_PACKAGES $CLANG_PACKAGES
           sudo apt autoremove -y
           echo "<<<<"
-          sudo rm -rf /usr/lib/llvm-*
-          ls /usr/lib/ | grep llvm
-          ls /usr/lib/ | grep clang
-          sudo rm -rf /usr/lib/clang*
-          echo "<<<<"
-
+  
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
