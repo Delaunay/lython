@@ -51,6 +51,7 @@ SET(ADD_HEADERS
     lowering/lowering.h
     parser/parser.h
     parser/parsing_error.h
+    parser/format_spec.h
     sema/sema.h
     vm/tree.h
     vm/garbage_collector.h
@@ -91,6 +92,7 @@ SET(ADD_SOURCE
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp
+    parser/format_spec.cpp
     printer/error_printer.cpp
     sema/sema.cpp
     sema/sema_import.cpp

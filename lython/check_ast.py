@@ -42,3 +42,9 @@ d = 4
 n = f'{1:0d}'
 """
 show(code)
+
+
+n = 1.123
+a = f'{n:c=+#0.2f}'
+print()
+print(a)

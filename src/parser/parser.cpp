@@ -2786,6 +2786,8 @@ ExprNode* Parser::parse_formatted_value_string(Node* parent, int depth) {
 }
 
 JoinedStr* Parser::parse_format_spec(Node* parent, int depth) {
+    // [[fill]align][sign][#][0][minimumwidth][.precision][type]
+    // https://peps.python.org/pep-3101/
     TRACE_START();
 
     // str{<something>}end
@@ -2820,7 +2822,7 @@ JoinedStr* Parser::parse_format_spec(Node* parent, int depth) {
             }
 
             expect_token('}', true, expr, LOC);
-            c = token().type();
+            c     = token().type();
             first = true;
             continue;
         }
@@ -2834,7 +2836,7 @@ JoinedStr* Parser::parse_format_spec(Node* parent, int depth) {
     }
 
     pushbuffer();
-    
+
     next_token();  // Current token becomes '}'
 
     {

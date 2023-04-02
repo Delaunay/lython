@@ -754,7 +754,7 @@ struct ClassDef: public StmtNode {
         void dump(std::ostream& out);
     };
     // Dict<StringRef, Attr> attributes;
-    Array<Attr> attributes;            // <= Instantiated Object
+    Array<Attr> attributes;  // <= Instantiated Object
     // Array<Attr> static_attributes;  // <= Namespaced Globals
     Array<Attr> methods;
 

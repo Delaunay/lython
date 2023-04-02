@@ -94,7 +94,9 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/parser_test.exe",
-            "args": [],
+            "args": [
+                "FormatSpecifier",
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

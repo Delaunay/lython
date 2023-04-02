@@ -8,9 +8,23 @@
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 #include "parser/parser.h"
+#include "parser/format_spec.h"
 #include "utilities/strings.cpp"
 
 using namespace lython;
+
+
+TEST_CASE("FormatSpecifier") {
+    #define COMPARE_FMT(x) REQUIRE((FormatSpecifier::parse(x).__str__()) == String(x));
+    COMPARE_FMT("");
+    COMPARE_FMT("c=+#040.2f");
+    COMPARE_FMT("10d");
+    COMPARE_FMT(">25");
+    COMPARE_FMT("<25");
+    COMPARE_FMT("10.2f");
+    COMPARE_FMT("010.2f");
+}
+
 
 inline String parse_it(String code) {
     StringBuffer reader(code);
