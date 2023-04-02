@@ -663,6 +663,14 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
             String          strspec = cst->value.get<String>();
             FormatSpecifier spec    = FormatSpecifier::parse(strspec);
 
+            // FIXME: this should a SEMA error
+            if (!spec.valid) {
+                kwdebug("Format spec is not valid; parsed {} unparsed string: `{}`",  //
+                        spec.__repr__(),                                              //
+                        spec.unparsed                                                 //
+                );
+            }
+
             if (spec.is_float()) {
                 // TODO
                 // check that vtype is double or float

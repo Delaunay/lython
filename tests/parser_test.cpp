@@ -15,7 +15,13 @@ using namespace lython;
 
 
 TEST_CASE("FormatSpecifier") {
-    #define COMPARE_FMT(x) REQUIRE((FormatSpecifier::parse(x).__str__()) == String(x));
+    #define COMPARE_FMT(x) {\
+        auto result = FormatSpecifier::parse(x);\
+        REQUIRE(result.valid == true);\
+        REQUIRE((result.__str__()) == String(x));\
+    }
+
+    // Valid Format specifiers
     COMPARE_FMT("");
     COMPARE_FMT("c=+#040.2f");
     COMPARE_FMT("10d");
@@ -23,6 +29,17 @@ TEST_CASE("FormatSpecifier") {
     COMPARE_FMT("<25");
     COMPARE_FMT("10.2f");
     COMPARE_FMT("010.2f");
+
+
+    #define COMPARE_INVALID(x) {\
+        auto result = FormatSpecifier::parse(x);\
+        REQUIRE(result.valid == false);\
+    }
+
+    // 
+    COMPARE_INVALID("efewefwef");
+    COMPARE_INVALID("cc=+#040.2f");
+    COMPARE_INVALID("c=+#d40.2f");
 }
 
 

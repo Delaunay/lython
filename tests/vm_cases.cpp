@@ -200,13 +200,13 @@ Array<VMTestCase> const& With_vm_examples() {
 Array<VMTestCase> const& If_vm_examples() {
     static Array<VMTestCase> ex = {
         {
-            "def fun(a: int, b: int):\n"
+            "def fun(a: bool, b: bool) -> f64:\n"
             "    if a:\n"
-            "        pass\n"
+            "        return 0.0\n"
             "    elif b:\n"
-            "        pass\n"
+            "        return 1.0\n"
             "    else:\n"
-            "        pass\n",
+            "        return 3.0\n",
             "fun()",
         },
     };
@@ -720,6 +720,14 @@ Array<VMTestCase> const& JoinedStr_vm_examples() {
 
 Array<VMTestCase> const& Call_vm_examples() {
     static Array<VMTestCase> ex = {
+        {
+            "def myfunction(a: f64, b: f64) -> f64:\n"
+            "    return a + b\n"
+            "\n"
+            "def fun():\n"
+            "    return myfunction(1.0, 2.0)\n",
+            "fun()",
+        }
 
     };
     return ex;

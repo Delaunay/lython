@@ -24,6 +24,43 @@ String FormatSpecifier::__str__() const {
     return ss.str();
 }
 
+String FormatSpecifier::__repr__() const {
+    StringStream ss;
+    bool         needs_comma = false;
+
+    auto p = [&](String name, auto val) {
+        if (needs_comma) {
+            ss << ", ";
+        }
+        ss << name << "=" << val;
+        needs_comma = true;
+    };
+
+    ss << "Fmt(";
+
+    if (fill != '\0')
+        p("fill", fill);
+
+    if (align != '\0')
+        p("align", align);
+
+    if (sign != '\0')
+        p("sign", sign);
+    if (alternate != '\0')
+        p("alternate", alternate);
+    if (pad != '\0')
+        p("pad", pad);
+    if (width != '\0')
+        p("width", width);
+    if (precision != '\0')
+        p("precision", precision);
+    if (type != '\0')
+        p("type", type);
+
+    ss << ")";
+    return ss.str();
+}
+
 bool contains(Array<char> const& arr, char target) {
     for (auto& val: arr) {
         if (val == target) {
@@ -36,13 +73,10 @@ bool contains(Array<char> const& arr, char target) {
 bool FormatSpecifier::is_float() const {
     return contains({'e', 'E', 'f', 'F', 'g', 'G', 'n', '%'}, type);
 }
-bool FormatSpecifier::is_integer() const{
+bool FormatSpecifier::is_integer() const {
     return contains({'b', 'c', 'd', 'o', 'x', 'X', 'n'}, type);
 }
-bool FormatSpecifier::is_undefined() const{
-    return type == '\0';
-}
-
+bool FormatSpecifier::is_undefined() const { return type == '\0'; }
 
 struct FormatSpecParser {
     enum class ParsingStep
@@ -66,8 +100,6 @@ struct FormatSpecParser {
     inline static Array<char> valid_type      = {
         'b', 'c', 'd', 'o', 'x', 'X', 'n', 'e', 'E', 'f', 'F', 'g', 'G', 'n', '%'};
 
-    // It can parse a valid spec
-    // FIXME: but it does not handle errors
     FormatSpecifier parse(String const& buffer) {
         int             i = int(buffer.size()) - 1;
         FormatSpecifier spec;
@@ -77,7 +109,6 @@ struct FormatSpecParser {
             char c = buffer[i];
 
             if (step == ParsingStep::Fill) {
-                i -= 1;
                 spec.fill = c;
                 break;
             }
@@ -111,17 +142,6 @@ struct FormatSpecParser {
                 step = ParsingStep::Sign;
                 continue;
             }
-
-            // No need to parse this
-            // if (step == ParsingStep::Pad) {
-            //     if (contains(valid_pad, c)) {
-            //         spec.pad = c;
-            //         i -= 1;
-            //     }
-
-            //     step = ParsingStep::Alternate;
-            //     continue;
-            // }
 
             if (step == ParsingStep::Width) {
                 temp.clear();
@@ -161,13 +181,12 @@ struct FormatSpecParser {
 
                 reverse(temp.begin(), temp.end());
                 uint64_t val = std::strtoull(temp.c_str(), nullptr, 10);
-            
+
                 if (c == '.') {
                     i -= 1;
                     spec.precision = val;
-                    step = ParsingStep::Width;
-                } 
-                else {
+                    step           = ParsingStep::Width;
+                } else {
                     spec.width = val;
                     if (temp[0] == '0') {
                         spec.pad = '0';
@@ -185,6 +204,12 @@ struct FormatSpecParser {
                 step = ParsingStep::Precision;
                 continue;
             }
+        }
+
+        spec.valid = true;
+        if (i > 0) {
+            spec.valid = false;
+            spec.unparsed = buffer.substr(0, i);
         }
 
         return spec;

@@ -13,8 +13,12 @@ struct FormatSpecifier {
     uint64_t width     = 0;
     uint64_t precision = 0;
     char type          = '\0';  // b, c, d, o, x, X, n, e, E, f, F, g, G, n, %
+    
+    bool valid = false;
+    String unparsed;
 
     String __str__() const;
+    String __repr__() const ;
 
     static FormatSpecifier parse(String const& buffer);
 

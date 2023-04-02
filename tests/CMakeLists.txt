@@ -7,6 +7,9 @@ INCLUDE_DIRECTORIES(../src)
 INCLUDE(CTest)
 INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
 
+
+ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
+
 # Testing utility
 ADD_LIBRARY(liblythontest cases_errors.cpp cases.cpp samples.cpp)
 TARGET_LINK_LIBRARIES(liblythontest spdlog::spdlog Catch2::Catch2 liblython liblogging)
