@@ -27,7 +27,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2023-04-02 00:24:43</td>
+      <td>2023-04-02 04:56:10</td>
     </tr>
   </table>
 </div>
@@ -42,20 +42,20 @@
     <tr>
       <th scope="row">Lines:</th>
       <td>40</td>
-      <td>49</td>
-      <td class="coverage-medium">81.6%</td>
+      <td>50</td>
+      <td class="coverage-medium">80.0%</td>
     </tr>
     <tr>
       <th scope="row">Functions:</th>
-      <td>117</td>
-      <td>122</td>
-      <td class="coverage-high">95.9%</td>
+      <td>118</td>
+      <td>125</td>
+      <td class="coverage-high">94.4%</td>
     </tr>
     <tr>
       <th scope="row">Branches:</th>
-      <td>22</td>
-      <td>34</td>
-      <td class="coverage-low">64.7%</td>
+      <td>24</td>
+      <td>38</td>
+      <td class="coverage-low">63.2%</td>
     </tr>
   </table>
 </div>
@@ -504,6 +504,17 @@
     </tr>
     <tr>
       <td>
+        <a href="#l1115">lython::Constant* lython::cast&lt;lython::Constant&gt;(lython::Node*)</a>
+      </td>
+      <td>
+        <a href="#l1115">1115</a>
+      </td>
+      <td>
+        <a href="#l1115"> called 267 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
         <a href="#l361">lython::Constant::Constant()</a>
       </td>
       <td>
@@ -669,6 +680,17 @@
     </tr>
     <tr>
       <td>
+        <a href="#l575">lython::FormattedValue::FormattedValue()</a>
+      </td>
+      <td>
+        <a href="#l575">575</a>
+      </td>
+      <td>
+        <a href="#l575"> not called</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
         <a href="#l719">lython::FunctionDef::FunctionDef()</a>
       </td>
       <td>
@@ -764,6 +786,17 @@
       </td>
       <td>
         <a href="#l681"> called 562 times</a>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <a href="#l566">lython::JoinedStr::JoinedStr()</a>
+      </td>
+      <td>
+        <a href="#l566">566</a>
+      </td>
+      <td>
+        <a href="#l566"> not called</a>
       </td>
     </tr>
     <tr>
@@ -1741,7 +1774,7 @@
       <td class="lineno"><a id="l45" href="#l45">45</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1438</td>
+      <td class="linecount coveredLine">1045</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">NodeKind</span><span class="p">(</span><span class="n">NodeTrait</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;::</span><span class="n">kind</span><span class="p">);</span></td>
     </tr>
     <tr class="source-line">
@@ -1839,7 +1872,7 @@
       <td class="lineno"><a id="l59" href="#l59">59</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">2476</td>
+      <td class="linecount coveredLine">2083</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">nodekind</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span></td>
     </tr>
     <tr class="source-line">
@@ -5472,8 +5505,8 @@
       <td class="lineno"><a id="l571" href="#l571">571</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">Optional</span><span class="o">&lt;</span><span class="n">ConversionKind</span><span class="o">&gt;</span><span class="w"> </span><span class="n">conversion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ConversionKind</span><span class="o">::</span><span class="n">None</span><span class="p">;</span></td>
+      <td class="linecount uncoveredLine">&cross;</td>
+      <td class="src uncoveredLine"><span class="w">    </span><span class="n">Optional</span><span class="o">&lt;</span><span class="n">ConversionKind</span><span class="o">&gt;</span><span class="w"> </span><span class="n">conversion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ConversionKind</span><span class="o">::</span><span class="n">None</span><span class="p">;</span></td>
     </tr>
     <tr class="source-line">
       <td class="lineno"><a id="l572" href="#l572">572</a></td>
@@ -5487,7 +5520,7 @@
       <td class="linebranch">
       </td>
       <td class="linecount "></td>
-      <td class="src "><span class="w">    </span><span class="n">JoinedStr</span><span class="w"> </span><span class="n">format_spec</span><span class="p">;</span></td>
+      <td class="src "><span class="w">    </span><span class="n">JoinedStr</span><span class="o">*</span><span class="w"> </span><span class="n">format_spec</span><span class="p">;</span></td>
     </tr>
     <tr class="source-line">
       <td class="lineno"><a id="l574" href="#l574">574</a></td>
@@ -9341,12 +9374,19 @@
       <td class="lineno"><a id="l1115" href="#l1115">1115</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">1293</td>
+      <td class="linecount coveredLine">1026</td>
       <td class="src coveredLine"><span class="n">T</span><span class="o">*</span><span class="w"> </span><span class="n">cast</span><span class="p">(</span><span class="n">Node</span><span class="o">*</span><span class="w"> </span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
       <td class="lineno"><a id="l1116" href="#l1116">1116</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/2</summary>
+        <div class="linebranchContents">
+          <div class="notTakenBranch">&cross; Branch 0 not taken.</div>
+          <div class="takenBranch">&check; Branch 1 taken 267 times.</div>
+        </div>
+        </details>
       </td>
       <td class="linecount coveredLine">1293</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">obj</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
@@ -9368,6 +9408,13 @@
     <tr class="source-line">
       <td class="lineno"><a id="l1119" href="#l1119">1119</a></td>
       <td class="linebranch">
+        <details class="linebranchDetails">
+        <summary class="linebranchSummary">1/2</summary>
+        <div class="linebranchContents">
+          <div class="takenBranch">&check; Branch 1 taken 267 times.</div>
+          <div class="notTakenBranch">&cross; Branch 2 not taken.</div>
+        </div>
+        </details>
       </td>
       <td class="linecount coveredLine">1112</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">obj</span><span class="o">-&gt;</span><span class="n">is_instance</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">())</span><span class="w"> </span><span class="p">{</span></td>
