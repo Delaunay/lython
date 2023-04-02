@@ -37,3 +37,6 @@
 [submodule "dependencies/zlib"]
 	path = dependencies/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "dependencies/godot"]
+	path = dependencies/godot
+	url = https://github.com/godotengine/godot.git

@@ -9,6 +9,8 @@
 	],
 	"settings": {
 		"files.associations": {
+			"*.ly": "python",
+			"*.kw": "python",
 			"*.rst": "reStructuredText",
 			"*.usf": "cpp",
 			"cctype": "cpp",
