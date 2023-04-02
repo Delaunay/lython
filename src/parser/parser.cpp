@@ -5,7 +5,8 @@
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
-    kwtrace_start(depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
+    kwtrace_start(        \
+        depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
 
 #define TRACE_END2(tok) kwtrace_end(depth, "{}: {}", to_string(tok.type()).c_str(), tok.type())
 
@@ -1662,13 +1663,6 @@ ExprNode* Parser::parse_lambda(Node* parent, int depth) {
     return expr;
 }
 
-ExprNode* Parser::parse_joined_string(Node* parent, int depth) {
-    TRACE_START();
-
-    // TODO
-    return not_implemented_expr(parent);
-}
-
 ExprNode* Parser::parse_starred(Node* parent, int depth) {
     TRACE_START();
 
@@ -2577,6 +2571,7 @@ ExprNode* Parser::parse_expression_primary(Node* parent, int depth) {
     case tok_int:
     case tok_float:
     case tok_string: return parse_constant(parent, depth);
+    case tok_formatstr: return parse_special_string(parent, depth);
 
     // List: [a, b]
     // Comprehension [a for a in b]
@@ -2674,6 +2669,179 @@ ExprNode* Parser::parse_expression_1(
     }
 
     return primary;
+}
+
+ExprNode* Parser::parse_special_string(Node* parent, int depth) {
+    TRACE_START();
+
+    String format_type = token().identifier();
+
+    if (format_type == "f") {
+        return parse_joined_string(parent, depth);
+    }
+
+    if (format_type == "b") {
+        next_token();
+        return parse_constant(parent, depth);
+    }
+
+    if (format_type == "r") {
+        next_token();
+        return parse_constant(parent, depth);
+    }
+
+    return nullptr;
+}
+
+struct SetLexerMode {
+    SetLexerMode(AbstractLexer& lexer, LexerMode mode): lexer(lexer) {
+        old_mode = int(lexer.get_mode());
+        lexer.set_mode(int(mode));
+    }
+
+    ~SetLexerMode() { lexer.set_mode(old_mode); }
+
+    int            old_mode;
+    AbstractLexer& lexer;
+};
+
+// FIXME: this can be simplified if the fmtstr lexer tokenize more
+ExprNode* Parser::parse_joined_string(Node* parent, int depth) {
+    Token tok = token();  // `f`
+
+    JoinedStr* expr = parent->new_object<JoinedStr>();
+    start_code_loc(expr, token());
+    int8 endquote;
+
+    {
+        SetLexerMode _(_lex, LexerMode::Character);
+        tok      = next_token();  // Quote
+        endquote = token().type();
+
+        tok = next_token();
+        String buffer;
+
+        auto pushbuffer = [&]() {
+            if (!buffer.empty()) {
+                Constant* cst = expr->new_object<Constant>();
+                cst->value    = ConstantValue(buffer);
+                expr->values.push_back(cst);
+                buffer.clear();
+            }
+        };
+
+        while (tok.type() != endquote) {
+
+            if (tok.type() == '{') {
+                char c = _lex.peekc();
+                if (c == '{') {
+                    buffer.push_back('{');
+                    buffer.push_back('{');
+
+                    tok = next_token();
+                    tok = next_token();
+                    continue;
+                }
+
+                pushbuffer();
+                // Parse FormattedValue
+                expr->values.push_back(parse_formatted_value_string(expr, depth + 1));
+                tok = token();
+                continue;
+            }
+
+            buffer.push_back(tok.type());
+            tok = next_token();
+        }
+        pushbuffer();
+    }
+
+    end_code_loc(expr, token());
+    expect_token(endquote, true, expr, LOC);
+    return expr;
+}
+
+ExprNode* Parser::parse_formatted_value_string(Node* parent, int depth) {
+    // {<value>(:<formatspec>)?}
+    TRACE_START();
+
+    FormattedValue* expr = parent->new_object<FormattedValue>();
+    start_code_loc(expr, token());
+
+    {
+        SetLexerMode _(_lex, LexerMode::Default);
+        expect_token('{', true, expr, LOC);
+        expr->value = parse_expression(expr, depth + 1);
+    }
+
+    if (token().type() == ':') {
+        next_token();  // eat ':' so we get next character
+        expr->format_spec = parse_format_spec(expr, depth);
+    }
+
+    end_code_loc(expr, token());
+    expect_token('}', true, expr, LOC);
+
+    return expr;
+}
+
+JoinedStr* Parser::parse_format_spec(Node* parent, int depth) {
+    TRACE_START();
+
+    // str{<something>}end
+    JoinedStr* expr = parent->new_object<JoinedStr>();
+    start_code_loc(expr, token());
+
+    String buffer;
+
+    auto pushbuffer = [&]() {
+        if (!buffer.empty()) {
+            Constant* cst = expr->new_object<Constant>();
+            cst->value    = ConstantValue(buffer);
+            expr->values.push_back(cst);
+            buffer.clear();
+        }
+    };
+
+    // Get Current token
+    char c     = token().type();
+    bool first = true;
+    while (c != '}') {
+
+        if (c == '{') {
+            pushbuffer();
+            {
+                SetLexerMode _(_lex, LexerMode::Default);
+                if (!first) {
+                    next_token();  // token is now {
+                }
+                expect_token('{', true, expr, LOC);
+                expr->values.push_back(parse_expression(expr, depth + 1));
+            }
+
+            expect_token('}', true, expr, LOC);
+            c = token().type();
+            first = true;
+            continue;
+        }
+
+        if (!first) {
+            c = next_token().type();
+        }
+        buffer.push_back(c);
+        c     = _lex.peekc();
+        first = false;
+    }
+
+    pushbuffer();
+    
+    next_token();  // Current token becomes '}'
+
+    {
+        SetLexerMode _(_lex, LexerMode::Default);
+        expect_token('}', false, expr, LOC);
+    }
+    return expr;
 }
 
 Token const& Parser::next_token() {

@@ -1018,13 +1018,37 @@ ReturnType Printer::builtintype(BuiltinType const* self, int depth, std::ostream
 }
 
 ReturnType Printer::joinedstr(JoinedStr const* self, int depth, std::ostream& out, int level) {
-    out << "JoinedStr";
+    out << "f\"";
+
+    for (auto* val: self->values) {
+        if (Constant* cst = cast<Constant>(val)) {
+            out << cst->value.get<String>();
+        } else {
+            exec(val, depth, out, level);
+        }
+    }
+
+    out << '"';
     return false;
 }
 
 ReturnType
 Printer::formattedvalue(FormattedValue const* self, int depth, std::ostream& out, int indent) {
-    out << "FormattedValue";
+    out << "{";
+    exec(self->value, depth, out, indent);
+    out << ":";
+
+    for (auto* val: self->format_spec->values) {
+        if (Constant* cst = cast<Constant>(val)) {
+            out << cst->value.get<String>();
+        } else {
+            out << "{";
+            exec(val, depth, out, indent);
+            out << "}";
+        }
+    }
+
+    out << "}";
     return false;
 }
 

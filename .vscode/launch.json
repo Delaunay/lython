@@ -8,11 +8,11 @@
             "name": "Lython fmt",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Release/lython.exe",
+            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
             "args": [
-                "codegen",
+                "internal",
                 "--file",
-                "${workspaceFolder}/code/cppgen.ly"
+                "${workspaceFolder}/code/fstring.ly"
             ],
             "visualizerFile": "${workspaceFolder}/scripts/Lython.natvis",
             "showDisplayString": true,
@@ -218,11 +218,11 @@
             "name": "Debug Lython-Inspect",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/lython",
+            "program": "${workspaceFolder}/build/bin/Debug/lython.exe",
             "args": [
                 "internal",
                 "--file",
-                "${workspaceFolder}/hardening/fuzzing/results/crashes/id:000180,sig:06,src:003569,time:18871470,op:flip1,pos:13",
+                "${workspaceFolder}/code/fstring.ly",
             ],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

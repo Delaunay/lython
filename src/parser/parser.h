@@ -155,8 +155,12 @@ class Parser {
     ExprNode* parse_name(Node* parent, int depth);
     ExprNode* parse_lambda(Node* parent, int depth);
     ExprNode* parse_constant(Node* parent, int depth);
-    ExprNode* parse_joined_string(Node* parent, int depth);
     ExprNode* parse_ifexp_ext(Node* parent, int depth);
+    
+    ExprNode* parse_special_string(Node* parent, int depth);
+    ExprNode* parse_joined_string(Node* parent, int depth);
+    ExprNode* parse_formatted_value_string(Node* parent, int depth);
+    JoinedStr* parse_format_spec(Node* parent, int depth);
 
     ExprNode* parse_starred(Node* parent, int depth);
     ExprNode* parse_list(Node* parent, int depth);
@@ -166,8 +170,9 @@ class Parser {
 
     void      parse_comprehension(Node* parent, Array<Comprehension>& out, char kind, int depth);
     Arguments parse_arguments(Node* parent, char kind, int depth);
-    Token     parse_call_args(Node* parent, Array<ExprNode*>& args, Array<Keyword>& keywords, int depth);
-    void      parse_withitem(Node* parent, Array<WithItem>& out, int depth);
+    Token
+         parse_call_args(Node* parent, Array<ExprNode*>& args, Array<Keyword>& keywords, int depth);
+    void parse_withitem(Node* parent, Array<WithItem>& out, int depth);
     ExprNode* parse_star_targets(Node* parent, int depth);
 
     // parse_expression_2

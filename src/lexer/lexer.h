@@ -84,7 +84,12 @@ class AbstractLexer {
 
     virtual Token const& token() = 0;
 
+    virtual char peekc() const { return '\0'; }
+
     virtual const String& file_name() = 0;
+
+    virtual int get_mode() const  { return 0; }
+    virtual void set_mode(int mode) {}
 
     // print tokens with their info
     ::std::ostream& debug_print(::std::ostream& out);
@@ -145,6 +150,11 @@ class ReplayLexer: public AbstractLexer {
     Array<Token>& tokens;
 };
 
+enum class LexerMode {
+    Default = 0,
+    Character = 1
+};
+
 class Lexer: public AbstractLexer {
     public:
     Lexer(AbstractBuffer& reader):
@@ -158,6 +168,10 @@ class Lexer: public AbstractLexer {
         }
         return _token;
     }
+
+    int get_mode() const override final;
+    void set_mode(int mode) override final;
+    Token const& format_tokenizer() ;
     Token const& next_token() override final;
     Token const& peek_token() override final {
         // we can only peek ahead once
@@ -183,6 +197,7 @@ class Lexer: public AbstractLexer {
     }
 
     const String& file_name() override { return _reader.file_name(); }
+    char peekc() const { return _reader.peek(); }
 
     private:
     int             _count = 0;
@@ -192,6 +207,9 @@ class Lexer: public AbstractLexer {
     int32           _oindent;
     LexerOperators  _operators;
     Array<Token>    _buffer;
+    bool            _fmtstr = false;
+    char            _quote;
+    int             _quotes = 0;
 
     // shortcuts
 

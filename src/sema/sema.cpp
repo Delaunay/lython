@@ -622,7 +622,9 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     }
     return nullptr;
 }
-TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) { return nullptr; }
+TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) { 
+    return make_ref(n, "str"); 
+}
 TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) { return nullptr; }
 TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
     switch (n->value.type()) {

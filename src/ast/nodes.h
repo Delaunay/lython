@@ -570,7 +570,7 @@ struct FormattedValue: public ExprNode {
     ExprNode*                value      = nullptr;
     Optional<ConversionKind> conversion = ConversionKind::None;
     // defined as ExprNode*
-    JoinedStr format_spec;
+    JoinedStr* format_spec;
 
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
