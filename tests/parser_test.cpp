@@ -130,7 +130,11 @@ Array<AllowEntry> allow_list = {
 
     {"With", 1, 12},        {"With", 1, 14},       {"With", 1, 16},       {"With", 1, 17},
     {"With", 1, 18},        {"With", 1, 20},       {"With", 1, 22},       {"With", 1, 23},
-    {"With", 1, 24},        {"With", 1, 26},       {"With", 1, 28}};
+    {"With", 1, 24},        {"With", 1, 26},       {"With", 1, 28},
+
+    {"JoinedStr", 0, 1}, {"JoinedStr", 0, 3}, {"JoinedStr", 1, 1}, {"JoinedStr", 1, 3}
+    //    
+};
 
 bool allowed(AllowEntry const& v) {
     for (auto& entry: allow_list) {
