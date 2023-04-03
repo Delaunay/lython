@@ -84,27 +84,57 @@ struct AllowEntry {
 // mostly because so much is missing that the expression becomes valid again
 Array<AllowEntry> allow_list = {
     {"Inline", 0, 9},       {"Inline", 0, 8},      {"Inline", 0, 7},      {"Inline", 0, 5},
-    {"Inline", 0, 4},       {"Inline", 0, 3},      {"Inline", 0, 1},      {"Match", 2, 27},
+    {"Inline", 0, 4},       {"Inline", 0, 3},      {"Inline", 0, 1},      
+    
+    //
+    {"Match", 2, 27},
     {"Match", 2, 14},       {"Match", 2, 13},      {"Match", 2, 12},      {"Match", 1, 25},
+
+    //
     {"BoolOp", 0, 1},       {"BoolOp", 1, 1},      {"BoolOp", 2, 1},      {"BoolOp", 2, 3},
-    {"NamedExpr", 0, 1},    {"NamedExpr", 0, 3},   {"BinOp", 0, 1},       {"BinOp", 1, 1},
-    {"BinOp", 2, 1},        {"BinOp", 3, 1},       {"BinOp", 4, 1},       {"Yield", 0, 1},
+
+    //
+    {"NamedExpr", 0, 1},    {"NamedExpr", 0, 3},   
+    
+    //
+    {"BinOp", 0, 1},        {"BinOp", 1, 1},
+    {"BinOp", 2, 1},        {"BinOp", 3, 1},       {"BinOp", 4, 1},       
+    //
+    {"Yield", 0, 1},
     {"Yield", 1, 2},        {"Yield", 1, 1},       {"YieldFrom", 0, 1},   {"Compare", 0, 1},
     {"Compare", 0, 3},      {"Compare", 0, 5},     {"Compare", 1, 1},     {"Compare", 2, 1},
     {"Compare", 3, 1},      {"Compare", 4, 1},     {"Call", 0, 1},        {"Attribute", 0, 1},
     {"Subscript", 0, 1},    {"TupleExpr", 0, 1},   {"TupleExpr", 0, 3},   {"TupleExpr", 1, 1},
     {"TupleExpr", 0, 7},    {"TupleExpr", 1, 7},   {"TupleExpr", 2, 1},   {"TupleExpr", 2, 3},
     {"TupleExpr", 2, 5},    {"TupleExpr", 2, 7},   {"TupleExpr", 2, 9},   {"Slice", 0, 1},
-    {"FunctionDef", 0, 30}, {"Return", 0, 1},      {"Return", 1, 2},      {"Return", 1, 1},
+    {"FunctionDef", 0, 30}, 
+    
+    //
+    {"Return", 0, 1},       {"Return", 1, 2},      {"Return", 1, 1},
     {"Return", 2, 1},       {"Return", 2, 2},      {"Return", 3, 1},      {"Return", 3, 2},
-    {"Return", 3, 4},       {"Return", 3, 6},      {"Delete", 0, 2},      {"Assign", 0, 1},
+    {"Return", 3, 4},       {"Return", 3, 6},      
+    
+    //
+    {"Delete", 0, 2},       
+    
+    //
+    {"Assign", 0, 1},
     {"Assign", 1, 1},       {"Assign", 1, 3},      {"Assign", 2, 1},      {"Assign", 3, 1},
     {"Assign", 4, 1},       {"Assign", 5, 1},      {"Assign", 6, 1},      {"Assign", 7, 1},
     {"Assign", 8, 1},       {"Assign", 9, 1},      {"Assign", 10, 1},     {"Assign", 11, 1},
     {"Assign", 12, 1},      {"Assign", 13, 1},     {"Assign", 14, 1},     {"Assign", 14, 3},
-    {"Assign", 14, 5},      {"AugAssign", 0, 1},   {"AugAssign", 1, 1},   {"AnnAssign", 3, 1},
+    {"Assign", 14, 5},      
+    
+    //
+    {"AugAssign", 0, 1},    {"AugAssign", 1, 1},   
+    
+    //
+    {"AnnAssign", 3, 1},
     {"AnnAssign", 0, 3},    {"AnnAssign", 2, 1},   {"AnnAssign", 0, 1},   {"AnnAssign", 1, 1},
-    {"AnnAssign", 3, 3},    {"AnnAssign", 2, 3},   {"AnnAssign", 1, 3},   {"For", 0, 8},
+    {"AnnAssign", 3, 3},    {"AnnAssign", 2, 3},   {"AnnAssign", 1, 3},   
+    
+    //
+    {"For", 0, 8},
     {"For", 0, 9},          {"For", 0, 10},        {"For", 1, 16},        {"For", 0, 14},
     {"For", 0, 13},         {"For", 0, 12},        {"For", 0, 19},        {"For", 0, 11},
     {"While", 0, 6},        {"While", 0, 7},       {"While", 0, 8},       {"While", 0, 13},
@@ -112,27 +142,45 @@ Array<AllowEntry> allow_list = {
     {"If", 0, 15},          {"If", 0, 16},         {"If", 0, 21},         {"With", 0, 12},
     {"Raise", 0, 1},        {"Raise", 0, 2},       {"Raise", 1, 1},       {"Try", 0, 15},
     {"Try", 0, 16},         {"Try", 0, 17},        {"Try", 0, 22},        {"Try", 0, 23},
-    {"Try", 0, 24},         {"Try", 0, 29},        {"Assert", 1, 2},      {"Import", 0, 2},
+    {"Try", 0, 24},         {"Try", 0, 29},        {"Assert", 1, 2},      
+    
+    //
+    {"Import", 0, 2},
     {"Import", 0, 4},       {"Import", 0, 6},      {"Import", 0, 8},      {"Import", 1, 2},
-    {"Import", 0, 10},      {"Import", 0, 12},     {"ImportFrom", 0, 6},  {"ImportFrom", 1, 4},
+    {"Import", 0, 10},      {"Import", 0, 12},     
+    
+    //
+    {"ImportFrom", 0, 6},  {"ImportFrom", 1, 4},
     {"ImportFrom", 0, 8},   {"ImportFrom", 0, 10}, {"ImportFrom", 0, 12}, {"ImportFrom", 1, 12},
     {"ImportFrom", 1, 10},  {"ImportFrom", 1, 8},  {"ImportFrom", 1, 6},  {"ImportFrom", 1, 16},
-    {"ImportFrom", 1, 14},  {"Match", 0, 15},      {"Match", 0, 16},      {"Match", 0, 17},
+    {"ImportFrom", 1, 14},  
+    
+    //
+    {"Match", 0, 15},       {"Match", 0, 16},      {"Match", 0, 17},
     {"Match", 0, 25},       {"Match", 0, 26},      {"Match", 0, 27},      {"Match", 0, 28},
     {"Match", 0, 36},       {"Match", 0, 37},      {"Match", 0, 38},      {"Match", 0, 39},
     {"Match", 0, 54},       {"Match", 0, 55},      {"Match", 0, 57},      {"Match", 0, 59},
     {"Match", 0, 60},       {"Match", 0, 61},      {"Match", 0, 69},      {"Match", 0, 70},
-    {"Match", 1, 12},       {"Match", 1, 13},      {"Match", 1, 14},      {"ClassDef", 1, 10},
+    {"Match", 1, 12},       {"Match", 1, 13},      {"Match", 1, 14},      
+    
+    //
+    {"ClassDef", 1, 10},
     {"ClassDef", 1, 11},    {"ClassDef", 1, 16},   {"ClassDef", 1, 17},   {"ClassDef", 1, 20},
     {"ClassDef", 1, 21},    {"ClassDef", 1, 22},   {"ClassDef", 1, 31},   {"ClassDef", 1, 33},
     {"ClassDef", 1, 35},    {"ClassDef", 1, 36},   {"ClassDef", 1, 14},   {"ClassDef", 1, 8},
+
+    //
     {"IfExp", 0, 1},        {"IfExp", 0, 3},
 
+    //
     {"With", 1, 12},        {"With", 1, 14},       {"With", 1, 16},       {"With", 1, 17},
     {"With", 1, 18},        {"With", 1, 20},       {"With", 1, 22},       {"With", 1, 23},
     {"With", 1, 24},        {"With", 1, 26},       {"With", 1, 28},
 
-    {"JoinedStr", 0, 1}, {"JoinedStr", 0, 3}, {"JoinedStr", 1, 1}, {"JoinedStr", 1, 3}
+    //
+    {"JoinedStr", 0, 1}, {"JoinedStr", 0, 3}, {"JoinedStr", 1, 1}, {"JoinedStr", 1, 3},
+    {"JoinedStr", 2, 1}, {"JoinedStr", 2, 3},
+    
     //    
 };
 

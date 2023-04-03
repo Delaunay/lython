@@ -613,19 +613,27 @@ Array<TestCase> const& FormattedValue_examples() {
 }
 
 Array<TestCase> const& JoinedStr_examples() {
-    static Array<TestCase> ex = { //
+    static Array<TestCase> ex = {
+        //
         {
             "a = f\"str1 {b:4d}\"",
             {
                 NE("b"),
-            }
+            },
         },
         {
             "a = f\"str1 {b:{s}d}\"",
             {
                 NE("b"),
                 NE("s"),
-            }
+            },
+        },
+        {
+            "a = f\"str1 {{ {b:{s}d} }}\"",
+            {
+                NE("b"),
+                NE("s"),
+            },
         },
     };
     return ex;
