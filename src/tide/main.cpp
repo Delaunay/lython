@@ -9,40 +9,67 @@ void ShowExampleAppCustomNodeGraph(bool* opened);
 
 class App: public VulkanEngine {
     public:
-    // GraphEd Editor;
-
     GraphEditor editor;
 
     App() {}
 
     void start() {
-        // Editor.OnStart();
-
         Forest& forest = editor.forests.emplace_back();
         Tree& tree = forest.trees.emplace_back();
 
-        GraphNode& n1 = tree.nodes.emplace_back();
-        n1.pos = ImVec2(0, 0);
+        Node& n1 = tree.nodes.emplace_back();
+        n1.pos = ImVec2(10, 10);
         n1.name = "First Node";
-        n1.inputs.emplace_back();
-        n1.inputs.emplace_back();
-        n1.outputs.emplace_back();
 
-        GraphNode& n2 = tree.nodes.emplace_back();
-        n2.pos = ImVec2(10, 10);
+		{
+			Pin& p = n1.inputs.emplace_back();
+			p.kind = PinKind::Flow;
+			p.type = PinType::Flow;
+		}
+
+        {	
+			Pin& p = n1.inputs.emplace_back();
+			p.name = "x";
+			p.type = PinType::Float;
+		}
+
+		{	
+			Pin& p = n1.inputs.emplace_back();
+			p.name = "y";
+		}
+
+		{
+			Pin& p = n1.outputs.emplace_back();
+			p.kind = PinKind::Flow;
+			p.type = PinType::Flow;
+		}
+
+		Pin& p1 = n1.outputs.emplace_back();
+		p1.name = "z";
+
+		// -- NODE 2
+        Node& n2 = tree.nodes.emplace_back();
+        n2.pos = ImVec2(300, 100);
         n2.name = "Second Node";
-        n2.inputs.emplace_back();
-        n2.outputs.emplace_back();
-        n2.outputs.emplace_back();
+        Pin& p2 = n2.inputs.emplace_back();
+		p2.name = "b";
+
+        {
+			Pin& p = n2.outputs.emplace_back();
+			p.name = "a";
+		}
+        
+		{
+			Pin& p = n2.outputs.emplace_back();
+			p.name = "c";
+		}
+
+		tree.links.emplace_back(&p1, &p2);		
     }
 
     void handle_event(SDL_Event const& event) {}
 
     void tick(float dt) {
-        // ImGui::Begin("EditorFrame");
-        // Editor.OnFrame(dt);
-        // ImGui::End();
-
         ImGui::Begin("EditorFrame");
         editor.draw();
         ImGui::End();
@@ -52,7 +79,6 @@ class App: public VulkanEngine {
     }
 
     void end() {
-        // Editor.OnStop();
     }
 };
 

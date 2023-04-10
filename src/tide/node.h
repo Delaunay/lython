@@ -2,12 +2,21 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 uint64_t nextid();
-void draw_bezier(ImDrawList* draw_list, ImVec2 p1, ImVec2 p2, ImU32 color);
+bool     draw_bezier(ImDrawList* draw_list,
+                     ImVec2      p1,
+                     ImVec2      p2,
+                     ImU32       color,
+                     int         segment,
+                     float       tickness = 2,  //
+                     float       eps      = 2   //
+    );
 
 struct Base {
     uint64_t id;
@@ -15,32 +24,67 @@ struct Base {
     Base(): id(nextid()) {}
 };
 
+enum class PinKind
+{
+    Flow,
+    Circle,
+    Square,
+    Grid,
+    RoundSquare,
+    Diamond,
+};
+
+enum class PinType
+{
+    Flow,
+    Bool,
+    Int,
+    Float,
+    String,
+    Object,
+    Delegate,
+};
 
 struct Pin: public Base {
     std::string name;
-    std::string type;
-    std::string kind;
-    ImVec2      pos;
+    // std::string typename;
+    PinType type = PinType::Object;
+    PinKind kind = PinKind::Circle;
+    ImVec2  pos;
+    bool    connected = false;
+
+    // Inline value
+    uint64_t value;
+    float* as_float() {
+        return reinterpret_cast<float*>(&value);
+    }
 };
 
 struct Link {
-    Link(Pin* from, Pin* to):
-        from(from), to(to)
-    {}
+    Link(Pin* from, Pin* to): from(from), to(to) {
+        from->connected = true;
+        to->connected   = true;
+    }
 
     Pin* from;
     Pin* to;
 };
 
+struct Layout {
+    ImVec2 input  = ImVec2(120, 50);
+    ImVec2 output = ImVec2(120, 50);
+};
 
 // Expression
-struct GraphNode: public Base {
+struct Node: public Base {
     ImVec2      pos;
     ImVec2      size;
     std::string name;
 
     std::vector<Pin> inputs;
     std::vector<Pin> outputs;
+
+    Layout layout;
 };
 
 // Statement
@@ -49,8 +93,8 @@ struct GraphNode: public Base {
 struct Tree: public Base {
     std::string name;
 
-    std::vector<GraphNode> nodes;
-    std::vector<Link>      links;
+    std::vector<Node> nodes;
+    std::vector<Link> links;
 };
 
 // module
@@ -66,21 +110,62 @@ struct GraphEditor: public Base {
 
     void draw();
 
+    void draw(Pin* pin, ImVec2 center);
     void draw(Link* link, ImVec2 offset);
-    void draw(GraphNode* node, ImVec2 offset);
+    void draw(Node* node, ImVec2 offset);
     void drawgrid();
 
     void handle_events(ImVec2 offset);
 
     //
-    ImVec2   scrolling = ImVec2(0.0f, 0.0f);
-    GraphNode* hovered_node = nullptr;
-    GraphNode* selected_node = nullptr;
+    ImVec2                             scrolling     = ImVec2(0.0f, 0.0f);
+    Node*                              hovered_node  = nullptr;
+    Node*                              selected_node = nullptr;
+    Pin*                               hovered_pin   = nullptr;
+    Pin*                               selected_pin  = nullptr;
+    Link*                              hovered_link  = nullptr;
+    Tree*                              selected_tree = nullptr;
+    Tree*                              current_tree  = nullptr;
+    std::unordered_map<PinType, ImU32> _colors       = {{
+        {PinType::Flow, IM_COL32(255, 255, 255, 255)},
+        {PinType::Bool, IM_COL32(220, 48, 48, 255)},
+        {PinType::Int, IM_COL32(68, 201, 156, 255)},
+        {PinType::Float, IM_COL32(147, 226, 74, 255)},
+        {PinType::String, IM_COL32(124, 21, 153, 255)},
+        {PinType::Object, IM_COL32(51, 150, 215, 255)},
+        {PinType::Delegate, IM_COL32(255, 48, 48, 255)},
+    }};
 
-    Pin* hovered_pin = nullptr;
-    Pin* selected_pin = nullptr;
+    // State
+    float pin_label_margin   = 5;
+    float node_padding       = 4.0f;
+    float pin_radius         = 12;
+    int   bezier_segments    = 10;
+    float tickness           = 3;
+    bool  show_grid          = true;
+    bool  open_context_menu  = false;
+    ImU32 node_bg_color      = IM_COL32(75, 75, 75, 255);
+    ImU32 node_outline_color = IM_COL32(100, 100, 100, 255);
 
-    Tree*    current_tree      = nullptr;
-    bool     show_grid         = true;
-    bool     open_context_menu = false;
+    ImRect _size;
+    ImVec2 _offset;
+
+    ImVec2 get_offset() { return _offset; }
+
+    private:
+    struct PinStyle {
+        PinKind kind;
+        bool    filled;
+        ImU32   color;
+        ImU32   fill;
+    };
+
+    void draw(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_flow(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_circle(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_square(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_grid(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_round_square(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_diamond(PinStyle& style, ImVec2 pos, ImVec2 size);
+    void draw_triangle(PinStyle& style, ImVec2 pos, ImVec2 size);
 };
