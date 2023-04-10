@@ -53,3 +53,5 @@ zig-cache/
 
 .vscode/BROWSE.VC.DB*
 .godot/
+Blueprints.json
+imgui.ini

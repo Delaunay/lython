@@ -40,3 +40,15 @@
 [submodule "dependencies/godot"]
 	path = dependencies/godot
 	url = https://github.com/godotengine/godot.git
+[submodule "dependencies/imgui"]
+	path = dependencies/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "dependencies/implot"]
+	path = dependencies/implot
+	url = https://github.com/epezent/implot.git
+[submodule "dependencies/imgui-node-editor"]
+	path = dependencies/imgui-node-editor
+	url = https://github.com/thedmd/imgui-node-editor.git
+[submodule "dependencies/SDL"]
+	path = dependencies/SDL
+	url = https://github.com/libsdl-org/SDL.git

@@ -202,3 +202,5 @@ ENDIF()
 # COMPILE_OPTIONS "--analyze"
 # EXCLUDE_FROM_DEFAULT_BUILD true)
 # ENDFUNCTION()
+
+add_subdirectory(tide)
