@@ -206,3 +206,9 @@ ENDIF()
 # find_package(backtrace)
 
 add_subdirectory(tide)
+
+
+
+
+# Plugin Example
+ADD_LIBRARY(PluginExample SHARED plugin/example.cpp)

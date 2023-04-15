@@ -22,7 +22,7 @@ $OLD = "$pwd"
 New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/Debug
 cd $env:BUILD_DIR/Debug
 cmake -G "Visual Studio 17 2022" $LLVM_ARGS -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
-cmake --build . 
+cmake --build . --config Debug
 
 New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/Release
 cd $env:BUILD_DIR/Release

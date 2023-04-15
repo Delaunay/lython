@@ -1,32 +1,21 @@
-#ifndef LYTHON_PLUGIN_VISITOR_HEADER
-#define LYTHON_PLUGIN_VISITOR_HEADER
+#ifndef LYTHON_PLUGIN_EXAMPLE_HEADER
+#define LYTHON_PLUGIN_EXAMPLE_HEADER
 
-#include "ast/visitor.h"
+#include "plugin/plugin.h"
 
-namespace lython {
 
-struct VisitorPluginTrait {
-    using StmtRet = void;
-    using ExprRet = void;
-    using ModRet  = void;
-    using PatRet  = void;
-    using IsConst = std::false_type;
-    using Trace   = std::true_type;
-
-    enum
-    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
-};
-
-/*
- */
-struct VisitorPlugin: BaseVisitor<VisitorPlugin, false, VisitorPluginTrait> {
+struct ExampleVisitor: public lython::VisitorPlugin {
 public:
-    using Super = BaseVisitor<VisitorPlugin, false, VisitorPluginTrait>;
+    using Super = lython::VisitorPlugin;
 
     using StmtRet = Super::StmtRet;
     using ExprRet = Super::ExprRet;
     using ModRet  = Super::ModRet;
     using PatRet  = Super::PatRet;
+
+    ExampleVisitor() {}
+
+    virtual ~ExampleVisitor() {}
 
 #define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
 
@@ -47,9 +36,7 @@ public:
 #undef MATCH
 #undef TYPE_GEN
 
-    virtual ~VisitorPlugin() {}
-
-#define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth) = 0;
+#define FUNCTION_GEN(name, fun, ret) ret fun(name##_t* n, int depth) override;
 
 #define X(name, _)
 #define SSECTION(name)
@@ -70,14 +57,5 @@ public:
 #undef FUNCTION_GEN
 };
 
-
-}  // namespace lython
-
-extern "C" {
-    typedef void* VisitorPlugin_C;
-    extern VisitorPlugin_C make_plugin();
-
-    extern void free_plugin(VisitorPlugin_C* plugin);
-}
 
 #endif
