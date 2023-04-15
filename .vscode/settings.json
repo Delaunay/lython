@@ -141,7 +141,8 @@
     "__verbose_abort": "cpp",
     "coroutine": "cpp",
     "*.ipp": "cpp",
-    "strstream": "cpp"
+    "strstream": "cpp",
+    "queue": "cpp"
   },
   "python.formatting.provider": "black",
   "files.exclude": {

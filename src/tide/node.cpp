@@ -17,7 +17,7 @@ void GraphEditor::draw() {
     ImGui::SetNextWindowPos(viewport->GetWorkPos());
     ImGui::SetNextWindowSize(viewport->GetWorkSize());
     ImGui::SetNextWindowViewport(viewport->ID);
-#else
+#else 
     ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 #endif
@@ -34,7 +34,7 @@ void GraphEditor::draw() {
                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
+ 
     drawgrid();
 
     ImGui::PushItemWidth(120.0f);
@@ -199,7 +199,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiIO&    io        = ImGui::GetIO();
 
-    ImGui::PushID(node->id);
+    ImGui::PushID(int(node->id));
 
     ImVec2       node_rect_min = offset + node->pos;  // Parent offset
     static float value;
@@ -282,7 +282,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
 
         new_width  = std::max(new_width, v.x + pin_radius);
         new_height = std::max(new_height, v.y);
-        int s      = line_width - v.x;
+        float s    = line_width - v.x;
 
         ImGui::SetCursorPos(start + ImVec2(s, v.y / 2));
         ImGui::Text("%s", name);
@@ -332,8 +332,8 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     // ---------
     ImVec2 Pos          = node->pos;
     ImVec2 Size         = node->size;
-    int    InputsCount  = node->inputs.size();
-    int    OutputsCount = node->outputs.size();
+    std::size_t    InputsCount  = node->inputs.size();
+    std::size_t    OutputsCount = node->outputs.size();
 
     auto GetInputSlotPos = [=](int slot_no) -> ImVec2 {
         return ImVec2(Pos.x, Pos.y + Size.y * ((float)slot_no + 1) / ((float)InputsCount + 1));
@@ -365,7 +365,7 @@ void GraphEditor::draw(Pin* pin, ImVec2 center) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->ChannelsSetCurrent(1);
 
-    ImGui::PushID(pin->id);
+    ImGui::PushID(int(pin->id));
 
     ImVec2 radius  = ImVec2(1, 1) * pin_radius;
     bool   hovered = false;
@@ -377,9 +377,9 @@ void GraphEditor::draw(Pin* pin, ImVec2 center) {
     ImRect bb(pos, pos + size);
 
     ImGui::ItemSize(size, 10);
-    ImGui::ItemAdd(bb, pin->id);
+    ImGui::ItemAdd(bb, int(pin->id));
     ImGui::ButtonBehavior(ImRect(center - radius, center + radius),  //
-                          pin->id,                                   //
+                          int(pin->id),                                   //
                           &hovered,                                  //
                           &held,                                     //
                           flags                                      //

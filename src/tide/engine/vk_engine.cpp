@@ -391,7 +391,7 @@ void VulkanEngine::init_imgui() {
     pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     pool_info.maxSets                    = 1000;
-    pool_info.poolSizeCount              = std::size(pool_sizes);
+    pool_info.poolSizeCount              = uint32_t(std::size(pool_sizes));
     pool_info.pPoolSizes                 = pool_sizes;
 
     VkDescriptorPool imguiPool;
@@ -524,10 +524,10 @@ void VulkanEngine::init_framebuffers() {
     // images for rendering
     VkFramebufferCreateInfo fb_info = vkinit::framebuffer_create_info(_renderPass, _windowExtent);
 
-    const uint32_t swapchain_imagecount = _swapchainImages.size();
+    const std::size_t swapchain_imagecount = _swapchainImages.size();
     _framebuffers                       = std::vector<VkFramebuffer>(swapchain_imagecount);
 
-    for (int i = 0; i < swapchain_imagecount; i++) {
+    for (std::size_t i = 0; i < swapchain_imagecount; i++) {
 
         VkImageView attachments[2];
         attachments[0] = _swapchainImageViews[i];
@@ -723,12 +723,12 @@ void VulkanEngine::init_pipelines() {
     // connect the pipeline builder vertex input info to the one we get from Vertex
     pipelineBuilder._vertexInputInfo.pVertexAttributeDescriptions =
         vertexDescription.attributes.data();
-    pipelineBuilder._vertexInputInfo.vertexAttributeDescriptionCount =
-        vertexDescription.attributes.size();
+    pipelineBuilder._vertexInputInfo.vertexAttributeDescriptionCount = uint32_t(
+        vertexDescription.attributes.size());
 
     pipelineBuilder._vertexInputInfo.pVertexBindingDescriptions = vertexDescription.bindings.data();
-    pipelineBuilder._vertexInputInfo.vertexBindingDescriptionCount =
-        vertexDescription.bindings.size();
+    pipelineBuilder._vertexInputInfo.vertexBindingDescriptionCount =uint32_t(
+        vertexDescription.bindings.size());
 
     // build the mesh triangle pipeline
     VkPipeline meshPipeline = pipelineBuilder.build_pipeline(_device, _renderPass);
@@ -835,7 +835,7 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, VkRenderPass pass) {
     pipelineInfo.sType                        = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.pNext                        = nullptr;
 
-    pipelineInfo.stageCount          = _shaderStages.size();
+    pipelineInfo.stageCount          = uint32_t(_shaderStages.size());
     pipelineInfo.pStages             = _shaderStages.data();
     pipelineInfo.pVertexInputState   = &_vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &_inputAssembly;
@@ -1112,7 +1112,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd, RenderObject* first, int co
     char* sceneData;
     vmaMapMemory(_allocator, _sceneParameterBuffer._allocation, (void**)&sceneData);
 
-    int frameIndex = _frameNumber % FRAME_OVERLAP;
+    std::size_t frameIndex = _frameNumber % FRAME_OVERLAP;
 
     sceneData += pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
 
@@ -1144,7 +1144,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd, RenderObject* first, int co
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipeline);
             lastMaterial = object.material;
 
-            uint32_t uniform_offset = pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex;
+            uint32_t uniform_offset = uint32_t(pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex);
             vkCmdBindDescriptorSets(cmd,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     object.material->pipelineLayout,
@@ -1200,7 +1200,7 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd, RenderObject* first, int co
             lastMesh = object.mesh;
         }
         // we can now draw
-        vkCmdDraw(cmd, object.mesh->_vertices.size(), 1, 0, i);
+        vkCmdDraw(cmd, uint32_t(object.mesh->_vertices.size()), 1, 0, uint32_t(i));
     }
 }
 

@@ -16,7 +16,10 @@ ADD_EXECUTABLE(
     engine/vk_initializers.cpp
     engine/vk_mesh.cpp
     engine/vk_textures.cpp
+
+    ${BACKWARD_ENABLE}
 )
+add_backward(tide)
 
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC .)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC engine)

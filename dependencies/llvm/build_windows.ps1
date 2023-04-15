@@ -16,16 +16,23 @@ $env:INSTALL_DIR="G:/llvm-install"
 
 $LLVM_ARGS = "-DCMAKE_INSTALL_PREFIX=${env:INSTALL_DIR} -DLLVM_ENABLE_PROJECTS=clang -A x64 -Thost=x64"
 $TARGETS = "X86;AMDGPU;NVPTX;WebAssembly"
+$OLD = "$pwd"
 
 # 
-cd $env:BUILD_DIR
-cmake -DCMAKE_BUILD_TYPE=Debug -G "Visual Studio 17 2022" $LLVM_ARGS -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
+New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/Debug
+cd $env:BUILD_DIR/Debug
+cmake -G "Visual Studio 17 2022" $LLVM_ARGS -DCMAKE_BUILD_TYPE=Debug -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
 cmake --build . 
 
-cmake -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" $LLVM_ARGS -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
-cmake --build . 
-
-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G "Visual Studio 17 2022" $LLVM_ARGS -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
-cmake --build . 
-
+New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/Release
+cd $env:BUILD_DIR/Release
+cmake -G "Visual Studio 17 2022" $LLVM_ARGS -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
+cmake --build . --config Release
 cmake -DCMAKE_INSTALL_PREFIX="$env:INSTALL_DIR" -P cmake_install.cmake
+
+New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/RelWithDebInfo
+cd $env:BUILD_DIR/RelWithDebInfo
+cmake  -G "Visual Studio 17 2022" $LLVM_ARGS -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
+cmake --build . --config RelWithDebInfo
+
+cd $OLD

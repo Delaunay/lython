@@ -119,7 +119,7 @@ constexpr unsigned int FRAME_OVERLAP = 2;
 class VulkanEngine {
     public:
     bool _isInitialized{false};
-    int  _frameNumber{0};
+    std::size_t  _frameNumber{0};
     int  _selectedShader{0};
 
     VkExtent2D _windowExtent{1700, 900};
