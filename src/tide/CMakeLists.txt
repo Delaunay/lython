@@ -10,6 +10,7 @@ ADD_EXECUTABLE(
     imgui_unity.cpp
     example.cpp
     node.cpp
+    bezier.cpp
 
     engine/vk_engine.cpp
     engine/vk_initializers.cpp

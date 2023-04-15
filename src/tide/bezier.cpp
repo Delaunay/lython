@@ -10,6 +10,8 @@
 //   Written by Michal Cichon
 //------------------------------------------------------------------------------
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui_extra_math.h"
 #include "bezier.h"
 
 ImProjectResult ImProjectOnCubicBezier(const ImVec2& point, const ImVec2& p0, const ImVec2& p1, const ImVec2& p2, const ImVec2& p3, const int subdivisions)
