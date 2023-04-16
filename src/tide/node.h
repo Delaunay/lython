@@ -66,6 +66,8 @@ struct Link {
         to->connected   = true;
     }
 
+    std::string name;
+    
     Pin* from;
     Pin* to;
 };
@@ -85,6 +87,23 @@ struct Node: public Base {
     std::vector<Pin> outputs;
 
     Layout layout;
+
+    // -----
+    Pin* exec_in() {
+        for(Pin& p : inputs) {
+            if (p.type == PinType::Flow)
+                return &p;
+        }
+        return nullptr;
+    }
+
+    Pin* exec_out() {
+        for(Pin& p : outputs) {
+            if (p.type == PinType::Flow)
+                return &p;
+        }
+        return nullptr;
+    }
 };
 
 // Statement

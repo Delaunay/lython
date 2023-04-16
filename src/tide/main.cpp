@@ -50,7 +50,7 @@ class App: public VulkanEngine {
 		// -- NODE 2
         Node& n2 = tree.nodes.emplace_back();
         n2.pos = ImVec2(300, 100);
-        n2.name = "Second Node";
+        n2.name = "+";
         Pin& p2 = n2.inputs.emplace_back();
 		p2.name = "b";
 
@@ -70,12 +70,10 @@ class App: public VulkanEngine {
     void handle_event(SDL_Event const& event) {}
 
     void tick(float dt) {
-        ImGui::Begin("EditorFrame");
         editor.draw();
-        ImGui::End();
 
-        bool opened = true;
-        ShowExampleAppCustomNodeGraph(&opened);
+        //bool opened = true;
+        //ShowExampleAppCustomNodeGraph(&opened);
     }
 
     void end() {

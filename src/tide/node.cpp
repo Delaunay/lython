@@ -17,7 +17,7 @@ void GraphEditor::draw() {
     ImGui::SetNextWindowPos(viewport->GetWorkPos());
     ImGui::SetNextWindowSize(viewport->GetWorkSize());
     ImGui::SetNextWindowViewport(viewport->ID);
-#else 
+#else
     ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 #endif
@@ -34,7 +34,7 @@ void GraphEditor::draw() {
                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
- 
+
     drawgrid();
 
     ImGui::PushItemWidth(120.0f);
@@ -223,6 +223,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
 
     _size = ImRect();
 
+    // Inputs
     for (int slot_idx = 0; slot_idx < node->inputs.size(); slot_idx++) {
         Pin& pin = node->inputs[slot_idx];
 
@@ -233,7 +234,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         if (pin.kind == PinKind::Flow) {
             name = node->name.c_str();
         }
-        
+
         draw(&pin, center);
         ImGui::SetCursorPos(start + ImVec2(pin_radius + pin_label_margin, -txt.y / 2));
 
@@ -246,18 +247,32 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
             ImGui::PopItemWidth();
 
             s = ImGui::GetItemRectSize();
-        } 
+        }
 
         ImVec2 v   = ImGui::CalcTextSize(name);
         new_height = std::max(new_height, v.y);
-        new_width  = std::max(new_width, v.x + s.x + pin_radius);
+        new_width  = std::max(new_width, v.x + s.x);
         start.y += line_height;
     }
     node->layout.input.y = new_height;
-    node->layout.input.x = new_width + pin_label_margin;
+    node->layout.input.x = new_width + pin_radius;
 
     ImGui::EndGroup();
 
+    //
+    if (node->exec_in() == nullptr) {
+        const char* name  = node->name.c_str();
+        ImVec2 sz         = ImGui::CalcTextSize(name) + ImVec2(txt.x, 0);  
+        // ImVec2 sz(txt.x * (node->name.size() + 2), txt.y);
+        ImVec2 center = node->size / 2 + ImVec2(-sz.x/2, -sz.y / 2);
+
+        ImGui::SetCursorPos(center + node->pos);
+        ImGui::Text("%s", name);
+
+        node->layout.input.x = new_width + sz.x + 2 * pin_radius;
+    }
+
+    // Ouputs
     ImGui::SameLine();
     ImGui::BeginGroup();
     // Output Column
@@ -328,36 +343,6 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     draw_list->AddRectFilled(node_rect_min, node_rect_max, node_bg_color, 4.0f);
     draw_list->AddRect(node_rect_min, node_rect_max, node_outline_color, 4.0f);
 
-    // Draw Pins
-    // ---------
-    ImVec2 Pos          = node->pos;
-    ImVec2 Size         = node->size;
-    std::size_t    InputsCount  = node->inputs.size();
-    std::size_t    OutputsCount = node->outputs.size();
-
-    auto GetInputSlotPos = [=](int slot_no) -> ImVec2 {
-        return ImVec2(Pos.x, Pos.y + Size.y * ((float)slot_no + 1) / ((float)InputsCount + 1));
-    };
-    auto GetOutputSlotPos = [=](int slot_no) -> ImVec2 {
-        return ImVec2(Pos.x + Size.x,
-                      Pos.y + Size.y * ((float)slot_no + 1) / ((float)OutputsCount + 1));
-    };
-
-    // for (int slot_idx = 0; slot_idx < node->inputs.size(); slot_idx++) {
-    //     Pin& pin      = node->inputs[slot_idx];
-    //     pin.pos       = GetInputSlotPos(slot_idx);
-    //     ImVec2 center = offset + pin.pos;
-    //     draw(&pin, center);
-    // }
-
-    // for (int slot_idx = 0; slot_idx < node->outputs.size(); slot_idx++) {
-    //     Pin& pin      = node->outputs[slot_idx];
-    //     pin.pos       = GetOutputSlotPos(slot_idx);
-    //     ImVec2 center = offset + pin.pos;
-    //     draw(&pin, center);
-    // }
-    // ---
-
     ImGui::PopID();
 }
 
@@ -379,7 +364,7 @@ void GraphEditor::draw(Pin* pin, ImVec2 center) {
     ImGui::ItemSize(size, 10);
     ImGui::ItemAdd(bb, int(pin->id));
     ImGui::ButtonBehavior(ImRect(center - radius, center + radius),  //
-                          int(pin->id),                                   //
+                          int(pin->id),                              //
                           &hovered,                                  //
                           &held,                                     //
                           flags                                      //
