@@ -82,6 +82,7 @@ struct Node: public Base {
     ImVec2      pos;
     ImVec2      size;
     std::string name;
+    bool selected = false;
 
     std::vector<Pin> inputs;
     std::vector<Pin> outputs;
@@ -165,11 +166,48 @@ struct GraphEditor: public Base {
     bool  open_context_menu  = false;
     ImU32 node_bg_color      = IM_COL32(75, 75, 75, 255);
     ImU32 node_outline_color = IM_COL32(100, 100, 100, 255);
+    ImU32 node_selected_color= IM_COL32( 50,  50, 200, 255);
+    ImU32 rectangle_color    = IM_COL32(100, 100, 200, 125);
+    bool  rectangle_select   = false;
+    ImVec2 rectangle_start;
+    ImRect rectangle_selection;
+
+    std::unordered_map<Node*, bool>  selected;
 
     ImRect _size;
     ImVec2 _offset;
 
     ImVec2 get_offset() { return _offset; }
+
+    ImVec2 estimate_size(Node& node, ImVec2 font_size = ImVec2(7, 13));
+
+    bool is_selecting() const {
+        return rectangle_select;
+    }
+    ImVec2 with_scroll(ImVec2 pos) {
+        return pos + _offset;
+    }
+
+    bool has_selection() const {
+        return selected.size() > 0;
+    }
+
+    ImRect selection_rectangle() const {
+        return rectangle_selection;
+    } 
+
+    void check_selected(Node* node) {
+        if (is_selecting()) {
+            if (selection_rectangle().Contains(ImRect(node->pos, node->size))) {
+                node->selected = true;
+                selected[node] = true;
+            }    
+            else {
+                node->selected = false;
+                selected.extract(node);
+            }
+        }
+    }
 
     private:
     struct PinStyle {
@@ -187,4 +225,29 @@ struct GraphEditor: public Base {
     void draw_round_square(PinStyle& style, ImVec2 pos, ImVec2 size);
     void draw_diamond(PinStyle& style, ImVec2 pos, ImVec2 size);
     void draw_triangle(PinStyle& style, ImVec2 pos, ImVec2 size);
+};
+
+
+
+struct TreeBuilder {
+    TreeBuilder(Tree& t):
+        tree(t)
+    {}
+
+    Node& mew_node() {
+        Node& n = tree.nodes.emplace_back();
+        return n;
+    }
+
+    Tree& tree;
+};
+
+struct GraphBuilder {
+    GraphBuilder(GraphEditor& ed):
+        editor(ed)
+    {}
+
+
+
+    GraphEditor& editor;
 };

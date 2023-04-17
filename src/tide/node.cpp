@@ -38,7 +38,7 @@ void GraphEditor::draw() {
     drawgrid();
 
     ImGui::PushItemWidth(120.0f);
-    draw_list->ChannelsSplit(2);
+    draw_list->ChannelsSplit(3);
     for (Forest& forest: forests) {
         for (Tree& tree: forest.trees) {
             current_tree = &tree;
@@ -74,29 +74,6 @@ void GraphEditor::draw() {
 void GraphEditor::handle_events(ImVec2 offset) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    // CREATE LINK
-    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-        if (selected_pin != nullptr && hovered_pin != nullptr) {
-            selected_tree->links.emplace_back(selected_pin, hovered_pin);
-        }
-        selected_pin  = nullptr;
-        hovered_pin   = nullptr;
-        selected_tree = nullptr;
-    }
-
-    // PENDING LINK
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-        if (selected_pin != nullptr) {
-            auto color = _colors[selected_pin->type];
-            draw_bezier(draw_list,
-                        selected_pin->pos + offset,
-                        ImGui::GetMousePos(),
-                        color,
-                        bezier_segments,
-                        tickness);
-        }
-    }
-
     // REMOVE LINK
     if (ImGui::IsKeyDown(ImGuiKey_LeftAlt) && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
         if (hovered_link != nullptr) {
@@ -114,6 +91,65 @@ void GraphEditor::handle_events(ImVec2 offset) {
 
             hovered_link  = nullptr;
             selected_tree = nullptr;
+        }
+
+        return;
+    }
+
+    // CREATE LINK
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+        if (selected_pin != nullptr && hovered_pin != nullptr) {
+            selected_tree->links.emplace_back(selected_pin, hovered_pin);
+        }
+        printf("Selected: %d, hovered %d, selected_tree %d\n",
+               selected_pin != nullptr,
+               hovered_pin != nullptr,
+               selected_tree != nullptr);
+        selected_pin  = nullptr;
+        hovered_pin   = nullptr;
+        selected_tree = nullptr;
+
+        selected_node       = nullptr;
+        rectangle_select    = false;
+        rectangle_selection = ImRect();
+        return;
+    }
+
+    // PENDING LINK
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        if (selected_pin != nullptr) {
+            auto color = _colors[selected_pin->type];
+            draw_bezier(draw_list,
+                        with_scroll(selected_pin->pos),
+                        ImGui::GetMousePos(),
+                        color,
+                        bezier_segments,
+                        tickness);
+            return;
+        }
+
+        if (selected_node == nullptr) {
+            if (!rectangle_select) {
+                rectangle_select = true;
+                for (auto& item: selected) {
+                    item.first->selected = false;
+                }
+                selected.clear();
+                rectangle_start = ImGui::GetMousePos();
+            }
+
+            // ImVec2 mp = ImGui::GetMousePos();
+            // ImVec2 mn = ImVec2(std::min(rectangle_start.x, mp.x),  std::min(rectangle_start.y, mp.y));
+            // ImVec2 mx = ImVec2(std::max(rectangle_start.x, mp.x),  std::max(rectangle_start.y, mp.y));
+            // rectangle_selection = ImRect(mn, mx);
+
+
+            rectangle_selection = ImRect(rectangle_start, rectangle_start);
+            rectangle_selection.Add(ImGui::GetMousePos());
+
+            draw_list->AddRectFilled(
+                rectangle_selection.GetTR(), rectangle_selection.GetBL(), rectangle_color);
+            return;
         }
     }
 }
@@ -183,8 +219,8 @@ void GraphEditor::draw(Link* link, ImVec2 offset) {
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     bool        hovered   = draw_bezier(draw_list,
-                               link->from->pos + offset,
-                               link->to->pos + offset,
+                               with_scroll(link->from->pos),
+                               with_scroll(link->to->pos),
                                color,
                                bezier_segments,
                                tickness);
@@ -193,6 +229,37 @@ void GraphEditor::draw(Link* link, ImVec2 offset) {
         hovered_link  = link;
         selected_tree = current_tree;
     }
+}
+
+ImVec2 GraphEditor::estimate_size(Node& node, ImVec2 font_size) {
+    ImRect size;
+    float  height = 0;
+    for (int i = 0; i < node.inputs.size(); i++) {
+        if (node.inputs[i].name.empty())
+            continue;
+
+        ImVec2 v = font_size * ImVec2(node.inputs[i].name.size(), 1);
+
+        height += v.y;
+        size.Add(v + ImVec2(pin_radius * 4, height));
+    }
+
+    ImVec2 v = font_size * ImVec2(node.name.size(), 1);
+    size.Add(v + ImVec2(pin_radius * 4, height));
+
+    ImVec2 col1 = size.GetSize();
+
+    height = 0;
+    for (int i = 0; i < node.outputs.size(); i++) {
+        if (node.outputs[i].name.empty())
+            continue;
+
+        ImVec2 v = font_size * ImVec2(node.outputs[i].name.size(), 1);
+        height += v.y;
+        size.Add(v + ImVec2(col1.x, height) + ImVec2(pin_radius * 2, 0));
+    }
+
+    return size.GetSize();
 }
 
 void GraphEditor::draw(Node* node, ImVec2 offset) {
@@ -206,7 +273,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     bool         old_any_active = ImGui::IsAnyItemActive();
 
     // Content
-    draw_list->ChannelsSetCurrent(1);
+    draw_list->ChannelsSetCurrent(2);
     // ImGui::SetCursorScreenPos(node_rect_min + ImVec2(1, 1) * 0* node_padding);
 
     ImGui::SetCursorPos(node->pos + ImVec2(1, 1) * pin_radius + ImVec2(1, 1) * node_padding);
@@ -218,7 +285,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     float  line_height = node->layout.input.y;
     float  line_width  = node->layout.input.x;
     ImVec2 start       = ImGui::GetCursorPos();
-    float  new_width   = pin_radius;
+    float  new_width   = pin_radius / 2;
     float  new_height  = std::max(pin_radius * 2, txt.y);
 
     _size = ImRect();
@@ -227,16 +294,15 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     for (int slot_idx = 0; slot_idx < node->inputs.size(); slot_idx++) {
         Pin& pin = node->inputs[slot_idx];
 
-        pin.pos       = start;
-        ImVec2 center = offset + pin.pos;
+        pin.pos = start;
 
         const char* name = pin.name.c_str();
         if (pin.kind == PinKind::Flow) {
             name = node->name.c_str();
         }
 
-        draw(&pin, center);
-        ImGui::SetCursorPos(start + ImVec2(pin_radius + pin_label_margin, -txt.y / 2));
+        draw(&pin, with_scroll(pin.pos));
+        ImGui::SetCursorPos(with_scroll(start + ImVec2(pin_radius + pin_label_margin, -txt.y / 2)));
 
         ImGui::Text("%s", name);
         ImVec2 s(0, 0);
@@ -258,15 +324,22 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     node->layout.input.x = new_width + pin_radius;
 
     ImGui::EndGroup();
+    ImVec2 s = ImGui::GetItemRectSize();
 
     //
     if (node->exec_in() == nullptr) {
-        const char* name  = node->name.c_str();
-        ImVec2 sz         = ImGui::CalcTextSize(name) + ImVec2(txt.x, 0);  
-        // ImVec2 sz(txt.x * (node->name.size() + 2), txt.y);
-        ImVec2 center = node->size / 2 + ImVec2(-sz.x/2, -sz.y / 2);
+        const char* name = node->name.c_str();
 
-        ImGui::SetCursorPos(center + node->pos);
+        ImVec2 sz = ImGui::CalcTextSize(name) + ImVec2(txt.x, 0);
+        // ImVec2 sz(txt.x * (node->name.size() + 2), txt.y);
+
+        // ImVec2 center = ImVec2(
+        //     node->layout.input.x,
+        //     (node->size.y - sz.y )/ 2.f
+        // );
+        ImVec2 center = node->size / 2 + ImVec2(-sz.x / 2, -sz.y / 2);
+
+        ImGui::SetCursorPos(with_scroll(center + node->pos));
         ImGui::Text("%s", name);
 
         node->layout.input.x = new_width + sz.x + 2 * pin_radius;
@@ -299,12 +372,12 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         new_height = std::max(new_height, v.y);
         float s    = line_width - v.x;
 
-        ImGui::SetCursorPos(start + ImVec2(s, v.y / 2));
+        ImGui::SetCursorPos(with_scroll(start + ImVec2(s, v.y / 2)));
         ImGui::Text("%s", name);
 
         pin.pos = start + ImVec2(line_width + pin_label_margin, 0) + ImVec2(1, 1) * pin_radius +
                   ImVec2(0, 0);
-        draw(&pin, pin.pos + offset);
+        draw(&pin, with_scroll(pin.pos));
 
         start.y += line_height;
     }
@@ -318,10 +391,10 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     ImVec2 node_rect_max = node_rect_min + node->size;
 
     // Background
-    draw_list->ChannelsSetCurrent(0);
+    draw_list->ChannelsSetCurrent(1);
     // ImGui::SetCursorScreenPos(node_rect_min);
 
-    ImGui::SetCursorPos(node->pos);
+    ImGui::SetCursorPos(with_scroll(node->pos));
     ImGui::InvisibleButton("node", node->size);
     /// ---
 
@@ -336,41 +409,61 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     if (node_widgets_active || node_moving_active)
         selected_node = node;
 
-    if (node_moving_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-        node->pos = node->pos + io.MouseDelta;
+    if (node_moving_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        
+        if (!has_selection()) {
+            node->pos = node->pos + io.MouseDelta;
+        } else {
+            for (auto& item: selected) {
+                item.first->pos = item.first->pos + io.MouseDelta;
+            }
+        }
+    }
+
     // ----
 
     draw_list->AddRectFilled(node_rect_min, node_rect_max, node_bg_color, 4.0f);
-    draw_list->AddRect(node_rect_min, node_rect_max, node_outline_color, 4.0f);
+    draw_list->AddRect(node_rect_min,
+                       node_rect_max,
+                       node->selected ? node_selected_color : node_outline_color,
+                       4.0f,
+                       0,
+                       node->selected ? 4.0f : 1.0f);
+    check_selected(node);
 
     ImGui::PopID();
 }
 
 void GraphEditor::draw(Pin* pin, ImVec2 center) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    draw_list->ChannelsSetCurrent(1);
+    draw_list->ChannelsSetCurrent(2);
 
     ImGui::PushID(int(pin->id));
 
     ImVec2 radius  = ImVec2(1, 1) * pin_radius;
     bool   hovered = false;
     bool   held    = false;
-    auto   flags   = ImGuiButtonFlags_PressedOnClick;
+    auto   flags   = ImGuiButtonFlags_NoHoldingActiveId;
 
     ImVec2 pos  = center - radius - get_offset();
     ImVec2 size = radius * 2;
     ImRect bb(pos, pos + size);
 
+    ImGui::SetCursorPos(with_scroll(pos));
     ImGui::ItemSize(size, 10);
     ImGui::ItemAdd(bb, int(pin->id));
-    ImGui::ButtonBehavior(ImRect(center - radius, center + radius),  //
-                          int(pin->id),                              //
-                          &hovered,                                  //
-                          &held,                                     //
-                          flags                                      //
+    ImGui::ButtonBehavior(                         //
+        ImRect(center - radius, center + radius),  //
+        int(pin->id),                              //
+        &hovered,                                  //
+        &held,                                     //
+        flags                                      //
     );
 
-    // ImGui::SetCursorPos(pos);
+    // ButtonBehavior hovered does not work well
+    hovered = bb.Contains(ImGui::GetMousePos());
+
+    // ImGui::SetCursorPos(with_scroll(pos));
     // ImGui::Button("", size);
 
     _size.Add(pos);
@@ -381,7 +474,7 @@ void GraphEditor::draw(Pin* pin, ImVec2 center) {
         selected_tree = current_tree;
     }
 
-    if (hovered && pin != selected_pin) {
+    if (hovered) {
         hovered_pin = pin;
     }
 

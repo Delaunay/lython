@@ -46,14 +46,15 @@ class App: public VulkanEngine {
 
 		Pin& p1 = n1.outputs.emplace_back();
 		p1.name = "z";
+        ImVec2 s1 = editor.estimate_size(n1);
 
 		// -- NODE 2
         Node& n2 = tree.nodes.emplace_back();
-        n2.pos = ImVec2(300, 100);
+        n2.pos = s1 * ImVec2(1, 0) + ImVec2(40, 10);
         n2.name = "+";
         Pin& p2 = n2.inputs.emplace_back();
 		p2.name = "b";
-
+        tree.links.emplace_back(&p1, &p2);		
         {
 			Pin& p = n2.outputs.emplace_back();
 			p.name = "a";
@@ -64,7 +65,41 @@ class App: public VulkanEngine {
 			p.name = "c";
 		}
 
-		tree.links.emplace_back(&p1, &p2);		
+        {
+            Node& n3 = tree.nodes.emplace_back();
+            n3.pos = ImVec2(600, 100);
+            n3.name = "Pure Function";
+            Pin& p3 = n3.outputs.emplace_back();
+            p3.name = "b";
+        }
+
+        // Condition
+        {
+            Node& n = tree.nodes.emplace_back();
+            n.pos = ImVec2(600, 100);
+            n.name = "Cond";
+
+            {
+                Pin& p = n.inputs.emplace_back();
+                p.kind = PinKind::Flow;
+                p.type = PinType::Flow;
+            }
+
+            {
+                Pin& p = n.outputs.emplace_back();
+                p.kind = PinKind::Flow;
+                p.type = PinType::Flow;
+                p.name = "True";
+            }
+
+            {
+                Pin& p = n.outputs.emplace_back();
+                p.kind = PinKind::Flow;
+                p.type = PinType::Flow;
+                p.name = "False";
+            }
+        }
+        
     }
 
     void handle_event(SDL_Event const& event) {}
