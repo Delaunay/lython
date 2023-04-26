@@ -46,12 +46,17 @@ void VulkanEngine::init() {
 
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
 
+    assert(_window == nullptr);
     _window = SDL_CreateWindow("Vulkan Engine",
                                SDL_WINDOWPOS_UNDEFINED,
                                SDL_WINDOWPOS_UNDEFINED,
                                _windowExtent.width,
                                _windowExtent.height,
                                window_flags);
+
+    if (_window == nullptr) {
+        throw std::runtime_error(SDL_GetError());
+    }
 
     init_vulkan();
 
@@ -276,12 +281,15 @@ void VulkanEngine::init_vulkan() {
     _instance        = vkb_inst.instance;
     _debug_messenger = vkb_inst.debug_messenger;
 
-    SDL_Vulkan_CreateSurface(_window, _instance, &_surface);
+    if (SDL_Vulkan_CreateSurface(_window, _instance, &_surface) == SDL_FALSE) {
+        const char* msg = SDL_GetError();
+        throw std::runtime_error(std::string("Surface creation failed: ") + std::string(msg));
+    }
 
     // use vkbootstrap to select a gpu.
     // We want a gpu that can write to the SDL surface and supports vulkan 1.2
     vkb::PhysicalDeviceSelector selector{vkb_inst};
-    auto physicalDeviceResult  = selector.set_minimum_version(1, 1).set_surface(_surface).select();
+    auto physicalDeviceResult = selector.set_minimum_version(1, 1).set_surface(_surface).select();
     if (!physicalDeviceResult) {
         throw std::runtime_error("Physical device failed");
     }
@@ -290,7 +298,7 @@ void VulkanEngine::init_vulkan() {
 
     // create the final vulkan device
     vkb::DeviceBuilder deviceBuilder{physicalDevice};
-    auto vkbDeviceResult = deviceBuilder.build();
+    auto               vkbDeviceResult = deviceBuilder.build();
     if (!vkbDeviceResult) {
         throw std::runtime_error("Device failed");
     }
@@ -308,7 +316,7 @@ void VulkanEngine::init_vulkan() {
     }
     _graphicsQueue = graphicsQueueResult.value();
     // ---
- 
+
     auto graphicsQueueFamilyResult = vkbDevice.get_queue_index(vkb::QueueType::graphics);
     if (!graphicsQueueFamilyResult) {
         throw std::runtime_error("Graphic Queue family not found");
@@ -542,7 +550,7 @@ void VulkanEngine::init_framebuffers() {
     VkFramebufferCreateInfo fb_info = vkinit::framebuffer_create_info(_renderPass, _windowExtent);
 
     const std::size_t swapchain_imagecount = _swapchainImages.size();
-    _framebuffers                       = std::vector<VkFramebuffer>(swapchain_imagecount);
+    _framebuffers                          = std::vector<VkFramebuffer>(swapchain_imagecount);
 
     for (std::size_t i = 0; i < swapchain_imagecount; i++) {
 
@@ -740,12 +748,12 @@ void VulkanEngine::init_pipelines() {
     // connect the pipeline builder vertex input info to the one we get from Vertex
     pipelineBuilder._vertexInputInfo.pVertexAttributeDescriptions =
         vertexDescription.attributes.data();
-    pipelineBuilder._vertexInputInfo.vertexAttributeDescriptionCount = uint32_t(
-        vertexDescription.attributes.size());
+    pipelineBuilder._vertexInputInfo.vertexAttributeDescriptionCount =
+        uint32_t(vertexDescription.attributes.size());
 
     pipelineBuilder._vertexInputInfo.pVertexBindingDescriptions = vertexDescription.bindings.data();
-    pipelineBuilder._vertexInputInfo.vertexBindingDescriptionCount =uint32_t(
-        vertexDescription.bindings.size());
+    pipelineBuilder._vertexInputInfo.vertexBindingDescriptionCount =
+        uint32_t(vertexDescription.bindings.size());
 
     // build the mesh triangle pipeline
     VkPipeline meshPipeline = pipelineBuilder.build_pipeline(_device, _renderPass);
@@ -1161,7 +1169,8 @@ void VulkanEngine::draw_objects(VkCommandBuffer cmd, RenderObject* first, int co
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, object.material->pipeline);
             lastMaterial = object.material;
 
-            uint32_t uniform_offset = uint32_t(pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex);
+            uint32_t uniform_offset =
+                uint32_t(pad_uniform_buffer_size(sizeof(GPUSceneData)) * frameIndex);
             vkCmdBindDescriptorSets(cmd,
                                     VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     object.material->pipelineLayout,

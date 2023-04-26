@@ -24,7 +24,7 @@ add_backward(tide)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC .)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC engine)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui)
-
+# TARGET_INCLUDE_DIRECTORIES(tide PUBLIC /home/newton/work/lython/dependencies/SDL/include)
 
 
 IF(WIN32) 
@@ -36,6 +36,15 @@ TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui/ba
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor)
 TARGET_LINK_LIBRARIES(tide vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY})
 TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan SDL2::SDL2-static SDL2::SDL2main)
+
+# TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan 
+#     /home/newton/work/lython/build/lib/libSDL2d.a 
+#     /home/newton/work/lython/build/lib/libSDL2maind.a
+# )
+
+
+get_target_property(OUT SDL2::SDL2-static  LINK_LIBRARIES)
+message(STATUS ${OUT})
 
 FILE(GLOB_RECURSE SHADERS_SRC *.frag *.vert)
 
