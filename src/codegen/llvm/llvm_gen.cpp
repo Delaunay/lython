@@ -247,6 +247,19 @@ ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 
     // clang-format off
     switch (n->value.get_kind()) {
+    #if 1
+    case ConstantValue::Ti8:  return ConstantFP::get(*context, APFloat((Ty)val.get<int8>   ()));
+    case ConstantValue::Ti16: return ConstantFP::get(*context, APFloat((Ty)val.get<int16>  ()));
+    case ConstantValue::Ti32: return ConstantFP::get(*context, APFloat((Ty)val.get<int32>  ()));
+    case ConstantValue::Ti64: return ConstantFP::get(*context, APFloat((Ty)val.get<int64>  ()));
+    case ConstantValue::Tu8:  return ConstantFP::get(*context, APFloat((Ty)val.get<uint8>  ()));
+    case ConstantValue::Tu16: return ConstantFP::get(*context, APFloat((Ty)val.get<uint16> ()));
+    case ConstantValue::Tu32: return ConstantFP::get(*context, APFloat((Ty)val.get<uint32> ()));
+    case ConstantValue::Tu64: return ConstantFP::get(*context, APFloat((Ty)val.get<uint64> ()));
+    case ConstantValue::Tf32: return ConstantFP::get(*context, APFloat((Ty)val.get<float32>()));
+    case ConstantValue::Tf64: return ConstantFP::get(*context, APFloat((Ty)val.get<float64>()));
+    case ConstantValue::TBool:return ConstantFP::get(*context, APFloat((Ty)val.get<int8>   ()));
+    #else
     case ConstantValue::Ti8:  return ConstantInt::get(*context, APInt(8,  (int8)   val.get<int8>   (), true));
     case ConstantValue::Ti16: return ConstantInt::get(*context, APInt(16, (int16)  val.get<int16>  (), true));
     case ConstantValue::Ti32: return ConstantInt::get(*context, APInt(32, (int32)  val.get<int32>  (), true));
@@ -258,6 +271,7 @@ ExprRet LLVMGen::constant(Constant_t* n, int depth) {
     case ConstantValue::Tf32: return ConstantFP ::get(*context, APFloat(  (float32)val.get<float32>()));
     case ConstantValue::Tf64: return ConstantFP ::get(*context, APFloat(  (float64)val.get<float64>()));
     case ConstantValue::TBool:return ConstantInt::get(*context, APInt(8,  (int8)   val.get<int8>   ()));
+    #endif
     }
     // clang-format on
 
@@ -272,6 +286,20 @@ ExprRet LLVMGen::subscript(Subscript_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::starred(Starred_t* n, int depth) { return ExprRet(); }
 
 ExprRet LLVMGen::name(Name_t* n, int depth) {
+
+    if (n->ctx == ExprContext::Store) 
+    {
+        Function* fundef = builder->GetInsertBlock()->getParent();
+        IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
+        AllocaInst* variable         = allocabuilder.CreateAlloca(  //
+            Type::getDoubleTy(*context),                   //
+            nullptr,                                       //
+            tostr(n->id)                                   //
+        );
+        index_to_index[n->id] = named_values.size();
+        named_values.push_back(variable);
+        return variable;
+    }
 
     auto index = index_to_index[n->id];
     kwinfo("Size: {} varid: {} index: {}", named_values.size(), n->varid, index);
@@ -290,7 +318,8 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
     }
 
     // Load the value.
-    return builder->CreateLoad(value->getType(), value, tostr(n->id));
+    // return builder->CreateLoad(value, tostr(n->id));
+    return builder->CreateLoad(value->getType()->getPointerElementType(), value, tostr(n->id));
 }
 
 ExprRet LLVMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }

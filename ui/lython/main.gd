@@ -2,7 +2,7 @@ extends Panel
 
 
 func set_layout_size():
-	var size = $Page/Body.rect_size
+	var size = $Page/Body.size
 
 	var left_split = $Page/Body/LeftSplit
 	var left_panel = $Page/Body/LeftSplit/LeftPanel
@@ -15,8 +15,8 @@ func set_layout_size():
 	var panel_size = size.x * pct
 
 	# Works more or less
-	left_split.split_offset = -left_panel.rect_size.x + panel_size
-	right_split.split_offset = -main.rect_size.x + main_size
+	left_split.split_offset = -left_panel.size.x + panel_size
+	right_split.split_offset = -main.size.x + main_size
 
 
 func _ready():

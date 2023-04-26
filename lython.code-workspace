@@ -11,6 +11,8 @@
 		"files.associations": {
 			"*.rst": "reStructuredText",
 			"*.usf": "cpp",
+			"*.ly": "python",
+			"*.kw": "python",
 			"cctype": "cpp",
 			"clocale": "cpp",
 			"cmath": "cpp",
@@ -129,7 +131,8 @@
 			"coroutine": "cpp",
 			"*.ipp": "cpp",
 			"queue": "cpp",
-			"__memory": "cpp"
+			"__memory": "cpp",
+			"strstream": "cpp"
 		}
 	}
 }

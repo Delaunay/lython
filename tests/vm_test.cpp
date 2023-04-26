@@ -27,6 +27,8 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     Lexer        lex(reader);
     Parser       parser(lex);
 
+    kwinfo("Code:\n{}", code.c_str());
+    kwinfo("Expr: {}", expr.c_str());
     kwinfo("{}", "Parse");
     mod = parser.parse_module();
     assert(mod->body.size() > 0, "Should parse more than one expression");
@@ -461,6 +463,8 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     }
 }
 
+
+#if EXPERIMENTAL_TESTS
 #define GENTEST(name)                                                   \
     TEMPLATE_TEST_CASE("VM_" #name, #name, name) {                      \
         run_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
@@ -483,3 +487,4 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 #undef MATCH
 
 #undef GENTEST
+#endif

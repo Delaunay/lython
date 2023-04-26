@@ -66,16 +66,16 @@ ENDIF()
 
 IF(UNIX)
     MESSAGE(" * Platform: Unix")
-    SET(BUILD_UNIX 1) 
-ENDIF()
-
-IF(WIN32)
+    SET(BUILD_UNIX 1)
+    SET(WITH_LOG 1)
+ELSEIF(WIN32)
     MESSAGE(" * Platform: Windows")
     SET(BUILD_WINDOWS 1)
 
     # Disable not supported features
     SET(WITH_COZ 0)
     SET(WITH_COVERAGE 0)
+    SET(WITH_LOG 1)
 ENDIF()
 
 # Binary/pre-compiled Dependencies
@@ -95,6 +95,7 @@ FIND_PACKAGE(Git REQUIRED)
 # Find revision ID and hash of the sourcetree
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
+INCLUDE(ConfigureLLVM)
 
 IF(UNIX AND WITH_COVERAGE)
     INCLUDE(CodeCoverage)

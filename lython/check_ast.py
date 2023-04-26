@@ -30,4 +30,21 @@ def fun(a, b, c=1, *args, d=e, f=g, **kwargs):
 call(a, b, c=1, *args, d=e, f=c, **kwargs)
 """
 
+
+
+code = """
+a = f"{100:1d} normal  {1.123:10.2f} normal {'str':>25}"
+"""
+
+
+code = """
+d = 4
+n = f'{1:0d}'
+"""
 show(code)
+
+
+n = 1.123
+a = f'{n:c=+#0.2f}'
+print()
+print(a)

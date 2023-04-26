@@ -11,6 +11,13 @@
 int main(int argc, char* argv[]) {
     using namespace lython;
 
+    set_log_level(LogLevel::Trace, true);
+    set_log_level(LogLevel::Debug, true);
+    set_log_level(LogLevel::Info, true);
+    set_log_level(LogLevel::Warn, true);
+    set_log_level(LogLevel::Error, true);
+    set_log_level(LogLevel::Fatal, true);
+
     register_globals();
     show_alloc_stats_on_destroy(true);
     show_string_stats_on_destroy(true);

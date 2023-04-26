@@ -359,8 +359,10 @@ struct Equality {
         return exec(a->values, b->values, depth);
     }
     bool formattedvalue(FormattedValue* a, FormattedValue* b, int depth) {
-        return exec(a->value, b->value, depth) && exec(a->conversion, b->conversion, depth) &&
-               exec(a->format_spec, b->format_spec, depth);
+        return true                                             //
+            && exec(a->value, b->value, depth)                  //
+            && exec(a->conversion, b->conversion, depth)        //
+            && exec(a->format_spec->values, b->format_spec->values, depth);     //
     }
     bool attribute(Attribute* a, Attribute* b, int depth) {
         return exec(a->value, b->value, depth) && exec(a->attr, b->attr, depth) /* &&

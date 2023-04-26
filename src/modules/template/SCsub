@@ -1,0 +1,19 @@
+# SCsub
+
+Import('env')
+
+# module_env = env.Clone()
+# module_env.add_source_files(env.modules_sources, "*.cpp")
+# # Append CCFLAGS flags for both C and C++ code.
+# module_env.Append(CCFLAGS=['-O2'])
+# # If you need to, you can:
+# # - Append CFLAGS for C code only.
+# # - Append CXXFLAGS for C++ code only.
+
+env.add_source_files(env.modules_sources, "*.cpp") # Add all cpp files to the build
+
+src_list = ["summator.cpp", "other.cpp", "etc.cpp"]
+env.add_source_files(env.modules_sources, src_list)
+
+env.Append(CPPPATH=["mylib/include"]) # this is a relative path
+env.Append(CPPPATH=["#myotherlib/include"]) # this is an 'absolute' path

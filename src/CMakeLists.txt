@@ -51,6 +51,7 @@ SET(ADD_HEADERS
     lowering/lowering.h
     parser/parser.h
     parser/parsing_error.h
+    parser/format_spec.h
     sema/sema.h
     vm/tree.h
     vm/garbage_collector.h
@@ -91,6 +92,7 @@ SET(ADD_SOURCE
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp
+    parser/format_spec.cpp
     printer/error_printer.cpp
     sema/sema.cpp
     sema/sema_import.cpp
@@ -106,40 +108,6 @@ SET(ADD_SOURCE
     utilities/strings.cpp
     utilities/names.cpp
 )
-
-if (WIN32)
-    SET(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/binaries/lib/zlib.lib)
-    SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/binaries/include)
-        
-    SET(LLVM_PATH E:/llvm-install)
-    SET(LLVM_DIR E:/llvm-install/lib/cmake/llvm)
-    SET(Clang_DIR E:/llvm-install/lib/cmake/clang)  
-else()
-    SET(ZLIB_INCLUDE_DIR /usr/lib/x86_64-linux-gnu)
-    find_package(ZLIB)
-endif(WIN32)
-
-find_package(LLVM CONFIG REQUIRED)
-find_package(Clang CONFIG REQUIRED)
-
-# link_directories(${CMAKE_SOURCE_DIR}/binaries/lib)
-# include_directories(${CMAKE_SOURCE_DIR}/binaries/include)
-IF(LLVM_FOUND)
-    SET(WITH_LLVM 1)
-
-    # Putting system here prevents the compiler from printing
-    # warnings inside the headers
-    include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
-    add_definitions(${LLVM_DEFINITIONS})
-    link_directories(${LLVM_LIBRARY_DIRS})
-
-    llvm_map_components_to_libnames(LLVM_LIRARIES support core irreader X86)
-    MESSAGE(STATUS "${LLVM_LIRARIES}")
-ELSE(LLVM_FOUND)
-    SET(WITH_LLVM 0)
-    SET(LLVM_LIRARIES)
-    MESSAGE(STATUS "LLVM not found!")
-ENDIF(LLVM_FOUND)
 
 # Configure Platforms
 # ==============================================
@@ -163,12 +131,10 @@ ADD_DEFINITIONS(-DWITH_LLVM=${WITH_LLVM})
 ADD_DEFINITIONS(-DWITH_LLVM_CODEGEN=1)
 ADD_DEFINITIONS(-DWITH_CLANG_CODEGEN=0)
 
-ADD_DEFINITIONS(-DWIN32=${WIN32})
+# ADD_DEFINITIONS(-DWIN32=${WIN32})
 ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
 ADD_DEFINITIONS(-DWITH_COZ=${WITH_COZ})
 ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
-
-ADD_DEFINITIONS(-D_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING=1)
 
 # Compile
 # ==================
@@ -236,3 +202,13 @@ ENDIF()
 # COMPILE_OPTIONS "--analyze"
 # EXCLUDE_FROM_DEFAULT_BUILD true)
 # ENDFUNCTION()
+
+# find_package(backtrace)
+
+add_subdirectory(tide)
+
+
+
+
+# Plugin Example
+ADD_LIBRARY(PluginExample SHARED plugin/example.cpp)

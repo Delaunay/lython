@@ -94,6 +94,22 @@ std::ostream& AbstractLexer::print(std::ostream& out) {
 
     return out;
 }
+
+int Lexer::get_mode() const {
+    return int(_fmtstr);
+}
+
+void Lexer::set_mode(int mode) {
+    _fmtstr = mode > 0;
+}
+
+Token const& Lexer::format_tokenizer() {
+    char c = peek();
+    nextc();
+    return make_token(c);
+}
+
+
 Token const& Lexer::next_token() {
     _count += 1;
 
@@ -102,6 +118,10 @@ Token const& Lexer::next_token() {
         _token = _buffer[_buffer.size() - 1];
         _buffer.pop_back();
         return _token;
+    }
+
+    if (_fmtstr) {
+        return format_tokenizer();
     }
 
     char c = peek();
@@ -208,7 +228,7 @@ Token const& Lexer::next_token() {
 
     // Identifiers
     // -----------
-    if ((isalpha(c) || c == '_') && peek() != '"') {
+    if ((isalpha(c) || c == '_')) {
         String identifier;
 
         // FIXME: check that ident can be an identifier
@@ -216,10 +236,6 @@ Token const& Lexer::next_token() {
 
         while (is_identifier(c = nextc())) {
             identifier.push_back(c);
-        }
-
-        if (c == 'f') {
-            goto strings;
         }
 
         // is it a string operator (is, not, in, and, or) ?
@@ -255,6 +271,11 @@ Token const& Lexer::next_token() {
             if (result != keywords().end()) {
                 return make_token(result->second);
             }
+        }
+
+        // is it followed by a quote
+        if (peek() == '"' || peek() == '\'') {
+            return make_token(tok_formatstr, identifier);
         }
 
         // then it must be an identifier
@@ -322,33 +343,21 @@ Token const& Lexer::next_token() {
         return make_token(ntype, num);
     }
 
-// Strings
-// --------------------------------------------------
-strings:
-
-    // Formated string
-    // ---------------
-    // upper/lower and combinaison are available
-    // fr & rf & br & rb
-    if (c == 'f' && peek() == '"') {}
-
-    // Raw string
-    if (c == 'r' && peek() == '"') {}
-
-    // byte string
-    if (c == 'b' && peek() == '"') {}
+    // Strings
+    // --------------------------------------------------
 
     // Regular string
     // --------------
-    if (c == '"') {
+    if (c == '"' || c == '\'') {
+        char      end = c;
         String    str;
         TokenType tok = tok_string;
         char      c2  = nextc();
         char      c3  = '\0';
 
-        if (c2 == '"') {
+        if (c2 == end) {
             char c3 = nextc();
-            if (c3 == '"') {
+            if (c3 == end) {
                 tok = tok_docstring;
             } else {
                 str.push_back(c2);
@@ -359,18 +368,18 @@ strings:
         }
 
         if (tok == tok_string)
-            while ((c = nextc()) != '"' && c != EOF) {
+            while ((c = nextc()) != end && c != EOF) {
                 str.push_back(c);
             }
         else {
             while (c != EOF) {
                 c = nextc();
 
-                if (c == '"') {
+                if (c == end) {
                     c2 = nextc();
-                    if (c2 == '"') {
+                    if (c2 == end) {
                         c3 = nextc();
-                        if (c3 == '"') {
+                        if (c3 == end) {
                             break;
                         } else {
                             str.push_back(c);

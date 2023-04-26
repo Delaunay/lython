@@ -3,6 +3,7 @@
 #include "ast/values/object.h"
 #include "builtin/operators.h"
 #include "dependencies/fmt.h"
+#include "parser/format_spec.h"
 #include "utilities/guard.h"
 #include "utilities/strings.h"
 
@@ -622,8 +623,83 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     }
     return nullptr;
 }
-TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) { return nullptr; }
-TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) { return nullptr; }
+TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) {
+    for (auto* value: n->values) {
+        exec(value, depth);
+    }
+    return make_ref(n, "str");
+}
+TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
+    TypeExpr* vtype = exec(n->value, depth);
+
+    // Objects are able to define their own format specifiers to replace the standard ones
+    // [[fill]align][sign][#][0][minimumwidth][.precision][type]
+    //          <     +    #  0    [0-9]*       .[0-9]*     b     e
+    //          >     -                                     c     E
+    //          =    ' '                                    d     f
+    //          ^                                           o     F
+    //                                                      x     g
+    //                                                      X     G
+    //                                                      n     n
+    //                                                      None  %
+    //
+    // Conversion flag
+    //      !r     {0!s:20}
+    //      !s     {0!r:20}
+    //
+    //  class object:
+    //      def __format__(self, format_spec):
+    //          return format(str(self), format_spec)
+    //
+    // https://peps.python.org/pep-3101/
+
+    // Here checking the type of the format spec is probably not the priority
+    // but validating the format spec
+    // the sinple case is if there is a single format_spec
+    if (n->format_spec->values.size() == 1) {
+        Constant* cst = cast<Constant>(n->format_spec->values[0]);
+
+        if (cst != nullptr) {
+            String          strspec = cst->value.get<String>();
+            FormatSpecifier spec    = FormatSpecifier::parse(strspec);
+
+            // FIXME: this should a SEMA error
+            if (!spec.valid) {
+                kwdebug("Format spec is not valid; parsed {} unparsed string: `{}`",  //
+                        spec.__repr__(),                                              //
+                        spec.unparsed                                                 //
+                );
+            }
+
+            if (spec.is_float()) {
+                // TODO
+                // check that vtype is double or float
+            }
+
+            if (spec.is_integer()) {
+                // TODO
+                // check that vtype is an integer
+            }
+        }
+    }
+
+    // I think if there is more that means the spec is dynamic
+    // then we are limited in our ability to validate it
+    // we probably can extract the type it if it is defined the rest
+    // will remain undefined
+    for (auto* value: n->format_spec->values) {
+        Constant* cst = cast<Constant>(value);
+        if (cst != nullptr) {
+            // Partial format spec
+        } else {
+            // Can we use the type here to guess which
+            // part of the format spec this will fill out ?
+            TypeExpr* etype = exec(value, depth);
+        }
+    }
+
+    return nullptr;
+}
 TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
     switch (n->value.type()) {
     case ConstantValue::Ti8: return make_ref(n, "i8");

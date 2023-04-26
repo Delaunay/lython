@@ -553,9 +553,15 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
     Node* result = nullptr;
     int   varid  = -1;
 
+    if (n->ctx == ExprContext::Store) {
+        Constant* variable = root.new_object<Constant>();
+        bindings.add(n->id, variable, nullptr);
+        return variable;
+    }
+
     if (n->dynamic) {
         // Local variables | Arguments
-        assert(n->offset != -1, "Reference should have a reverse lookup offset");
+        kwassert(n->offset != -1, "Reference should have a reverse lookup offset");
         varid  = int(bindings.bindings.size()) - n->offset;
         result = bindings.get_value(varid);
     } else {
@@ -563,8 +569,10 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
         result = bindings.get_value(n->varid);
     }
 
-    assert(result != nullptr, "Could not find variable");
-    // bindings.dump(std::cout);
+    if (result == nullptr) {
+        bindings.dump(std::cout);
+    }
+    kwassert(result != nullptr, "Could not find variable");
 
     String kindstr;
     if (result != nullptr) {
