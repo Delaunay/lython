@@ -139,10 +139,9 @@ void GraphEditor::handle_events(ImVec2 offset) {
             }
 
             // ImVec2 mp = ImGui::GetMousePos();
-            // ImVec2 mn = ImVec2(std::min(rectangle_start.x, mp.x),  std::min(rectangle_start.y, mp.y));
-            // ImVec2 mx = ImVec2(std::max(rectangle_start.x, mp.x),  std::max(rectangle_start.y, mp.y));
-            // rectangle_selection = ImRect(mn, mx);
-
+            // ImVec2 mn = ImVec2(std::min(rectangle_start.x, mp.x),  std::min(rectangle_start.y,
+            // mp.y)); ImVec2 mx = ImVec2(std::max(rectangle_start.x, mp.x),
+            // std::max(rectangle_start.y, mp.y)); rectangle_selection = ImRect(mn, mx);
 
             rectangle_selection = ImRect(rectangle_start, rectangle_start);
             rectangle_selection.Add(ImGui::GetMousePos());
@@ -276,7 +275,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     draw_list->ChannelsSetCurrent(2);
     // ImGui::SetCursorScreenPos(node_rect_min + ImVec2(1, 1) * 0* node_padding);
 
-    ImGui::SetCursorPos(node->pos + ImVec2(1, 1) * pin_radius + ImVec2(1, 1) * node_padding);
+    
     ImGui::BeginGroup();
 
     // Argument Column
@@ -284,10 +283,11 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     ImVec2 txt         = ImGui::CalcTextSize("T");
     float  line_height = node->layout.input.y;
     float  line_width  = node->layout.input.x;
-    ImVec2 start       = ImGui::GetCursorPos();
+    ImVec2 start       = node->pos + ImVec2(1, 1) * pin_radius + ImVec2(1, 1) * node_padding;
     float  new_width   = pin_radius / 2;
     float  new_height  = std::max(pin_radius * 2, txt.y);
 
+    ImGui::SetCursorPos(start);
     _size = ImRect();
 
     // Inputs
@@ -300,9 +300,11 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         if (pin.kind == PinKind::Flow) {
             name = node->name.c_str();
         }
+        ImVec2 v = ImGui::CalcTextSize(name);
 
         draw(&pin, with_scroll(pin.pos));
-        ImGui::SetCursorPos(with_scroll(start + ImVec2(pin_radius + pin_label_margin, -txt.y / 2)));
+        ImGui::SetCursorPos(
+            with_scroll(pin.pos + ImVec2(pin_radius + pin_label_margin, -(pin_radius + v.y / 4))));
 
         ImGui::Text("%s", name);
         ImVec2 s(0, 0);
@@ -315,7 +317,6 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
             s = ImGui::GetItemRectSize();
         }
 
-        ImVec2 v   = ImGui::CalcTextSize(name);
         new_height = std::max(new_height, v.y);
         new_width  = std::max(new_width, v.x + s.x);
         start.y += line_height;
@@ -372,7 +373,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         new_height = std::max(new_height, v.y);
         float s    = line_width - v.x;
 
-        ImGui::SetCursorPos(with_scroll(start + ImVec2(s, v.y / 2)));
+        ImGui::SetCursorPos(with_scroll(start + ImVec2(s, -v.y / 2)));
         ImGui::Text("%s", name);
 
         pin.pos = start + ImVec2(line_width + pin_label_margin, 0) + ImVec2(1, 1) * pin_radius +
@@ -410,7 +411,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         selected_node = node;
 
     if (node_moving_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-        
+
         if (!has_selection()) {
             node->pos = node->pos + io.MouseDelta;
         } else {
