@@ -281,23 +281,40 @@ void VulkanEngine::init_vulkan() {
     // use vkbootstrap to select a gpu.
     // We want a gpu that can write to the SDL surface and supports vulkan 1.2
     vkb::PhysicalDeviceSelector selector{vkb_inst};
-    vkb::PhysicalDevice         physicalDevice =
-        selector.set_minimum_version(1, 1).set_surface(_surface).select().value();
+    auto physicalDeviceResult  = selector.set_minimum_version(1, 1).set_surface(_surface).select();
+    if (!physicalDeviceResult) {
+        throw std::runtime_error("Physical device failed");
+    }
+    vkb::PhysicalDevice physicalDevice = physicalDeviceResult.value();
+    // ---
 
     // create the final vulkan device
-
     vkb::DeviceBuilder deviceBuilder{physicalDevice};
-
-    vkb::Device vkbDevice = deviceBuilder.build().value();
+    auto vkbDeviceResult = deviceBuilder.build();
+    if (!vkbDeviceResult) {
+        throw std::runtime_error("Device failed");
+    }
+    vkb::Device vkbDevice = vkbDeviceResult.value();
+    // ---
 
     // Get the VkDevice handle used in the rest of a vulkan application
     _device    = vkbDevice.device;
     _chosenGPU = physicalDevice.physical_device;
 
     // use vkbootstrap to get a Graphics queue
-    _graphicsQueue = vkbDevice.get_queue(vkb::QueueType::graphics).value();
-
-    _graphicsQueueFamily = vkbDevice.get_queue_index(vkb::QueueType::graphics).value();
+    auto graphicsQueueResult = vkbDevice.get_queue(vkb::QueueType::graphics);
+    if (!graphicsQueueResult) {
+        throw std::runtime_error("Graphic Queue not found");
+    }
+    _graphicsQueue = graphicsQueueResult.value();
+    // ---
+ 
+    auto graphicsQueueFamilyResult = vkbDevice.get_queue_index(vkb::QueueType::graphics);
+    if (!graphicsQueueFamilyResult) {
+        throw std::runtime_error("Graphic Queue family not found");
+    }
+    _graphicsQueueFamily = graphicsQueueFamilyResult.value();
+    // ---
 
     // initialize the memory allocator
     VmaAllocatorCreateInfo allocatorInfo = {};
