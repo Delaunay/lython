@@ -304,7 +304,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
 
         draw(&pin, with_scroll(pin.pos));
         ImGui::SetCursorPos(
-            with_scroll(pin.pos + ImVec2(pin_radius + pin_label_margin, -(pin_radius + v.y / 4))));
+            with_scroll(pin.pos + ImVec2(pin_radius / 2 + pin_label_margin, -(pin_radius + v.y / 4))));
 
         ImGui::Text("%s", name);
         ImVec2 s(0, 0);
@@ -338,9 +338,9 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         //     node->layout.input.x,
         //     (node->size.y - sz.y )/ 2.f
         // );
-        ImVec2 center = node->size / 2 + ImVec2(-sz.x / 2, -sz.y / 2);
 
-        ImGui::SetCursorPos(with_scroll(center + node->pos));
+        ImVec2 center = node->size / 2 + ImVec2(-sz.x, -sz.y - node_padding);
+        ImGui::SetCursorPos(with_scroll(node->pos + center));
         ImGui::Text("%s", name);
 
         node->layout.input.x = new_width + sz.x + 2 * pin_radius;
@@ -362,7 +362,7 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
 
     for (int slot_idx = 0; slot_idx < node->outputs.size(); slot_idx++) {
         Pin& pin         = node->outputs[slot_idx];
-        pin.pos          = start;
+        pin.pos          = start + ImVec2(pin_radius / 2, 0);
         const char* name = pin.name.c_str();
 
         ImVec2 v = ImGui::CalcTextSize(name);
@@ -371,9 +371,9 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
 
         new_width  = std::max(new_width, v.x + pin_radius);
         new_height = std::max(new_height, v.y);
-        float s    = line_width - v.x;
+        float s    = line_width - v.x - pin_radius / 2;
 
-        ImGui::SetCursorPos(with_scroll(start + ImVec2(s, -v.y / 2)));
+        ImGui::SetCursorPos(with_scroll(start + ImVec2(s, -v.y / 4)));
         ImGui::Text("%s", name);
 
         pin.pos = start + ImVec2(line_width + pin_label_margin, 0) + ImVec2(1, 1) * pin_radius +
