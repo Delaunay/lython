@@ -54,7 +54,7 @@
             "console": "externalTerminal"
         },
         {
-            "name": "Debug CODEGEN (Windows)",
+            "name": "LLVM CODEGEN Tests (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/llvm_test.exe",

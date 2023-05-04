@@ -68,9 +68,21 @@ IF(UNIX)
     MESSAGE(" * Platform: Unix")
     SET(BUILD_UNIX 1)
     SET(WITH_LOG 1)
+
+    # export ASAN_OPTIONS=abort_on_error=1:halt_on_error=1
+    # export UBSAN_OPTIONS=abort_on_error=1:halt_on_error=1
+    # -fsanitize=address,undefined,thread -fsanitize-trap
+    # -g3                                                       # Debug information
+
+    # -Wall -Wextra -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
+
 ELSEIF(WIN32)
     MESSAGE(" * Platform: Windows")
     SET(BUILD_WINDOWS 1)
+
+    # /RTCcsu
+    # /W4 /wd4146 /wd4245 /D_CRT_SECURE_NO_WARNINGS
+    # /Z7                                            <= Debug information embedded in binaries
 
     # Disable not supported features
     SET(WITH_COZ 0)
@@ -95,6 +107,8 @@ FIND_PACKAGE(Git REQUIRED)
 # Find revision ID and hash of the sourcetree
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
+
+SET(LLVM_REQUESTED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 INCLUDE(ConfigureLLVM)
 
 IF(UNIX AND WITH_COVERAGE)

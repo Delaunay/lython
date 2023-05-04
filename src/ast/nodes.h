@@ -361,6 +361,11 @@ struct Constant: public ExprNode {
     Constant(): Constant(ConstantValue::invalid_t()) {}
 };
 
+// Dummy, expression representing a value to be pluged at runtime
+struct Placeholder: public ExprNode {
+    Placeholder(): ExprNode(NodeKind::Placeholder) {}
+};
+
 /*
     >>> print(ast.dump(ast.parse("1 < 2 < 3"), indent=4))
     Module(

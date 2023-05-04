@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  LLVM_VERSION: 14
+  LLVM_VERSION: 16
   GCC_VERSION: 12
 
 jobs:

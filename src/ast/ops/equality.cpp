@@ -491,6 +491,11 @@ struct Equality {
     bool matchor(MatchOr* a, MatchOr* b, int depth) {
         return exec(a->patterns, b->patterns, depth);
     }
+
+    bool placeholder(Placeholder* a, Placeholder* b, int depth) {
+        return false;
+    }
+
 };
 
 bool equal(Node* a, Node* b) {

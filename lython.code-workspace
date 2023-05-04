@@ -4,7 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../../llvm-install"
+			"path": "../llvm-project"
 		}
 	],
 	"settings": {

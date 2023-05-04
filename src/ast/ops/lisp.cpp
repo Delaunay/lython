@@ -532,6 +532,10 @@ ReturnType LispSexp::constant(Constant const* self, int depth, int level) {
     return false;
 }
 
+LispSexp::ExprRet LispSexp::placeholder(Placeholder_t self, int depth, int level) {
+    return false;
+} 
+
 ReturnType LispSexp::namedexpr(NamedExpr const* self, int depth, int level) {
     exec(self->target, depth, level);
     out << " := ";

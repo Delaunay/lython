@@ -1,5 +1,8 @@
 {
   "files.eol": "\n",
+  "cmake.configureSettings": {
+      "CMAKE_BUILD_TYPE": "Debug"
+  },
   "c_cpp_properties": {
     "suppressWarnings": [
       "*llvm*"

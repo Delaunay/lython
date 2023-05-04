@@ -35,6 +35,7 @@ enum class NodeKind : int8_t
     EXPR(JoinedStr, joinedstr)      \
     EXPR(FormattedValue, formattedvalue)\
     EXPR(Constant, constant)        \
+    EXPR(Placeholder, placeholder)  \
     EXPR(Attribute, attribute)      \
     EXPR(Subscript, subscript)      \
     EXPR(Starred, starred)          \

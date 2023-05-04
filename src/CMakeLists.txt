@@ -44,6 +44,7 @@ SET(ADD_HEADERS
     codegen/cpp/cpp_gen.h
     codegen/clang/clang_gen.h
     codegen/llvm/llvm_gen.h
+    codegen/llvm/llvm_jit.h
     lexer/lexer.h
     lexer/buffer.h
     lexer/token.h
@@ -83,6 +84,8 @@ SET(ADD_SOURCE
     codegen/cpp/cpp_gen.cpp
     codegen/clang/clang_gen.cpp
     codegen/llvm/llvm_gen.cpp
+    codegen/llvm/llvm_jit.cpp
+    codegen/llvm/llvm_emit.cpp
     dependencies/xx_hash.cpp
     lexer/lexer.cpp
     lexer/buffer.cpp
@@ -146,6 +149,7 @@ TARGET_LINK_LIBRARIES(liblogging ${LIBRARIES})
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
 TARGET_LINK_LIBRARIES(liblython ${LIBRARIES} ${LLVM_LIRARIES})
+ADD_DEPENDENCIES(liblython zlib zlibstatic)
 
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD ${LY_CXX_STANDARD})

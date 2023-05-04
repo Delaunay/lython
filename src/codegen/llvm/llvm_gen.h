@@ -1,5 +1,6 @@
 #ifndef LYTHON_LLVM_GEN_HEADER
 #define LYTHON_LLVM_GEN_HEADER
+#if WITH_LLVM_CODEGEN
 
 #include "ast/magic.h"
 #include "ast/ops.h"
@@ -9,11 +10,11 @@
 #include "sema/errors.h"
 #include "utilities/strings.h"
 
-#if WITH_LLVM_CODEGEN
 // LLVM
 #    include "llvm/IR/IRBuilder.h"
 #    include "llvm/IR/LLVMContext.h"
 #    include "llvm/IR/Module.h"
+#    include "llvm/IR/LegacyPassManager.h"
 
 namespace lython {
 
@@ -48,6 +49,25 @@ struct ArrayScope {
 };
 
 
+// 
+// X86
+// WebAssembly
+//
+// SPIR-V => Graphics 
+// WebGPU => WebGraphics >_<
+// NVPTX  => Compute
+// AMDGPU => Compute
+// LLVM_EXPERIMENTAL_TARGETS_TO_BUILD=DirectX 
+//
+//  https://llvm.org/docs/DirectXUsage.html
+//
+//      arch-vendor-os
+//      dxil-unknown-shadermodel 
+//      spir-unknown-unknown
+//      
+//
+//      Func->addFnAttr(Attribute::AttrKind::AmdgpuVertexShader);
+//      builder.addExecutionMode(function, spv::ExecutionModeVertex);
 /*
  */
 struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
@@ -70,6 +90,9 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 
     llvm::BasicBlock* start_block = nullptr;
     llvm::BasicBlock* end_block = nullptr;
+
+    //--
+    Unique<llvm::legacy::FunctionPassManager> fun_optim;
 
 #    if WITH_LLVM_DEBUG_SYMBOL
     Unique<llvm::DIBuilder> dbuilder;

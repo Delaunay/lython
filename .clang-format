@@ -28,7 +28,7 @@ AllowShortEnumsOnASingleLine: false
 #    include <foo>
 #  endif
 #endif
-IndentPPDirectives: AfterHash
+# IndentPPDirectives: AfterHash
 
 # Constructor() : a(), b()
 

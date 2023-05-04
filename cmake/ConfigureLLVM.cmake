@@ -1,16 +1,28 @@
 if(WIN32)
-    SET(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/binaries/lib/zlib.lib)
-    SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/binaries/include)
+    # SET(ZLIB_LIBRARY ${CMAKE_SOURCE_DIR}/binaries/lib/zlib.lib)
+    # SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/binaries/include)
+    
+    SET(ZLIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/dependencies/zlib)
 
-    SET(LLVM_PATH G:/llvm-install)
-    SET(LLVM_DIR G:/llvm-install/lib/cmake/llvm)
-    SET(Clang_DIR G:/llvm-install/lib/cmake/clang)
+    IF(${LLVM_REQUESTED_BUILD_TYPE} MATCHES "Debug")
+        MESSAGE(STATUS "Debug: " ${CMAKE_BINARY_DIR})
+        SET(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/lib/${LLVM_REQUESTED_BUILD_TYPE}/zlibstaticd.lib)
+        SET(LLVM_PATH G:/llvm-build/Debug)
+        SET(LLVM_DIR G:/llvm-build/Debug/lib/cmake/llvm)
+        SET(Clang_DIR G:/llvm-build/Debug/lib/cmake/clang)
+    ELSE()
+        SET(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/lib/${LLVM_REQUESTED_BUILD_TYPE}/zlibstatic.lib) 
+        SET(LLVM_PATH G:/llvm-build/Release)
+        SET(LLVM_DIR G:/llvm-build/Release/lib/cmake/llvm)
+        SET(Clang_DIR G:/llvm-build/Release/lib/cmake/clang)
+    ENDIF() 
+
 else()
     SET(ZLIB_INCLUDE_DIR /usr/lib/x86_64-linux-gnu)
     find_package(ZLIB)
 endif(WIN32)
 
-find_package(LLVM CONFIG REQUIRED)
+find_package(LLVM CONFIG REQUIRED) 
 find_package(Clang CONFIG REQUIRED)
 
 # link_directories(${CMAKE_SOURCE_DIR}/binaries/lib)
@@ -24,15 +36,25 @@ IF(LLVM_FOUND)
     include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
     add_definitions(${LLVM_DEFINITIONS})
     
-    IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        link_directories(G:/llvm-buid/Debug/Debug/lib)
+    IF(${LLVM_REQUESTED_BUILD_TYPE} MATCHES "Debug")
+        link_directories(G:/llvm-build/Debug/Debug/lib)
     ELSEIF(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        link_directories(G:/llvm-buid/RelWithDebInfo/RelWithDebInfo/lib)
+        link_directories(G:/llvm-build/RelWithDebInfo/RelWithDebInfo/lib)
     ELSE()
         link_directories(${LLVM_LIBRARY_DIRS})
     ENDIF()
 
-    llvm_map_components_to_libnames(LLVM_LIRARIES support core irreader X86)
+    llvm_map_components_to_libnames(LLVM_LIRARIES
+        # Base
+        support core irreader X86
+        # ORC JiT
+        Analysis ExecutionEngine InstCombine  Object 
+        OrcJIT RuntimeDyld ScalarOpts native
+
+        # MC
+        target
+
+    )
     MESSAGE(STATUS "${LLVM_LIRARIES}")
 ELSE(LLVM_FOUND)
     SET(WITH_LLVM 0)

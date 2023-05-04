@@ -700,6 +700,10 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
 
     return nullptr;
 }
+
+TypeExpr* SemanticAnalyser::placeholder(Placeholder* n, int depth) { 
+    return nullptr;
+}
 TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
     switch (n->value.type()) {
     case ConstantValue::Ti8: return make_ref(n, "i8");

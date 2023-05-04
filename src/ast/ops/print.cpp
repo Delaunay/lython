@@ -593,6 +593,11 @@ ReturnType Printer::constant(Constant const* self, int depth, std::ostream& out,
     return false;
 }
 
+
+Printer::ExprRet Printer::placeholder(Placeholder_t* self, int depth, std::ostream& out, int level) {
+    return false;
+} 
+
 ReturnType Printer::namedexpr(NamedExpr const* self, int depth, std::ostream& out, int level) {
     exec(self->target, depth, out, level);
     out << " := ";

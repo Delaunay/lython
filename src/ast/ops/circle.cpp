@@ -401,6 +401,10 @@ ReturnType Circle::call(Call const* self, int depth) {
 
 ReturnType Circle::constant(Constant const* self, int depth) { return false; }
 
+Circle::ExprRet Circle::placeholder(Placeholder_t* self, int depth) {
+    return false;
+} 
+
 ReturnType Circle::namedexpr(NamedExpr const* self, int depth) {
     return exec(self->target, depth) || exec(self->value, depth);
 }

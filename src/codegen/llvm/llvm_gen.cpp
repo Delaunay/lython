@@ -1,31 +1,33 @@
 #if WITH_LLVM_CODEGEN
 
 // include
-#    include "codegen/llvm/llvm_gen.h"
+#include "codegen/llvm/llvm_gen.h"
 
 // Kiwi
-#    include "ast/magic.h"
-#    include "builtin/operators.h"
-#    include "utilities/guard.h"
-#    include "utilities/strings.h"
+#include "ast/magic.h"
+#include "builtin/operators.h"
+#include "utilities/guard.h"
+#include "utilities/strings.h"
 
 // STL
-#    include <iostream>
+#include <iostream>
 
 // LLVM
-#    include "llvm/ADT/STLExtras.h"
-#    include "llvm/Analysis/BasicAliasAnalysis.h"
-#    include "llvm/Analysis/Passes.h"
-#    include "llvm/IR/DIBuilder.h"
-#    include "llvm/IR/IRBuilder.h"
-#    include "llvm/IR/Intrinsics.h"
-#    include "llvm/IR/LLVMContext.h"
-#    include "llvm/IR/LegacyPassManager.h"
-#    include "llvm/IR/Module.h"
-#    include "llvm/IR/Verifier.h"
-#    include "llvm/Support/Host.h"
-#    include "llvm/Support/TargetSelect.h"
-#    include "llvm/Transforms/Scalar.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/IR/DIBuilder.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/GVN.h"
 
 namespace lython {
 
@@ -53,16 +55,24 @@ LLVMGen::LLVMGen() {
     InitializeNativeTargetAsmPrinter();
     InitializeNativeTargetAsmParser();
 
-    context  = std::make_unique<LLVMContext>();
-    llmodule = std::make_unique<llvm::Module>("KiwiJIT", *context);
-    builder  = std::make_unique<IRBuilder<>>(*context);
+    context   = std::make_unique<LLVMContext>();
+    llmodule  = std::make_unique<llvm::Module>("KiwiJIT", *context);
+    builder   = std::make_unique<IRBuilder<>>(*context);
+    fun_optim = std::make_unique<legacy::FunctionPassManager>(llmodule.get());
 
-#    if WITH_LLVM_DEBUG_SYMBOL
+    fun_optim->add(llvm::createInstructionCombiningPass());
+    fun_optim->add(llvm::createReassociatePass());
+    fun_optim->add(llvm::createGVNPass());
+    fun_optim->add(llvm::createCFGSimplificationPass());
+
+    fun_optim->doInitialization();
+
+#if WITH_LLVM_DEBUG_SYMBOL
     dbuilder           = std::make_unique<DIBuilder>(*llmodule);
     String sourcefile  = "<string>";
     debug_compile_unit = dbuilder->createCompileUnit(
         dwarf::DW_LANG_C, dbuilder->createFile(tostr(sourcefile), "."), "Kiwi Compiler", 0, "", 0);
-#    endif
+#endif
 
     // TODO put this somewhere
     // dbuilder->finalize();
@@ -72,7 +82,7 @@ LLVMGen::~LLVMGen() {
     // llvm::llvm_shutdown();
 }
 
-#    if WITH_LLVM_DEBUG_SYMBOL
+#if WITH_LLVM_DEBUG_SYMBOL
 void LLVMGen::emit_location(ExprNode* node) {
     DIScope* scope;
 
@@ -84,7 +94,7 @@ void LLVMGen::emit_location(ExprNode* node) {
     builder.SetCurrentDebugLocation(
         DILocation::get(scope->getContext(), node->lineno, node->col_offset, scope));
 }
-#    endif
+#endif
 
 ExprRet LLVMGen::call(Call_t* n, int depth) {
     // Struct construction
@@ -116,7 +126,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
 
     kwassert(function->arg_size() == args.size(), "Argument should match");
     for (size_t i = 0; i < args.size(); i++) {
-        auto* arg_type = ftype->getParamType(i);
+        auto* arg_type = ftype->getParamType((unsigned int)i);
         auto* val_type = args[i]->getType();
 
         if (arg_type != val_type) {
@@ -130,11 +140,11 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
 
 using BuiltinBinaryOperators = Dict<String, std::function<Value*(IRBuilder<>*, Value*, Value*)>>;
 
-#    define LLMV_OPERATORS(OP) \
-        OP(FAdd)               \
-        OP(FSub)               \
-        OP(FMul)               \
-        OP(FCmp)
+#define LLMV_OPERATORS(OP) \
+    OP(FAdd)               \
+    OP(FSub)               \
+    OP(FMul)               \
+    OP(FCmp)
 
 Value* fadd(IRBuilder<>* builder, Value* left, Value* right) {
     return builder->CreateFAdd(left, right, "addtmp");
@@ -210,7 +220,9 @@ ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
     // ----
 
     then = builder->GetInsertBlock();
-    fundef->getBasicBlockList().push_back(elxpr);
+
+    fundef->insert(fundef->end(), elxpr);
+    // fundef->getBasicBlockList().push_back(elxpr);
 
     // orelse
     builder->SetInsertPoint(elxpr);
@@ -220,7 +232,9 @@ ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
 
     elxpr = builder->GetInsertBlock();
 
-    fundef->getBasicBlockList().push_back(merged);
+    // fundef->getBasicBlockList().push_back(merged);
+    fundef->insert(fundef->end(), merged);
+
     builder->SetInsertPoint(merged);
 
     // Conditional value
@@ -240,6 +254,7 @@ ExprRet LLVMGen::yield(Yield_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::joinedstr(JoinedStr_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet(); }
+ExprRet LLVMGen::placeholder(Placeholder_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 
     ConstantValue const& val = n->value;
@@ -287,14 +302,13 @@ ExprRet LLVMGen::starred(Starred_t* n, int depth) { return ExprRet(); }
 
 ExprRet LLVMGen::name(Name_t* n, int depth) {
 
-    if (n->ctx == ExprContext::Store) 
-    {
-        Function* fundef = builder->GetInsertBlock()->getParent();
+    if (n->ctx == ExprContext::Store) {
+        Function*   fundef = builder->GetInsertBlock()->getParent();
         IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
-        AllocaInst* variable         = allocabuilder.CreateAlloca(  //
-            Type::getDoubleTy(*context),                   //
-            nullptr,                                       //
-            tostr(n->id)                                   //
+        AllocaInst* variable  = allocabuilder.CreateAlloca(  //
+            Type::getDoubleTy(*context),                    //
+            nullptr,                                        //
+            tostr(n->id)                                    //
         );
         index_to_index[n->id] = named_values.size();
         named_values.push_back(variable);
@@ -309,9 +323,9 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
         return nullptr;
     }
 
-#    if WITH_LLVM_DEBUG_SYMBOL
+#if WITH_LLVM_DEBUG_SYMBOL
     KSDbgInfo.emitLocation(this);
-#    endif
+#endif
 
     if (!value->getType()->getPointerElementType()->isSized()) {
         return value;
@@ -355,7 +369,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     BasicBlock* block = BasicBlock::Create(*context, "entry", fundef);
     builder->SetInsertPoint(block);
 
-#    if WITH_LLVM_DEBUG_SYMBOL
+#if WITH_LLVM_DEBUG_SYMBOL
     DIFile* unit =
         dbuilder->createFile(debug_compile_unit->getFilename(), debug_compile_unit->getDirectory());
     DIScope*      debug_ctx  = unit;
@@ -373,7 +387,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
         false                                             //
     );
     fundef->setSubprogram(debug_info);
-#    endif
+#endif
 
     unsigned                 i = 0;
     ArrayScope<llvm::Value*> scope(named_values);
@@ -394,7 +408,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
 
         // CreateEntryBlockAlloca(fundef, arg.getName());
 
-#    if WITH_LLVM_DEBUG_SYMBOL
+#if WITH_LLVM_DEBUG_SYMBOL
         DILocalVariable* vard = dbuilder->createParameterVariable(
             SP, arg.getName(), ++ArgIdx, Unit, LineNo, KSDbgInfo.getDoubleTy(), true);
 
@@ -403,7 +417,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
                                 dbuilder->createExpression(),
                                 DILocation::get(SP->getContext(), LineNo, 0, SP),
                                 Builder.GetInsertBlock());
-#    endif
+#endif
 
         // Store the initial value into the alloca.
         builder->CreateStore(&arg, arg_mem);
@@ -417,6 +431,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     }
 
     verifyFunction(*fundef);
+    fun_optim->run(*fundef);
 
     return StmtRet();
 }
@@ -607,7 +622,8 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
     // ----
 
     then = builder->GetInsertBlock();
-    fundef->getBasicBlockList().push_back(elxpr);
+    // fundef->getBasicBlockList().push_back(elxpr);
+    fundef->insert(fundef->end(), elxpr);
 
     // orelse
     builder->SetInsertPoint(elxpr);
@@ -619,21 +635,26 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
 
     elxpr = builder->GetInsertBlock();
 
-    fundef->getBasicBlockList().push_back(merged);
+    // fundef->getBasicBlockList().push_back(merged);
+    fundef->insert(fundef->end(), merged);
+
     builder->SetInsertPoint(merged);
 
     return StmtRet();
 }
 StmtRet LLVMGen::with(With_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::raise(Raise_t* n, int depth) {
-    Function* fundef = builder->GetInsertBlock()->getParent();
+    BasicBlock* current_block = builder->GetInsertBlock();
+    Function* fundef = current_block->getParent();
 
     Function* raisefun = nullptr;
     // Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(), Intrinsic::eh_throw);
     Value*    exception = nullptr;
     CallInst* raise     = builder->CreateCall(raisefun, {exception});
     raise->setDoesNotReturn();
-    builder->GetInsertBlock()->getInstList().push_back(raise);
+
+    // builder->GetInsertBlock()->getInstList().push_back(raise);
+    raise->insertInto(current_block, current_block->end());
 
     return StmtRet();
 }
@@ -671,14 +692,19 @@ StmtRet LLVMGen::pass(Pass_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::breakstmt(Break_t* n, int depth) {
     BasicBlock* current_block = builder->GetInsertBlock();
     BranchInst* breakbr       = llvm::BranchInst::Create(end_block, current_block);
-    current_block->getInstList().push_back(breakbr);
+
+    // current_block->getInstList().push_back(breakbr);
+    breakbr->insertInto(current_block, current_block->end());
+
     return StmtRet();
 }
 
 StmtRet LLVMGen::continuestmt(Continue_t* n, int depth) {
     BasicBlock* current_block = builder->GetInsertBlock();
     BranchInst* continuebr    = llvm::BranchInst::Create(start_block, current_block);
-    current_block->getInstList().push_back(continuebr);
+    // current_block->getInstList().push_back(continuebr);
+    continuebr->insertInto(current_block, current_block->end());
+
     return StmtRet();
 }
 

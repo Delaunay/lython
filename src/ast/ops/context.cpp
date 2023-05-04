@@ -39,6 +39,7 @@ struct Traverse: public BaseVisitor<Traverse, false, TraverseTrait> {
     virtual void_t joinedstr(JoinedStr* n, int depth) { return void_t(); }
     virtual void_t formattedvalue(FormattedValue* n, int depth) { return void_t(); }
     virtual void_t constant(Constant* n, int depth) { return void_t(); }
+    virtual void_t placeholder(Placeholder_t* n, int depth) {return void_t(); } 
     virtual void_t attribute(Attribute* n, int depth) { return void_t(); }
     virtual void_t subscript(Subscript* n, int depth) { return void_t(); }
     virtual void_t starred(Starred* n, int depth) { return void_t(); }
