@@ -4,6 +4,7 @@
 #include "imgui_impl_vulkan.h"
 
 #include "node.h"
+#include "block.h"
 
 void ShowExampleAppCustomNodeGraph(bool* opened);
 
@@ -105,7 +106,10 @@ class App: public VulkanEngine {
     void handle_event(SDL_Event const& event) {}
 
     void tick(float dt) {
-        editor.draw();
+        // editor.draw();
+
+        FlowBlock b;
+        b.draw();
 
         //bool opened = true;
         //ShowExampleAppCustomNodeGraph(&opened);

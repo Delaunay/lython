@@ -123,6 +123,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
         TreeEvaluator* self;
     };
 
+    PartialResult* execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth);
+
     // Helpers
     PartialResult* get_next(Node* iterator, int depth);
     PartialResult* call_enter(Node* ctx, int depth);
@@ -193,12 +195,28 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     Bindings&      bindings;
     PartialResult* return_value = nullptr;
 
+
+    bool is_partial() const {
+        if (partial.empty())
+            return false;
+        
+        return partial[partial.size() -  1];
+    }
+
+    void set_partial() {
+        if (partial.empty())
+            return;
+
+        partial[partial.size() -  1] = true;
+    }
+
     private:
     // `Registers`
 
-    bool loop_break    = false;
-    bool loop_continue = false;
-    bool yielding      = false;
+    bool       loop_break    = false;
+    bool       loop_continue = false;
+    bool       yielding      = false;
+    Array<int> partial;
 
     PartialResult* cause               = nullptr;
     int            handling_exceptions = 0;

@@ -364,6 +364,8 @@ struct Constant: public ExprNode {
 // Dummy, expression representing a value to be pluged at runtime
 struct Placeholder: public ExprNode {
     Placeholder(): ExprNode(NodeKind::Placeholder) {}
+
+    ExprNode* expr;
 };
 
 /*
@@ -726,6 +728,11 @@ struct FunctionDef: public StmtNode {
 
 struct AsyncFunctionDef: public FunctionDef {};
 
+
+// This is the AST declaration
+// To be able to instantiate an instance of the class we should generate
+// a TypeInfo/ClassMetadata
+// This is what will enable us to create generate struct and access their members
 struct ClassDef: public StmtNode {
     Identifier          name;
     Array<ExprNode*>    bases;

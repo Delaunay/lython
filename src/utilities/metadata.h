@@ -1,12 +1,14 @@
-#ifndef LYTHON_METADATA_H
-#define LYTHON_METADATA_H
+#pragma once
 
+#include "metadata_1.h"
 #include "dtypes.h"
-// #include "ast/nodes.h"
+
 
 namespace lython {
+namespace meta {
 
-#define TYPES_METADATA(X) \
+
+    #define TYPES_METADATA(X) \
     X(String, String)     \
     X(char, Char)         \
     X(int8, Int8)         \
@@ -20,23 +22,15 @@ namespace lython {
     X(float32, Float32)   \
     X(float64, Float64)
 
-namespace meta {
-#define DEFINE_METADATA(type, tname)                                 \
+#define DEFINE_METADATA(type_, tname)                                 \
     template <>                                                      \
-    inline const char* type_name<type>() {                           \
-        static const char* name = meta::register_type<type>(#tname); \
+    inline const char* type_name<type_>() {                           \
+        static const char* name = meta::register_type<type_>(#tname); \
         return name;                                                 \
     }
 
 TYPES_METADATA(DEFINE_METADATA)
+
 }  // namespace meta
 
-void metadata_init_names();
-
-void track_static();
-
-void register_globals();
-
-}  // namespace lython
-
-#endif
+}

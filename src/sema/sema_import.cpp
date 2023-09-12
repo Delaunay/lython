@@ -59,6 +59,13 @@ Array<String> python_paths() {
 }
 
 String lookup_module(StringRef const& module_path, Array<String> const& paths) {
+    // First lookup for builtin module names
+    // Then list of directories inside th sys.path
+    //      sys.path contain 
+    //          1. the directory of the input script or the current working directory
+    //          2. PYTHONPATH
+    //          3. Instalation Dependent default site-packages (this is handled by the site module)
+
     // Look for the module in the path
     // env/3.9.7/lib/python39.zip
     // env/3.9.7/lib/python3.9

@@ -19,8 +19,14 @@ struct Object: public NativeObject {
     // The object type is not known
     // we rely on the SEMA to guarante the type
 
+    Object():
+        NativeObject(meta::type_id<Object>())
+    {}
 
-    virtual bool is_native() const override { return false; }
+    bool is_native() const override { return false; }
+    bool is_pointer() const override { return false; }
+    bool is_valid() const override { return true; }
+    int8* _memory() { return nullptr; }
 };
 
 // Same as an object, but allocate a single block for all the attributes
@@ -28,6 +34,15 @@ struct Object: public NativeObject {
 // useful for POD types
 struct PackedObject: public NativeObject {
     int8* data;
+
+    PackedObject():
+        NativeObject(meta::type_id<PackedObject>())
+    {}
+
+    bool is_native() const override { return false; }
+    bool is_pointer() const override { return false; }
+    bool is_valid() const override { return true; }
+    int8* _memory() { return nullptr; }
 
     template <typename T>
     T& attribute(int offset) {

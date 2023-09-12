@@ -1,7 +1,7 @@
 
-$env:SOURCE_DIR="G:/llvm-project"
-$env:BUILD_DIR="G:/llvm-build"
-$env:INSTALL_DIR="G:/llvm-install"
+$env:SOURCE_DIR="K:/llvm-project"
+$env:BUILD_DIR="K:/llvm-build"
+$env:INSTALL_DIR="K:/llvm-install"
 
 
 # -DLLVM_TARGETS_TO_BUILD

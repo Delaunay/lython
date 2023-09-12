@@ -11,6 +11,7 @@ ADD_EXECUTABLE(
     example.cpp
     node.cpp
     bezier.cpp
+    block.cpp
 
     engine/vk_engine.cpp
     engine/vk_initializers.cpp

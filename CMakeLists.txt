@@ -46,7 +46,7 @@ OPTION(WITH_COZ "Enable coz profiler" OFF)
 
 # Identify Targets
 SET(BUILD_WEBASSEMBLY 0)
-SET(BUILD_UNIX 0)
+SET(BUILD_POSIX 0)
 SET(BUILD_WINDOWS 0)
 
 IF(CMAKE_CXX_COMPILER MATCHES "/em.*$")
@@ -65,8 +65,8 @@ IF(CMAKE_CXX_COMPILER MATCHES "/em.*$")
 ENDIF()
 
 IF(UNIX)
-    MESSAGE(" * Platform: Unix")
-    SET(BUILD_UNIX 1)
+    MESSAGE(" * Platform: Unix-Like")
+    SET(BUILD_POSIX 1)
     SET(WITH_LOG 1)
 
     # export ASAN_OPTIONS=abort_on_error=1:halt_on_error=1
