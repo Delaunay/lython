@@ -9,7 +9,7 @@
 
 #include <catch2/catch_all.hpp>
 
-struct Point {
+struct NewPoint {
     float x = 3;
     int   y = 3;
 
@@ -17,11 +17,11 @@ struct Point {
 };
 
 template <>
-struct lython::meta::ReflectionTrait<Point> {
+struct lython::meta::ReflectionTrait<NewPoint> {
     static int register_members() {
-        lython::meta::new_member<Point, float>("x");
-        lython::meta::new_member<Point, int>("y");
-        lython::meta::new_method("sum", &Point::sum);
+        lython::meta::new_member<NewPoint, float>("x");
+        lython::meta::new_member<NewPoint, int>("y");
+        lython::meta::new_method("sum", &NewPoint::sum);
 
         return 0;
     }
@@ -43,16 +43,16 @@ TEST_CASE("NATIVE Object") {
         out << *reinterpret_cast<float const*>(data);
     });
 
-    auto   wrapped = lython::NativeValue<Point>();
-    Point* p       = wrapped.as<Point>();
+    auto   wrapped = lython::NativeValue<NewPoint>();
+    NewPoint* p       = wrapped.as<NewPoint>();
 
     std::stringstream ss;
     lython::meta::print(ss, *p);
     std::cout << ss.str() << "\n";
 
-    auto wp = lython::NativePointer<Point>(wrapped);
+    auto wp = lython::NativePointer<NewPoint>(wrapped);
     REQUIRE(p->sum(0) == 6);
-    REQUIRE(wp.as<Point>()->sum(0) == 6);
+    REQUIRE(wp.as<NewPoint>()->sum(0) == 6);
 
     float* x = wrapped.member<float>("x");
     int*   y = wrapped.member<int>("y");
@@ -60,9 +60,9 @@ TEST_CASE("NATIVE Object") {
     (*x) = 1.0;
     (*y) = 2;
 
-    p = wrapped.as<Point>();
+    p = wrapped.as<NewPoint>();
     REQUIRE(p->sum(0) == 3);
-    REQUIRE(wp.as<Point>()->sum(0) == 3);
+    REQUIRE(wp.as<NewPoint>()->sum(0) == 3);
 
     // This is a bit too much info to provide
     // float r = wrapped.invoke<float, float>(p, "sum", {&arg});
@@ -73,7 +73,7 @@ TEST_CASE("NATIVE Object") {
         lython::NativeObject* r      = wrapped.invoke(p, "sum", {&arg});
         float                 result = *((lython::NativeValue<float>*)(r))->as<float>();
         std::cout << "Result: " << result << std::endl;
-        REQUIRE(wp.as<Point>()->sum(10) == result);
+        REQUIRE(wp.as<NewPoint>()->sum(10) == result);
     }
 
     try {

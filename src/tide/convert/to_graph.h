@@ -13,7 +13,7 @@
 namespace lython {
 
 struct ToGraphVisitorTrait {
-    using StmtRet = GraphNode*;         // Statement returns their 
+    using StmtRet = GraphNodePinBase*;   
     using ExprRet = GraphNodePinBase*;  // Expression returns a single output pin
     using ModRet  = void;
     using PatRet  = void;
@@ -27,7 +27,7 @@ struct ToGraphVisitorTrait {
 
 struct Arena {
     GCObject root;
-}
+};
 
 struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     using Super = BaseVisitor<ToGraph, false, ToGraphVisitorTrait>;
@@ -39,16 +39,16 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
 
     template <typename T, typename... Args>
     T* new_object(Args&&... args) {
-        return arena.root.new_object<T>(Args...);
+        return arena.root.new_object<T>(args...);
     }
     Arena arena;
 
-    GraphNodePinBase* new_input(GraphNodeBase* Node, Expr_t* expr, int depth) {
+    GraphNodePinBase* new_input(GraphNodeBase* Node, ExprNode* expr, int depth) {
         GraphNodePinBase* in = new_object<GraphNodePin>(); 
         in->direction() = PinDirection::Input;
         in->kind() = PinKind::Data;
-        in.pins().push_back(exec(expr, depth));
-        graph->pins.push_back(in);
+        in->pins().push_back(exec(expr, depth));
+        Node->pins().push_back(in);
         return in;
     }
 
@@ -56,29 +56,29 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
         GraphNodePinBase* out = new_object<GraphNodePin>(); 
         out->direction() = PinDirection::Output;
         out->kind() = PinKind::Data;
-        graph->pins.push_back(out);
+        Node->pins().push_back(out);
         // current_exec_pin = out;
         return out;
     }
 
     GraphNodePinBase* new_exec_input(GraphNodeBase* Node, int depth) {
-        GraphNodePinBase* out = new_object<GraphNodePin>(); 
+        GraphNodePinBase* in = new_object<GraphNodePin>(); 
         in->direction() = PinDirection::Input;
         in->kind() = PinKind::Exec;
-        graph->pins.push_back(out);
+        Node->pins().push_back(in);
 
         if (current_exec_pin) {
-            current_exec_pin->push_back(in);
+            current_exec_pin->pins().push_back(in);
             current_exec_pin = nullptr;
         }
-        return out;
+        return in;
     }
 
     GraphNodePinBase* new_exec_output(GraphNodeBase* Node, int depth) {
         GraphNodePinBase* out = new_object<GraphNodePin>(); 
         out->direction() = PinDirection::Output;
         out->kind() = PinKind::Exec;
-        graph->pins.push_back(out);
+        Node->pins().push_back(out);
         return out;
     }
 #define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;

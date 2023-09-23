@@ -1,5 +1,6 @@
 #include "dtypes.h"
 
+#include "utilities/object.h"
 
 namespace lython {
 
@@ -13,7 +14,7 @@ enum class PinKind {
     Data,
 };
 
-class GraphNodePinBase: public GCNode {
+class GraphNodePinBase: public GCObject {
 public:
     virtual ~GraphNodePinBase() {}
 
@@ -27,7 +28,7 @@ public:
     virtual Array<GraphNodePinBase*> pins() = 0;
 };
 
-class GraphNodeBase: public GCNode {
+class GraphNodeBase: public GCObject {
 public:
     virtual ~GraphNodeBase() {}
 
@@ -53,7 +54,7 @@ private:
     Node* _node;
     Array<GraphNodePinBase*> _pins;
     Point<int> _position;
-    String& _comment;
+    String _comment;
 };
 
 class GraphNodePin: public GraphNodePinBase 

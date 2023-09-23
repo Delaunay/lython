@@ -144,7 +144,7 @@ public:
 
     // Call a function but we do not know the types of the arguments
     NativeObject* invoke(void* obj, std::string const& name, std::vector<NativeObject*> const& args, GCObject* owner=nullptr)  {
-        using FunctionT =  NativeObject*(*)(NativeObject*, void*, meta::VoidFunction, std::vector<NativeObject*> const& args);
+        using FunctionT =  NativeObject*(*)(GCObject*, void*, meta::VoidFunction, std::vector<NativeObject*> const& args);
 
         // Simply call the generated wrapper
         meta::Member const& member = _get_member(name);

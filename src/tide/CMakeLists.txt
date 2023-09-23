@@ -13,6 +13,9 @@ ADD_EXECUTABLE(
     bezier.cpp
     block.cpp
 
+    convert/to_graph.cpp
+    convert/to_ast.cpp
+
     engine/vk_engine.cpp
     engine/vk_initializers.cpp
     engine/vk_mesh.cpp
@@ -36,7 +39,7 @@ ENDIF()
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui/backends)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor)
 TARGET_LINK_LIBRARIES(tide vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY})
-TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan SDL2::SDL2-static SDL2::SDL2main)
+TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan SDL2::SDL2-static SDL2::SDL2main liblython liblogging argparse)
 
 # TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan 
 #     /home/newton/work/lython/build/lib/libSDL2d.a 
