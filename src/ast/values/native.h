@@ -9,6 +9,38 @@
 
 namespace lython {
 
+inline 
+std::string _type_error(int expected, int got) {
+    std::string expected_t = meta::type_name(expected);
+    std::string got_t = meta::type_name(got);
+    return "Wrong argument type, expected: `" + expected_t + "` got `" + got_t + "`";
+}
+
+template<typename ExpectedT>
+std::string _type_error(int got) {
+    std::string expected_t = meta::type_name<ExpectedT>();
+    std::string got_t = meta::type_name(got);
+    return "Wrong argument type, expected: `" + expected_t + "` got `" + got_t + "`";
+}
+
+class WrongTypeException: public std::exception {
+public:
+    WrongTypeException(std::string const& msg):
+        message(msg)
+    {}
+
+    WrongTypeException(int expected, int got):
+        message(_type_error(expected, got))
+    {}
+
+    const char* what() const noexcept override  {
+        return message.c_str();
+    }
+
+private:
+    std::string message;
+};
+
 
 
 // TODO: allow native object to register their own methods
@@ -52,12 +84,24 @@ public:
     }
 
     template<typename ObjectT>
-    ObjectT* as() {
-        if (_type != meta::type_id<ObjectT>()) {
-            assert(0, "object type should match");
-            return nullptr;
-        }
+    bool is_type() const {
+        return is_type(meta::type_id<ObjectT>());
+    }
 
+    bool is_type(int type_) const {
+        return _type == type_;
+    }
+
+    template<typename ObjectT>
+    ObjectT* as() {
+        if (!is_type<ObjectT>()) {
+            throw WrongTypeException(meta::type_id<ObjectT>(), _type);
+        }
+        return reinterpret_cast<ObjectT*>(_memory());
+    }
+
+    template<typename ObjectT>
+    ObjectT* as_fast() noexcept {
         return reinterpret_cast<ObjectT*>(_memory());
     }
 
@@ -99,13 +143,17 @@ public:
     #endif
 
     // Call a function but we do not know the types of the arguments
-    NativeObject* invoke(void* obj, std::string const& name, std::vector<NativeObject*> const& args)  {
-        using FunctionT =  NativeObject*(*)(void*, meta::VoidFunction, std::vector<NativeObject*> const& args);
+    NativeObject* invoke(void* obj, std::string const& name, std::vector<NativeObject*> const& args, GCObject* owner=nullptr)  {
+        using FunctionT =  NativeObject*(*)(NativeObject*, void*, meta::VoidFunction, std::vector<NativeObject*> const& args);
 
         // Simply call the generated wrapper
         meta::Member const& member = _get_member(name);
 
-        auto arguments = std::make_tuple(obj, member.native, args);
+        if (owner == nullptr) {
+            owner = this;
+        }
+
+        auto arguments = std::make_tuple(owner, obj, member.native, args);
 
         FunctionT fun = reinterpret_cast<FunctionT>(member.method);
 

@@ -80,21 +80,11 @@ inline int _new_type() {
 }
 
 // Generate a unique ID for a given type
+int _register_type_once(int tid, const char* str);
+
 template <typename T>
 int _register_type_once(const char* str) {
-    if (!is_type_registry_available())
-        return 0;
-
-    auto& db = TypeRegistry::instance().id_to_meta;
-
-    auto tid    = type_id<T>();
-    auto result = db.find(tid);
-
-    if (result == db.end()) {
-        db[tid].name = str;
-        db[tid].type_id = tid;
-    }
-    return tid;
+    return _register_type_once(type_id<T>(), str);
 }
 
 // Insert a type name override
@@ -122,7 +112,6 @@ const char* type_name() {
     if (result == db.end() || result->second.name == "") {
         const char* name = typeid(T).name();
         return register_type<T>(name);
-        // return "<none>";
     }
 
     return (result->second).name.c_str();

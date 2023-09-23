@@ -8,12 +8,13 @@
 #include "sema/builtin.h"
 #include "sema/errors.h"
 #include "utilities/strings.h"
+#include "tide/convert/graph.h"
 
 namespace lython {
 
 struct ToGraphVisitorTrait {
-    using StmtRet = void;
-    using ExprRet = void;
+    using StmtRet = GraphNode*;         // Statement returns their 
+    using ExprRet = GraphNodePinBase*;  // Expression returns a single output pin
     using ModRet  = void;
     using PatRet  = void;
     using IsConst = std::false_type;
@@ -23,8 +24,11 @@ struct ToGraphVisitorTrait {
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
-/*
- */
+
+struct Arena {
+    GCObject root;
+}
+
 struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     using Super = BaseVisitor<ToGraph, false, ToGraphVisitorTrait>;
 
@@ -33,6 +37,50 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     using ModRet  = Super::ModRet;
     using PatRet  = Super::PatRet;
 
+    template <typename T, typename... Args>
+    T* new_object(Args&&... args) {
+        return arena.root.new_object<T>(Args...);
+    }
+    Arena arena;
+
+    GraphNodePinBase* new_input(GraphNodeBase* Node, Expr_t* expr, int depth) {
+        GraphNodePinBase* in = new_object<GraphNodePin>(); 
+        in->direction() = PinDirection::Input;
+        in->kind() = PinKind::Data;
+        in.pins().push_back(exec(expr, depth));
+        graph->pins.push_back(in);
+        return in;
+    }
+
+    GraphNodePinBase* new_output(GraphNodeBase* Node, int depth) {
+        GraphNodePinBase* out = new_object<GraphNodePin>(); 
+        out->direction() = PinDirection::Output;
+        out->kind() = PinKind::Data;
+        graph->pins.push_back(out);
+        // current_exec_pin = out;
+        return out;
+    }
+
+    GraphNodePinBase* new_exec_input(GraphNodeBase* Node, int depth) {
+        GraphNodePinBase* out = new_object<GraphNodePin>(); 
+        in->direction() = PinDirection::Input;
+        in->kind() = PinKind::Exec;
+        graph->pins.push_back(out);
+
+        if (current_exec_pin) {
+            current_exec_pin->push_back(in);
+            current_exec_pin = nullptr;
+        }
+        return out;
+    }
+
+    GraphNodePinBase* new_exec_output(GraphNodeBase* Node, int depth) {
+        GraphNodePinBase* out = new_object<GraphNodePin>(); 
+        out->direction() = PinDirection::Output;
+        out->kind() = PinKind::Exec;
+        graph->pins.push_back(out);
+        return out;
+    }
 #define TYPE_GEN(rtype) using rtype##_t = Super::rtype##_t;
 
 #define X(name, _)
@@ -57,6 +105,7 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     Array<StmtNode*>      nested;
     Array<String>         namespaces;
     Dict<StringRef, bool> flags;
+    GraphNodePinBase*     current_exec_pin = nullptr;
 
     public:
     virtual ~ToGraph() {}

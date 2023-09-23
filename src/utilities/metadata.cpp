@@ -7,6 +7,7 @@
 #include "sema/sema.h"
 
 #include "allocator.h"
+#include "metadata_1.h"
 #include "metadata.h"
 
 namespace lython {
@@ -34,6 +35,23 @@ using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_sim
 
 template <typename T>
 using UniquePtrInternal = std::unique_ptr<T>;
+
+namespace meta {
+int _register_type_once(int tid, const char* str) {
+    if (!is_type_registry_available())
+        return 0;
+
+    auto& db = TypeRegistry::instance().id_to_meta;
+    auto result = db.find(tid);
+
+    if (result == db.end() || result->second.name == "") {
+        db[tid].name = str;
+        db[tid].type_id = tid;
+    }
+    return tid;
+}
+}
+
 
 void _metadata_init_names_windows();
 void _metadata_init_names_unix();

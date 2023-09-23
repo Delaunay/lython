@@ -64,18 +64,25 @@ TEST_CASE("NATIVE Object") {
     REQUIRE(p->sum(0) == 3);
     REQUIRE(wp.as<Point>()->sum(0) == 3);
 
-
     // This is a bit too much info to provide
     // float r = wrapped.invoke<float, float>(p, "sum", {&arg});
 
-    // this is nice
-    auto arg = lython::NativeValue<float>(10);
-    lython::NativeObject* r = wrapped.invoke(p, "sum", {&arg});
-    float result = *((lython::NativeValue<float>*)(r))->as<float>();
+    {
+        // this is nice
+        auto                  arg    = lython::NativeValue<float>(10);
+        lython::NativeObject* r      = wrapped.invoke(p, "sum", {&arg});
+        float                 result = *((lython::NativeValue<float>*)(r))->as<float>();
+        std::cout << "Result: " << result << std::endl;
+        REQUIRE(wp.as<Point>()->sum(10) == result);
+    }
 
-    std::cout << "Result: " << result << std::endl;
-    REQUIRE(wp.as<Point>()->sum(10) == result);
-
+    try {
+        // How does this fail ?
+        auto                  arg    = lython::NativeValue<int>(10);
+        lython::NativeObject* r      = wrapped.invoke(p, "sum", {&arg});
+    } catch (lython::WrongTypeException& e) {
+         std::cout << "Error " << e.what() << std::endl;
+    }
 
     std::stringstream ss2;
     lython::meta::print(ss2, *p);

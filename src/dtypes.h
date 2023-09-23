@@ -111,6 +111,12 @@ using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, AllocatorCPU<V
 
 class LythonException: public std::exception {};
 
+template<typename T>
+struct Point {
+    T x;
+    T y;
+};
+
 }  // namespace lython
 
 #endif

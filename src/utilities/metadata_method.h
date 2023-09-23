@@ -34,7 +34,7 @@ struct signature<R (O::*)(Args...)> {
     using freemethod_t = R (*)(O*, Args...);
 
     using value_t   = lython::NativeObject*;
-    using generic_t = value_t (*)(O*, freemethod_t, std::vector<value_t> const& args);
+    using generic_t = value_t (*)(GCObject*, O*, freemethod_t, std::vector<value_t> const& args);
 };
 
 template <typename Rx, typename Ty, size_t... Indices>
@@ -65,15 +65,20 @@ auto free_method(Rx Ty::*method) {
 }
 
 template<int N, typename... Types>
-void packargs(std::tuple<Types...>& destination, std::vector<lython::NativeObject*> const& args) {
+int packargs(std::tuple<Types...>& destination, std::vector<lython::NativeObject*> const& args) {
     using TupleSize = typename std::tuple_size<std::remove_reference_t<std::tuple<Types...>>>;
 
     if constexpr (N > 0) {
         using ElemT = typename std::tuple_element<TupleSize::value - N, std::tuple<Types...>>::type;
+
+        lython::NativeObject* val = args[TupleSize::value - N];
+
         // convert here
-        std::get<TupleSize::value - N>(destination) = *args[TupleSize::value - N]->as<ElemT>();
+        std::get<TupleSize::value - N>(destination) = *(val->as<ElemT>());
         packargs<N - 1>(destination, args);
+  
     }
+    return 0;
 }
 
 template <typename Ret, typename Ty, typename... Args, size_t... I>
@@ -101,7 +106,7 @@ auto wrap_method_generic(Rx Ty::* method) {
     using ValueT    = lython::NativeObject*;
 
     // Save it to the C function type to ensure it works
-    FunctionT lambda = [](Ty* self, FreeMethodT native, std::vector<ValueT> const& args) -> ValueT {  //
+    FunctionT lambda = [](GCObject* root, Ty* self, FreeMethodT native, std::vector<ValueT> const& args) -> ValueT {  //
         // Unpack args to the correct Type into Packed
 
         Arguments tuple_args;
@@ -109,9 +114,8 @@ auto wrap_method_generic(Rx Ty::* method) {
         packargs<std::tuple_size_v<std::remove_reference_t<Arguments>>>(tuple_args, args);
 
         // Allocate memory for the return value
-        // FIXME: memory leak here
         // this needs to be allocated by the owning object
-        NativeValue<ReturnT>* wrapped_result = new NativeValue<ReturnT>();
+        NativeValue<ReturnT>* wrapped_result = root->new_object<NativeValue<ReturnT>>();
 
         // Apply the free method
         (*wrapped_result->as<ReturnT>()) = std::apply(native, std::tuple_cat(std::make_tuple(self), tuple_args));
