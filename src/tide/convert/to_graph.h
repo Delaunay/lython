@@ -1,5 +1,4 @@
-#ifndef LYTHON_CPP_GEN_HEADER
-#define LYTHON_CPP_GEN_HEADER
+#pragma once
 
 #include "ast/magic.h"
 #include "ast/ops.h"
@@ -27,6 +26,11 @@ struct ToGraphVisitorTrait {
 
 struct Arena {
     GCObject root;
+
+    template <typename T, typename... Args>
+    T* new_object(Args&&... args) {
+        return root.new_object<T>(args...);
+    }
 };
 
 struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
@@ -41,12 +45,13 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     T* new_object(Args&&... args) {
         return arena.root.new_object<T>(args...);
     }
+
     Arena arena;
 
     GraphNodePinBase* new_input(GraphNodeBase* Node, ExprNode* expr, int depth) {
         GraphNodePinBase* in = new_object<GraphNodePin>(); 
         in->direction() = PinDirection::Input;
-        in->kind() = PinKind::Data;
+        in->kind() = PinKind::Circle;
         in->pins().push_back(exec(expr, depth));
         Node->pins().push_back(in);
         return in;
@@ -55,7 +60,7 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     GraphNodePinBase* new_output(GraphNodeBase* Node, int depth) {
         GraphNodePinBase* out = new_object<GraphNodePin>(); 
         out->direction() = PinDirection::Output;
-        out->kind() = PinKind::Data;
+        out->kind() = PinKind::Circle;
         Node->pins().push_back(out);
         // current_exec_pin = out;
         return out;
@@ -64,7 +69,7 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     GraphNodePinBase* new_exec_input(GraphNodeBase* Node, int depth) {
         GraphNodePinBase* in = new_object<GraphNodePin>(); 
         in->direction() = PinDirection::Input;
-        in->kind() = PinKind::Exec;
+        in->kind() = PinKind::Flow;
         Node->pins().push_back(in);
 
         if (current_exec_pin) {
@@ -77,7 +82,7 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     GraphNodePinBase* new_exec_output(GraphNodeBase* Node, int depth) {
         GraphNodePinBase* out = new_object<GraphNodePin>(); 
         out->direction() = PinDirection::Output;
-        out->kind() = PinKind::Exec;
+        out->kind() = PinKind::Flow;
         Node->pins().push_back(out);
         return out;
     }
@@ -132,5 +137,3 @@ struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
 };
 
 }  // namespace lython
-
-#endif
