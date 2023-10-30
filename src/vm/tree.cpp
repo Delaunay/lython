@@ -1180,4 +1180,8 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     return result;
 }
 
+PartialResult* TreeEvaluator::placeholder(Placeholder_t* stmt, int depth) {
+    return nullptr;
+}
+
 }  // namespace lython

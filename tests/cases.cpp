@@ -966,3 +966,8 @@ Array<TestCase> const& Expr_examples() {
     static Array<TestCase> example = {};
     return example;
 }
+
+Array<TestCase> const& Placeholder_examples() {
+    static Array<TestCase> example = {};
+    return example;
+}

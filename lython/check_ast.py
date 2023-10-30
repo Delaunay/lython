@@ -41,6 +41,11 @@ code = """
 d = 4
 n = f'{1:0d}'
 """
+
+code = """
+a = f"{d =}"
+
+"""
 show(code)
 
 

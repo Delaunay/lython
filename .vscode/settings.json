@@ -145,7 +145,8 @@
     "coroutine": "cpp",
     "*.ipp": "cpp",
     "strstream": "cpp",
-    "queue": "cpp"
+    "queue": "cpp",
+    "sdl_hints.h": "c"
   },
   "python.formatting.provider": "black",
   "files.exclude": {
