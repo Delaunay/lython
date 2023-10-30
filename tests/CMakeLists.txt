@@ -51,6 +51,7 @@ TEST_MACRO(pool)
 TEST_MACRO(utilities)
 TEST_MACRO(attribute)
 TEST_MACRO(vm)
+TEST_MACRO(meta)
 
 if (WITH_LLVM)
   TEST_MACRO(llvm)

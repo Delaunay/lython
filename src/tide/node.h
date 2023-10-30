@@ -1,14 +1,15 @@
 #pragma once
 
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui.h>
-#include <imgui_internal.h>
+
+#include "tide/convert/graph.h"
 
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-uint64_t nextid();
+namespace lython {
+
+
 bool     draw_bezier(ImDrawList* draw_list,
                      ImVec2      p1,
                      ImVec2      p2,
@@ -18,33 +19,21 @@ bool     draw_bezier(ImDrawList* draw_list,
                      float       eps      = 2   //
     );
 
-struct Base {
-    uint64_t id;
 
-    Base(): id(nextid()) {}
+struct Link {
+    Link(GraphNodePinBase* from, GraphNodePinBase* to): from(from), to(to) {
+    }
+
+    std::string name;
+    
+    GraphNodePinBase* from;
+    GraphNodePinBase* to;
 };
 
-enum class PinKind
-{
-    Flow,
-    Circle,
-    Square,
-    Grid,
-    RoundSquare,
-    Diamond,
-};
 
-enum class PinType
-{
-    Flow,
-    Bool,
-    Int,
-    Float,
-    String,
-    Object,
-    Delegate,
-};
 
+
+/*
 struct Pin: public Base {
     std::string name;
     // std::string typename;
@@ -58,18 +47,8 @@ struct Pin: public Base {
     float* as_float() {
         return reinterpret_cast<float*>(&value);
     }
-};
 
-struct Link {
-    Link(Pin* from, Pin* to): from(from), to(to) {
-        from->connected = true;
-        to->connected   = true;
-    }
-
-    std::string name;
-    
-    Pin* from;
-    Pin* to;
+    class GraphNodePin* _underlying = nullptr;
 };
 
 struct Layout {
@@ -107,42 +86,45 @@ struct Node: public Base {
     }
 };
 
+*/
+
 // Statement
 // Function
 // Macro
-struct Tree: public Base {
+struct Tree {
     std::string name;
 
-    std::vector<Node> nodes;
     std::vector<Link> links;
+    std::vector<GraphNodeBase*> nodes;
 };
 
 // module
 // namespace
-struct Forest: public Base {
-
+struct Forest {
     std::vector<Tree> trees;
 };
 
-struct GraphEditor: public Base {
+
+struct GraphEditor {
 
     std::vector<Forest> forests;
 
     void draw();
 
-    void draw(Pin* pin, ImVec2 center);
+    void draw(GraphNodePinBase* pin, ImVec2 center);
+    void draw(GraphNodePinBase* from, GraphNodePinBase* to, ImVec2 offset);
     void draw(Link* link, ImVec2 offset);
-    void draw(Node* node, ImVec2 offset);
+    void draw(GraphNodeBase* node, ImVec2 offset);
     void drawgrid();
 
     void handle_events(ImVec2 offset);
 
     //
     ImVec2                             scrolling     = ImVec2(0.0f, 0.0f);
-    Node*                              hovered_node  = nullptr;
-    Node*                              selected_node = nullptr;
-    Pin*                               hovered_pin   = nullptr;
-    Pin*                               selected_pin  = nullptr;
+    GraphNodeBase*                         hovered_node  = nullptr;
+    GraphNodeBase*                         selected_node = nullptr;
+    GraphNodePinBase*                      hovered_pin   = nullptr;
+    GraphNodePinBase*                      selected_pin  = nullptr;
     Link*                              hovered_link  = nullptr;
     Tree*                              selected_tree = nullptr;
     Tree*                              current_tree  = nullptr;
@@ -172,14 +154,14 @@ struct GraphEditor: public Base {
     ImVec2 rectangle_start;
     ImRect rectangle_selection;
 
-    std::unordered_map<Node*, bool>  selected;
+    std::unordered_map<GraphNodeBase*, bool>  selected;
 
     ImRect _size;
     ImVec2 _offset;
 
     ImVec2 get_offset() { return _offset; }
 
-    ImVec2 estimate_size(Node& node, ImVec2 font_size = ImVec2(7, 13));
+    ImVec2 estimate_size(GraphNodeBase* node, ImVec2 font_size = ImVec2(7, 13));
 
     bool is_selecting() const {
         return rectangle_select;
@@ -196,14 +178,14 @@ struct GraphEditor: public Base {
         return rectangle_selection;
     } 
 
-    void check_selected(Node* node) {
+    void check_selected(GraphNodeBase* node) {
         if (is_selecting()) {
-            if (selection_rectangle().Contains(ImRect(node->pos, node->size))) {
-                node->selected = true;
+            if (selection_rectangle().Contains(ImRect((node->position()), (node->size())))) {
+                //node->selected = true;
                 selected[node] = true;
             }    
             else {
-                node->selected = false;
+                //node->selected = false;
                 selected.extract(node);
             }
         }
@@ -234,10 +216,10 @@ struct TreeBuilder {
         tree(t)
     {}
 
-    Node& mew_node() {
-        Node& n = tree.nodes.emplace_back();
-        return n;
-    }
+    // GraphNode* new_node() {
+    //     GraphNode* n = tree.nodes.emplace_back();
+    //     return n;
+    // }
 
     Tree& tree;
 };
@@ -251,3 +233,5 @@ struct GraphBuilder {
 
     GraphEditor& editor;
 };
+
+}

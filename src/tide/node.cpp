@@ -5,6 +5,9 @@
 
 #include <algorithm>
 
+
+namespace lython {
+
 void GraphEditor::draw() {
     hovered_link = nullptr;
     hovered_pin  = nullptr;
@@ -43,8 +46,8 @@ void GraphEditor::draw() {
         for (Tree& tree: forest.trees) {
             current_tree = &tree;
 
-            for (Node& node: tree.nodes) {
-                draw(&node, offset);
+            for (GraphNodeBase* node: tree.nodes) {
+                draw(node, offset);
             }
 
             draw_list->ChannelsSetCurrent(0);
@@ -84,8 +87,8 @@ void GraphEditor::handle_events(ImVec2 offset) {
                                          return l == hovered_link;
                                      });
 
-            it->from->connected = false;
-            it->to->connected   = false;
+            //it->from->connected = false;
+            //it->to->connected   = false;
 
             selected_tree->links.erase(it);
 
@@ -118,9 +121,9 @@ void GraphEditor::handle_events(ImVec2 offset) {
     // PENDING LINK
     if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
         if (selected_pin != nullptr) {
-            auto color = _colors[selected_pin->type];
+            auto color = _colors[selected_pin->type()];
             draw_bezier(draw_list,
-                        with_scroll(selected_pin->pos),
+                        with_scroll(selected_pin->position()),
                         ImGui::GetMousePos(),
                         color,
                         bezier_segments,
@@ -132,7 +135,7 @@ void GraphEditor::handle_events(ImVec2 offset) {
             if (!rectangle_select) {
                 rectangle_select = true;
                 for (auto& item: selected) {
-                    item.first->selected = false;
+                    item.first->selected() = false;
                 }
                 selected.clear();
                 rectangle_start = ImGui::GetMousePos();
@@ -214,12 +217,12 @@ bool draw_bezier(ImDrawList* draw_list,
 }
 
 void GraphEditor::draw(Link* link, ImVec2 offset) {
-    auto color = _colors[link->from->type];
+    auto color = _colors[link->from->type()];
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     bool        hovered   = draw_bezier(draw_list,
-                               with_scroll(link->from->pos),
-                               with_scroll(link->to->pos),
+                               with_scroll(link->from->position()),
+                               with_scroll(link->to->position()),
                                color,
                                bezier_segments,
                                tickness);
@@ -230,30 +233,35 @@ void GraphEditor::draw(Link* link, ImVec2 offset) {
     }
 }
 
-ImVec2 GraphEditor::estimate_size(Node& node, ImVec2 font_size) {
+ImVec2 GraphEditor::estimate_size(GraphNodeBase* node, ImVec2 font_size) {
+    
+    Array<GraphNodePinBase*> inputs;
+    Array<GraphNodePinBase*> outputs;
+    node->get_pins_by_direction(inputs, outputs);
+
     ImRect size;
     float  height = 0;
-    for (int i = 0; i < node.inputs.size(); i++) {
-        if (node.inputs[i].name.empty())
+    for (int i = 0; i < inputs.size(); i++) {
+        if (inputs[i]->name().empty())
             continue;
 
-        ImVec2 v = font_size * ImVec2(node.inputs[i].name.size(), 1);
+        ImVec2 v = font_size * ImVec2(inputs[i]->name().size(), 1);
 
         height += v.y;
         size.Add(v + ImVec2(pin_radius * 4, height));
     }
 
-    ImVec2 v = font_size * ImVec2(node.name.size(), 1);
+    ImVec2 v = font_size * ImVec2(node->name().size(), 1);
     size.Add(v + ImVec2(pin_radius * 4, height));
 
     ImVec2 col1 = size.GetSize();
 
     height = 0;
-    for (int i = 0; i < node.outputs.size(); i++) {
-        if (node.outputs[i].name.empty())
+    for (int i = 0; i < outputs.size(); i++) {
+        if (outputs[i]->name().empty())
             continue;
 
-        ImVec2 v = font_size * ImVec2(node.outputs[i].name.size(), 1);
+        ImVec2 v = font_size * ImVec2(outputs[i]->name().size(), 1);
         height += v.y;
         size.Add(v + ImVec2(col1.x, height) + ImVec2(pin_radius * 2, 0));
     }
@@ -261,13 +269,13 @@ ImVec2 GraphEditor::estimate_size(Node& node, ImVec2 font_size) {
     return size.GetSize();
 }
 
-void GraphEditor::draw(Node* node, ImVec2 offset) {
+void GraphEditor::draw(GraphNodeBase* node, ImVec2 offset) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImGuiIO&    io        = ImGui::GetIO();
 
     ImGui::PushID(int(node->id));
 
-    ImVec2       node_rect_min = offset + node->pos;  // Parent offset
+    ImVec2       node_rect_min = offset + node->position();  // Parent offset
     static float value;
     bool         old_any_active = ImGui::IsAnyItemActive();
 
@@ -281,37 +289,44 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     // Argument Column
     ImGui::BeginGroup();
     ImVec2 txt         = ImGui::CalcTextSize("T");
-    float  line_height = node->layout.input.y;
-    float  line_width  = node->layout.input.x;
-    ImVec2 start       = node->pos + ImVec2(1, 1) * pin_radius + ImVec2(1, 1) * node_padding;
+    float  line_height = node->input_position().y;
+    float  line_width  = node->input_position().x;
+    ImVec2 start       = node->position() + ImVec2(1, 1) * pin_radius + ImVec2(1, 1) * node_padding;
     float  new_width   = pin_radius / 2;
     float  new_height  = std::max(pin_radius * 2, txt.y);
 
     ImGui::SetCursorPos(start);
     _size = ImRect();
 
+    Array<GraphNodePinBase*> inputs;
+    Array<GraphNodePinBase*> outputs;
+    node->get_pins_by_direction(inputs, outputs);
+    GraphNodePinBase* exec_in = nullptr;
+    GraphNodePinBase* exec_out = nullptr;
+
     // Inputs
-    for (int slot_idx = 0; slot_idx < node->inputs.size(); slot_idx++) {
-        Pin& pin = node->inputs[slot_idx];
+    for (int slot_idx = 0; slot_idx < inputs.size(); slot_idx++) {
+        GraphNodePinBase* pin = inputs[slot_idx];
 
-        pin.pos = start;
+        pin->position() = start;
 
-        const char* name = pin.name.c_str();
-        if (pin.kind == PinKind::Flow) {
-            name = node->name.c_str();
+        const char* name = pin->name().c_str();
+        if (pin->kind() == PinKind::Flow) {
+            name = node->name().c_str();
+            exec_in = pin;
         }
         ImVec2 v = ImGui::CalcTextSize(name);
 
-        draw(&pin, with_scroll(pin.pos));
+        draw(pin, with_scroll(pin->position()));
         ImGui::SetCursorPos(
-            with_scroll(pin.pos + ImVec2(pin_radius / 2 + pin_label_margin, -(pin_radius + v.y / 4))));
+            with_scroll(pin->position() + ImVec2(pin_radius / 2 + pin_label_margin, -(pin_radius + v.y / 4))));
 
         ImGui::Text("%s", name);
         ImVec2 s(0, 0);
-        if (pin.type == PinType::Float && !pin.connected) {
+        if (pin->type() == PinType::Float && !pin->connected()) {
             ImGui::SameLine();
             ImGui::PushItemWidth(txt.x * 5);
-            ImGui::InputFloat("", pin.as_float(), 0, 0, "%.f");
+            // ImGui::InputFloat("", pin.as_float(), 0, 0, "%.f");
             ImGui::PopItemWidth();
 
             s = ImGui::GetItemRectSize();
@@ -321,15 +336,15 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         new_width  = std::max(new_width, v.x + s.x);
         start.y += line_height;
     }
-    node->layout.input.y = new_height;
-    node->layout.input.x = new_width + pin_radius;
+    node->input_position().y = new_height;
+    node->input_position().x = new_width + pin_radius;
 
     ImGui::EndGroup();
     ImVec2 s = ImGui::GetItemRectSize();
 
     //
-    if (node->exec_in() == nullptr) {
-        const char* name = node->name.c_str();
+    if (exec_in == nullptr) {
+        const char* name = node->name().c_str();
 
         ImVec2 sz = ImGui::CalcTextSize(name) + ImVec2(txt.x, 0);
         // ImVec2 sz(txt.x * (node->name.size() + 2), txt.y);
@@ -339,11 +354,11 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         //     (node->size.y - sz.y )/ 2.f
         // );
 
-        ImVec2 center = node->size / 2 + ImVec2(-sz.x, -sz.y - node_padding);
-        ImGui::SetCursorPos(with_scroll(node->pos + center));
+        ImVec2 center = node->size() / 2 + ImVec2(-sz.x, -sz.y - node_padding);
+        ImGui::SetCursorPos(with_scroll(node->position() + center));
         ImGui::Text("%s", name);
 
-        node->layout.input.x = new_width + sz.x + 2 * pin_radius;
+        node->input_position().x = new_width + sz.x + 2 * pin_radius;
     }
 
     // Ouputs
@@ -352,21 +367,21 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     // Output Column
     // ImGui::SetCursorScreenPos(node_rect_min + ImVec2(node->layout.input.x, 0));
 
-    ImGui::SetCursorPos(node->pos + ImVec2(1, 0) * pin_radius + ImVec2(node->layout.input.x, 0) +
+    ImGui::SetCursorPos(node->position() + ImVec2(1, 0) * pin_radius + ImVec2(node->input_position().x, 0) +
                         ImVec2(0, 1) * node_padding);
     start = ImGui::GetCursorPos();
 
-    line_width = node->layout.output.x;
+    line_width = node->output_position().x;
     new_width  = pin_radius;
     new_height = pin_radius * 2;
 
-    for (int slot_idx = 0; slot_idx < node->outputs.size(); slot_idx++) {
-        Pin& pin         = node->outputs[slot_idx];
-        pin.pos          = start + ImVec2(pin_radius / 2, 0);
-        const char* name = pin.name.c_str();
+    for (int slot_idx = 0; slot_idx < outputs.size(); slot_idx++) {
+        GraphNodePinBase* pin         = outputs[slot_idx];
+        pin->position()          = start + ImVec2(pin_radius / 2, 0);
+        const char* name = pin->name().c_str();
 
         ImVec2 v = ImGui::CalcTextSize(name);
-        if (pin.name.empty())
+        if (pin->name().empty())
             v.y = 0;
 
         new_width  = std::max(new_width, v.x + pin_radius);
@@ -376,27 +391,27 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
         ImGui::SetCursorPos(with_scroll(start + ImVec2(s, -v.y / 4)));
         ImGui::Text("%s", name);
 
-        pin.pos = start + ImVec2(line_width + pin_label_margin, 0) + ImVec2(1, 1) * pin_radius +
+        pin->position() = start + ImVec2(line_width + pin_label_margin, 0) + ImVec2(1, 1) * pin_radius +
                   ImVec2(0, 0);
-        draw(&pin, with_scroll(pin.pos));
+        draw(pin, with_scroll(pin->position()));
 
         start.y += line_height;
     }
-    node->layout.output.x = new_width + pin_label_margin;
-    node->layout.output.y = new_height;
+    node->output_position().x = new_width + pin_label_margin;
+    node->output_position().y = new_height;
     ImGui::EndGroup();
     ImGui::EndGroup();
     // ---
 
-    node->size           = (_size.GetSize() - node->pos) + ImVec2(1, 1) * node_padding;
-    ImVec2 node_rect_max = node_rect_min + node->size;
+    node->size()           = (_size.GetSize() - node->position()) + ImVec2(1, 1) * node_padding;
+    ImVec2 node_rect_max = node_rect_min + node->size();
 
     // Background
     draw_list->ChannelsSetCurrent(1);
     // ImGui::SetCursorScreenPos(node_rect_min);
 
-    ImGui::SetCursorPos(with_scroll(node->pos));
-    ImGui::InvisibleButton("node", node->size);
+    ImGui::SetCursorPos(with_scroll(node->position()));
+    ImGui::InvisibleButton("node", node->size());
     /// ---
 
     // Events
@@ -413,10 +428,10 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     if (node_moving_active && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
 
         if (!has_selection()) {
-            node->pos = node->pos + io.MouseDelta;
+            node->position() = node->position() + io.MouseDelta;
         } else {
             for (auto& item: selected) {
-                item.first->pos = item.first->pos + io.MouseDelta;
+                item.first->position() = item.first->position() + io.MouseDelta;
             }
         }
     }
@@ -426,16 +441,16 @@ void GraphEditor::draw(Node* node, ImVec2 offset) {
     draw_list->AddRectFilled(node_rect_min, node_rect_max, node_bg_color, 4.0f);
     draw_list->AddRect(node_rect_min,
                        node_rect_max,
-                       node->selected ? node_selected_color : node_outline_color,
+                       node->selected() ? node_selected_color : node_outline_color,
                        4.0f,
                        0,
-                       node->selected ? 4.0f : 1.0f);
+                       node->selected() ? 4.0f : 1.0f);
     check_selected(node);
 
     ImGui::PopID();
 }
 
-void GraphEditor::draw(Pin* pin, ImVec2 center) {
+void GraphEditor::draw(GraphNodePinBase* pin, ImVec2 center) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     draw_list->ChannelsSetCurrent(2);
 
@@ -479,12 +494,12 @@ void GraphEditor::draw(Pin* pin, ImVec2 center) {
         hovered_pin = pin;
     }
 
-    ImU32 color = _colors[pin->type];
+    ImU32 color = _colors[pin->type()];
 
     auto style = PinStyle{
         //
-        pin->kind,       //
-        pin->connected,  //
+        pin->kind(),       //
+        pin->connected(),  //
         color,           //
         color            //
     };
@@ -823,4 +838,6 @@ void GraphEditor::draw_triangle(PinStyle& style, ImVec2 pos, ImVec2 size) {
                                  ImVec2(triangleStart, rect_center_y + 0.15f * rect_h),
                                  ImVec2(triangleStart, rect_center_y - 0.15f * rect_h),
                                  style.color);
+}
+
 }

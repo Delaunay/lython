@@ -22,8 +22,34 @@
         }                              \
     }
 
-namespace lython {
+struct EvaluationResult {
 
+};
+
+namespace lython {
+PartialResult* TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth) 
+{
+     for (StmtNode * stmt: body) {    
+        Node* result = exec(stmt, depth);
+        if (result->family() == NodeFamily::Statement) {
+            newbod.push_back((StmtNode*)(result));    
+        }  
+        
+        // We cannot proceed, essentially found a compile time issue
+        if (has_exceptions()) {        
+            return None();             
+        }                              
+
+        // We have reached a value to return
+        // check if partial or not
+        // if partial then maybe we do not have sufficient info to return right away
+        // if not we can return right away
+        if (return_value != nullptr) { 
+            return return_value;       
+        }                              
+    }
+    return None();
+}
 void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cause) {
     // Create the exception object
 
@@ -363,18 +389,27 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function,
 PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function, int depth) {
     Scope scope(bindings);
 
-    // TODO: free the references held by the binding to save sapce
+    // TODO: free the references held by the binding to save space
     Array<PartialResult*> to_be_freed;
     to_be_freed.reserve(call->args.size());
+
+    bool partial_call = false;
 
     // insert arguments to the context
     for (int i = 0; i < call->args.size(); i++) {
         PartialResult* arg = exec(call->args[i], depth);
         to_be_freed.push_back(arg);
+
+        if (!arg->is_instance<Constant>()) {
+            partial_call = true;
+        }
+
         bindings.add(StringRef(), arg, nullptr);
     }
 
+    partial.push_back(partial_call);
     EXEC_BODY(function->body);
+    partial.pop_back();
 
     // TODO: check if the execution was partial or full
     // Actually; if we take ownership of the arguments
@@ -540,6 +575,8 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     // return self ?
     return nullptr;
 }
+
+PartialResult* TreeEvaluator::placeholder(Placeholder_t* n, int depth) { return nullptr; }
 
 PartialResult* TreeEvaluator::constant(Constant_t* n, int depth) {
     Constant* cpy = root.copy(n);
@@ -939,7 +976,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
             }
 
             // FIXME: we do not have the type at runtime!!!
-            else if (equal(handler.type.value(), latest_exception->type)) {
+            else if (equal(handler.type.value(), latest_exception->type())) {
                 matched       = &handler;
                 found_matcher = true;
             }
@@ -955,7 +992,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
 
             // Execute Handler
             if (matched->name.has_value()) {
-                exception.value = latest_exception->custom;
+                exception.value = latest_exception->custom();
                 bindings.add(matched->name.value(), &exception, nullptr);
             }
 
@@ -1168,7 +1205,7 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
         assert(except != nullptr, "Exception is null");
 
         fmt::print("Traceback (most recent call last):\n");
-        for (StackTrace& st: except->traces) {
+        for (StackTrace& st: except->traces()) {
             printkwtrace(st);
         }
 
@@ -1178,10 +1215,6 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     }
 
     return result;
-}
-
-PartialResult* TreeEvaluator::placeholder(Placeholder_t* stmt, int depth) {
-    return nullptr;
 }
 
 }  // namespace lython

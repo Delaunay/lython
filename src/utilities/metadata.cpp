@@ -7,6 +7,7 @@
 #include "sema/sema.h"
 
 #include "allocator.h"
+#include "metadata_1.h"
 #include "metadata.h"
 
 namespace lython {
@@ -34,6 +35,23 @@ using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_sim
 
 template <typename T>
 using UniquePtrInternal = std::unique_ptr<T>;
+
+namespace meta {
+int _register_type_once(int tid, const char* str) {
+    if (!is_type_registry_available())
+        return 0;
+
+    auto& db = TypeRegistry::instance().id_to_meta;
+    auto result = db.find(tid);
+
+    if (result == db.end() || result->second.name == "") {
+        db[tid].name = str;
+        db[tid].type_id = tid;
+    }
+    return tid;
+}
+}
+
 
 void _metadata_init_names_windows();
 void _metadata_init_names_unix();
@@ -233,9 +251,8 @@ void track_static() {
     // so we can try to ignore static variables
     // this will only work if `metadata_init_names` is called
     // after the static variables got initialized
-    auto& stat = meta::stats();
-    for (auto& s: stat) {
-        s.startup_count = 0;
+    for (auto& s: meta::TypeRegistry::instance().id_to_meta) {
+        s.second.stat.startup_count = 0;
         // s.allocated - s.deallocated;
     }
 }
@@ -272,5 +289,67 @@ void register_globals() {
         track_static();
     }
 }
+
+namespace meta {
+TypeRegistry& TypeRegistry::instance() {
+    static TypeRegistry obj;
+    return obj;
+}
+
+TypeRegistry::TypeRegistry() { is_type_registry_available() = true; }
+
+TypeRegistry::~TypeRegistry() {
+    if (print_stats) {
+        show_alloc_stats();
+    }
+
+    is_type_registry_available() = false;
+}
+
+bool& is_type_registry_available() {
+    static bool avail = false;
+    return avail;
+}
+
+
+ClassMetadata& classmeta(int _typeid) {
+    return TypeRegistry::instance().id_to_meta[_typeid];
+}
+
+Member const& nomember() {
+    static Member const m("", -1, -1);
+    return m;
+}
+
+Member const& member(int _typeid, int id) {
+    ClassMetadata& registry = classmeta(_typeid);
+    if (id >= registry.members.size()) {
+        assert(0, "Member should exist");
+        return nomember();
+    }
+    return registry.members[id];
+}
+
+Member const& member(int _typeid, std::string const& name) {
+    ClassMetadata& registry = classmeta(_typeid);
+
+    for (Member& member: registry.members) {
+        if (member.name == name) {
+            return member;
+        }
+    }
+
+    return nomember();
+}
+
+void print(std::ostream& ss, int typeid_, std::int8_t const* data) {
+    ClassMetadata const& registry = classmeta(typeid_);
+
+    if (registry.printer) {
+        registry.printer(ss, data);
+    }
+}
+
+}  // namespace meta
 
 }  // namespace lython

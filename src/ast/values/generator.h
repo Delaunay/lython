@@ -13,6 +13,11 @@ namespace lython {
 // this value is created when a function yields instead of returning
 struct Generator: public NativeObject {
     public:
+
+    Generator():
+        NativeObject(meta::type_id<Generator>())
+    {}
+
     ConstantValue __next__(struct TreeEvaluator& vm);
 
     // Scope use to evaluate this generator
@@ -20,6 +25,11 @@ struct Generator: public NativeObject {
 
     // Function we execute
     FunctionDef* generator;
+
+    bool is_native() const override { return false; }
+    bool is_pointer() const override { return false; }
+    bool is_valid() const override { return true; }
+    int8* _memory() { return nullptr; }
 };
 }  // namespace lython
 
