@@ -58,6 +58,51 @@ Array<String> python_paths() {
     return split(':', path);
 }
 
+String is_module(Array<String> const& module_frags, String path, bool& is_mod) {
+    kwdebug("looking in `{}`", path);
+
+    namespace fs = std::filesystem;
+    is_mod = false;
+
+    auto stat = fs::status(path);
+    if (!fs::is_directory(stat)) {
+        kwdebug("Not a directory {}", path);
+        return path;
+    }
+
+    Array<String> fspath_frags = {path};
+    fspath_frags.reserve(module_frags.size());
+
+    // <path>/<module_frags>
+    std::copy(
+        std::begin(module_frags), std::end(module_frags), std::back_inserter(fspath_frags));
+
+    auto fspath = join("/", fspath_frags);
+    stat        = fs::status(fspath);
+
+    // TODO: check for so files
+    //
+    if (fs::is_directory(stat)) {
+        // Load a folder module
+        // import my.module => my/module/__init__.py
+        fspath += "/__init__.py";
+    } else {
+        // Load a file module
+        // import my.module => my/module.py
+        fspath += ".py";
+    }
+
+    stat = fs::status(fspath);
+    if (!fs::exists(stat)) {
+        kwdebug("not a file {}", fspath);
+        return path;
+    }
+
+    kwdebug("Found file {}", fspath);
+    is_mod = true;
+    return fspath;
+}
+
 String lookup_module(StringRef const& module_path, Array<String> const& paths) {
     // First lookup for builtin module names
     // Then list of directories inside th sys.path
@@ -79,46 +124,25 @@ String lookup_module(StringRef const& module_path, Array<String> const& paths) {
 
     namespace fs = std::filesystem;
 
-    kwdebug("{}", str(paths));
+    kwdebug("paths: {}", str(paths));
     auto module_frags = split('.', str(module_path));
 
+    bool is_mod = false;
+    auto path_mod = is_module(
+        module_frags,                           //
+        String(fs::current_path().c_str()),     //
+        is_mod                                  //
+    );
+
+    if (is_mod) {
+        return path_mod;
+    }
+
     for (auto const& path: paths) {
-        auto stat = fs::status(path);
-        if (!fs::is_directory(stat)) {
-            kwdebug("Not a directory {}", path);
-            continue;
+        auto path_mod = is_module(module_frags, path, is_mod);
+        if (is_mod) {
+            return path_mod;
         }
-
-        Array<String> fspath_frags = {path};
-        fspath_frags.reserve(module_frags.size());
-
-        // <path>/<module_frags>
-        std::copy(
-            std::begin(module_frags), std::end(module_frags), std::back_inserter(fspath_frags));
-
-        auto fspath = join("/", fspath_frags);
-        stat        = fs::status(fspath);
-
-        // TODO: check for so files
-        //
-        if (fs::is_directory(stat)) {
-            // Load a folder module
-            // import my.module => my/module/__init__.py
-            fspath += "/__init__.py";
-        } else {
-            // Load a file module
-            // import my.module => my/module.py
-            fspath += ".py";
-        }
-
-        stat = fs::status(fspath);
-        if (!fs::exists(stat)) {
-            kwdebug("not a file {}", fspath);
-            continue;
-        }
-
-        kwdebug("Found file {}", fspath);
-        return fspath;
     }
 
     return "";

@@ -167,6 +167,7 @@ SET(ADD_CLI_SOURCE
     cli/commands/linter.cpp
     cli/commands/profile.cpp
     cli/commands/tests.cpp
+    cli/commands/vm.cpp
 )
 ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
 TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES} ${LLVM_LIRARIES})

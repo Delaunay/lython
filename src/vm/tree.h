@@ -82,6 +82,8 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     public:
     using Super = BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait>;
 
+    int eval();
+
     TreeEvaluator(Bindings& bindings): bindings(bindings) { traces.push_back(StackTrace()); }
 
     virtual ~TreeEvaluator() {}

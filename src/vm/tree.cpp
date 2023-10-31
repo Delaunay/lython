@@ -1064,9 +1064,19 @@ PartialResult* TreeEvaluator::with(With_t* n, int depth) {
     return nullptr;
 }
 
-PartialResult* TreeEvaluator::match(Match_t* n, int depth) { return nullptr; }
-PartialResult* TreeEvaluator::import(Import_t* n, int depth) { return nullptr; }
-PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) { return nullptr; }
+PartialResult* TreeEvaluator::match(Match_t* n, int depth) { 
+    //
+    return nullptr; 
+}
+PartialResult* TreeEvaluator::import(Import_t* n, int depth) { 
+    //
+
+    return nullptr; 
+}
+PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) { 
+    //
+    return nullptr; 
+}
 
 PartialResult* TreeEvaluator::dictexpr(DictExpr_t* n, int depth) { return nullptr; }
 PartialResult* TreeEvaluator::setexpr(SetExpr_t* n, int depth) { return nullptr; }
@@ -1213,8 +1223,11 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
         String exception_msg  = "Very bad";
         fmt::print("{}: {}\n", exception_type, exception_msg);
     }
-
     return result;
+}
+
+int TreeEvaluator::eval() {
+    return 0;
 }
 
 }  // namespace lython

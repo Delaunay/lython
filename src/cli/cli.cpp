@@ -11,6 +11,7 @@
 #include "cli/commands/linter.h"
 #include "cli/commands/profile.h"
 #include "cli/commands/tests.h"
+#include "cli/commands/vm.h"
 
 #include "utilities/metadata.h"
 #include "utilities/names.h"
@@ -36,6 +37,7 @@ int main(int argc, const char* argv[]) {
     auto profile  = std::make_unique<ProfileCmd>();
     auto tests    = std::make_unique<TestsCmd>();
     auto internal = std::make_unique<InternalCmd>();
+    auto vm       = std::make_unique<VMCmd>();
 
     // There is a problem when putting unique ptr inside the array :/
     Array<Command*> commands = {
@@ -48,6 +50,7 @@ int main(int argc, const char* argv[]) {
         profile.get(),
         tests.get(),
         internal.get(),
+        vm.get(),
     };
 
     // Main Parser

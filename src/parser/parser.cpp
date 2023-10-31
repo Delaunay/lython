@@ -154,6 +154,9 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     TRACE_START();
 
     while (!in(token().type(), tok_desindent, tok_eof)) {
+        while (in(token().type(), tok_newline)) {
+            next_token();
+        }
 
         // Found an unexpected token
         // eat the full line to try to recover and emit an error
