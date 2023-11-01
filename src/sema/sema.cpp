@@ -5,6 +5,7 @@
 #include "dependencies/fmt.h"
 #include "parser/format_spec.h"
 #include "utilities/guard.h"
+#include "utilities/helpers.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -1634,7 +1635,23 @@ TypeExpr* SemanticAnalyser::classtype(ClassType* n, int depth) { return Type_t()
 TypeExpr* SemanticAnalyser::module(Module* stmt, int depth) {
     // TODO: Add a forward pass that simply add functions & variables
     // to the context so the SEMA can look everything up
-    exec<TypeExpr*>(stmt->body, depth);
+
+    // create an entry point per module
+    FunctionDef* entry = stmt->new_object<FunctionDef>();
+    entry->name = "__init__";
+
+    for(auto* stmt: stmt->body) 
+    {
+        if(in(stmt->kind, NodeKind::ClassDef, NodeKind::FunctionDef)) {
+            exec(stmt, depth);
+        } else {
+            entry->body.push_back(stmt);
+        }
+    }
+
+    exec(entry, depth);
+    stmt->__init__ = entry;
+
     return nullptr;
 };
 

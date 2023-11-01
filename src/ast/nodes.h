@@ -653,6 +653,8 @@ struct Module: public ModNode {
 
     Optional<String> docstring;
 
+    class FunctionDef* __init__ = nullptr;
+
     Module(): ModNode(NodeKind::Module) {}
 };
 

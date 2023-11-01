@@ -188,6 +188,7 @@ TypeExpr* SemanticAnalyser::import(Import* n, int depth) {
         // mod->move(n);
 
         // TODO: this needs to be kept somewhere
+        // TODO: this module also has init that will need to be called
         SemanticAnalyser sema;
         sema.exec(mod, 0);
 

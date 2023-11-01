@@ -7,6 +7,7 @@
 #include "lexer/buffer.h"
 #include "lexer/token.h"
 #include "utilities/trie.h"
+#include "utilities/helpers.h"
 
 #include "dtypes.h"
 
@@ -19,21 +20,6 @@
  */
 
 namespace lython {
-
-template <typename T, typename N>
-bool in(T const& e, N const& v) {
-    return e == v;
-}
-
-template <typename T, typename N, typename... Args>
-bool in(T const& e, N const& v, Args... args) {
-    return e == v || in(e, args...);
-}
-
-template <typename T, typename... Args>
-bool in(T const& e, Args... args) {
-    return in(e, args...);
-}
 
 struct OpConfig {
     int            precedence       = -1;

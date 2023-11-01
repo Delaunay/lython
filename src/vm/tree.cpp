@@ -1206,6 +1206,12 @@ void printkwtrace(StackTrace& trace) {
     fmt::print("    {}\n", expr);
 }
 
+/*
+PartialResult* TreeEvaluator::module(Module* stmt, int depth) {
+
+}
+*/
+
 PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     auto* result = exec(stmt, 0);
 
@@ -1226,7 +1232,34 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     return result;
 }
 
-int TreeEvaluator::eval() {
+int TreeEvaluator::eval() 
+{
+    StmtNode* __init__ = nullptr;
+
+    // exec()
+    auto n = bindings.bindings.size();
+    auto last = bindings.bindings[n - 1];
+
+    auto call = last.value->new_object<Call>();
+    auto name = last.value->new_object<Name>();
+
+    name->id = "__init__";
+    name->varid = bindings.get_varid(StringRef("__init__"));
+    call->func = name;
+
+    exec(call, 0);
+    
+     // cast<FunctionDef>(last.value);
+
+    // for(auto& b: bindings.bindings) {
+    //     kwdebug("eval {}", str(b.value));
+        
+        // switch(b.value->family()) {
+        //     case NodeFamily::Expression:    exec(cast<ExprNode_t>(b.value), 0);
+        //     case NodeFamily::Statement:     exec(cast<StmtNode_t>(b.value), 0);
+        //     // case NodeFamily::Module:        exec(cast<ModNode_t>(b.value, 0));
+        // }
+    // }
     return 0;
 }
 
