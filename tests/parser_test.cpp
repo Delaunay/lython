@@ -43,9 +43,9 @@ TEST_CASE("FormatSpecifier") {
 }
 
 
-inline String parse_it(String code) {
+inline String parse_it(String code) 
+{
     StringBuffer reader(code);
-
     Lexer  lex(reader);
     Parser parser(lex);
 

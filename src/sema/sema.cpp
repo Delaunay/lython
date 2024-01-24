@@ -1639,17 +1639,26 @@ TypeExpr* SemanticAnalyser::module(Module* stmt, int depth) {
     // create an entry point per module
     FunctionDef* entry = stmt->new_object<FunctionDef>();
     entry->name = "__init__";
+    
+    // inser the module entry up top
+    exec(entry, depth);
 
     for(auto* stmt: stmt->body) 
     {
-        if(in(stmt->kind, NodeKind::ClassDef, NodeKind::FunctionDef)) {
+        if(in(stmt->kind, NodeKind::ClassDef, 
+                          NodeKind::FunctionDef)) 
+        {
+            // Sema only for definition, as they do not need to be evaluated
             exec(stmt, depth);
-        } else {
+        }         
+        else {
+            // Sema statement
+            exec(stmt, depth);
+
+            // This needs to be executed by the VM
             entry->body.push_back(stmt);
         }
     }
-
-    exec(entry, depth);
     stmt->__init__ = entry;
 
     return nullptr;

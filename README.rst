@@ -491,3 +491,22 @@ Linux only
    make build
    make run
 
+s
+Roadmap
+-------
+* [X] function call
+* [X] basic classes
+* [X] basic binary function 
+* [X] base import
+* [ ] unicode
+* [ ] array
+* [ ] native function expose
+* [ ] import system
+* [ ] VM raise
+* [ ] VM catch
+* [ ] VM yield (new UV maybe)
+* [ ] magic methods
+* [ ] kwargs/args
+* [ ] args reordering
+* [ ] context manager
+

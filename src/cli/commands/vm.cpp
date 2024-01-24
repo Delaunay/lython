@@ -12,6 +12,8 @@
 
 namespace lython {
 
+VMCmd::VMCmd(): Command("vm") {}
+
 argparse::ArgumentParser* VMCmd::parser() {
     argparse::ArgumentParser* p = new_parser();
         
@@ -39,14 +41,20 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     SemanticAnalyser sema;
 
     //
+    std::cout << "Parsing\n";
+    std::cout << "=======\n";
     Module* mod = parser.parse_module();
     parser.show_diagnostics(std::cout);
 
     //
+    std::cout << "\nSema\n";
+    std::cout << "====\n";
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout, &lex);
 
     //
+    std::cout << "\nExec\n";
+    std::cout << "====\n";
     TreeEvaluator eval(sema.bindings);
     
     return eval.eval();

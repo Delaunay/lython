@@ -19,3 +19,5 @@ zig-build:
 zig-wasm-build:
 	.\dependencies\toolset\zig\zig.exe build -Dtarget=wasm32-freestanding-musl
 
+
+# CC="zig cc -target wasm32-freestanding-musl" CXX="zig c++ -target wasm32-freestanding-musl" AR="zig ar" RANLIB="zig ranlib" uname_S="Linux" uname_M="x86_64" C11_ATOMIC=yes USE_JEMALLOC=no USE_SYSTEMD=no

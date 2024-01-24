@@ -59,6 +59,8 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     sema.show_diagnostic(std::cout);
     REQUIRE(sema.has_errors() == false);
 
+    sema.bindings.dump(std::cout);
+
     kwinfo("{}", "Eval");
     TreeEvaluator eval(sema.bindings);
     auto          partial = str(eval.eval(stmt));
@@ -354,6 +356,7 @@ TEST_CASE("VM_While_continue") {
                   "10");
 }
 
+
 TEST_CASE("VM_AnnAssign") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    b: i32 = 3\n"
@@ -365,7 +368,6 @@ TEST_CASE("VM_AnnAssign") {
 }
 
 TEST_CASE("VM_ifexp_True") {
-    // FIXME: wrong syntax
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    return 1 if a > 0 else 0\n"
                   "",
@@ -374,7 +376,6 @@ TEST_CASE("VM_ifexp_True") {
 }
 
 TEST_CASE("VM_ifexp_False") {
-    // FIXME: wrong syntax
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    return 1 if a > 0 else 0\n"
                   "",

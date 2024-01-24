@@ -1,4 +1,4 @@
 from a import myfun
 
 
-myfun(1)
+myfun(20)

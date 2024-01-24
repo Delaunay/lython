@@ -5,8 +5,13 @@
 // #include "graphed/graphed.h"
 #include "imgui_impl_vulkan.h"
 
+#include "lexer/buffer.h"
+#include "lexer/lexer.h"
+#include "logging/logging.h"
+#include "parser/parser.h"
 #include "node.h"
 #include "block.h"
+#include "convert/to_graph.h"
 
 void ShowExampleAppCustomNodeGraph(bool* opened);
 
@@ -36,6 +41,13 @@ class App: public VulkanEngine {
     void start() {
         Forest& forest = editor.forests.emplace_back();
         Tree& tree = forest.trees.emplace_back();
+
+        StringBuffer reader("a = 2 + 1");
+        Lexer  lex(reader);
+        Parser parser(lex);
+        Module* m = parser.parse_module();        
+        // ToGraph().exec(m);
+
 
         TNode* n1 = arena.new_object<TNode>();
 

@@ -21,6 +21,18 @@
 
 namespace lython {
 
+namespace meta {
+
+    // When type info is not available at compile time
+// often when deleting a derived class
+AllocationStat& get_stat(int class_id) { 
+    auto& db = TypeRegistry::instance().id_to_meta;
+    return db[class_id].stat;
+}
+
+}
+
+
 namespace device {
 
 void* CPU::malloc(std::size_t n) {

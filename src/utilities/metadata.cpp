@@ -12,17 +12,22 @@
 
 namespace lython {
 
-#ifdef __linux__
+
+#if (defined __clang__)
+
+#elif (defined __GNUC__)
 // Shared Pointer & Hash tables do not actually allocate T
 // but a struct that includes T and other data
 // So we rename that mangled struct name by that type T it manages
 // Those details are implementation specific to GCC
 template <typename T>
-using SharedPtrInternal =
-    std::_Sp_counted_ptr_inplace<T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
+using SharedPtrInternal = std::_Sp_counted_ptr_inplace<T, lython::Allocator<T, device::CPU>, std::__default_lock_policy>;
+
 template <typename T, bool cache>
 using HashNodeInternal = std::__detail::_Hash_node<T, cache>;
-#elif !BUILD_WEBASSEMBLY && !__clang__
+
+#else
+//#elif !BUILD_WEBASSEMBLY && !__clang__
 template <typename T>
 using SharedPtrInternal = std::shared_ptr<T>;
 
@@ -121,7 +126,10 @@ bool _metadata_init_names() {
 #undef MOD
 #undef MATCH
 
-#if __linux__ || (!BUILD_WEBASSEMBLY && !__clang__)
+// __linux__ || (!BUILD_WEBASSEMBLY && !__clang__)
+#if (defined __clang__)
+
+#elif (defined __GNUC__) 
     meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Pair[Ref, Classdef::Attr]");
@@ -239,7 +247,10 @@ void _metadata_init_names_windows() {
 #endif
 }
 void _metadata_init_names_unix() {
-#ifdef __linux__
+
+#if (defined __clang__)
+
+#elif (defined __linux__)
     meta::override_typename<std::_List_node<Array<StringDatabase::StringEntry>>>(
         "ListNode[StringEntry]");
 #endif

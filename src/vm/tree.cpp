@@ -439,6 +439,8 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
     // Create the object
     Constant* obj = object__new__(&root, cls);
 
+    // std::cout << "wtf" << std::endl;
+
     // Fetch construtor
     // TODO: this lookup should not exist
     String       ctor_name = String(cls->name) + String(".__init__");
@@ -609,7 +611,8 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
     if (result == nullptr) {
         bindings.dump(std::cout);
     }
-    kwassert(result != nullptr, "Could not find variable");
+    auto msg = fmt::format("Could not find variable: {} {}", str(n), n->varid);
+    kwassert(result != nullptr, msg.c_str());
 
     String kindstr;
     if (result != nullptr) {
@@ -719,13 +722,16 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
         }
 
         else if (n->native_operator != nullptr) {
+            // std::cout << "HERE " << str(n->op) << " " << str(left_v->value) << " " << str(right_v->value) << std::endl;
             auto result = n->native_operator(left_v->value, right_v->value);
             value       = root.new_object<Constant>(result);
         } else {
             kwerror("Operator does not have implementation!");
         }
 
+        // std::cout << "HERE " << str(value) << std::endl;
         bindings.set_value(name->varid, value);  // store a
+        // bindings.dump(std::cout);
         return None();
     }
 
@@ -1070,11 +1076,24 @@ PartialResult* TreeEvaluator::match(Match_t* n, int depth) {
 }
 PartialResult* TreeEvaluator::import(Import_t* n, int depth) { 
     //
-
+    for (Alias const& name: n->names) {
+        StringRef binding_name = name.name;
+        if (name.asname.has_value()) {
+            binding_name = name.asname.value();
+        }
+        bindings.add(binding_name, nullptr, nullptr);
+    }
     return nullptr; 
 }
 PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) { 
     //
+    for (Alias const& name: n->names) {
+        StringRef binding_name = name.name;
+        if (name.asname.has_value()) {
+            binding_name = name.asname.value();
+        }
+        bindings.add(binding_name, nullptr, nullptr);
+    }
     return nullptr; 
 }
 

@@ -38,8 +38,11 @@ ENDIF()
 # ARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor/external/imgui)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui/backends)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor)
-TARGET_LINK_LIBRARIES(tide vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY})
-TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan SDL2::SDL2-static SDL2::SDL2main liblython liblogging argparse)
+TARGET_LINK_LIBRARIES(tide 
+    liblython
+    vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY} 
+    Vulkan::Vulkan SDL2::SDL2-static SDL2::SDL2main liblogging argparse
+)
 
 # TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan 
 #     /home/newton/work/lython/build/lib/libSDL2d.a 

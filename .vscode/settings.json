@@ -146,7 +146,9 @@
     "*.ipp": "cpp",
     "strstream": "cpp",
     "queue": "cpp",
-    "sdl_hints.h": "c"
+    "sdl_hints.h": "c",
+    "numbers": "cpp",
+    "semaphore": "cpp"
   },
   "python.formatting.provider": "black",
   "files.exclude": {

@@ -71,7 +71,7 @@ public:
 };
 
 
-}  // namespace lython
+}  // namespace lythoncode
 
 extern "C" {
     typedef void* VisitorPlugin_C;

@@ -183,7 +183,7 @@ class Lexer: public AbstractLexer {
     }
 
     const String& file_name() override { return _reader.file_name(); }
-    char peekc() const { return _reader.peek(); }
+    char peekc() const override { return _reader.peek(); }
 
     private:
     int             _count = 0;

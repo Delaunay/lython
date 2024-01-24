@@ -5,8 +5,8 @@
 namespace lython {
 
 struct VMCmd: public Command {
-    VMCmd(): Command("vm") {}
-
+    VMCmd();
+    
     virtual argparse::ArgumentParser* parser();
     virtual int main(argparse::ArgumentParser const& args);
 };

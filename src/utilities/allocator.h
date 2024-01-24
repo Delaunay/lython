@@ -17,10 +17,7 @@ namespace meta {
 
 // When type info is not available at compile time
 // often when deleting a derived class
-inline AllocationStat& get_stat(int class_id) { 
-    auto& db = TypeRegistry::instance().id_to_meta;
-    return db[class_id].stat;
-}
+AllocationStat& get_stat(int class_id);
 
 template <typename T>
 AllocationStat& get_stat() {
