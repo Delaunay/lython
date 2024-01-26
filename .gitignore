@@ -55,3 +55,5 @@ zig-cache/
 .godot/
 Blueprints.json
 imgui.ini
+
+.vscode/

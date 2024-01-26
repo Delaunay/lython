@@ -127,10 +127,19 @@ String lookup_module(StringRef const& module_path, Array<String> const& paths) {
     kwdebug("paths: {}", str(paths));
     auto module_frags = split('.', str(module_path));
 
-    bool is_mod = false;
+     bool is_mod = false;
+
+#if BUILD_WINDOWS
+    // Windows use wchar, so we convert to a unicode string first
+    const char* cpath = fs::current_path().u8string().c_str();
+    String path = String(cpath);
+#else
+    String path = String(fs::current_path().c_str());
+#endif
+
     auto path_mod = is_module(
         module_frags,                           //
-        String(fs::current_path().c_str()),     //
+        path,     //
         is_mod                                  //
     );
 
