@@ -4,6 +4,11 @@
 
 // #include "graphed/graphed.h"
 #include "imgui_impl_vulkan.h"
+#include "convert/to_graph.h"
+
+#include "lexer/buffer.h"
+#include "lexer/lexer.h"
+#include "parser/parser.h"
 
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
@@ -16,6 +21,15 @@
 void ShowExampleAppCustomNodeGraph(bool* opened);
 
 using namespace lython;
+
+String code =
+"a = 2\n"
+"b = 1\n"
+"if a > 1:\n"
+"    b = a + 2\n"
+"c = a + b\n"
+;
+
 
 class App: public VulkanEngine {
     public:
@@ -42,12 +56,25 @@ class App: public VulkanEngine {
         Forest& forest = editor.forests.emplace_back();
         Tree& tree = forest.trees.emplace_back();
 
+        /*
         StringBuffer reader("a = 2 + 1");
         Lexer  lex(reader);
         Parser parser(lex);
         Module* m = parser.parse_module();        
         // ToGraph().exec(m);
+        */
 
+        //
+        StringBuffer reader(code);
+        Lexer  lex(reader);
+        Parser parser(lex);
+
+        auto mod = Unique<Module>(parser.parse_module());
+
+        // Add the graph to the forest
+        auto converter = ToGraph();
+        converter.exec(mod.get(), 0);
+        //
 
         TNode* n1 = arena.new_object<TNode>();
 

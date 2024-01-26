@@ -35,13 +35,22 @@ IF(WIN32)
     SET(SYS_LIBRARY Pathcch)
 ENDIF()
 
+IF (WIN32)
+    TARGET_INCLUDE_DIRECTORIES (tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/SDL/include)
+    target_link_directories(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/SDL/VisualC/x64/Debug/)
+    SET(SDL_LIBRARY SDL2 SDL2main)
+ELSE()
+    SET(SDL_LIBRARY SDL2::SDL2-static SDL2::SDL2main)
+ENDIF()
+# FIND_PACKAGE(SDL REQUIRED)
+
 # ARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor/external/imgui)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui/backends)
 TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor)
 TARGET_LINK_LIBRARIES(tide 
     liblython
     vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY} 
-    Vulkan::Vulkan SDL2::SDL2-static SDL2::SDL2main liblogging argparse
+    Vulkan::Vulkan ${SDL_LIBRARY} liblogging argparse
 )
 
 # TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan 
@@ -50,8 +59,8 @@ TARGET_LINK_LIBRARIES(tide
 # )
 
 
-get_target_property(OUT SDL2::SDL2-static  LINK_LIBRARIES)
-message(STATUS ${OUT})
+# get_target_property(OUT SDL2::SDL2-static  LINK_LIBRARIES)
+# message(STATUS ${OUT})
 
 FILE(GLOB_RECURSE SHADERS_SRC *.frag *.vert)
 

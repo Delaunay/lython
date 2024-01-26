@@ -28,8 +28,13 @@ ADD_SUBDIRECTORY(argparse EXCLUDE_FROM_ALL)
 # ADD_SUBDIRECTORY(llvm/libcxx)
 # ADD_SUBDIRECTORY(llvm/libcxxabi)
 
+#
+#   You need to build SDL manually for it to work on windows
+#
+IF (NOT BUILD_WINDOWS)
+    ADD_SUBDIRECTORY(SDL)
+ENDIF()
 
-ADD_SUBDIRECTORY(SDL)
 ADD_SUBDIRECTORY(backward-cpp)
 ADD_SUBDIRECTORY(zlib)
 ADD_SUBDIRECTORY(libuv)

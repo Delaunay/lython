@@ -33,7 +33,7 @@ struct Arena {
     }
 };
 
-struct ToGraph: BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
+struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     using Super = BaseVisitor<ToGraph, false, ToGraphVisitorTrait>;
 
     using StmtRet = Super::StmtRet;
