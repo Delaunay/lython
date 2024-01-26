@@ -491,17 +491,18 @@ Linux only
    make build
    make run
 
-s
+
 Roadmap
 -------
 * [X] function call
 * [X] basic classes
 * [X] basic binary function 
 * [X] base import
-* [ ] unicode
+* [ ] unicode / byte
 * [ ] array
 * [ ] native function expose
 * [ ] import system
+  * [ ] cache imports
 * [ ] VM raise
 * [ ] VM catch
 * [ ] VM yield (new UV maybe)
@@ -509,4 +510,5 @@ Roadmap
 * [ ] kwargs/args
 * [ ] args reordering
 * [ ] context manager
-
+* [ ] decorator
+* [ ] fmt
