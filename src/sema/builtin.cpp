@@ -8,7 +8,7 @@ BuiltinType make_type(String const& name) {
     return expr;
 }
 
-#define TYPE(name)                                      \
+#define TYPE(name, _)                                   \
     TypeExpr* name##_t() {                              \
         static BuiltinType type##_v = make_type(#name); \
         return &type##_v;                               \

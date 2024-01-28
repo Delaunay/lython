@@ -10,9 +10,11 @@ struct BindingEntry {
     BindingEntry(StringRef a       = StringRef(),
                  Node*     b       = nullptr,
                  TypeExpr* c       = nullptr,
-                 bool      dynamic = false):
+                 bool      dynamic = false,
+                 int       type_id = -1):
         name(a),
-        value(b), type(c), dynamic(dynamic) {}
+        value(b), type(c), dynamic(dynamic), type_id(type_id) 
+    {}
 
     bool operator==(BindingEntry const& b) const {
         return name == b.name && value == b.value && type == b.type;
@@ -23,6 +25,7 @@ struct BindingEntry {
     TypeExpr* type    = nullptr;
     bool      dynamic = false;  // used to specify that this entry is dynamic
                                 // and its address can change at runtime
+    int       type_id;
 };
 
 std::ostream& print(std::ostream& out, BindingEntry const& entry);
@@ -31,7 +34,7 @@ struct Bindings {
     Bindings() {
         bindings.reserve(128);
 
-#define TYPE(name) add(String(#name), name##_t(), Type_t());
+#define TYPE(name, native) add(String(#name), name##_t(), Type_t(), meta::type_id<native>());
 
         BUILTIN_TYPES(TYPE)
 
@@ -41,16 +44,18 @@ struct Bindings {
         add(String("None"), None(), None_t());
         add(String("True"), True(), bool_t());
         add(String("False"), False(), bool_t());
+
+        
     }
 
     // returns the varid it was inserted as
-    inline int add(StringRef const& name, Node* value, TypeExpr* type) {
+    inline int add(StringRef const& name, Node* value, TypeExpr* type, int type_id=-1) {
         COZ_BEGIN("T::Bindings::add");
 
         auto size = int(bindings.size());
 
         bool dynamic = !nested;
-        bindings.push_back({name, value, type, dynamic});
+        bindings.push_back({name, value, type, dynamic, type_id});
 
         if (!nested) {
             global_index += 1;

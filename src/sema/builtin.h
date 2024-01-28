@@ -11,24 +11,26 @@ ExprNode* False();
 ExprNode* True();
 ExprNode* None();
 
-#define BUILTIN_TYPES(TYPE) \
-    TYPE(Type)              \
-    TYPE(None)              \
-    TYPE(i8)                \
-    TYPE(i16)               \
-    TYPE(i32)               \
-    TYPE(i64)               \
-    TYPE(f32)               \
-    TYPE(f64)               \
-    TYPE(u8)                \
-    TYPE(u16)               \
-    TYPE(u32)               \
-    TYPE(u64)               \
-    TYPE(str)               \
-    TYPE(bool)              \
-    TYPE(Module)
+struct undefined;
 
-#define TYPE(name) TypeExpr* name##_t();
+#define BUILTIN_TYPES(TYPE)         \
+    TYPE(Type, undefined)           \
+    TYPE(None, undefined)           \
+    TYPE(i8, int8)                  \
+    TYPE(i16, int16)                \
+    TYPE(i32, int32)                \
+    TYPE(i64, int64)                \
+    TYPE(f32, float)                \
+    TYPE(f64, float64)              \
+    TYPE(u8, uint8)                 \
+    TYPE(u16, uint16)               \
+    TYPE(u32, uint32)               \
+    TYPE(u64, uint64)               \
+    TYPE(str, String)               \
+    TYPE(bool, bool)                \
+    TYPE(Module, undefined)
+
+#define TYPE(name, _) TypeExpr* name##_t();
 
 BUILTIN_TYPES(TYPE)
 

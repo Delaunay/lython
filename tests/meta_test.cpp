@@ -6,6 +6,8 @@
 #include "utilities/debug.h"
 #include "utilities/metadata.h"
 #include "utilities/metadata_method.h"
+#include "sema/native_module.h"
+#include "ast/ops.h"
 
 #include <catch2/catch_all.hpp>
 
@@ -15,6 +17,10 @@ struct NewPoint {
 
     float sum(float z) { return x + y + z; }
 };
+
+float add(float a, float b) {
+    return a + b;
+}
 
 template <>
 struct lython::meta::ReflectionTrait<NewPoint> {
@@ -87,6 +93,21 @@ TEST_CASE("NATIVE Object") {
     std::stringstream ss2;
     lython::meta::print(ss2, *p);
     std::cout << ss2.str() << "\n";
+}
+
+TEST_CASE("ArrowBuilder") {
+
+    lython::Bindings bindings;
+    lython::Expression root;
+    lython::Arrow* type = lython::function_type_builder(
+        &root,
+        bindings,
+        add
+    );
+
+    lython::String output = str(type);
+    REQUIRE(output == "(f32, f32) -> f32");
+    std::cout << str(type) << std::endl;
 }
 
 TEST_CASE("Debug Print") {

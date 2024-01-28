@@ -5,6 +5,7 @@
 #include "sema/sema.h"
 #include "utilities/strings.h"
 #include "vm/tree.h"
+#include "sema/native_module.h"
 
 #include <catch2/catch_all.hpp>
 #include <sstream>
@@ -17,6 +18,10 @@
 #include "vm_cases.cpp"
 
 using namespace lython;
+
+float native_add(float a, float b) {
+    return a + b;
+}
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
@@ -37,6 +42,11 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
 
     kwinfo("{}", "Sema");
     SemanticAnalyser sema;
+
+    // Add Native first
+    register_native_function(mod, sema.bindings, "add", native_add);
+
+    //execute script
     sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout);
@@ -60,6 +70,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     REQUIRE(sema.has_errors() == false);
 
     sema.bindings.dump(std::cout);
+
 
     kwinfo("{}", "Eval");
     TreeEvaluator eval(sema.bindings);
@@ -464,6 +475,10 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     }
 }
 
+TEST_CASE("VM_native_function") 
+{
+
+}
 
 #if EXPERIMENTAL_TESTS
 #define GENTEST(name)                                                   \

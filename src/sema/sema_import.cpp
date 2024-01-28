@@ -75,7 +75,10 @@ String is_module(Array<String> const& module_frags, String path, bool& is_mod) {
 
     // <path>/<module_frags>
     std::copy(
-        std::begin(module_frags), std::end(module_frags), std::back_inserter(fspath_frags));
+        std::begin(module_frags),           //
+        std::end(module_frags),             //
+        std::back_inserter(fspath_frags)    //
+    );
 
     auto fspath = join("/", fspath_frags);
     stat        = fs::status(fspath);

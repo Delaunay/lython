@@ -1076,8 +1076,8 @@ struct TupleType: public ExprNode {
 };
 
 struct BuiltinType: public ExprNode {
-    using NativeFunction = ConstantValue (*)(Array<Constant*> const& args);
-    using NativeMacro    = ExprNode* (*)(Array<Node*> const& args);
+    using NativeFunction = ConstantValue (*)(GCObject* root, Array<Constant*> const& args);
+    using NativeMacro    = ExprNode* (*)(GCObject* root, Array<Node*> const& args);
 
     BuiltinType(): ExprNode(NodeKind::BuiltinType), native_function(nullptr) {}
     StringRef name;

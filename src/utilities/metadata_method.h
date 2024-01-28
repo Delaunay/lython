@@ -1,5 +1,8 @@
+#pragma once
+
 #include <string>
 #include <tuple>
+#include <functional>
 #include <vector>
 
 // first
@@ -27,6 +30,11 @@ struct signature<R(Args...)> {
     using arguments_t = typename std::tuple<Args...>;
     using return_t    = LY_TYPENAME R;
     using function_t  = LY_TYPENAME R(Args...);
+    using freemethod_t = R (*)(Args...);
+
+    using value_t   = lython::NativeObject*;
+    using generic_t   = std::function<value_t(GCObject*, std::vector<value_t> const& args)>;
+    using generic_c_t = value_t (*)(GCObject*, freemethod_t, std::vector<value_t> const& args);
 };
 
 template <typename R, typename O, typename... Args>
@@ -101,6 +109,43 @@ Ret call_method(Ty* self, Ret (Ty::*method)(Args...), const std::tuple<Args...>&
     return apply_method(self, method, args, std::index_sequence_for<Args...>{});
 }
 
+// Wrap a native function for the VM
+template<typename R, typename ...Args> 
+auto wrap_function_generic(R (*fun)(Args...)) {
+    using Arguments   = std::tuple<Args...>;
+    using ReturnT     = R;
+    using ValueT      = lython::NativeObject*;
+    using FunctionT   = std::function<ValueT(GCObject*, std::vector<ValueT> const& args)>;
+
+    // Save it to the C function type to ensure it works
+    FunctionT lambda = [fun](GCObject* root, std::vector<ValueT> const& args) -> ValueT {  //
+        // Unpack args to the correct Type into Packed
+        Arguments tuple_args;
+
+        packargs<std::tuple_size_v<std::remove_reference_t<Arguments>>>(tuple_args, args);
+
+        // Allocate memory for the return value
+        // this needs to be allocated by the owning object
+        NativeValue<ReturnT>* wrapped_result = root->new_object<NativeValue<ReturnT>>();
+
+        // Apply the free method
+        (*wrapped_result->template as<ReturnT>()) = std::apply(     //
+            fun,                                                    //
+            std::tuple_cat(tuple_args)                              //
+        );
+
+        // call the function
+        // (*wrapped_result->as<ReturnT>()) = call_method(self, native, tuple_args);
+
+        return reinterpret_cast<ValueT>(wrapped_result);
+        // return nullptr;
+    };
+    return lambda;  //    
+}
+
+
+// Do I need the method special case? once the method is converted to a free method
+// 
 template <typename Rx, typename Ty>
 auto wrap_method_generic(Rx Ty::* method) {
     using Arguments   = typename signature<decltype(method)>::arguments_t;
