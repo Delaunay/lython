@@ -70,7 +70,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     sema.exec(stmt, 0);
 
     sema.show_diagnostic(std::cout);
-    //REQUIRE(sema.has_errors() == false);
+    REQUIRE(sema.has_errors() == false);
 
     sema.bindings.dump(std::cout);
 

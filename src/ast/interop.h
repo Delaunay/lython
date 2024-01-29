@@ -52,7 +52,19 @@ struct Interop<R(Args...)> {
     template<typename T>
     static Constant* allocate_return_value(GCObject* mem, T*& value) {
 
-        if (!in(meta::type_id<T>(), meta::type_id<double>())) {
+        if (!in(meta::type_id<T>(), 
+                meta::type_id<double>(),
+                meta::type_id<float>(),
+                meta::type_id<int8>(),
+                meta::type_id<int16>(),
+                meta::type_id<int32>(),
+                meta::type_id<int64>(),
+                meta::type_id<uint8>(),
+                meta::type_id<uint16>(),
+                meta::type_id<uint32>(),
+                meta::type_id<uint64>(),
+                meta::type_id<bool>()
+                )) {
             NativeValue<T>* wrapped_result = mem->new_object<NativeValue<T>>();
             Constant* return_value = mem->new_object<Constant>(wrapped_result);
             value = wrapped_result->template as<T>();

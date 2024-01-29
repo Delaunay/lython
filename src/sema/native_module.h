@@ -24,6 +24,7 @@ struct FunctionTypeBuilder<R(Args...)> {
     using function_t  = LY_TYPENAME R(Args...);
 
     Bindings const* bindings;
+    GCObject* _root = nullptr;
 
     FunctionTypeBuilder(Bindings const* bind):
         bindings(bind)
@@ -50,10 +51,16 @@ struct FunctionTypeBuilder<R(Args...)> {
         // we also need to match native types that might have been
         // added by this native module
         auto tid = meta::type_id<T>();
+        int i = 0;
+
         for(BindingEntry const& entry: bindings->bindings) {
             if (entry.type_id == tid) {
-                return (ExprNode*)(entry.value);
+                Name* name = _root->new_object<Name>();
+                name->varid = i;
+                name->id = entry.name;
+                return name;;
             }
+            i += 1;
         }
         return nullptr;
     }
@@ -61,6 +68,7 @@ struct FunctionTypeBuilder<R(Args...)> {
     Arrow* function(GCObject* root) {
         // using TupleSize = typename std::tuple_size<std::remove_reference_t<std::tuple<Args...>>>;
         constexpr int n = std::tuple_size_v<std::remove_reference_t<arguments_t>>;
+        _root = root;
 
         Arrow* arrow = root->new_object<Arrow>();
         arrow->args.resize(n);
