@@ -4,6 +4,7 @@
 #include "ast/nodes.h"
 #include "utilities/object.h"
 #include "utilities/metadata_method.h"
+#include "ast/interop.h"
 
 namespace lython {
 
@@ -84,12 +85,14 @@ Arrow* function_type_builder(GCObject* root, Bindings const& bind, R(*function)(
 // Bendings: type -> id -> BuiltinType
 // 
 
+
+
 template<typename R, typename ...Args>
 void register_native_function(GCObject* root, Bindings& binding, String const& name, R(*function)(Args...)) {
     BuiltinType* self = root->new_object<BuiltinType>();
     StringRef identifier(name);
     self->name = identifier;
-    self->native_function = meta::wrapper::wrap_function_generic(function);
+    self->native_function = wrap_native(function);
 
     Arrow* funtype = function_type_builder(root, binding, function);
 

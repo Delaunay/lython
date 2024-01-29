@@ -10,6 +10,13 @@ namespace lython {
 
 struct NativeObject;
 
+
+    template<typename T>
+    struct _accessor {
+        static T* get(struct ConstantValue& self) { return nullptr; }
+    };
+
+
 struct ConstantValue {
     public:
     struct invalid_t {
@@ -136,6 +143,13 @@ struct ConstantValue {
         return value.i64;
     }
 
+    template<typename T>
+    friend struct _accessor;
+
+    template<typename T>
+    T* address() { return _accessor<T>::get(*this); }
+
+
     Type get_kind() const {
         return kind;
     }
@@ -245,6 +259,22 @@ ConstantType(POD, CPX);
 
 #undef CPX
 #undef POD
+
+
+#define ENUM(k, T, n)                                                   \
+    template<>                                                          \
+    struct _accessor<T> {                                               \
+        static T* get(ConstantValue& self) { return &self.value.n; }    \
+    };
+
+#define POD(k, t, n) ENUM(k, t, n)
+#define CPX(a, b, c) 
+
+ConstantType(POD, CPX)
+
+#undef CPX
+#undef POD
+#undef ENUM
 
 }  // namespace lython
 

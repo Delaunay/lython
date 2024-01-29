@@ -1076,8 +1076,10 @@ struct TupleType: public ExprNode {
 };
 
 struct BuiltinType: public ExprNode {
-    using NativeFunction = ConstantValue (*)(GCObject* root, Array<Constant*> const& args);
+    // using NativeFunction = Constant* (*)(GCObject* root, Array<Constant*> const& args);
     using NativeMacro    = ExprNode* (*)(GCObject* root, Array<Node*> const& args);
+    using WrappedNativeFunction = std::function<Constant*(GCObject*, Array<Constant*> const&)>;
+    using NativeFunction = WrappedNativeFunction;
 
     BuiltinType(): ExprNode(NodeKind::BuiltinType), native_function(nullptr) {}
     StringRef name;

@@ -373,8 +373,9 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function,
     PartialResult* ret_result = nullptr;
 
     if (compile_time) {
-        ConstantValue result = function->native_function(&root, value_args);
-        ret_result           = root.new_object<Constant>(result);
+        // ConstantValue result = function->native_function(&root, value_args);
+        ret_result = function->native_function(&root, value_args);
+        // ret_result           = root.new_object<Constant>(result);
     } else {
         // FIXME: we probably need the context here
         ret_result = function->native_macro(&root, args);
