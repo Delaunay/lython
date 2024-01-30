@@ -111,6 +111,74 @@ void register_native_function(GCObject* root, Bindings& binding, String const& n
     );
 }
 
+namespace helper {
+template<typename T, typename Tuple, std::size_t... Is>
+    T* _ctor(void* memory, Tuple&& tuple, std::index_sequence<Is...>) {
+        return new(memory) T(std::get<Is>(std::forward<Tuple>(tuple))...);
+    }
+
+    template<typename T, typename Tuple>
+    T* ctor(void* memory, Tuple&& tuple) {
+        return _ctor<T>(
+            memory, 
+            std::forward<Tuple>(tuple),
+            std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple>>>{}
+        );
+    }
+}
+
+template<typename T, typename ...Args>
+void create_constructor(GCObject* root, Bindings& binding, StringRef name) {
+    //Arrow* ctor_t = root->new_object<Arrow>();
+    //ctor_t->returns = class_t;
+    //ctor_t->args; // ....
+
+    FunctionTypeBuilder<T*(Args...)> builder(&binding);
+    Arrow* ctor_t = builder.function(root);
+
+    BuiltinType* ctor_fun = root->new_object<BuiltinType>();
+    ctor_fun->name = name;
+    ctor_fun->native_function = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
+        // that is a lot of back to back allocation
+        // we can could combine them in one
+        // or/and remove some intermediate, NativePointer is probably not that necessary
+        NativePointer<T>* obj = mem->new_object<NativePointer<T>>(); // Allocate
+        
+        auto arguments = Interop<T(Args...)>::from_script(args);
+
+        void* memory = malloc(sizeof(T) * 1);                        // Allocate
+        T* rawobj = helper::ctor<T>(memory, arguments);
+
+        obj->set_pointer(rawobj);
+        Constant* val = mem->new_object<Constant>();
+        val->value = ConstantValue(obj);
+        return val;                      // Allocate
+    };
+
+    binding.add(
+        name,
+        ctor_fun,
+        ctor_t
+    );
+}
+
+template<typename T, typename ...Args>
+void register_native_object(GCObject* root, Bindings& binding, String const& name) {
+    BuiltinType* self = root->new_object<BuiltinType>();
+    StringRef identifier(name);
+    self->name = identifier;
+    // ---
+
+    // Add the Native object to the binding
+    int varid = binding.add(self->name, nullptr, Type_t(), meta::type_id<T*>());
+
+    Name* class_t = root->new_object<Name>();
+    class_t->varid = varid;
+    class_t->id = identifier;
+
+    create_constructor<T, Args...>(root, binding, StringRef("name"));
+}
+
 
 class NativeModule {
 

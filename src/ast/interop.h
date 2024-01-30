@@ -22,6 +22,14 @@ struct Interop<R(Args...)> {
     using ScriptArgs = Array<ScriptValue>;
     using ScriptFunction_C = ScriptValue (*)(GCObject*, R(*)(Args...), ScriptArgs const&);
 
+    static NativeArgs from_script(ScriptArgs const& args) {
+        NativeArgs arguments;
+
+        packargs<std::tuple_size_v<std::remove_reference_t<NativeArgs>>>(arguments, args);
+
+        return arguments;
+    }
+
     // Convert script arguments to native arguments
     template<int N, typename... Types>
     static int packargs(std::tuple<Types...>& destination, ScriptArgs const& args) {
@@ -32,15 +40,27 @@ struct Interop<R(Args...)> {
 
             ScriptValue erased = args[TupleSize::value - N];
             ConstantValue const& value = erased->value;
+            ElemT& dest = std::get<TupleSize::value - N>(destination);
 
-            if (value.type() == ConstantValue::TObject) 
-            {
+            // Object
+            if constexpr (std::is_pointer<ElemT>::value) {
+                using ObjectT = typename std::remove_pointer<ElemT>::type;
+
                 NativeObject* object = value.get<NativeObject*>();
-                std::get<TupleSize::value - N>(destination) = *(object->as<ElemT>());
-            } 
-            else 
-            {
-                std::get<TupleSize::value - N>(destination) = value.get<ElemT>();
+
+                dest = object->as<ObjectT>();
+            }
+            else {
+                // this check does not need to happen at runtime
+                if (value.type() == ConstantValue::TObject) 
+                {
+                    NativeObject* object = value.get<NativeObject*>();
+                    dest = *(object->as<ElemT>());
+                } 
+                else 
+                {
+                    dest = value.get<ElemT>();
+                }
             }
 
             packargs<N - 1>(destination, args);
@@ -80,22 +100,15 @@ struct Interop<R(Args...)> {
         // Save it to the C function type to ensure it works
         return [](GCObject* mem, R(*fun)(Args...), ScriptArgs const& args) -> ScriptValue {  //
             // Unpack args to the correct Type into Packed
-            NativeArgs tuple_args;
+            NativeArgs arguments = from_script(args);
 
-            packargs<std::tuple_size_v<std::remove_reference_t<NativeArgs>>>(tuple_args, args);
-
-            // Allocate memory for the return value
-            // this needs to be allocated by the owning object
-            // NativeValue<R>* wrapped_result = mem->new_object<NativeValue<R>>();
-            // Constant* return_value = mem->new_object<Constant>(wrapped_result);
-            
             R* value = nullptr;
             Constant* rval = allocate_return_value(mem, value);
 
             // Apply the free method
-            (*value) = std::apply(           //
-                fun,                                                    //
-                std::tuple_cat(tuple_args)                              //
+            (*value) = std::apply(  //
+                fun,                //
+                arguments           //
             );
 
             return rval;

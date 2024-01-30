@@ -5,10 +5,13 @@
 #include "builtin/operators.h"
 #include "parser/parser.h"
 #include "sema/sema.h"
+#include "ast/values/native.h"
+#include "ast/values/object.h"
 
 #include "allocator.h"
 #include "metadata_1.h"
 #include "metadata.h"
+#include "ast/values/exception.h"
 
 namespace lython {
 
@@ -73,6 +76,14 @@ bool _metadata_init_names() {
 
     meta::override_typename<char>("char");
     meta::override_typename<int>("int");
+    meta::override_typename<lython::NativeObject*>("NativeObject*");
+    // meta::override_typename<lython::NativePointer<>*>("NativePointer*");
+    meta::override_typename<lython::lyException*>("Exception*");
+    meta::override_typename<lython::Object>("Object*");
+    meta::override_typename<lython::lyException>("Exception");
+    meta::override_typename<lython::Node*>("Node*");
+    meta::override_typename<lython::StackTrace>("StackTrace");
+
     meta::override_typename<lython::String>("String");
     meta::override_typename<lython::StringRef>("StringRef");
     meta::override_typename<lython::StringDatabase::StringEntry>("StringDatabase::StringEntry");

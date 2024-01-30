@@ -11,7 +11,9 @@
 namespace lython {
 
 /* Compile time representation of an object
- * This is just an array of attributes, methods were move out during SEMA
+ * This is just an array of attributes, methods were moved out during SEMA
+ *
+ * This is a compile time representation during macro expension
  */
 struct Object: public NativeObject {
     Array<struct Constant*> attributes;

@@ -95,6 +95,7 @@ int packargs(std::tuple<Types...>& destination, std::vector<lython::NativeObject
     return 0;
 }
 
+
 template <typename Ret, typename Ty, typename... Args, size_t... I>
 Ret apply_method(Ty* self,
                  Ret (Ty::*method)(Args...),

@@ -94,10 +94,10 @@ public:
 
     template<typename ObjectT>
     ObjectT* as() {
-        if (!is_type<ObjectT>()) {
-            throw WrongTypeException(meta::type_id<ObjectT>(), _type);
+        if (is_type<ObjectT>()) {
+            return reinterpret_cast<ObjectT*>(_memory());
         }
-        return reinterpret_cast<ObjectT*>(_memory());
+        throw WrongTypeException(meta::type_id<ObjectT>(), _type);
     }
 
     template<typename ObjectT>
@@ -173,6 +173,8 @@ private:
     const int _type;
 };
 
+// Not sure this makes much sense
+// it needs to be stack allocated anyway
 template<typename T>
 struct NativeValue: public NativeObject {
 public:
@@ -211,6 +213,16 @@ struct NativePointer: public NativeObject {
         NativeObject(meta::type_id<T>()), object(value.template as<T>())
     {}
 
+    /*
+    static NativePointer* make() {
+        // Problem here is how to know when to free 2 or one
+        // and it is not part of the GC system
+        void* mem = malloc(sizeof(NativePointer<T>) * sizeof(T));
+        void* obj = mem + sizeof(NativePointer<T>);
+        return new (mem) NativePointer(obj);
+    }
+    */
+
     void set_pointer(T* o) {
         object = o;
     }
@@ -225,6 +237,12 @@ struct NativePointer: public NativeObject {
 
     int8* _memory() override  {
         return reinterpret_cast<int8*>(object);
+    }
+
+    void free() {
+        if (object) {
+            delete object;
+        }
     }
 
 protected:

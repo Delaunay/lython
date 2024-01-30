@@ -23,6 +23,19 @@ double native_add(double a, double b) {
     return a + b;
 }
 
+struct Pnt{
+    int x;
+    int y;
+
+    Pnt(int x, int y):
+        x(x), y(y)
+    {}
+};
+
+int get_x(Pnt* pnt) {
+    return pnt->x;
+}
+
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 String eval_it(String const& code, String const& expr, Module*& mod) {
@@ -48,6 +61,8 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
 
     // Add Native first
     register_native_function(mod, sema.bindings, "add", native_add);
+    register_native_object<Pnt, int, int>(mod, sema.bindings, "Pnt");
+    register_native_function(mod, sema.bindings, "get_x", get_x);
 
     //execute script
     sema.paths.push_back(test_modules_path());
@@ -483,6 +498,10 @@ TEST_CASE("VM_native_function")
     run_test_case("",
                   "add(1.0, 2.0)",
                   "3.0");
+
+    run_test_case("",
+                  "get_x(name(1, 2)) + get_x(name(4, 2))",
+                  "5");
 }
 
 #if EXPERIMENTAL_TESTS
