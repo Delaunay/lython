@@ -10,11 +10,42 @@ namespace lython {
 
 struct NativeObject;
 
+template<typename T>
+struct _accessor {
+    static T* get(struct ConstantValue& self) { return nullptr; }
+};
 
-    template<typename T>
-    struct _accessor {
-        static T* get(struct ConstantValue& self) { return nullptr; }
-    };
+template<typename T>
+struct Point {
+    T x;
+    T y;
+};
+
+template<typename T>
+struct Vector {
+    T x;
+    T y;
+    T z;
+};
+
+template<typename T>
+struct Color {
+    T r;
+    T g;
+    T b;
+    T a;
+};
+
+template<typename T>
+struct Transform2D {
+    T matrix[9];
+};
+
+
+template<typename T>
+struct Transform3D {
+    T matrix[16];
+};
 
 
 struct ConstantValue {

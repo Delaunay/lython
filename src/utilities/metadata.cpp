@@ -79,9 +79,9 @@ bool _metadata_init_names() {
     meta::override_typename<lython::NativeObject*>("NativeObject*");
     // meta::override_typename<lython::NativePointer<>*>("NativePointer*");
     meta::override_typename<lython::lyException*>("Exception*");
-    meta::override_typename<lython::Object>("Object*");
+    meta::override_typename<lython::Object>("Object");
     meta::override_typename<lython::lyException>("Exception");
-    meta::override_typename<lython::Node*>("Node*");
+    meta::override_typename<lython::Node>("Node");
     meta::override_typename<lython::StackTrace>("StackTrace");
 
     meta::override_typename<lython::String>("String");
