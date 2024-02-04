@@ -30,6 +30,11 @@ public:
 
     void add_to_path(String const& path);
 
+    // Note: native module still go through SEMA
+    // although it is quite a simple pass because native modules
+    // should only have Builtin Nodes
+    bool add_native_module(String const& name, Module* module);
+
 private:
 
     String lookup_module(StringRef const& module_path, Array<String> const& paths);

@@ -25,10 +25,6 @@ ImportLib* ImportLib::instance() {
     return &self;
 }
 
-void ImportLib::add_to_path(String const& path) {
-    syspaths.push_back(path);
-}
-
 String internal_getenv(String const& name) {
     const char* envname = name.c_str();
 
@@ -226,6 +222,27 @@ Module* ImportLib::internal_importfile(StringRef const& modulepath, Array<String
     Parser     parser(lexer);
     Module*    mod = parser.parse_module();
     return mod;
+}
+
+
+void ImportLib::add_to_path(String const& path) {
+    syspaths.push_back(path);
+}
+
+
+bool ImportLib::add_native_module(String const& name, Module* module) 
+{
+    SemanticAnalyser* sema = new SemanticAnalyser(this);
+    sema->exec(module, 0);
+
+    bool ok = false;
+    std::tie(std::ignore, ok) = imported.insert({name, ImportedLib{module, sema}});
+
+    if (ok) {
+        return true;
+    }
+
+    return false;
 }
 
 }
