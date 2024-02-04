@@ -65,7 +65,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     register_native_function(mod, sema.bindings, "get_x", get_x);
 
     //execute script
-    sema.paths.push_back(test_modules_path());
+    ImportLib::instance()->add_to_path(test_modules_path());
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout);
     REQUIRE(sema.has_errors() == false);

@@ -54,6 +54,7 @@ SET(ADD_HEADERS
     parser/parsing_error.h
     parser/format_spec.h
     sema/sema.h
+    sema/importlib.h
     vm/tree.h
     vm/garbage_collector.h
     utilities/names.h
@@ -102,6 +103,7 @@ SET(ADD_SOURCE
     sema/errors.cpp
     sema/bindings.cpp
     sema/builtin.cpp
+    sema/importlib.cpp
     vm/tree.cpp
     vm/garbage_collector.cpp
     utilities/allocator.cpp

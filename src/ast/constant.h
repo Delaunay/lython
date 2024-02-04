@@ -15,6 +15,7 @@ struct _accessor {
     static T* get(struct ConstantValue& self) { return nullptr; }
 };
 
+/*
 template<typename T>
 struct Point {
     T x;
@@ -47,6 +48,7 @@ struct Transform3D {
     T matrix[16];
 };
 
+*/
 
 struct ConstantValue {
     public:

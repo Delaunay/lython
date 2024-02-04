@@ -11,10 +11,12 @@ namespace lython {
 template <typename Sig>
 struct FunctionTypeBuilder;
 
-#if not __linux__
+#ifndef LY_TYPENAME 
+#if ! __linux__
 #define LY_TYPENAME typename
 #else
 #define LY_TYPENAME
+#endif
 #endif
 
 template <typename R, typename... Args>

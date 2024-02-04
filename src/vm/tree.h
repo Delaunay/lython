@@ -76,6 +76,10 @@ struct StackTrace {
  *    Because the context is copied, it is easy to do parallel executions
  *
  * 2. Create a different context for evaluation only
+ *      With the new context we do not need values to be AST nodes
+ *      and we can use the value struct directly which can avoid 
+ *      memory allocation for trivial types
+ * 
  */
 struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 

@@ -7,7 +7,9 @@
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
+#include "sema/importlib.h"
 #include "utilities/strings.h"
+
 
 // #define SEMA_ERROR(exception)      \
 //     kwerror("{}", exception.what()); \
@@ -15,7 +17,6 @@
 
 namespace lython {
 
-Array<String> python_paths();
 
 struct SemaVisitorTrait {
     using StmtRet = TypeExpr*;
@@ -96,13 +97,17 @@ struct SemaContext {
  *
  */
 struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
-    Bindings                              bindings;
+    Bindings                              bindings;             // This should be outside of sema so it can live on after sema
     bool                                  forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
     Array<StmtNode*>                      nested;
     Array<String>                         namespaces;
     Dict<StringRef, bool>                 flags;
-    Array<String>                         paths = python_paths();
+    ImportLib*                            importsys = nullptr;
+
+    SemanticAnalyser(ImportLib* import = ImportLib::instance()):
+        importsys(import)
+    {}
 
     // maybe conbine the semacontext with samespace
     Array<SemaContext> semactx;

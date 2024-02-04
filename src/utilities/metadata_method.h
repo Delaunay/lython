@@ -19,7 +19,7 @@ struct signature;
 
 struct NativeObject;
 
-#if not __linux__
+#if ! __linux__
 #define LY_TYPENAME typename
 #else
 #define LY_TYPENAME
