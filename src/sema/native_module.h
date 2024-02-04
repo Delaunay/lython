@@ -200,11 +200,13 @@ struct NativeModuleBuilder {
         self->name = identifier;
         self->native_function = wrap_native(function);
 
-        module->body.push_back(self)
+        Expr* stmt = module->new_object<Expr>();
+        stmt->value = self;
+        module->body.push_back(stmt);
         return *this;
     }
 
-    template<typename T>
+    template<typename O>
     struct NativeClassBinder {
 
         template<typename ...Args>

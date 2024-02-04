@@ -44,8 +44,9 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     }
 
     kwinfo("{}", "Sema");
+    ImportLib::instance()->add_to_path(test_modules_path());
     SemanticAnalyser sema;
-    sema.paths.push_back(test_modules_path());
+    // sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout);
     if (sema.has_errors()) {

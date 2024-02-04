@@ -277,8 +277,10 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
     assert(mod->body.size() > 0, "Should parse more than one expression");
 
     kwinfo("{}", "Sema");
+
+    ImportLib::instance()->add_to_path(test_modules_path());
+
     SemanticAnalyser sema;
-    sema.paths.push_back(test_modules_path());
     sema.exec(mod, 0);
 
     BindingEntry& entry = sema.bindings.bindings.back();
