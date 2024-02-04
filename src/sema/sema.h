@@ -105,6 +105,9 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Dict<StringRef, bool>                 flags;
     ImportLib*                            importsys = nullptr;
 
+    // Should I remove the types for the runtime info
+    // the type can have their own query struct 
+    // which might or might not be included in the final binary
     SemanticAnalyser(ImportLib* import = ImportLib::instance()):
         importsys(import)
     {}

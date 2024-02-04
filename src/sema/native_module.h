@@ -5,6 +5,7 @@
 #include "utilities/object.h"
 #include "utilities/metadata_method.h"
 #include "ast/interop.h"
+#include "sema/importlib.h"
 
 namespace lython {
 
@@ -96,7 +97,9 @@ Arrow* function_type_builder(GCObject* root, Bindings const& bind, R(*function)(
 // 
 
 
-
+//
+// Those insert the native bindings into sema to be call by the VM
+//
 template<typename R, typename ...Args>
 void register_native_function(GCObject* root, Bindings& binding, String const& name, R(*function)(Args...)) {
     BuiltinType* self = root->new_object<BuiltinType>();
@@ -182,73 +185,64 @@ void register_native_object(GCObject* root, Bindings& binding, String const& nam
 }
 
 
-class NativeModule {
+
+// This builds a module before sema
+// sema will go through it a build a Binding
+struct NativeModuleBuilder {
+    NativeModuleBuilder(String const&name, class ImportLib& importsys):
+        module(importsys.newmodule(name))
+     {}
 
     template<typename R, typename ...Args>
-    void add_function(StringRef name, R(*function)(Args...)) {
-        
+    NativeModuleBuilder& function(String const& name, R(*function)(Args...)) {
+        BuiltinType* self = module->new_object<BuiltinType>();
+        StringRef identifier(name);
+        self->name = identifier;
+        self->native_function = wrap_native(function);
+
+        module->body.push_back(self)
+        return *this;
+    }
+
+    template<typename T>
+    struct NativeClassBinder {
+
+        template<typename ...Args>
+        NativeClassBinder& constructor() {
+            return *this;
+        }
+
+        template<typename ...Args>
+        NativeClassBinder& method() {
+            return *this;
+        }
+    
+
+        template<typename T>
+        NativeClassBinder& attribute(String const& name) {
+            return *this;
+        }
+
+        // method + attribute
+        NativeClassBinder& member() {
+            return *this;
+        }
+
+        // !?
+        template<typename ...Args>
+        NativeClassBinder& virtual_method() {
+            return *this;
+        }
     };
 
-    /*
-    void add_native_function(StringRef name, NativeFunction fun) {
-        BuiltinType* self = _root.new_object<BuiltinType>();
-        self->name = name;
-        self->native_function = fun;
-
-        // here
-        // wrap_function_generic;
-
-        Arrow* type = _types.new_object<Arrow>();
-        _members.add(
-            self->name,
-            self,
-            function_type_builder(&_root, _members, fun)
-        );
+    template<typename T>
+    NativeClassBinder<T> klass(String const& name) {
+         NativeClassBinder<T> builder;
+         return builder;
     }
 
-    void add_native_macro(StringRef name, NativeMacro fun) {
-        BuiltinType* self = _root.new_object<BuiltinType>();
-        self->name = name;
-        // self->native_macro = fun;
-
-        Arrow* type = _types.new_object<Arrow>();
-        _members.add(
-            self->name,
-            self,
-            type
-        );
-    }
-
-    void add_class(StringRef name) {
-        // Sema lower method as free function
-        // here we could pass the native module to sema or register it as if it was
-        // sema
-        cls = _root.new_object<ClassDef>();
-
-        _members.add(
-            name,
-            cls,
-            cls
-        );
-
-        // cls->add ...
-    } */
-
-    Bindings _members;
-    Expression _root;
-    Expression _types;
+    struct Module* module;
 };
 
-
-class MathModule: public NativeModule {
-
-
-};
-
-
-class BuiltinModule: public NativeModule {
-
-
-};
 
 }

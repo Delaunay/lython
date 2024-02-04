@@ -38,6 +38,23 @@ int get_x(Pnt* pnt) {
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
+
+void make_native_module() {
+
+    ImportLib& imported = *ImportLib::instance();
+    NativeModuleBuilder nativemodule("point", imported);
+
+    nativemodule
+        //.function("add", [](int a, int b) -> int { return a + b; })
+        .klass<Pnt>("Point")
+            .method<int>()
+            .attribute<int>("x")
+            .attribute<float>("y")
+    ;
+
+    imported.add_module("point", nativemodule.module);
+}
+
 String eval_it(String const& code, String const& expr, Module*& mod) {
     std::cout << ">>>>>> Start\n";
 
@@ -66,6 +83,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
 
     //execute script
     ImportLib::instance()->add_to_path(test_modules_path());
+
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout);
     REQUIRE(sema.has_errors() == false);

@@ -230,7 +230,7 @@ void ImportLib::add_to_path(String const& path) {
 }
 
 
-bool ImportLib::add_native_module(String const& name, Module* module) 
+bool ImportLib::add_module(String const& name, Module* module) 
 {
     SemanticAnalyser* sema = new SemanticAnalyser(this);
     sema->exec(module, 0);
@@ -243,6 +243,14 @@ bool ImportLib::add_native_module(String const& name, Module* module)
     }
 
     return false;
+}
+
+
+Module* ImportLib::newmodule(String const& name) {
+    modules.emplace_back(std::make_unique<Module>());
+    UniquePtr<Module>& ptr = modules[int(modules.size()) - 1];
+    // add_module(name, ptr.get());
+    return ptr.get();
 }
 
 }

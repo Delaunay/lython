@@ -33,7 +33,9 @@ public:
     // Note: native module still go through SEMA
     // although it is quite a simple pass because native modules
     // should only have Builtin Nodes
-    bool add_native_module(String const& name, Module* module);
+    bool add_module(String const& name, Module* module);
+
+    Module* newmodule(String const& name);
 
 private:
 
@@ -44,6 +46,8 @@ private:
     Dict<StringRef, ImportedLib> imported;
 
     Array<String> syspaths = python_paths();
+
+    Array<UniquePtr<Module>> modules;
 };
 
 }
