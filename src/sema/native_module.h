@@ -102,10 +102,10 @@ Arrow* function_type_builder(GCObject* root, Bindings const& bind, R(*function)(
 //
 template<typename R, typename ...Args>
 void register_native_function(GCObject* root, Bindings& binding, String const& name, R(*function)(Args...)) {
-    BuiltinType* self = root->new_object<BuiltinType>();
+    FunctionDef* self = root->new_object<FunctionDef>();
     StringRef identifier(name);
     self->name = identifier;
-    self->native_function = wrap_native(function);
+    self->native = wrap_native(function);
 
     Arrow* funtype = function_type_builder(root, binding, function);
 
@@ -141,9 +141,10 @@ void create_constructor(GCObject* root, Bindings& binding, StringRef name) {
     FunctionTypeBuilder<T*(Args...)> builder(&binding);
     Arrow* ctor_t = builder.function(root);
 
-    BuiltinType* ctor_fun = root->new_object<BuiltinType>();
+    FunctionDef* ctor_fun = root->new_object<FunctionDef>();
+    ctor_fun->type = ctor_t;
     ctor_fun->name = name;
-    ctor_fun->native_function = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
+    ctor_fun->native = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
         // that is a lot of back to back allocation
         // we can could combine them in one
         // or/and remove some intermediate, NativePointer is probably not that necessary
@@ -214,14 +215,15 @@ struct NativeModuleBuilder {
 
     template<typename R, typename ...Args>
     NativeModuleBuilder& function(String const& name, R(*function)(Args...)) {
-        BuiltinType* self = module->new_object<BuiltinType>();
+        static Bindings bindings;
+
+        FunctionDef* self = module->new_object<FunctionDef>();
         StringRef identifier(name);
         self->name = identifier;
-        self->native_function = wrap_native(function);
+        self->native = wrap_native(function);
+        self->type = function_type_builder(module, bindings, function);
 
-        Expr* stmt = module->new_object<Expr>();
-        stmt->value = self;
-        module->body.push_back(stmt);
+        module->body.push_back(self);
         return *this;
     }
 

@@ -135,7 +135,7 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
     PartialResult* get_next(Node* iterator, int depth);
     PartialResult* call_enter(Node* ctx, int depth);
     PartialResult* call_exit(Node* ctx, int depth);
-    PartialResult* call_native(Call_t* call, BuiltinType_t* n, int depth);
+    PartialResult* call_native(Call_t* call, FunctionDef_t* n, int depth);
     PartialResult* call_script(Call_t* call, FunctionDef_t* n, int depth);
     PartialResult* call_constructor(Call_t* call, ClassDef_t* cls, int depth);
     PartialResult* make_generator(Call_t* call, FunctionDef_t* n, int depth);

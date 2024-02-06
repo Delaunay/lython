@@ -91,7 +91,7 @@ StmtNode* find(Array<StmtNode*> const& body, StringRef const& name) {
 }
 
 TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
-    Module* mod = nullptr;
+    // Module* mod = nullptr;
     ImportLib::ImportedLib* imported = nullptr;
 
     // Regular import using system path
@@ -105,7 +105,7 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
     } else if (n->level.has_value()) {
         // relative import using level
 
-        if (mod == nullptr) {
+        if (imported == nullptr) {
             SEMA_ERROR(n, ModuleNotFoundError, n->module.value());
             return nullptr;
         }
@@ -117,7 +117,7 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
         // lookup name.name inside module;
         // functions, classes are stmt
         // but variable could also be imported which are expressions
-        StmtNode* value = find(mod->body, nm);
+        StmtNode* value = find(imported->mod->body, nm);
 
         if (value == nullptr) {
             kwdebug("{} not found", nm);

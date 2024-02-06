@@ -725,6 +725,10 @@ struct FunctionDef: public StmtNode {
     bool          generator : 1;
     struct Arrow* type = nullptr;
 
+    using WrappedNativeFunction = std::function<Constant*(GCObject*, Array<Constant*> const&)>;
+
+    WrappedNativeFunction native;
+
     FunctionDef(): StmtNode(NodeKind::FunctionDef), async(false), generator(false) {}
 };
 
@@ -1078,16 +1082,27 @@ struct TupleType: public ExprNode {
 struct BuiltinType: public ExprNode {
     // using NativeFunction = Constant* (*)(GCObject* root, Array<Constant*> const& args);
     using NativeMacro    = ExprNode* (*)(GCObject* root, Array<Node*> const& args);
+
+    BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
+    StringRef name;
+
+    NativeMacro    native_macro;
+};
+
+/*
+struct FunctionNative: public StmtNode {
     using WrappedNativeFunction = std::function<Constant*(GCObject*, Array<Constant*> const&)>;
     using NativeFunction = WrappedNativeFunction;
 
-    BuiltinType(): ExprNode(NodeKind::BuiltinType), native_function(nullptr) {}
-    StringRef name;
+    FunctionNative():
+        ExprNode(NodeKind::FunctionNative)
+    {}
 
+    StringRef name;
     // Maybe I need a native function Expr/Stmt instead ?
     NativeFunction native_function;
-    NativeMacro    native_macro;
 };
+*/
 
 // we need that to convert ClassDef which is a statement
 // into an expression

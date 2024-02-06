@@ -1029,6 +1029,11 @@ Array<TypeExpr*> SemanticAnalyser::exec_body(Array<StmtNode*>& body, int depth) 
 }
 
 TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
+    if (n->native) {
+        bindings.add(n->name, n, n->type);
+        return n->type;
+    }
+
     // if sema was already done on the function
     if (n->type) {
         kwinfo("Send cached type {}", str(n->type));

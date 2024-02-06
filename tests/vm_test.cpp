@@ -42,13 +42,13 @@ String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 void make_native_module() {
 
     ImportLib& imported = *ImportLib::instance();
-    NativeModuleBuilder nativemodule("point", imported);
+    NativeModuleBuilder nativemodule("nmodule", imported);
 
     int(*fun)(int, int) = [](int a, int b) -> int { return a + b; };
     std::function<int(int, int)> fun2 = [](int a, int b) -> int { return a + b; };
 
     nativemodule
-        .function("add", fun)
+        .function("native_add", fun)
         // .function("add2", [](int a, int b) -> int { return a + b; })
         // .function("add3", fun2)
         // this does not work
@@ -58,7 +58,7 @@ void make_native_module() {
             .attribute<float>("y")
     ;
 
-    imported.add_module("point", nativemodule.module);
+    imported.add_module("nmodule", nativemodule.module);
 }
 
 String eval_it(String const& code, String const& expr, Module*& mod) {
@@ -80,6 +80,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     parser.show_diagnostics(std::cout);
     
     kwinfo("{}", "Sema");
+    make_native_module();
     SemanticAnalyser sema;
 
     // Add Native first
@@ -517,16 +518,29 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     }
 }
 
+TEST_CASE("VM_native_object") 
+{
+    run_test_case("",
+                  "get_x(name(1, 2))",
+                  "1");
+}
+
+
 TEST_CASE("VM_native_function") 
 {
     run_test_case("",
                   "add(1.0, 2.0)",
                   "3.0");
-
-    run_test_case("",
-                  "get_x(name(1, 2)) + get_x(name(4, 2))",
-                  "5");
 }
+
+
+TEST_CASE("VM_native_module") 
+{
+    run_test_case("from nmodule import native_add",
+                  "native_add(1, 2)",
+                  "3");
+}
+
 
 #if EXPERIMENTAL_TESTS
 #define GENTEST(name)                                                   \

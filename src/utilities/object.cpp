@@ -56,7 +56,7 @@ void GCObject::remove_child(GCObject* child, bool dofree) {
 }
 
 void GCObject::remove_child_if_parent(GCObject* child, bool dofree) {
-    if (child->parent == this) {
+    if (child && child->parent == this) {
         remove_child(child, dofree);
     }
 }

@@ -117,7 +117,7 @@ struct Interop<R(Args...)> {
 };
 
 template<typename R, typename ...Args> 
-BuiltinType::WrappedNativeFunction wrap_native(R(*fun)(Args...)) {
+FunctionDef::WrappedNativeFunction wrap_native(R(*fun)(Args...)) {
     return [fun](GCObject*mem, Array<Constant*> const& arguments) {
         return Interop<R(Args...)>::wrap()(mem, fun, arguments);
     };

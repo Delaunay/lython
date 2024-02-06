@@ -351,7 +351,7 @@ PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
     return exec(n->orelse, depth);
 }
 
-PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function, int depth) {
+PartialResult* TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int depth) {
     Array<PartialResult*> args;
     Array<Constant*>      value_args;
     args.reserve(call->args.size());
@@ -374,15 +374,15 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, BuiltinType_t* function,
 
     if (compile_time) {
         // ConstantValue result = function->native_function(&root, value_args);
-        ret_result = function->native_function(&root, value_args);
+        ret_result = function->native(&root, value_args);
         // ret_result           = root.new_object<Constant>(result);
     } else {
         // FIXME: we probably need the context here
-        ret_result = function->native_macro(&root, args);
+        // ret_result = function->native_macro(&root, args);
     }
 
     for (PartialResult* arg: args) {
-        root.remove_child_if_parent(arg, true);
+        // root.remove_child_if_parent(arg, true);
     }
 
     return ret_result;
@@ -557,6 +557,9 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
         if (fun->generator) {
             return make_generator(n, fun, depth);
         }
+        if (fun->native) {
+            return call_native(n, fun, depth);
+        }
         return call_script(n, fun, depth);
     }
 
@@ -564,9 +567,10 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
         return call_constructor(n, cls, depth);
     }
 
+    /*
     if (BuiltinType_t* fun = cast<BuiltinType>(function)) {
         return call_native(n, fun, depth);
-    }
+    }*/
 
     /*
     if (Coroutine_t* fun = cast<Coroutine>(function)) {
