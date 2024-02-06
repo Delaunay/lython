@@ -133,15 +133,16 @@ void show_alloc_stats() {
             if (remain > 0) {
                 ss << remain;
             }
-            std::cout << fmt::format("{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
-                                     klass.type_id,
-                                     String(name.c_str()),
-                                     alloc,
-                                     dealloc,
-                                     ss.str(),
-                                     size,
-                                     size_free,
-                                     bytes);
+            std::cout << fmt::format(
+                "{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+                klass.type_id,
+                String(name.c_str()),
+                alloc,
+                dealloc,
+                ss.str(),
+                size,
+                size_free,
+                bytes);
         }
     }
     std::cout << "Total: " << total << std::endl;

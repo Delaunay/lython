@@ -229,24 +229,52 @@ struct NativeModuleBuilder {
 
     template<typename O>
     struct NativeClassBinder {
+        ClassDef* class_t = nullptr;
 
         template<typename ...Args>
         NativeClassBinder& constructor() {
+            static Bindings bindings;
+
+            FunctionDef* self = class_t->new_object<FunctionDef>();
+            StringRef identifier("__init__");
+            self->name = identifier;
+
+            FunctionTypeBuilder<O*(Args...)> builder(&bindings);
+            self->type = builder.function(class_t);
+            
+            self->native = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
+                // that is a lot of back to back allocation
+                // we can could combine them in one
+                // or/and remove some intermediate, NativePointer is probably not that necessary
+                NativePointer<O> obj = mem->new_object<NativePointer<O>>(); // Allocate
+                
+                auto arguments = Interop<O(Args...)>::from_script(args);
+
+                void* memory = malloc(sizeof(O) * 1);                        // Allocate
+                O* rawobj = helper::ctor<O>(memory, arguments);
+
+                obj->set_pointer(rawobj);
+                Constant* val = mem->new_object<Constant>();
+                val->value = ConstantValue(obj);
+                return val;                      // Allocate
+            };
+            class_t->body.push_back(self);
             return *this;
         }
 
-        template<typename ...Args>
-        NativeClassBinder& method() {
-            /*
-            BuiltinType* self = module->new_object<BuiltinType>();
+        template<typename R, typename ...Args>
+        NativeClassBinder& method(String const& name, R(*function)(Args...)) {
+            static Bindings bindings;
+            
+            FunctionDef* self = class_t->new_object<FunctionDef>();
             StringRef identifier(name);
             self->name = identifier;
-            self->native_function = wrap_native(function);
-            */
+            self->native = wrap_native(function);
+            self->type = function_type_builder(class_t, bindings, function);
+            class_t->body.push_back(self);
             return *this;
         }
     
-
         template<typename T>
         NativeClassBinder& attribute(String const& name) {
             return *this;
@@ -267,9 +295,9 @@ struct NativeModuleBuilder {
     template<typename T>
     NativeClassBinder<T> klass(String const& name) {
          NativeClassBinder<T> builder;
-         ClassDef* cls_t = module->new_object<ClassDef>();
-         cls_t->name = name;
-         module->body.push_back(cls_t);
+         builder.class_t = module->new_object<ClassDef>();
+         builder.class_t->name = name;
+         module->body.push_back(builder.class_t);
          return builder;
     }
 

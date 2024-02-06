@@ -27,7 +27,7 @@ struct Pnt{
     int x;
     int y;
 
-    Pnt(int x, int y):
+    Pnt(int x = 0, int y = 0):
         x(x), y(y)
     {}
 };
@@ -46,6 +46,8 @@ void make_native_module() {
 
     int(*fun)(int, int) = [](int a, int b) -> int { return a + b; };
     std::function<int(int, int)> fun2 = [](int a, int b) -> int { return a + b; };
+    Pnt*(*stuff)(Pnt*, Pnt*) = [](Pnt* a, Pnt* b) -> Pnt* { return new Pnt(a->x + b->x, a->y + b->y); };
+    
 
     nativemodule
         .function("native_add", fun)
@@ -53,7 +55,7 @@ void make_native_module() {
         // .function("add3", fun2)
         // this does not work
         .klass<Pnt>("Point")
-            .method<int>()
+            .method("add", stuff)
             .attribute<int>("x")
             .attribute<float>("y")
     ;
