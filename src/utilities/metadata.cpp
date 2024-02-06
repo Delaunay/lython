@@ -74,6 +74,9 @@ bool _metadata_init_names() {
     _metadata_init_names_gcc();
     _metadata_init_names_clang();
 
+    meta::override_typename<UniquePtr<lython::Module>>("UniquePtr[Module]");
+
+
     meta::override_typename<char>("char");
     meta::override_typename<int>("int");
     meta::override_typename<lython::NativeObject*>("NativeObject*");
@@ -144,6 +147,10 @@ bool _metadata_init_names() {
     meta::override_typename<
         HashNodeInternal<std::pair<const StringRef, lython::ClassDef::Attr>, false>>(
         "Pair[Ref, Classdef::Attr]");
+
+    meta::override_typename<
+        HashNodeInternal<std::pair<const StringRef, lython::ImportLib::ImportedLib>, false>>(
+        "Pair[Ref, ImportLib::ImportedLib]");
 
     meta::override_typename<HashNodeInternal<std::pair<const String, lython::OpConfig>, false>>(
         "Pair[String, OpConfig]");

@@ -128,12 +128,17 @@ void show_alloc_stats() {
         total += size * bytes;
 
         if (alloc != 0) {
+            int remain = alloc - dealloc;
+            std::stringstream ss;
+            if (remain > 0) {
+                ss << remain;
+            }
             std::cout << fmt::format("{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
                                      klass.type_id,
                                      String(name.c_str()),
                                      alloc,
                                      dealloc,
-                                     alloc - dealloc,
+                                     ss.str(),
                                      size,
                                      size_free,
                                      bytes);
