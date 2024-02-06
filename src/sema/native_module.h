@@ -216,6 +216,12 @@ struct NativeModuleBuilder {
 
         template<typename ...Args>
         NativeClassBinder& method() {
+            /*
+            BuiltinType* self = module->new_object<BuiltinType>();
+            StringRef identifier(name);
+            self->name = identifier;
+            self->native_function = wrap_native(function);
+            */
             return *this;
         }
     
@@ -240,6 +246,9 @@ struct NativeModuleBuilder {
     template<typename T>
     NativeClassBinder<T> klass(String const& name) {
          NativeClassBinder<T> builder;
+         ClassDef* cls_t = module->new_object<ClassDef>();
+         cls_t->name = name;
+         module->body.push_back(cls_t);
          return builder;
     }
 
