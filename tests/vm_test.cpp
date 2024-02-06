@@ -44,8 +44,14 @@ void make_native_module() {
     ImportLib& imported = *ImportLib::instance();
     NativeModuleBuilder nativemodule("point", imported);
 
+    int(*fun)(int, int) = [](int a, int b) -> int { return a + b; };
+    std::function<int(int, int)> fun2 = [](int a, int b) -> int { return a + b; };
+
     nativemodule
-        //.function("add", [](int a, int b) -> int { return a + b; })
+        .function("add", fun)
+        // .function("add2", [](int a, int b) -> int { return a + b; })
+        // .function("add3", fun2)
+        // this does not work
         .klass<Pnt>("Point")
             .method<int>()
             .attribute<int>("x")

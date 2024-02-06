@@ -184,7 +184,26 @@ void register_native_object(GCObject* root, Bindings& binding, String const& nam
     create_constructor<T, Args...>(root, binding, StringRef("name"));
 }
 
+namespace meta {
+template<typename Func>
+struct function_traits;
 
+template<typename R, typename... Args>
+struct function_traits<R(*)(Args...)> {
+    using function_type = R(*)(Args...);
+    using function = std::function<R(Args...)>;
+};
+
+template<typename R, typename... Args>
+struct function_traits<std::function<R(Args...)>> {
+    using function_type = R(*)(Args...);
+    using function = std::function<R(Args...)>;
+};
+
+template<typename Func>
+using function_type_of = typename function_traits<std::decay_t<Func>>::function_type;
+
+}
 
 // This builds a module before sema
 // sema will go through it a build a Binding
