@@ -55,9 +55,10 @@ void make_native_module() {
         // .function("add3", fun2)
         // this does not work
         .klass<Pnt>("Point")
-            .method("add", stuff)
             .attribute<int>("x")
             .attribute<float>("y")
+            .constructor<int, int>()
+            .method("add", stuff)
     ;
 
     imported.add_module("nmodule", nativemodule.module);
@@ -541,6 +542,13 @@ TEST_CASE("VM_native_module")
     run_test_case("from nmodule import native_add",
                   "native_add(1, 2)",
                   "3");
+}
+
+TEST_CASE("VM_native_module_object") 
+{
+    run_test_case("from nmodule import Point",
+                  "Point(1, 2).x",
+                  "1");
 }
 
 

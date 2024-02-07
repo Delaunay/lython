@@ -246,7 +246,7 @@ struct NativeModuleBuilder {
                 // that is a lot of back to back allocation
                 // we can could combine them in one
                 // or/and remove some intermediate, NativePointer is probably not that necessary
-                NativePointer<O> obj = mem->new_object<NativePointer<O>>(); // Allocate
+                NativePointer<O>* obj = mem->new_object<NativePointer<O>>(); // Allocate
                 
                 auto arguments = Interop<O(Args...)>::from_script(args);
 
@@ -265,7 +265,7 @@ struct NativeModuleBuilder {
         template<typename R, typename ...Args>
         NativeClassBinder& method(String const& name, R(*function)(Args...)) {
             static Bindings bindings;
-            
+
             FunctionDef* self = class_t->new_object<FunctionDef>();
             StringRef identifier(name);
             self->name = identifier;

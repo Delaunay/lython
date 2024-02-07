@@ -1826,9 +1826,14 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
         // This is not a literal nor a list-comprehension
         // (2 + 1)
         if (kind == ')' && !dictionary) {
+            // fixme this miss the call
             auto p = parser->parse_expression_1(parent, child, 0, depth);
             parser->expect_token(')', true, parent, LOC);
-            return p;
+            
+            if (p)
+                return p;
+
+            return child;
         }
 
         kwerror("Unhandled list-comprehension case");
@@ -1861,9 +1866,14 @@ ExprNode* Parser::parse_list(Node* parent, int depth) {
         this, parent, tok_square, ']', depth + 1);
 }
 
-// (a, b) or (a for b in c)
+// (a, b) or (a for b in c) or (a + b)
 ExprNode* Parser::parse_tuple_generator(Node* parent, int depth) {
     TRACE_START();
+
+    // auto expr = parse_expression_primary(parent, depth + 1);
+
+    
+
     return parse_comprehension_or_literal<GeneratorExp, TupleExpr>(
         this, parent, tok_parens, ')', depth + 1);
 }
@@ -1879,7 +1889,7 @@ ExprNode* Parser::parse_ifexp(Node* parent, ExprNode* primary, int depth) {
     // if is part of the comprehension
     if (parsing_context.size() > 0 &&
         parsing_context[parsing_context.size() - 1] == ParsingContext::Comprehension) {
-        return primary;
+        return nullptr;
     }
 
     // body if test else body
@@ -2530,22 +2540,12 @@ ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
     // parse primary
     auto primary = parse_expression_primary(parent, depth);
 
-    switch (token().type()) {
-
-    // <expr>(args...)
-    case tok_parens: {
-        primary = parse_call(parent, primary, depth);
-        break;
+    ExprNode* expr = primary;
+    while (expr != nullptr) {
+        // token().debug_print(std::cout);
+        primary = expr;
+        expr = parse_expression_1(parent, primary, 0, depth, comma);
     }
-
-    // <expr>.<identifier>
-    case tok_dot: {
-        primary = parse_attribute(parent, primary, depth);
-        break;
-    }
-    }
-
-    primary = parse_expression_1(parent, primary, 0, depth, comma);
 
     expression_depth -= 1;
     return primary;
@@ -2630,6 +2630,16 @@ ExprNode* Parser::parse_expression_1(
     Node* parent, ExprNode* primary, int min_precedence, int depth, bool comma) {
     //
     switch (token().type()) {
+    case tok_parens: {
+        return parse_call(parent, primary, depth);
+        break;
+    }
+
+    // <expr>.<identifier>
+    case tok_dot: {
+        return parse_attribute(parent, primary, depth);
+    }
+
     // <expr> := <expr>
     // assign expression instead of the usual assign statement
     case tok_walrus: return parse_named_expr(parent, primary, depth);
@@ -2671,7 +2681,7 @@ ExprNode* Parser::parse_expression_1(
     }
     }
 
-    return primary;
+    return nullptr;
 }
 
 ExprNode* Parser::parse_special_string(Node* parent, int depth) {
