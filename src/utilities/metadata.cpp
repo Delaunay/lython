@@ -346,7 +346,7 @@ ClassMetadata& classmeta(int _typeid) {
 }
 
 Member const& nomember() {
-    static Member const m("", -1, -1);
+    static Member const m("", -1, -1, -1);
     return m;
 }
 

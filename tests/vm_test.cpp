@@ -32,6 +32,18 @@ struct Pnt{
     {}
 };
 
+template <>
+struct lython::meta::ReflectionTrait<Pnt> {
+    static int register_members() {
+        lython::meta::new_member<Pnt, int>("x");
+        lython::meta::new_member<Pnt, int>("y");
+        // lython::meta::new_method("sum", &Pnt::sum);
+
+        return 1;
+    }
+};
+
+
 int get_x(Pnt* pnt) {
     return pnt->x;
 }
@@ -48,7 +60,6 @@ void make_native_module() {
     std::function<int(int, int)> fun2 = [](int a, int b) -> int { return a + b; };
     Pnt*(*stuff)(Pnt*, Pnt*) = [](Pnt* a, Pnt* b) -> Pnt* { return new Pnt(a->x + b->x, a->y + b->y); };
     
-
     nativemodule
         .function("native_add", fun)
         // .function("add2", [](int a, int b) -> int { return a + b; })

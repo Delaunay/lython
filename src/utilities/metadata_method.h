@@ -167,6 +167,7 @@ void new_method(std::string const& name, Rx Ty::*method) {
         name,                                       //
         type_id<Rx>(),                              //
         -1,                                         //
+        sizeof(VoidFunction),
         reinterpret_cast<VoidFunction>(freemethod), // native method
         reinterpret_cast<VoidFunction>(function)    // wrapped method
     );

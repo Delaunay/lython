@@ -235,6 +235,8 @@ struct NativeModuleBuilder {
         NativeClassBinder& constructor() {
             static Bindings bindings;
 
+            meta::register_members<O>();
+
             FunctionDef* self = class_t->new_object<FunctionDef>();
             StringRef identifier("__init__");
             self->name = identifier;

@@ -65,7 +65,7 @@ struct ConstantValue {
         return n;
     }
 
-#define ConstantType(POC, CPX)                      \
+#define ConstantType(POD, CPX)                      \
     POD(Invalid, ConstantValue::invalid_t, invalid) \
     POD(i8, int8, i8)                               \
     POD(i16, int16, i16)                            \

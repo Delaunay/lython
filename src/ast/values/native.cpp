@@ -14,10 +14,20 @@ struct ConstantValue NativeObject::cmember(int member_id) {
         ConstantValue value;
         // we need to keep the size of the member as well
         int8* address = (_memory() + member.offset);
+        int byte_count = member.size;
 
+        memcpy((void*)&value.value, address, byte_count);
 
-        // value.kind = member.type;
-        // (value.value.u64) = ;
+        #define POD(a, native, c)                               \
+        if (member.type == meta::type_id<native>()) {           \
+            value.kind = ConstantValue::T##a;                   \
+            return value;                                       \
+        }
+        
+        #define CPX(a, b, c)
+
+        ConstantType(POD, CPX)
+
         return value;
     }
 }

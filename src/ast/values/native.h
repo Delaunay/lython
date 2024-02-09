@@ -84,7 +84,7 @@ public:
     }
 
     struct ConstantValue cmember(int member_id);
-    
+
     template<typename ObjectT>
     bool is_type() const {
         return is_type(meta::type_id<ObjectT>());
@@ -207,9 +207,7 @@ template<typename T>
 struct NativePointer: public NativeObject {
     NativePointer(T* o = nullptr):
         NativeObject(meta::type_id<T>()), object(o)
-    {
-        meta::register_members<T>();
-    }
+    {}
 
     NativePointer(NativeValue<T>& value):
         NativeObject(meta::type_id<T>()), object(value.template as<T>())

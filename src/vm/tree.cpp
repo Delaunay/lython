@@ -448,6 +448,38 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
     int          ctorvarid = bindings.get_varid(ctor_name);
     FunctionDef* ctor      = cast<FunctionDef>(bindings.get_value(ctorvarid));
 
+    if (ctor == nullptr) {
+        static StringRef name("__init__");
+        for(StmtNode* stmt: cls->body) {
+            if (FunctionDef* def = cast<FunctionDef>(stmt)) {
+                if (def->name == name) {
+                    ctor = def;
+                }
+            }
+        }
+    }
+
+    if (ctor->native) {
+        Array<Constant*>      value_args;
+        value_args.reserve(call->args.size());
+
+        bool compile_time = true;
+
+        for (int i = 0; i < call->args.size(); i++) {
+            PartialResult* arg = exec(call->args[i], depth);
+            
+            Constant* value = cast<Constant>(arg);
+            if (value != nullptr) {
+                value_args.push_back(value);
+            }
+            compile_time = compile_time && value != nullptr;
+        }
+
+        Constant* ret = ctor->native(&root, value_args);
+        return ret;
+    }
+
+    // execute function
     Scope scope(bindings);
     if (ctor != nullptr) {
         bindings.add(StringRef("self"), obj, nullptr);
@@ -463,7 +495,10 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
                 break;
             }
         }
-    }
+
+        return obj;
+    } 
+
 
     return obj;
 }

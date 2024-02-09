@@ -30,13 +30,14 @@ using VoidObject = void*;
 
 
 struct Member {
-    Member(std::string const& n, int t, int o, VoidFunction na = nullptr, VoidFunction m=nullptr) :
-        name(n), type(t), offset(o), native(na), method(m)
+    Member(std::string const& n, int t, int o, int s, VoidFunction na = nullptr, VoidFunction m=nullptr) :
+        name(n), type(t), offset(o), size(s), native(na), method(m)
     {}
 
     std::string name;
     int   type = -1; 
     int   offset = -1;
+    int   size = -1;
     VoidFunction native = nullptr;
     VoidFunction method = nullptr;
 };
@@ -160,7 +161,7 @@ template<typename T, typename U>
 void new_member(std::string const& name) {
     ClassMetadata& registry = classmeta(type_id<T>());
     int size = sizeof(U);
-    registry.members.emplace_back(name, type_id<U>(), registry.offset);
+    registry.members.emplace_back(name, type_id<U>(), registry.offset, size);
     registry.offset += size;
 }
 
