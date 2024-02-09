@@ -508,6 +508,20 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         int    ctorvarid = bindings.get_varid(ctor_name);
         Node*  ctor      = bindings.get_value(ctorvarid);
 
+        if (ctor == nullptr) {
+            kwwarn("Could not resolve class constructor");
+            // SEMA_ERROR(n, UnsupportedOperand, str(op), prev_t, cmp_t);
+            static StringRef name("__init__");
+
+            for(StmtNode* stmt: cls->body) {
+                if (FunctionDef* def = cast<FunctionDef>(stmt)) {
+                    if (def->name == name) {
+                        ctor = def;
+                    }
+                }
+            }
+        }
+
         // Now we can switch the function being called from being the class
         // to being the constructor of the class
         assert(fun->kind == NodeKind::Name, "Expect a reference to the class");
@@ -576,7 +590,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
 
     // Method, insert the self argument since it is implicit
     if (offset == 1 && cls) {
-        got->add_arg_type(make_ref(got, str(cls->name)));
+        //got->add_arg_type(make_ref(got, str(cls->name)));
     }
 
     for (auto& arg: n->args) {
@@ -1029,7 +1043,7 @@ Array<TypeExpr*> SemanticAnalyser::exec_body(Array<StmtNode*>& body, int depth) 
 }
 
 TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
-    if (n->native) {
+    if (n->native != nullptr) {
         bindings.add(n->name, n, n->type);
         return n->type;
     }
@@ -1277,11 +1291,13 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
 
         // add the constructor to the context
         auto* ctor_t = cast<Arrow>(exec(ctor, depth));
+        ctor_t->returns = class_t;
 
         // Fix ctor type
-        if (ctor_t != nullptr && ctor_t->arg_count() > 0) {
-            ctor_t->set_arg_type(0, class_t);
-            ctor_t->returns = class_t;
+        if (ctor->native == nullptr) {
+            if (ctor_t != nullptr && ctor_t->arg_count() > 0) {
+                ctor_t->set_arg_type(0, class_t);
+            }
         }
     }
     // -----------------------------
@@ -1294,8 +1310,10 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         auto* fun   = cast<FunctionDef>(stmt);
         auto* fun_t = cast<Arrow>(exec(stmt, depth));
 
-        if (fun_t != nullptr && fun_t->arg_count() > 0) {
-            fun_t->set_arg_type(0, class_t);
+        if (fun->native == nullptr) {
+            if (fun_t != nullptr && fun_t->arg_count() > 0) {
+                fun_t->set_arg_type(0, class_t);
+            }
         }
     }
 

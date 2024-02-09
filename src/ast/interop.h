@@ -42,6 +42,9 @@ struct Interop<R(Args...)> {
             ConstantValue const& value = erased->value;
             ElemT& dest = std::get<TupleSize::value - N>(destination);
 
+            // FIXME
+            // raise an error on type mismatch ?
+            
             // Object
             if constexpr (std::is_pointer<ElemT>::value) {
                 using ObjectT = typename std::remove_pointer<ElemT>::type;

@@ -2542,7 +2542,6 @@ ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
 
     ExprNode* expr = primary;
     while (expr != nullptr) {
-        // token().debug_print(std::cout);
         primary = expr;
         expr = parse_expression_1(parent, primary, 0, depth, comma);
     }

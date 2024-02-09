@@ -111,12 +111,9 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
 
     // Sema the code with module sema
     sema.exec(stmt, 0);
-
+    sema.bindings.dump(std::cout);
     sema.show_diagnostic(std::cout);
     REQUIRE(sema.has_errors() == false);
-
-    sema.bindings.dump(std::cout);
-
 
     kwinfo("{}", "Eval");
     TreeEvaluator eval(sema.bindings);

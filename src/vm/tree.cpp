@@ -1138,6 +1138,10 @@ PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) {
 
     if (obj != nullptr) {
         NativeObject* nv = obj->value.get<NativeObject*>();
+        
+        auto* result = root.new_object<Constant>();
+        result->value = nv->cmember(n->attrid);
+        return result;
 
         if (nv->class_id == meta::type_id<Object>()) {
             Object* nvobj = reinterpret_cast<Object*>(nv);

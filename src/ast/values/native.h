@@ -83,6 +83,8 @@ public:
         return member_address;
     }
 
+    struct ConstantValue cmember(int member_id);
+    
     template<typename ObjectT>
     bool is_type() const {
         return is_type(meta::type_id<ObjectT>());

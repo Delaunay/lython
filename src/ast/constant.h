@@ -187,6 +187,8 @@ struct ConstantValue {
         return kind;
     }
 
+    friend class NativeObject;
+
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis
     union ValueVariant {
