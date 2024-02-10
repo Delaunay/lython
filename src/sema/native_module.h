@@ -299,6 +299,7 @@ struct NativeModuleBuilder {
          NativeClassBinder<T> builder;
          builder.class_t = module->new_object<ClassDef>();
          builder.class_t->name = name;
+         builder.class_t->type_id = meta::type_id<T>();
          module->body.push_back(builder.class_t);
          return builder;
     }

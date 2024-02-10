@@ -67,6 +67,10 @@ void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cau
     exceptions.push_back(except);
 }
 
+PartialResult* TreeEvaluator::exported(Exported* n, int depth) {
+    return nullptr;
+}   
+
 PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
     // a and b and c and d
@@ -467,7 +471,7 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
 
         for (int i = 0; i < call->args.size(); i++) {
             PartialResult* arg = exec(call->args[i], depth);
-            
+
             Constant* value = cast<Constant>(arg);
             if (value != nullptr) {
                 value_args.push_back(value);

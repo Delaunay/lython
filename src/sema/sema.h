@@ -104,6 +104,7 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Array<String>                         namespaces;
     Dict<StringRef, bool>                 flags;
     ImportLib*                            importsys = nullptr;
+    Array<Exported*>                      exported_stack;
 
     // Should I remove the types for the runtime info
     // the type can have their own query struct 

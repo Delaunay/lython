@@ -140,7 +140,23 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
             nm = name.asname.value();
         }
 
-        bindings.add(nm, value, type);
+        #if 0
+            Exported* e_value = n->new_object<Exported>();
+            e_value->source = &import_bindings;
+            e_value->dest = &bindings;
+            e_value->node = value;
+
+            Exported* e_type = n->new_object<Exported>();
+            e_type->source = &import_bindings;
+            e_type->dest = &bindings;
+            e_type->node = type;
+
+            bindings.add(nm, e_value, e_type);
+        #else
+            // type attached to this value might 
+            // not have the right var id
+            bindings.add(nm, value, type);
+        #endif
     }
 
     return nullptr;

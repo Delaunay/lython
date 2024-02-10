@@ -129,7 +129,7 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 #    undef MATCH
 #    undef TYPE_GEN
 
-#    define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth);
+#    define FUNCTION_GEN(name, fun, ret) ret fun(name##_t* n, int depth);
 
 #    define X(name, _)
 #    define SSECTION(name)

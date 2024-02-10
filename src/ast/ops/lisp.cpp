@@ -431,6 +431,12 @@ ReturnType LispSexp::ifexp(IfExp const* self, int depth, int level) {
     return false;
 }
 
+ReturnType LispSexp::exported(Exported const* self, int depth, int level) {
+    exec(self->node, depth, level);
+    return false;
+}
+
+
 ReturnType LispSexp::listcomp(ListComp const* self, int depth, int level) {
     // (map (filter generator lambda) lambda)
     out << "[";

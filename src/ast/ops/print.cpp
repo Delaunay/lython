@@ -1062,6 +1062,12 @@ ReturnType Printer::classtype(ClassType const* self, int depth, std::ostream& ou
     return false;
 }
 
+ReturnType Printer::exported(Exported const* self, int depth, std::ostream& out, int level) {
+    // exec(self->node, depth, out, level);
+    return false;
+}
+
+
 // Helper
 // ==================================================
 

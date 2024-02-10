@@ -555,8 +555,8 @@ TEST_CASE("VM_native_module")
 TEST_CASE("VM_native_module_object") 
 {
     run_test_case("from nmodule import Point",
-                  "Point(1, 2).x",
-                  "1");
+                  "Point(1, 2).y",
+                  "2");
 }
 
 

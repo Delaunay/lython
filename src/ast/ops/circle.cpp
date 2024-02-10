@@ -75,7 +75,7 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
         return Super::exec(stmt, depth);
     }
 
-    template <typename T>
+    template <typename T> 
     bool any_of(Array<T> const& elts, int depth) {
         // std::any_of produce so much asm crap in gcc-12 & clang-15
         // zig++ generates fine code though
@@ -693,6 +693,13 @@ bool Circle::withitem(WithItem const& self, int depth) {
 }
 
 ReturnType Circle::comment(Comment const* n, int depth) { return false; }
+
+
+ReturnType Circle::exported(Exported const * n, int depth) {
+    //return exec(n->node, depth);
+    return false;
+}
+
 
 bool Circle::arguments(Arguments const& self, int depth) {
     int i = 0;

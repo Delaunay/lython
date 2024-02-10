@@ -115,7 +115,7 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     public:
     virtual ~ToGraph() {}
 
-#define FUNCTION_GEN(name, fun, ret) virtual ret fun(name##_t* n, int depth);
+#define FUNCTION_GEN(name, fun, ret) ret fun(name##_t* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)

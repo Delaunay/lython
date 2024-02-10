@@ -13,6 +13,10 @@ struct Equality {
         return a == b;
     }
 
+    bool exec(Exported const& a, Exported const& b) {
+        return exec(a.node, b.node);
+    }
+
     bool exec(MatchCase const& a, MatchCase const& b, int depth) {
         kwtrace(depth, "MatchCase");
         return exec(a.pattern, b.pattern, depth) && exec(a.guard, b.guard, depth) &&
@@ -308,6 +312,10 @@ struct Equality {
     bool yield(Yield* a, Yield* b, int depth) { return exec(a->value, b->value, depth); }
     bool yieldfrom(YieldFrom* a, YieldFrom* b, int depth) {
         return exec(a->value, b->value, depth);
+    }
+
+    bool exported(Exported* a, Exported* b, int depth) {
+        return exec(a->node, b->node, depth);
     }
 
     bool boolop(BoolOp* a, BoolOp* b, int depth) {

@@ -134,6 +134,8 @@ Member const& nomember();
 Member const& member(int _typeid, std::string const& name);
 Member const& member(int _typeid, int id);
 
+std::tuple<int, int> member_id(int _typeid, std::string const& name);
+
 // Low Level API to retrieve the classmeta
 ClassMetadata& classmeta(int _typeid);
 

@@ -971,3 +971,8 @@ Array<TestCase> const& Placeholder_examples() {
     static Array<TestCase> example = {};
     return example;
 }
+
+Array<TestCase> const& Exported_examples() {
+    static Array<TestCase> example = {};
+    return example;
+}

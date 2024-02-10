@@ -81,7 +81,7 @@ struct StackTrace {
  *      memory allocation for trivial types
  * 
  */
-struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
+struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     public:
     using Super = BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait>;
@@ -90,14 +90,14 @@ struct TreeEvaluator: BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
     TreeEvaluator(Bindings& bindings): bindings(bindings) { traces.push_back(StackTrace()); }
 
-    virtual ~TreeEvaluator() {}
+     ~TreeEvaluator() {}
 
     template <typename Exception, typename... Args>
     ConstantValue raise(Args... args) {
         return ConstantValue::none();
     }
 
-#define FUNCTION_GEN(name, fun) virtual PartialResult* fun(name##_t* n, int depth);
+#define FUNCTION_GEN(name, fun)  PartialResult* fun(name##_t* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)

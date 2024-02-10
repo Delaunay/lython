@@ -371,6 +371,22 @@ Member const& member(int _typeid, std::string const& name) {
     return nomember();
 }
 
+std::tuple<int, int> member_id(int _typeid, std::string const& name) {
+    ClassMetadata& registry = classmeta(_typeid);
+    int i = 0;
+
+    for (Member& member: registry.members) {
+        
+        if (member.name == name) {
+            return std::make_tuple(i, member.type);
+        }
+
+        i += 1;
+    }
+
+    return std::make_tuple(-1, -1);
+}
+
 void print(std::ostream& ss, int typeid_, std::int8_t const* data) {
     ClassMetadata const& registry = classmeta(typeid_);
 

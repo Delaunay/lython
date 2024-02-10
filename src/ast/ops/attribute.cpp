@@ -21,6 +21,9 @@ struct IsAttr {
         }
         return false;
     }
+    Return exported(Exported* n) {
+        return nullptr;
+    }
 
     Return assign(Assign* n) {
         for (auto& target: n->targets) {

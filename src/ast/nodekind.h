@@ -15,6 +15,7 @@ enum class NodeKind : int8_t
 #define NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)\
     X(Invalid, invalid)             \
     SECTION(EXPR_START)             \
+    EXPR(Exported, exported)        \
     EXPR(BoolOp, boolop)            \
     EXPR(NamedExpr, namedexpr)      \
     EXPR(BinOp, binop)              \

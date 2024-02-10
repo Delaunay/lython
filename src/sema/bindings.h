@@ -94,6 +94,10 @@ struct Bindings {
         return result;
     }
 
+    BindingEntry const& getvalue(int varid) const {
+        return bindings[varid];
+    }
+
     StringRef get_name(int varid) const {
         if (varid < 0 && varid > bindings.size())
             return StringRef();

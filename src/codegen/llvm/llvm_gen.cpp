@@ -194,6 +194,9 @@ ExprRet LLVMGen::namedexpr(NamedExpr_t* n, int depth) {
     ExprRet value  = exec(n->value, depth);
     return value;
 }
+ExprRet LLVMGen::exported(Exported* n, int depth) {
+    return nullptr;
+}   
 ExprRet LLVMGen::lambda(Lambda_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
     Value* cond = exec(n->test, depth);

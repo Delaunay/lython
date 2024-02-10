@@ -11,6 +11,11 @@ using ExprRet = ToGraph::ExprRet;
 using ModRet  = ToGraph::ModRet;
 using PatRet  = ToGraph::PatRet;
 
+
+ExprRet ToGraph::exported(Exported_t* n, int depth) {
+    return nullptr;
+}
+
 ExprRet ToGraph::boolop(BoolOp_t* n, int depth) {
     GraphNodeBase* graph = new_object<GraphNode>(n);
     return new_output(graph, depth);

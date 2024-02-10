@@ -746,6 +746,7 @@ struct ClassDef: public StmtNode {
     Array<StmtNode*>    body;
     Array<Decorator>    decorator_list = {};
     Optional<Docstring> docstring;
+    int type_id = -1;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
 
@@ -832,6 +833,16 @@ struct ClassDef: public StmtNode {
 
         return false;
     }
+};
+
+struct Exported: public ExprNode {
+    Exported(): 
+        ExprNode(NodeKind::Exported) 
+    {}
+
+    class Bindings* source;
+    class Bindings* dest;
+    Node* node;
 };
 
 struct Return: public StmtNode {

@@ -20,6 +20,7 @@ struct Traverse: public BaseVisitor<Traverse, false, TraverseTrait> {
     using Super = BaseVisitor<Traverse, false, TraverseTrait>;
 
     virtual void_t boolop(BoolOp* n, int depth) { return void_t(); }
+    virtual void_t exported(Exported* n, int depth) { return void_t(); }
     virtual void_t namedexpr(NamedExpr* n, int depth) { return void_t(); }
     virtual void_t binop(BinOp* n, int depth) { return void_t(); }
     virtual void_t unaryop(UnaryOp* n, int depth) { return void_t(); }

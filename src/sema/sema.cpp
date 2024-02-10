@@ -517,6 +517,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
                 if (FunctionDef* def = cast<FunctionDef>(stmt)) {
                     if (def->name == name) {
                         ctor = def;
+                        break;
                     }
                 }
             }
@@ -570,6 +571,11 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
 TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     // Get the type of the function
     auto* type = exec(n->func, depth);
+
+    // we are calling a type, this is a constructor
+    //if (equal(type, Type_t())) {
+//
+  //  }
 
     int       offset = 0;
     ClassDef* cls    = nullptr;
@@ -644,6 +650,23 @@ TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) {
     }
     return make_ref(n, "str");
 }
+
+TypeExpr* SemanticAnalyser::exported(Exported* n, int depth) {
+    TypeExpr* return_type = nullptr;
+
+    exported_stack.push_back(n);
+    if (n->node && n->node->family() == NodeFamily::Expression) {
+        return_type = exec(reinterpret_cast<ExprNode*>(n->node), depth);
+    }
+    else if (n->node && n->node->family() == NodeFamily::Statement) {
+        return_type = exec(reinterpret_cast<StmtNode*>(n->node), depth);
+    }
+
+    exported_stack.pop_back();
+    return return_type;
+}
+
+
 TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
     TypeExpr* vtype = exec(n->value, depth);
 
@@ -755,6 +778,23 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
         return nullptr;
     }
 
+    if (class_t->type_id > -1) {
+        int tid;
+        std::tie(n->attrid, tid) = meta::member_id(class_t->type_id, str(n->attr).c_str());
+
+        int i = 0;
+        for(BindingEntry& bind: bindings.bindings) {
+            if (bind.type_id == tid) {
+                Name* name = n->new_object<Name>();
+                name->varid = i;
+                return name;
+            }
+            i += 1;
+        }
+
+        return nullptr;
+    }
+
     n->attrid = class_t->get_attribute(n->attr);
     if (n->attrid == -1) {
         SEMA_ERROR(n, AttributeError, class_t, n->attr);
@@ -835,6 +875,9 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         kwdebug("Value {} does not have a type", n->id);
     } else {
         kwdebug("Loading value {}: {} of type {}", n->id, n->varid, str(t));
+    }
+    if (t->kind == NodeKind::Exported) {
+        return exec(t, depth);
     }
     return t;
 }
