@@ -437,10 +437,32 @@ TypeExpr* SemanticAnalyser::yieldfrom(YieldFrom* n, int depth) { return exec(n->
 // <fun>(arg1 arg2 ...)
 //
 
-Node* SemanticAnalyser::load_name(Name_t* n) {
+BindingEntry const* SemanticAnalyser::lookup(Name_t* n)  {
     if (n == nullptr) {
         return nullptr;
     }
+
+    for(BindingEntry const& entry: bindings.bindings) {
+        if (entry.name == n->id) {
+            return &entry;
+        }
+    }
+
+    return nullptr;
+}
+
+Node* SemanticAnalyser::load_name(Name_t* n) {
+    BindingEntry const* entry = lookup(n);
+    if (entry) {
+        return entry->value;
+    }
+    SEMA_ERROR(n, NameError, n, n->id);
+    return nullptr;
+#if 0
+    if (n == nullptr) {
+        return nullptr;
+    }
+
 
     Node* result = nullptr;
     int   varid  = 0;
@@ -456,6 +478,7 @@ Node* SemanticAnalyser::load_name(Name_t* n) {
     }
 
     return result;
+#endif
 }
 
 ClassDef* SemanticAnalyser::get_class(ExprNode* classref, int depth) {
@@ -786,6 +809,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
         for(BindingEntry& bind: bindings.bindings) {
             if (bind.type_id == tid) {
                 Name* name = n->new_object<Name>();
+                name->id = bind.name;
                 name->varid = i;
                 return name;
             }
@@ -849,6 +873,22 @@ TypeExpr* SemanticAnalyser::starred(Starred* n, int depth) {
     return nullptr;
 }
 TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
+    BindingEntry const* entry = lookup(n);
+    if (entry) {
+        return entry->type;
+    }
+
+    SEMA_ERROR(n, NameError, n, n->id);
+    return nullptr;
+
+#if 0
+    for(BindingEntry const& entry: bindings.bindings) {
+        if (entry.name == n->id) {
+            return entry.type;
+        }
+    }
+    return nullptr;
+
     if (n->ctx == ExprContext::Store) {
         auto id  = bindings.add(n->id, n, nullptr);
         n->varid = id;
@@ -880,6 +920,7 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         return exec(t, depth);
     }
     return t;
+    #endif
 }
 
 TypeExpr* SemanticAnalyser::comment(Comment* n, int depth) { return nullptr; }

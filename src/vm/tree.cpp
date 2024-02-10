@@ -633,6 +633,21 @@ PartialResult* TreeEvaluator::comment(Comment_t* n, int depth) { return nullptr;
 
 PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
 
+    if (n->ctx == ExprContext::Store) {
+        Constant* variable = root.new_object<Constant>();
+        bindings.add(n->id, variable, nullptr);
+        return variable;
+    }
+
+    for(BindingEntry const& entry: bindings.bindings) {
+        if (n->id == entry.name) {
+            return entry.value;
+        }
+    }
+
+    return nullptr;
+    
+    /*
     Node* result = nullptr;
     int   varid  = -1;
 
@@ -674,6 +689,7 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
             varid);
     kwdebug("Looked for {} (id: {}) found {}: {}", n->id, n->varid, kindstr, strresult);
     return result;
+    */
 }
 
 PartialResult* TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {

@@ -118,6 +118,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     bool has_errors() const;
 
+    BindingEntry const* lookup(Name_t* n);
+
     SemaContext& get_context() {
         static SemaContext global_ctx;
         if (semactx.size() == 0) {
