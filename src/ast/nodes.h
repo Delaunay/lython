@@ -775,7 +775,7 @@ struct ClassDef: public StmtNode {
     // Dict<StringRef, Attr> attributes;
     Array<Attr> attributes;  // <= Instantiated Object
     // Array<Attr> static_attributes;  // <= Namespaced Globals
-    Array<Attr> methods;
+    // Array<Attr> methods;
 
     void dump(std::ostream& out) {
         out << "Attributes:\n";
@@ -804,11 +804,11 @@ struct ClassDef: public StmtNode {
         int attrid = get_attribute(name);
 
         if (attrid == -1) {
-            methods.emplace_back(name, int(methods.size()), stmt, type);
+            attributes.emplace_back(name, int(attributes.size()), stmt, type);
             return true;
         }
 
-        Attr& v = methods[attrid];
+        Attr& v = attributes[attrid];
 
         if (!v.type && type) {
             v.type = type;

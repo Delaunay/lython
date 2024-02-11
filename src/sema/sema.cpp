@@ -593,12 +593,14 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
 
 TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     // Get the type of the function
+    // if function function is an attribute obj.attr
+    // this returns the type of the function
     auto* type = exec(n->func, depth);
 
     // we are calling a type, this is a constructor
     //if (equal(type, Type_t())) {
-//
-  //  }
+    //
+    //}
 
     int       offset = 0;
     ClassDef* cls    = nullptr;
@@ -802,21 +804,28 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
     }
 
     if (class_t->type_id > -1) {
+        // in the case of a method this does not work
+        // because the type was not created
+        // can we remove that piece of custom code
+        // out and into the native module builder instead
         int tid;
         std::tie(n->attrid, tid) = meta::member_id(class_t->type_id, str(n->attr).c_str());
 
-        int i = 0;
-        for(BindingEntry& bind: bindings.bindings) {
-            if (bind.type_id == tid) {
-                Name* name = n->new_object<Name>();
-                name->id = bind.name;
-                name->varid = i;
-                return name;
+        if (tid > -1) {
+            int i = 0;
+            for(BindingEntry& bind: bindings.bindings) {
+                if (bind.type_id == tid) {
+                    Name* name = n->new_object<Name>();
+                    name->id = bind.name;
+                    name->varid = i;
+                    return name;
+                }
+                i += 1;
             }
-            i += 1;
         }
 
-        return nullptr;
+        kwdebug("native attribute not found");
+        //return nullptr;
     }
 
     n->attrid = class_t->get_attribute(n->attr);
@@ -1205,7 +1214,7 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
         case NodeKind::FunctionDef: {
             // Look for special functions
             auto* fun = cast<FunctionDef>(stmt);
-            n->insert_method(fun->name, fun);
+            n->insert_method(fun->name, fun, fun->type);
 
             if (str(fun->name) == "__init__") {
                 kwinfo("Found ctor");

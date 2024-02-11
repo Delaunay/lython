@@ -30,6 +30,10 @@ struct Pnt{
     Pnt(int x = 0, int y = 0):
         x(x), y(y)
     {}
+
+    Pnt add(Pnt* a) {
+        return Pnt(x + a->x, y + a->y);
+    }
 };
 
 template <>
@@ -37,6 +41,7 @@ struct lython::meta::ReflectionTrait<Pnt> {
     static int register_members() {
         lython::meta::new_member<Pnt, int>("x");
         lython::meta::new_member<Pnt, int>("y");
+        // lython::meta::new_method("add", &Pnt::add);
         // lython::meta::new_method("sum", &Pnt::sum);
 
         return 1;
@@ -98,9 +103,9 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     SemanticAnalyser sema;
 
     // Add Native first
-    register_native_function(mod, sema.bindings, "add", native_add);
-    register_native_object<Pnt, int, int>(mod, sema.bindings, "Pnt");
-    register_native_function(mod, sema.bindings, "get_x", get_x);
+    // register_native_function(mod, sema.bindings, "add", native_add);
+    // register_native_object<Pnt, int, int>(mod, sema.bindings, "Pnt");
+    // register_native_function(mod, sema.bindings, "get_x", get_x);
 
     //execute script
     ImportLib::instance()->add_to_path(test_modules_path());
@@ -558,6 +563,15 @@ TEST_CASE("VM_native_module_object")
                   "Point(1, 2).y",
                   "2");
 }
+
+TEST_CASE("VM_native_module_object_method") 
+{
+
+    run_test_case("from nmodule import Point",
+                  "Point(1, 2).add(Point(1, 2)).y",
+                  "4");
+}
+
 
 
 #if EXPERIMENTAL_TESTS
