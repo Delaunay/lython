@@ -50,6 +50,12 @@ struct lyException: public NativeValue<_LyException> {
 
     // type
     // message
+    String _type = String("AssertionError");
+    String _message = String("Very bad");
+
+    virtual String message() { return _message; }
+
+    virtual String type_str() { return _type; }
 
     Array<StackTrace>& traces() {
         return object.traces;

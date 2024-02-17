@@ -1359,8 +1359,8 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
             printkwtrace(st);
         }
 
-        String exception_type = "AssertionError";
-        String exception_msg  = "Very bad";
+        String exception_type = except->type_str();
+        String exception_msg  = except->message();
         fmt::print("{}: {}\n", exception_type, exception_msg);
     }
     return result;
