@@ -24,6 +24,13 @@ bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type)
     return false;
 }
 
+Name* SemanticAnalyser::make_ref(Node* parent, StringRef const& name) {
+    return bindings.make_reference(parent, name);
+}
+Name* SemanticAnalyser::make_ref(Node* parent, String const& name) {
+    return make_ref(parent, StringRef(name));
+}
+
 bool SemanticAnalyser::typecheck(
     ExprNode* lhs, TypeExpr* lhs_t, ExprNode* rhs, TypeExpr* rhs_t, CodeLocation const& loc) {
 
@@ -105,16 +112,13 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
         String signature = join("-", Array<String>{str(n->op), str(lhs_t), str(rhs_t)});
         auto   handler   = get_native_bool_operation(signature);
 
-        if (handler) {
+        if (handler != nullptr) {
             n->native_operator = handler;
         } else {
             // Not a native operator
-            int lhs_op_varid = bindings.get_varid(lhs_op);
-            if (lhs_op_varid > 0) {
-                // found the function we are calling
-                n->varid = lhs_op_varid;
-
-                Arrow* operator_type = cast<Arrow>(bindings.get_type(lhs_op_varid));
+            BindingEntry* lhs_op_binding = bindings.find(StringRef(lhs_op));
+            if (lhs_op_binding != nullptr) {
+                Arrow* operator_type = cast<Arrow>(lhs_op_binding->type);
 
                 assert(operator_type, "Bool operator needs to be Callable");
                 assert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
@@ -123,12 +127,9 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
                 typecheck(rhs, rhs_t, nullptr, operator_type->args[1], LOC);
                 typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool"), LOC);
             } else {
-                int rhs_op_varid = bindings.get_varid(rhs_op);
-                if (rhs_op_varid > 0) {
-                    // found the function we are calling
-                    n->varid = rhs_op_varid;
-
-                    Arrow* operator_type = cast<Arrow>(bindings.get_type(rhs_op_varid));
+                BindingEntry* rhs_op_binding = bindings.find(StringRef(rhs_op));
+                if (rhs_op_binding != nullptr) {
+                    Arrow* operator_type = cast<Arrow>(rhs_op_binding->type);
 
                     assert(operator_type, "Bool operator needs to be Callable");
                     assert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
@@ -138,7 +139,7 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
                     typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool"), LOC);
                 }
 
-                if (lhs_op_varid == -1 && rhs_op_varid == -1) {
+                if (lhs_op_binding == nullptr && rhs_op_binding == nullptr) {
                     SEMA_ERROR(n, UnsupportedOperand, str(n->op), lhs_t, rhs_t);
                 }
             }
@@ -198,17 +199,17 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
     Name* name = cast<Name>(node);
 
     if (name != nullptr) {
-        assert (bindings.bindings.size() > 0 , "");
+        assert(bindings.bindings.size() > 0, "");
         int last = bindings.bindings.size() - 1;
 
-        for(int i = last; i >= 0; i--){
+        for (int i = last; i >= 0; i--) {
             BindingEntry const& entry = bindings.bindings[i];
             if (name->id == entry.name) {
                 return (ExprNode*)entry.value;
             }
         }
 
-        //assert(name->varid >= 0, "Type need to be resolved");
+        // assert(name->varid >= 0, "Type need to be resolved");
         // return static_cast<TypeExpr*>(bindings.get_value(name->varid));
     }
 
@@ -447,22 +448,12 @@ TypeExpr* SemanticAnalyser::yieldfrom(YieldFrom* n, int depth) { return exec(n->
 // <fun>(arg1 arg2 ...)
 //
 
-BindingEntry const* SemanticAnalyser::lookup(Name_t* n)  {
+BindingEntry const* SemanticAnalyser::lookup(Name_t* n) {
     if (n == nullptr) {
         return nullptr;
     }
 
-    assert (bindings.bindings.size() > 0 , "");
-    int last = bindings.bindings.size() - 1;
-
-    for(int i = last; i >= 0; i--){
-        BindingEntry const& entry = bindings.bindings[i];
-        if (n->id == entry.name) {
-            return &entry;
-        }
-    }
-
-    return nullptr;
+    return bindings.find(n->id);
 }
 
 Node* SemanticAnalyser::load_name(Name_t* n) {
@@ -541,16 +532,16 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         // NOTE: we should call __new__ here implictly
         //
 
-        String ctor_name = String(cls->name) + String(".__init__");
-        int    ctorvarid = bindings.get_varid(ctor_name);
-        Node*  ctor      = bindings.get_value(ctorvarid);
+        String        ctor_name = String(cls->name) + String(".__init__");
+        BindingEntry* entry     = bindings.find(StringRef(ctor_name));
+        Node*         ctor      = entry->value;
 
         if (ctor == nullptr) {
             kwwarn("Could not resolve class constructor");
-            // SEMA_ERROR(n, UnsupportedOperand, str(op), prev_t, cmp_t);
+            // SEMA_ERROR(n, UnsupportedOperand, str(op), prev_t, cmp_t)
             static StringRef name("__init__");
 
-            for(StmtNode* stmt: cls->body) {
+            for (StmtNode* stmt: cls->body) {
                 if (FunctionDef* def = cast<FunctionDef>(stmt)) {
                     if (def->name == name) {
                         ctor = def;
@@ -612,7 +603,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     auto* type = exec(n->func, depth);
 
     // we are calling a type, this is a constructor
-    //if (equal(type, Type_t())) {
+    // if (equal(type, Type_t())) {
     //
     //}
 
@@ -640,7 +631,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
 
     // Method, insert the self argument since it is implicit
     if (offset == 1 && cls) {
-        //got->add_arg_type(make_ref(got, strfat(cls->name)));
+        // got->add_arg_type(make_ref(got, strfat(cls->name)));
     }
 
     for (auto& arg: n->args) {
@@ -681,10 +672,9 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
 
         got->returns = arrow->returns;
 
-            // (Point, Point) -> Point
-        kwdebug("fun type: {}, {}", str(got), n->args.size()); 
-        kwdebug("fun type: {}", str(arrow)); 
-
+        // (Point, Point) -> Point
+        kwdebug("fun type: {}, {}", str(got), n->args.size());
+        kwdebug("fun type: {}", str(arrow));
 
         typecheck(n, got, n->func, arrow, LOC);
     }
@@ -707,15 +697,13 @@ TypeExpr* SemanticAnalyser::exported(Exported* n, int depth) {
     exported_stack.push_back(n);
     if (n->node && n->node->family() == NodeFamily::Expression) {
         return_type = exec(reinterpret_cast<ExprNode*>(n->node), depth);
-    }
-    else if (n->node && n->node->family() == NodeFamily::Statement) {
+    } else if (n->node && n->node->family() == NodeFamily::Statement) {
         return_type = exec(reinterpret_cast<StmtNode*>(n->node), depth);
     }
 
     exported_stack.pop_back();
     return return_type;
 }
-
 
 TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
     TypeExpr* vtype = exec(n->value, depth);
@@ -789,9 +777,7 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
     return nullptr;
 }
 
-TypeExpr* SemanticAnalyser::placeholder(Placeholder* n, int depth) { 
-    return nullptr;
-}
+TypeExpr* SemanticAnalyser::placeholder(Placeholder* n, int depth) { return nullptr; }
 TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
     switch (n->value.type()) {
     case ConstantValue::Ti8: return make_ref(n, "i8");
@@ -838,10 +824,10 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
 
         if (tid > -1) {
             int i = 0;
-            for(BindingEntry& bind: bindings.bindings) {
+            for (BindingEntry& bind: bindings.bindings) {
                 if (bind.type_id == tid) {
-                    Name* name = n->new_object<Name>();
-                    name->id = bind.name;
+                    Name* name  = n->new_object<Name>();
+                    name->id    = bind.name;
                     name->varid = i;
                     return name;
                 }
@@ -850,7 +836,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
         }
 
         kwdebug("native attribute not found");
-        //return nullptr;
+        // return nullptr;
     }
 
     n->attrid = class_t->get_attribute(n->attr);
@@ -859,7 +845,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
         return nullptr;
     }
 
-    n->resolved = &class_t->attributes[n->attrid];
+    n->resolved          = &class_t->attributes[n->attrid];
     ClassDef::Attr& attr = class_t->attributes[n->attrid];
 
     if (attr.type != nullptr && is_type(attr.type, depth, LOC)) {
@@ -955,7 +941,7 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         return exec(t, depth);
     }
     return t;
-    #endif
+#endif
 }
 
 TypeExpr* SemanticAnalyser::comment(Comment* n, int depth) { return nullptr; }
@@ -1182,7 +1168,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     // Insert the function into the global context
     // the arrow type is not created right away to prevent
     // circular typing
-    auto id = bindings.add(funname, n, nullptr);
+    bindings.add(funname, n, nullptr);
 
     // Enter function context
     Scope scope(bindings);
@@ -1193,7 +1179,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     TypeExpr* return_t = fun_type->returns;
 
     // Update the function type at the very end
-    bindings.set_type(id, fun_type);
+    bindings.set_type(funname, fun_type);
 
     // Infer return type from the body
     PopGuard ctx(semactx, SemaContext());
@@ -1376,7 +1362,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     // a class is a new type
     // the type of a class is type
     int   id      = bindings.add(n->name, n, Type_t());
-    Name* class_t = make_ref(n, str(n->name), id);
+    Name* class_t = make_ref(n, str(n->name));
 
     // TODO: go through bases and add their elements
     for (auto* base: n->bases) {
@@ -1409,7 +1395,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
         record_ctor_attributes(n, ctor, depth);
 
         // add the constructor to the context
-        auto* ctor_t = cast<Arrow>(exec(ctor, depth));
+        auto* ctor_t    = cast<Arrow>(exec(ctor, depth));
         ctor_t->returns = class_t;
 
         // Fix ctor type
@@ -1674,8 +1660,8 @@ TypeExpr* SemanticAnalyser::assertstmt(Assert* n, int depth) {
 // This means the binding lookup for variable should stop before the global scope :/
 TypeExpr* SemanticAnalyser::global(Global* n, int depth) {
     for (auto& name: n->names) {
-        auto varid = bindings.get_varid(name);
-        if (varid == -1) {
+        BindingEntry* entry = bindings.find(name);
+        if (entry == nullptr) {
             SEMA_ERROR(n, NameError, n, name);
         }
     }
@@ -1683,8 +1669,8 @@ TypeExpr* SemanticAnalyser::global(Global* n, int depth) {
 }
 TypeExpr* SemanticAnalyser::nonlocal(Nonlocal* n, int depth) {
     for (auto& name: n->names) {
-        auto varid = bindings.get_varid(name);
-        if (varid == -1) {
+        BindingEntry* entry = bindings.find(name);
+        if (entry == nullptr) {
             SEMA_ERROR(n, NameError, n, name);
         }
     }
@@ -1780,20 +1766,16 @@ TypeExpr* SemanticAnalyser::module(Module* stmt, int depth) {
 
     // create an entry point per module
     FunctionDef* entry = stmt->new_object<FunctionDef>();
-    entry->name = "__init__";
-    
+    entry->name        = "__init__";
+
     // inser the module entry up top
     exec(entry, depth);
 
-    for(auto* stmt: stmt->body) 
-    {
-        if(in(stmt->kind, NodeKind::ClassDef, 
-                          NodeKind::FunctionDef)) 
-        {
+    for (auto* stmt: stmt->body) {
+        if (in(stmt->kind, NodeKind::ClassDef, NodeKind::FunctionDef)) {
             // Sema only for definition, as they do not need to be evaluated
             exec(stmt, depth);
-        }         
-        else {
+        } else {
             // Sema statement
             exec(stmt, depth);
 

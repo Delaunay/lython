@@ -845,8 +845,8 @@ struct Exported: public ExprNode {
         ExprNode(NodeKind::Exported) 
     {}
 
-    class Bindings* source;
-    class Bindings* dest;
+    struct Bindings* source;
+    struct Bindings* dest;
     Node* node;
 };
 

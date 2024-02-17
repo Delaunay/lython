@@ -190,7 +190,7 @@ struct ConstantValue {
         return kind;
     }
 
-    friend class NativeObject;
+    friend struct NativeObject;
 
     private:
     // ast.Str, ast.Bytes, ast.NameConstant, ast.Ellipsis

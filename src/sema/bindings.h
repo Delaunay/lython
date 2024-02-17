@@ -31,118 +31,47 @@ struct BindingEntry {
 std::ostream& print(std::ostream& out, BindingEntry const& entry);
 
 struct Bindings {
-    Bindings() {
-        bindings.reserve(128);
+    Bindings();
 
-#define TYPE(name, native) add(String(#name), name##_t(), Type_t(), meta::type_id<native>());
-
-        BUILTIN_TYPES(TYPE)
-
-#undef TYPE
-
-        // Builtin constant
-        add(String("None"), None(), None_t());
-        add(String("True"), True(), bool_t());
-        add(String("False"), False(), bool_t());
-
-        
-    }
+    struct Name* make_reference(Node* parent, StringRef const& name);
 
     // returns the varid it was inserted as
-    inline int add(StringRef const& name, Node* value, TypeExpr* type, int type_id=-1) {
-        COZ_BEGIN("T::Bindings::add");
+    int add(StringRef const& name, Node* value, TypeExpr* type, int type_id=-1);
 
-        assert(name != StringRef(), "Should have a name");
-        auto size = int(bindings.size());
-
-        bool dynamic = !nested;
-        bindings.push_back({name, value, type, dynamic, type_id});
-
-        if (!nested) {
-            global_index += 1;
-        }
-
-        COZ_PROGRESS_NAMED("Bindings::add");
-        COZ_END("T::Bindings::add");
-        return size;
-    }
-
-    inline void set_type(int varid, TypeExpr* type) {
-        if (varid < 0 && varid > bindings.size())
-            return;
-
-        bindings[varid].type = type;
-    }
-
-    inline void set_value(int varid, Node* value) { 
-        bindings[varid].value = value; 
-    }
-
-    inline void set_value(StringRef name, Node* value) { 
+    BindingEntry* find(StringRef const& name) {
         assert (bindings.size() > 0 , "");
-        int last = bindings.size() - 1;
+        int last = int(bindings.size()) - 1;
 
         for(int i = last; i >= 0; i--){
             BindingEntry& entry = bindings[i];
             if (name == entry.name) {
-                entry.value = value;
-                return;
+                return &entry;
             }
         }
+
+        return nullptr;
+    } 
+
+#define GETTER(type, attr, default)             \
+    type attr(StringRef const& name) {          \
+        if (BindingEntry* entry = find(name)) { \
+            return entry->attr;                 \
+        }                                       \
+        return default;                         \
     }
 
-    inline TypeExpr* get_type(int varid) const {
-        if (varid < 0 && varid > bindings.size())
-            return nullptr;
-        return bindings[varid].type;
+#define SETTER(type, attr)                              \
+    void set_##attr(StringRef const& name, type value) {  \
+        if (BindingEntry* entry = find(name)) {         \
+            entry->attr = value;                        \
+        }                                               \
     }
 
-    inline Node* get_value(int varid) const {
-        COZ_BEGIN("T::Bindings::get_value");
+    GETTER(Node*, value, nullptr)
+    GETTER(TypeExpr*, type, nullptr)
 
-        Node* result = nullptr;
-
-        if (!(varid < 0 && varid > bindings.size()))
-            result = bindings[varid].value;
-
-        COZ_PROGRESS_NAMED("Bindings::get_value");
-        COZ_END("T::Bindings::get_value");
-        return result;
-    }
-
-    BindingEntry const& getvalue(int varid) const {
-        return bindings[varid];
-    }
-
-    StringRef get_name(int varid) const {
-        if (varid < 0 && varid > bindings.size())
-            return StringRef();
-        return bindings[varid].name;
-    }
-
-    bool is_dynamic(int varid) const { return varid >= global_index; }
-
-    int get_varid(StringRef name) const {
-        COZ_BEGIN("T::Bindings::get_varid");
-
-        auto start = std::rbegin(bindings);
-        auto end   = std::rend(bindings);
-
-        int value = -1;
-        int i     = 0;
-        while (start != end) {
-            if (start->name == name) {
-                value = int(bindings.size()) - i - 1;
-                break;
-            }
-            ++start;
-            i += 1;
-        }
-
-        COZ_PROGRESS_NAMED("Bindings::get_varid");
-        COZ_END("T::Bindings::get_varid");
-        return value;
-    }
+    SETTER(Node*, value)
+    SETTER(TypeExpr*, type)
 
     String __str__() const {
         StringStream ss;

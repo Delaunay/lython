@@ -184,32 +184,14 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
 
     Array<TypeExpr*> exec_body(Array<StmtNode*>& body, int depth);
 
-    Name* make_ref(Node* parent, String const& name, int varid = -1) {
-        return make_ref(parent, StringRef(name), varid);
-    }
+    Name* make_ref(Node* parent, StringRef const& name);
+    Name* make_ref(Node* parent, String const& name);
 
     void record_attributes(ClassDef*               n,
                            Array<StmtNode*> const& body,
                            Array<StmtNode*>&       methods,
                            FunctionDef**           ctor,
                            int                     depth);
-
-    Name* make_ref(Node* parent, StringRef const& name, int varid = -1) {
-        auto ref = parent->new_object<Name>();
-        ref->id  = name;
-
-        if (varid == -1) {
-            ref->varid = bindings.get_varid(ref->id);
-            assert(ref->varid != -1, "Should be able to find the name we are refering to");
-        } else {
-            ref->varid = varid;
-        }
-
-        ref->ctx     = ExprContext::Load;
-        ref->size    = int(bindings.bindings.size());
-        ref->dynamic = bindings.is_dynamic(ref->varid);
-        return ref;
-    }
 
     ClassDef* get_class(ExprNode* classref, int depth);
     TypeExpr* resolve_variable(ExprNode* node);

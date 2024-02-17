@@ -22,31 +22,29 @@
         }                              \
     }
 
-struct EvaluationResult {
-
-};
+struct EvaluationResult {};
 
 namespace lython {
-PartialResult* TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth) 
-{
-     for (StmtNode * stmt: body) {    
+PartialResult*
+TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth) {
+    for (StmtNode* stmt: body) {
         Node* result = exec(stmt, depth);
         if (result->family() == NodeFamily::Statement) {
-            newbod.push_back((StmtNode*)(result));    
-        }  
-        
+            newbod.push_back((StmtNode*)(result));
+        }
+
         // We cannot proceed, essentially found a compile time issue
-        if (has_exceptions()) {        
-            return None();             
-        }                              
+        if (has_exceptions()) {
+            return None();
+        }
 
         // We have reached a value to return
         // check if partial or not
         // if partial then maybe we do not have sufficient info to return right away
         // if not we can return right away
-        if (return_value != nullptr) { 
-            return return_value;       
-        }                              
+        if (return_value != nullptr) {
+            return return_value;
+        }
     }
     return None();
 }
@@ -67,9 +65,7 @@ void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cau
     exceptions.push_back(except);
 }
 
-PartialResult* TreeEvaluator::exported(Exported* n, int depth) {
-    return nullptr;
-}   
+PartialResult* TreeEvaluator::exported(Exported* n, int depth) { return nullptr; }
 
 PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
@@ -362,7 +358,7 @@ PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
 
 PartialResult* TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int depth) {
     Array<PartialResult*> args;
-    StackTrace& trace = traces[traces.size() - 1];
+    StackTrace&           trace = traces[traces.size() - 1];
 
     // Array<Constant*>      value_args;
     args.reserve(call->args.size());
@@ -370,9 +366,7 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function,
 
     bool compile_time = true;
 
-    if (false) {
-
-    }
+    if (false) {}
 
     for (int i = 0; i < call->args.size(); i++) {
         PartialResult* arg = exec(call->args[i], depth);
@@ -462,12 +456,12 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
     // Fetch construtor
     // TODO: this lookup should not exist
     String       ctor_name = String(cls->name) + String(".__init__");
-    int          ctorvarid = bindings.get_varid(ctor_name);
-    FunctionDef* ctor      = cast<FunctionDef>(bindings.get_value(ctorvarid));
+    BindingEntry* entry = bindings.find(StringRef(ctor_name));
+    FunctionDef* ctor      = cast<FunctionDef>(entry->value);
 
     if (ctor == nullptr) {
         static StringRef name("__init__");
-        for(StmtNode* stmt: cls->body) {
+        for (StmtNode* stmt: cls->body) {
             if (FunctionDef* def = cast<FunctionDef>(stmt)) {
                 if (def->name == name) {
                     ctor = def;
@@ -477,7 +471,7 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
     }
 
     if (ctor->native) {
-        Array<Constant*>      value_args;
+        Array<Constant*> value_args;
         value_args.reserve(call->args.size());
 
         bool compile_time = true;
@@ -514,8 +508,7 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
         }
 
         return obj;
-    } 
-
+    }
 
     return obj;
 }
@@ -526,11 +519,11 @@ Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int dept
     String __new__  = class_t->cls_namespace + "." + "__new__";
     String __init__ = class_t->cls_namespace + "." + "__init__";
 
-    int varid_new_fun  = bindings.get_varid(__new__);
-    int varid_init_fun = bindings.get_varid(__init__);
+    BindingEntry* new_fun_entry  = bindings.find(StringRef(__new__));
+    BindingEntry* init_fun_entry = bindings.find(StringRef(__init__));
 
-    FunctionDef* new_fun  = cast<FunctionDef>(bindings.get_value(varid_new_fun));
-    FunctionDef* init_fun = cast<FunctionDef>(bindings.get_value(varid_init_fun));
+    FunctionDef* new_fun  = cast<FunctionDef>(new_fun_entry->value);
+    FunctionDef* init_fun = cast<FunctionDef>(init_fun_entry->value);
 
     Constant* self = nullptr;
 
@@ -619,7 +612,6 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     if (ClassDef_t* cls = cast<ClassDef_t>(function)) {
         return call_constructor(n, cls, depth);
     }
-    
 
     /*
     if (BuiltinType_t* fun = cast<BuiltinType>(function)) {
@@ -654,10 +646,10 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
         return variable;
     }
 
-    assert (bindings.bindings.size() > 0 , "");
+    assert(bindings.bindings.size() > 0, "");
     int last = bindings.bindings.size() - 1;
 
-    for(int i = last; i >= 0; i--){
+    for (int i = last; i >= 0; i--) {
         BindingEntry const& entry = bindings.bindings[i];
         if (n->id == entry.name) {
             return entry.value;
@@ -751,7 +743,7 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
             ExprNode* target = targets->elts[i];
             StringRef name;
 
-            if (Name* target_name = cast<Name>(target)){
+            if (Name* target_name = cast<Name>(target)) {
                 name = target_name->id;
             }
 
@@ -813,7 +805,8 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
         }
 
         else if (n->native_operator != nullptr) {
-            // std::cout << "HERE " << str(n->op) << " " << str(left_v->value) << " " << str(right_v->value) << std::endl;
+            // std::cout << "HERE " << str(n->op) << " " << str(left_v->value) << " " <<
+            // str(right_v->value) << std::endl;
             auto result = n->native_operator(left_v->value, right_v->value);
             value       = root.new_object<Constant>(result);
         } else {
@@ -850,11 +843,19 @@ PartialResult* TreeEvaluator::annassign(AnnAssign_t* n, int depth) {
     return None();
 }
 
+StringRef TreeEvaluator::get_name(ExprNode* expression) {
+    if (Name* name = cast<Name>(expression)) {
+        return name->id;
+    }
+    return StringRef();
+}
+
 PartialResult* TreeEvaluator::forstmt(For_t* n, int depth) {
 
     // insert target into the context
     // exec(n->target, depth);
-    int targetid = bindings.add(StringRef(), None(), nullptr);
+    StringRef target   = get_name(n->target);
+    int       targetid = bindings.add(target, None(), nullptr);
 
     PartialResult* iterator = exec(n->iter, depth);
 
@@ -874,7 +875,7 @@ PartialResult* TreeEvaluator::forstmt(For_t* n, int depth) {
             break;
         }
 
-        bindings.set_value(targetid, value);
+        bindings.set_value(target, value);
 
         for (StmtNode* stmt: n->body) {
             exec(stmt, depth);
@@ -1167,11 +1168,11 @@ PartialResult* TreeEvaluator::with(With_t* n, int depth) {
     return nullptr;
 }
 
-PartialResult* TreeEvaluator::match(Match_t* n, int depth) { 
+PartialResult* TreeEvaluator::match(Match_t* n, int depth) {
     //
-    return nullptr; 
+    return nullptr;
 }
-PartialResult* TreeEvaluator::import(Import_t* n, int depth) { 
+PartialResult* TreeEvaluator::import(Import_t* n, int depth) {
     //
     for (Alias const& name: n->names) {
         StringRef binding_name = name.name;
@@ -1180,9 +1181,9 @@ PartialResult* TreeEvaluator::import(Import_t* n, int depth) {
         }
         bindings.add(binding_name, nullptr, nullptr);
     }
-    return nullptr; 
+    return nullptr;
 }
-PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) { 
+PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) {
     //
     for (Alias const& name: n->names) {
         StringRef binding_name = name.name;
@@ -1191,7 +1192,7 @@ PartialResult* TreeEvaluator::importfrom(ImportFrom_t* n, int depth) {
         }
         bindings.add(binding_name, nullptr, nullptr);
     }
-    return nullptr; 
+    return nullptr;
 }
 
 PartialResult* TreeEvaluator::dictexpr(DictExpr_t* n, int depth) { return nullptr; }
@@ -1243,10 +1244,10 @@ PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) {
         // but this does not know about it
         // it fetch the member through metadata system
         // the attribute should be resolved in sema so
-        // we did not 
-        NativeObject* nv = obj->value.get<NativeObject*>();
-        auto* result = root.new_object<Constant>();
-        result->value = nv->cmember(n->attrid);
+        // we did not
+        NativeObject* nv     = obj->value.get<NativeObject*>();
+        auto*         result = root.new_object<Constant>();
+        result->value        = nv->cmember(n->attrid);
         return result;
 
         if (nv->class_id == meta::type_id<Object>()) {
@@ -1366,33 +1367,32 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     return result;
 }
 
-int TreeEvaluator::eval() 
-{
+int TreeEvaluator::eval() {
     StmtNode* __init__ = nullptr;
 
     // exec()
-    auto n = bindings.bindings.size();
+    auto n    = bindings.bindings.size();
     auto last = bindings.bindings[n - 1];
 
     auto call = last.value->new_object<Call>();
     auto name = last.value->new_object<Name>();
 
     name->id = "__init__";
-    name->varid = bindings.get_varid(StringRef("__init__"));
+    // name->varid = bindings.get_varid(StringRef("__init__"));
     call->func = name;
 
     exec(call, 0);
-    
-     // cast<FunctionDef>(last.value);
+
+    // cast<FunctionDef>(last.value);
 
     // for(auto& b: bindings.bindings) {
     //     kwdebug("eval {}", str(b.value));
-        
-        // switch(b.value->family()) {
-        //     case NodeFamily::Expression:    exec(cast<ExprNode_t>(b.value), 0);
-        //     case NodeFamily::Statement:     exec(cast<StmtNode_t>(b.value), 0);
-        //     // case NodeFamily::Module:        exec(cast<ModNode_t>(b.value, 0));
-        // }
+
+    // switch(b.value->family()) {
+    //     case NodeFamily::Expression:    exec(cast<ExprNode_t>(b.value), 0);
+    //     case NodeFamily::Statement:     exec(cast<StmtNode_t>(b.value), 0);
+    //     // case NodeFamily::Module:        exec(cast<ModNode_t>(b.value, 0));
+    // }
     // }
     return 0;
 }

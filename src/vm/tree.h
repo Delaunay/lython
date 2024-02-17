@@ -102,6 +102,8 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         return ConstantValue::none();
     }
 
+    StringRef get_name(ExprNode* expression);
+
 #define FUNCTION_GEN(name, fun)  PartialResult* fun(name##_t* n, int depth);
 
 #define X(name, _)

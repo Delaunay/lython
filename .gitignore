@@ -57,3 +57,5 @@ Blueprints.json
 imgui.ini
 
 .vscode/
+dependencies/icu
+out.txt

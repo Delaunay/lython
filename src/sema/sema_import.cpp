@@ -126,8 +126,8 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
 
         Bindings& import_bindings = imported->sema->bindings;
 
-        auto  varid = import_bindings.get_varid(nm);
-        auto* type  = import_bindings.get_type(varid);
+        //auto  varid = import_bindings.get_varid(nm);
+        //auto* type  = import_bindings.get_type(varid);
 
         // Did not find the value inside the module
         if (value == nullptr) {
@@ -155,6 +155,10 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
         #else
             // type attached to this value might 
             // not have the right var id
+            ExprNode* type = nullptr;
+            if (BindingEntry* entry = import_bindings.find(nm)) {
+                type = entry->type;
+            }
             bindings.add(nm, value, type);
         #endif
     }
