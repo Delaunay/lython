@@ -107,13 +107,15 @@ struct Interop<R(Args...)> {
 
             R* value = nullptr;
             Constant* rval = allocate_return_value(mem, value);
-
+            
             // Apply the free method
             (*value) = std::apply(  //
                 fun,                //
                 arguments           //
             );
 
+            // convert the raw value to our generic constant
+            // HERE
             return rval;
         };
     }

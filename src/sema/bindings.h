@@ -52,6 +52,7 @@ struct Bindings {
     inline int add(StringRef const& name, Node* value, TypeExpr* type, int type_id=-1) {
         COZ_BEGIN("T::Bindings::add");
 
+        assert(name != StringRef(), "Should have a name");
         auto size = int(bindings.size());
 
         bool dynamic = !nested;
@@ -73,7 +74,22 @@ struct Bindings {
         bindings[varid].type = type;
     }
 
-    inline void set_value(int varid, Node* value) { bindings[varid].value = value; }
+    inline void set_value(int varid, Node* value) { 
+        bindings[varid].value = value; 
+    }
+
+    inline void set_value(StringRef name, Node* value) { 
+        assert (bindings.size() > 0 , "");
+        int last = bindings.size() - 1;
+
+        for(int i = last; i >= 0; i--){
+            BindingEntry& entry = bindings[i];
+            if (name == entry.name) {
+                entry.value = value;
+                return;
+            }
+        }
+    }
 
     inline TypeExpr* get_type(int varid) const {
         if (varid < 0 && varid > bindings.size())

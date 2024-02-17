@@ -395,6 +395,20 @@ void print(std::ostream& ss, int typeid_, std::int8_t const* data) {
     }
 }
 
+
+void TypeRegistry::dump(std::ostream& out) {
+
+    for(auto& item: id_to_meta) {
+        if (item.second.members.size() > 0) 
+        {
+            out << item.first << " " 
+                << item.second.name  << " "
+                << item.second.members.size()
+                << "\n";
+        }
+    }
+}
+
 }  // namespace meta
 
 }  // namespace lython

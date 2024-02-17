@@ -78,6 +78,8 @@ void make_native_module() {
     ;
 
     imported.add_module("nmodule", nativemodule.module);
+
+    meta::TypeRegistry::instance().dump(std::cout);
 }
 
 String eval_it(String const& code, String const& expr, Module*& mod) {
@@ -564,6 +566,7 @@ TEST_CASE("VM_native_module_object")
                   "2");
 }
 
+#if 1
 TEST_CASE("VM_native_module_object_method") 
 {
 
@@ -571,7 +574,7 @@ TEST_CASE("VM_native_module_object_method")
                   "Point(1, 2).add(Point(1, 2)).y",
                   "4");
 }
-
+#endif
 
 
 #if EXPERIMENTAL_TESTS

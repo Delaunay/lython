@@ -198,8 +198,18 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
     Name* name = cast<Name>(node);
 
     if (name != nullptr) {
-        assert(name->varid >= 0, "Type need to be resolved");
-        return static_cast<TypeExpr*>(bindings.get_value(name->varid));
+        assert (bindings.bindings.size() > 0 , "");
+        int last = bindings.bindings.size() - 1;
+
+        for(int i = last; i >= 0; i--){
+            BindingEntry const& entry = bindings.bindings[i];
+            if (name->id == entry.name) {
+                return (ExprNode*)entry.value;
+            }
+        }
+
+        //assert(name->varid >= 0, "Type need to be resolved");
+        // return static_cast<TypeExpr*>(bindings.get_value(name->varid));
     }
 
     return nullptr;
@@ -442,8 +452,12 @@ BindingEntry const* SemanticAnalyser::lookup(Name_t* n)  {
         return nullptr;
     }
 
-    for(BindingEntry const& entry: bindings.bindings) {
-        if (entry.name == n->id) {
+    assert (bindings.bindings.size() > 0 , "");
+    int last = bindings.bindings.size() - 1;
+
+    for(int i = last; i >= 0; i--){
+        BindingEntry const& entry = bindings.bindings[i];
+        if (n->id == entry.name) {
             return &entry;
         }
     }
@@ -619,9 +633,14 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
         got->args.reserve(arrow->arg_count());
     }
 
+    if (Attribute* attr = cast<Attribute>(n->func)) {
+        auto cls_t = exec(attr->value, depth);
+        got->add_arg_type(cls_t);
+    }
+
     // Method, insert the self argument since it is implicit
     if (offset == 1 && cls) {
-        //got->add_arg_type(make_ref(got, str(cls->name)));
+        //got->add_arg_type(make_ref(got, strfat(cls->name)));
     }
 
     for (auto& arg: n->args) {
@@ -661,6 +680,12 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
         }
 
         got->returns = arrow->returns;
+
+            // (Point, Point) -> Point
+        kwdebug("fun type: {}, {}", str(got), n->args.size()); 
+        kwdebug("fun type: {}", str(arrow)); 
+
+
         typecheck(n, got, n->func, arrow, LOC);
     }
 
@@ -834,6 +859,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
         return nullptr;
     }
 
+    n->resolved = &class_t->attributes[n->attrid];
     ClassDef::Attr& attr = class_t->attributes[n->attrid];
 
     if (attr.type != nullptr && is_type(attr.type, depth, LOC)) {

@@ -1,0 +1,28 @@
+
+
+
+C++ classes are decomposed into two parts
+
+* Data
+* functions
+
+
+ struct Vector {                                        |
+    float x;                                            |
+    float y;                                            |
+    float z;                                            |
+                                                        |
+    Vector operator+(Vector a) {                        |
+        return Vector(x + a.x, y + a.y, z + a.z);       |
+    }                                                   |
+ }                                                      |
+
+
+There might be two way to convert the native object to script
+
+* metadata/reflection api
+* create a classdef mirror 
+    * this makes native appear quite seamless
+
+file => Module => 
+    struct => classdef 

@@ -80,6 +80,7 @@ struct ConstantValue {
     POD(Bool, bool, boolean)                        \
     POD(None, ConstantValue::none_t, none)          \
     POD(Object, NativeObject*, object)              \
+    POD(Function, meta::VoidFunction, function)     \
     CPX(String, String, string)
 
 #define NUMERIC_CONSTANT(NUM) \
@@ -152,6 +153,8 @@ struct ConstantValue {
     }
 
     void print(std::ostream& out) const;
+
+    void debug_print(std::ostream& out) const;
 
     bool is_none() const { return kind == TNone; }
 

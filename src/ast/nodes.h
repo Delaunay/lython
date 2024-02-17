@@ -582,17 +582,6 @@ struct FormattedValue: public ExprNode {
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
 
-// the following expression can appear in assignment context
-struct Attribute: public ExprNode {
-    ExprNode*   value = nullptr;
-    Identifier  attr;
-    ExprContext ctx;
-
-    // SEMA
-    int attrid = 0;
-
-    Attribute(): ExprNode(NodeKind::Attribute) {}
-};
 
 struct Subscript: public ExprNode {
     ExprNode*   value = nullptr;
@@ -834,6 +823,22 @@ struct ClassDef: public StmtNode {
         return false;
     }
 };
+
+// the following expression can appear in assignment context
+struct Attribute: public ExprNode {
+    ExprNode*   value = nullptr;
+    Identifier  attr;
+    ExprContext ctx;
+
+    // Node* resolved = nullptr;
+    ClassDef::Attr* resolved = nullptr;
+
+    // SEMA
+    int attrid = 0;
+
+    Attribute(): ExprNode(NodeKind::Attribute) {}
+};
+
 
 struct Exported: public ExprNode {
     Exported(): 

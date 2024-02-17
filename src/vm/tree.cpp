@@ -311,8 +311,13 @@ PartialResult* TreeEvaluator::unaryop(UnaryOp_t* n, int depth) {
 PartialResult* TreeEvaluator::namedexpr(NamedExpr_t* n, int depth) {
     PartialResult* value = exec(n->value, depth);
 
+    StringRef name;
+    if (Name* name_expr = cast<Name>(n->target)) {
+        name = name_expr->id;
+    }
+
     if (value->is_instance<Constant>()) {
-        bindings.add(StringRef(), value, nullptr);
+        bindings.add(name, value, nullptr);
         return value;
     }
 
@@ -320,7 +325,7 @@ PartialResult* TreeEvaluator::namedexpr(NamedExpr_t* n, int depth) {
     NamedExpr* expr = root.new_object<NamedExpr>();
     expr->target    = n->target;
     expr->value     = (ExprNode*)value;
-    bindings.add(StringRef(), value, nullptr);
+    bindings.add(name, value, nullptr);
     return expr;
 }
 
@@ -357,11 +362,17 @@ PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
 
 PartialResult* TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int depth) {
     Array<PartialResult*> args;
-    Array<Constant*>      value_args;
+    StackTrace& trace = traces[traces.size() - 1];
+
+    // Array<Constant*>      value_args;
     args.reserve(call->args.size());
-    value_args.reserve(call->args.size());
+    trace.args.reserve(call->args.size());
 
     bool compile_time = true;
+
+    if (false) {
+
+    }
 
     for (int i = 0; i < call->args.size(); i++) {
         PartialResult* arg = exec(call->args[i], depth);
@@ -369,7 +380,7 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function,
 
         Constant* value = cast<Constant>(arg);
         if (value != nullptr) {
-            value_args.push_back(value);
+            trace.args.push_back(value);
         }
         compile_time = compile_time && value != nullptr;
     }
@@ -378,7 +389,7 @@ PartialResult* TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function,
 
     if (compile_time) {
         // ConstantValue result = function->native_function(&root, value_args);
-        ret_result = function->native(&root, value_args);
+        ret_result = function->native(&root, trace.args);
         // ret_result           = root.new_object<Constant>(result);
     } else {
         // FIXME: we probably need the context here
@@ -409,7 +420,9 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
             partial_call = true;
         }
 
-        bindings.add(StringRef(), arg, nullptr);
+        StringRef arg_name = function->args.args[i].arg;
+
+        bindings.add(arg_name, arg, nullptr);
     }
 
     partial.push_back(partial_call);
@@ -579,7 +592,6 @@ PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int
 }
 
 PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
-
     using TraceGuard = PopGuard<Array<StackTrace>, StackTrace>;
 
     // Populate current stack with the expression that will branch out
@@ -589,7 +601,9 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     StackTrace& trace = traces.emplace_back();
 
     // fetch the function we need to call
+    // the issue is that we need the object called in the case of a method
     auto* function = exec(n->func, depth);
+
     assert(function, "Function should be found");
 
     if (FunctionDef_t* fun = cast<FunctionDef>(function)) {
@@ -605,6 +619,7 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     if (ClassDef_t* cls = cast<ClassDef_t>(function)) {
         return call_constructor(n, cls, depth);
     }
+    
 
     /*
     if (BuiltinType_t* fun = cast<BuiltinType>(function)) {
@@ -639,14 +654,18 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
         return variable;
     }
 
-    for(BindingEntry const& entry: bindings.bindings) {
+    assert (bindings.bindings.size() > 0 , "");
+    int last = bindings.bindings.size() - 1;
+
+    for(int i = last; i >= 0; i--){
+        BindingEntry const& entry = bindings.bindings[i];
         if (n->id == entry.name) {
             return entry.value;
         }
     }
 
     return nullptr;
-    
+
     /*
     Node* result = nullptr;
     int   varid  = -1;
@@ -729,7 +748,14 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
 
         // this probably does not work quite right in some cases
         for (int i = 0; i < values->elts.size(); i++) {
-            bindings.add(StringRef(), values->elts[i], nullptr);
+            ExprNode* target = targets->elts[i];
+            StringRef name;
+
+            if (Name* target_name = cast<Name>(target)){
+                name = target_name->id;
+            }
+
+            bindings.add(name, values->elts[i], nullptr);
         }
         return None();
     }
@@ -749,7 +775,12 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
         return None();
     }
 
-    bindings.add(StringRef(), value, nullptr);
+    StringRef assign_name;
+    if (Name* name = cast<Name>(n->targets[0])) {
+        assign_name = name->id;
+    }
+
+    bindings.add(assign_name, value, nullptr);
     return None();
 }
 PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
@@ -790,7 +821,8 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
         }
 
         // std::cout << "HERE " << str(value) << std::endl;
-        bindings.set_value(name->varid, value);  // store a
+        // bindings.set_value(name->varid, value);  // store a
+        bindings.set_value(name->id, value);
         // bindings.dump(std::cout);
         return None();
     }
@@ -809,7 +841,12 @@ PartialResult* TreeEvaluator::annassign(AnnAssign_t* n, int depth) {
         value = exec(n->value.value(), depth);
     }
 
-    bindings.add(StringRef(), value, nullptr);
+    StringRef name;
+    if (Name* node_name = cast<Name>(n->target)) {
+        name = node_name->id;
+    }
+
+    bindings.add(name, value, nullptr);
     return None();
 }
 
@@ -1191,9 +1228,23 @@ PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) {
     // a.b
     Constant* obj = cast<Constant>(exec(n->value, depth));
 
+    // call to a method
+    if (traces.size() > 0) {
+        StackTrace& stack = traces[traces.size() - 1];
+        stack.args.push_back(obj);
+    }
+
+    if (n->resolved) {
+        return n->resolved->stmt;
+    }
+
     if (obj != nullptr) {
+        // Native module creates a new ClassDef
+        // but this does not know about it
+        // it fetch the member through metadata system
+        // the attribute should be resolved in sema so
+        // we did not 
         NativeObject* nv = obj->value.get<NativeObject*>();
-        
         auto* result = root.new_object<Constant>();
         result->value = nv->cmember(n->attrid);
         return result;

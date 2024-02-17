@@ -39,6 +39,7 @@ struct DefaultVisitorTrait {
  */
 template <typename Implementation, bool isConst, typename VisitorTrait, typename... Args>
 struct BaseVisitor {
+    using Trait   = VisitorTrait;
     using Trace   = typename VisitorTrait::Trace;
     using StmtRet = typename VisitorTrait::StmtRet;
     using ExprRet = typename VisitorTrait::ExprRet;
@@ -111,7 +112,7 @@ struct BaseVisitor {
         // clang-format off
         // kwtrace(depth, "{}", mod->kind);
 
-        check_depth(depth);
+        (*static_cast<Implementation*>(this)).check_depth(depth);
 
         switch (mod->kind) {
 
@@ -144,7 +145,7 @@ struct BaseVisitor {
             return PatRet();
         }
 
-        check_depth(depth);
+        (*static_cast<Implementation*>(this)).check_depth(depth);
 
         // kwtrace(depth, "{}", pat->kind);
         // clang-format off
@@ -178,7 +179,7 @@ struct BaseVisitor {
             return ExprRet();
         }
 
-        check_depth(depth);
+        (*static_cast<Implementation*>(this)).check_depth(depth);
 
         // kwtrace(depth, "{}", expr->kind);
         // clang-format off
@@ -207,6 +208,7 @@ struct BaseVisitor {
         return ExprRet();
     }
 
+public:
     void check_depth(int depth) {
         if (VisitorTrait::MaxRecursionDepth > 0 && depth > VisitorTrait::MaxRecursionDepth) {
             throw std::runtime_error("");
@@ -219,7 +221,7 @@ struct BaseVisitor {
             return StmtRet();
         }
 
-        check_depth(depth);
+        (*static_cast<Implementation*>(this)).check_depth(depth);
 
         // clang-format off
         switch (stmt->kind) {

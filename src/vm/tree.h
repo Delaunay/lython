@@ -23,6 +23,10 @@ struct TreeEvaluatorTrait {
 
     enum
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
+
+
+    //enum
+    //{ MaxRecursionDepth = 15 };
 };
 
 struct StackTrace {
@@ -30,6 +34,7 @@ struct StackTrace {
     // while the expression points to a specific location in the line
     StmtNode const* stmt;
     ExprNode const* expr;
+    Array<Constant*> args;
 };
 
 /* Tree evaluator is a very simple interpreter that is also very slow.
@@ -166,6 +171,15 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
     }
 
     StackTrace& get_kwtrace() { return traces[traces.size() - 1]; }
+
+public:
+    void check_depth(int depth) {
+        if (Trait::MaxRecursionDepth > 0 && depth > Trait::MaxRecursionDepth) {
+            // throw std::runtime_error("");
+            kwerror("Stopping max recursion reached");
+            raise_exception(nullptr, nullptr);
+        }
+    }
 
     // private:
     // --------

@@ -48,6 +48,9 @@ struct lyException: public NativeValue<_LyException> {
         NativeValue<_LyException>(traces) 
     {}
 
+    // type
+    // message
+
     Array<StackTrace>& traces() {
         return object.traces;
     }

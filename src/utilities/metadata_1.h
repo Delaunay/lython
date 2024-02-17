@@ -63,6 +63,8 @@ struct TypeRegistry {
     TypeRegistry();
 
     ~TypeRegistry();
+
+    void dump(std::ostream& out);
 };
 
 inline int& _get_id() { return TypeRegistry::instance().type_counter; }

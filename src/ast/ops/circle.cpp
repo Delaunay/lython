@@ -42,7 +42,9 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
             }
         }
 
-        visited.push_back(obj);
+        if (cast<Name>(obj) == nullptr) {
+            visited.push_back(obj);
+        }
         return false;
     }
 
@@ -639,7 +641,10 @@ ReturnType Circle::dicttype(DictType const* self, int depth) {
 
 ReturnType Circle::settype(SetType const* self, int depth) { return false; }
 
-ReturnType Circle::name(Name const* self, int depth) { return false; }
+ReturnType Circle::name(Name const* self, int depth) { 
+    //
+    return false; 
+}
 
 ReturnType Circle::arraytype(ArrayType const* self, int depth) { return exec(self->value, depth); }
 

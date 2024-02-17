@@ -1,5 +1,6 @@
 #include "object.h"
 #include "logging/logging.h"
+#include "ast/nodes.h"
 
 namespace lython {
 
@@ -85,8 +86,24 @@ void GCObject::dump_recursive(std::ostream& out, Array<GCObject*>& visited, int 
     int    index   = prev < 0 ? int(visited.size()) : prev;
     String warning = prev >= 0 ? "DUPLICATE" : "";
 
-    out << String(depth * 2, ' ') << index << ". " << meta::type_name(class_id) << warning
-        << std::endl;
+    if (class_id == meta::type_id<Constant>()) {
+        Constant* value = reinterpret_cast<Constant*>(this);
+
+        std::stringstream ss;
+        value->value.debug_print(ss);
+
+        out << String(depth * 2, ' ') << index << ". " 
+            << meta::type_name(class_id) << warning << " " << ss.str()
+            << std::endl;
+
+    }
+    else {
+        out << String(depth * 2, ' ') << index << ". " 
+            << meta::type_name(class_id) << warning
+            << std::endl;
+    }
+
+    
 
     for (auto obj: children) {
         int found = in(obj, visited);
