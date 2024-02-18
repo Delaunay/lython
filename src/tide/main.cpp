@@ -24,7 +24,7 @@ void ShowExampleAppCustomNodeGraph(bool* opened);
 
 using namespace lython;
 
-String code = "a = 2\n"
+String code1 = "a = 2\n"
               "b = 1\n"
               "if a > 1:\n"
               "    b = a + 2\n"
@@ -35,6 +35,7 @@ class App: public VulkanEngine {
     GraphEditor editor;
     Arena       arena;
     Module*     module;
+    ImFont* font;
 
     App() {}
 
@@ -53,15 +54,66 @@ class App: public VulkanEngine {
 
     void start() {
 
-#define CODE(X) #X
+        #define CODE(X) #X
         String       code = "def func(a: int, b: int) -> int:    # //\n"
-                            "    \"\"\"This is a docstring\"\"\"\n"
-                            "    return a + b                    # //\n";
+                            "    \"\"\"This is a docstring\"\"\" # //\n"
+                            "    return a + b                    # //\n" +
+                            code1;
+                        
         StringBuffer reader(code);
         Lexer        lex(reader);
         Parser       parser(lex);
 
         module = parser.parse_module();
+    }
+
+    void handle_event(SDL_Event const& event) {}
+
+    void tick(float dt) {
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::Begin(
+            "WorkSpace", 
+            nullptr, 
+            ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize
+        );
+
+        // ImGui::Text("Here");
+        // ImDrawList* drawlist = ImGui::GetWindowDrawList();
+        // drawlist->AddText(ImVec2(10, 10), ImColor(255, 255, 255), "Hello");
+
+        ImGuiIO& io = ImGui::GetIO();
+        ASTRenderStyle style;
+        style.font = io.Fonts->Fonts[1];
+
+        ASTRender render(&style);
+        render.run(module);
+
+        ImGui::End();
+        ImGui::PopStyleVar(1);
+    }
+
+    void end() {}
+};
+
+#include <iostream>
+
+int main(int argc, char* argv[]) {
+    App engine;
+
+    engine.init();
+
+    engine.run();
+
+    engine.cleanup();
+
+    return 0;
+}
+
+
+
+
 
         // TTF_Init();
         // // TTF_Quit();
@@ -165,45 +217,3 @@ class App: public VulkanEngine {
         } * /
 
         */
-    }
-
-    void handle_event(SDL_Event const& event) {}
-
-    void tick(float dt) {
-        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::Begin(
-            "WorkSpace", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
-
-        // ImGui::Text("Here");
-        // ImDrawList* drawlist = ImGui::GetWindowDrawList();
-        // drawlist->AddText(ImVec2(10, 10), ImColor(255, 255, 255), "Hello");
-
-        ASTRenderStyle style;
-        style.font = ImGui::GetFont();
-        ASTRender render(&style);
-        render.run(module);
-
-        ImGui::End();
-        ImGui::PopStyleVar(1);
-    }
-
-    void end() {}
-};
-
-#include <iostream>
-
-int SDL_main(int argc, char* argv[]) {
-    std::cout << "HERE\n";
-
-    App engine;
-
-    engine.init();
-
-    engine.run();
-
-    engine.cleanup();
-
-    return 0;
-}

@@ -10,7 +10,7 @@
 namespace lython {
 struct ASTRenderStyle {
     ImFont const* font = nullptr;
-    float font_size = 14;
+    float font_size = 24;
     float extra_line_space = 5.f;
 
     ImColor color = ImColor(255, 255, 255);

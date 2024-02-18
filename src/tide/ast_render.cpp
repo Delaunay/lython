@@ -13,6 +13,11 @@
 #include "utilities/strings.h"
 #include "ast/ops.h"
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+#include <imgui_internal.h>
+
+
 namespace lython {
 
 
@@ -59,6 +64,61 @@ void ASTRenderContext::inline_string(const char* str, ImColor color)
     ImGui::ItemAdd(bb, id);
     bool hovered, held;
     bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+
+    //ImGui::InputText();
+
+
+    ImGuiContext* g = ImGui::GetCurrentContext();
+    ImGuiInputTextState* state = ImGui::GetInputTextState(id);
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGuiIO& io = ImGui::GetIO();
+    int flags;
+
+    if (hovered) {
+        g->MouseCursor = ImGuiMouseCursor_TextInput;
+    }
+
+    if (g->LastItemData.InFlags & ImGuiItemFlags_ReadOnly)
+        flags |= ImGuiInputTextFlags_ReadOnly;
+
+    const bool is_readonly = (flags & ImGuiInputTextFlags_ReadOnly) != 0;
+    const bool is_password = (flags & ImGuiInputTextFlags_Password) != 0;
+    const bool is_undoable = (flags & ImGuiInputTextFlags_NoUndoRedo) == 0;
+    const bool is_resizable = (flags & ImGuiInputTextFlags_CallbackResize) != 0;
+
+    if (is_resizable) {
+        //IM_ASSERT(callback != NULL); // Must provide a callback if you set the ImGuiInputTextFlags_CallbackResize flag!
+    }
+
+    const bool input_requested_by_nav = 
+         (g->ActiveId != id) && 
+        ((g->NavActivateId == id) && 
+        ((g->NavActivateFlags & ImGuiActivateFlags_PreferInput) || (g->NavInputSource == ImGuiInputSource_Keyboard)));
+
+    const bool user_clicked = hovered && io.MouseClicked[0];
+    const bool user_scroll_finish = false;
+    const bool user_scroll_active = false;
+    bool clear_active_id = false;
+    bool select_all = false;
+
+    float scroll_y =  FLT_MAX;
+
+    const bool init_reload_from_user_buf = (state != NULL && state->ReloadUserBuf);
+    const bool init_changed_specs = (state != NULL && state->Stb.single_line != true); // state != NULL means its our state.
+    const bool init_make_active = (user_clicked || user_scroll_finish || input_requested_by_nav);
+    const bool init_state = (init_make_active || user_scroll_active);
+
+    if (g->ActiveId != id && init_make_active)
+    {
+        // IM_ASSERT(state && state->ID == id);
+        ImGui::SetActiveID(id, window);
+        ImGui::SetFocusID(id, window);
+        ImGui::FocusWindow(window);
+    }
+
+    if (g->ActiveId == id)
+    {
+    }
 
     ImDrawList* drawlist = ImGui::GetWindowDrawList();
     drawlist->AddText(
@@ -466,7 +526,7 @@ ReturnType ASTRender::matchor(MatchOr const* self, int depth, ASTRenderContext& 
 }
 
 ReturnType ASTRender::ifstmt(If const* self, int depth, ASTRenderContext& out, int level) {
-    out << "if ";
+    out << special::Keyword("if ");
     exec(self->test, depth, out, level);
     out << ":";
     maybe_inline_comment(self->comment, depth, out, level, LOC);

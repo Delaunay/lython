@@ -54,7 +54,7 @@ int CodegenCmd::main(argparse::ArgumentParser const& args) {
     ClangGen generator;
     generator.exec(mod, 0);
     generator.dump();
-#elif WITH_LLVM_CODEGEN
+#elif WITH_LLVM && WITH_LLVM_CODEGEN
     std::cout << "LLVM_CODE_GEN\n";
     LLVMGen generator;
     generator.exec(mod, 0);

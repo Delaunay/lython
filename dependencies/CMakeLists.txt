@@ -32,6 +32,7 @@ ADD_SUBDIRECTORY(argparse EXCLUDE_FROM_ALL)
 #   You need to build SDL manually for it to work on windows
 #
 IF (NOT BUILD_WINDOWS)
+    SET(BUILD_SHARED_LIBS off)
     ADD_SUBDIRECTORY(SDL)
     ADD_SUBDIRECTORY(SDL_ttf)
 ENDIF()

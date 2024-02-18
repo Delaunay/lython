@@ -112,7 +112,7 @@ void VulkanEngine::draw(float dt) {
         return;
 
     ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplSDL2_NewFrame(_window);
+    ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
     // wait until the gpu has finished rendering the last frame. Timeout of 1 second
@@ -443,14 +443,13 @@ void VulkanEngine::init_imgui() {
     init_info.MinImageCount             = 3;
     init_info.ImageCount                = 3;
     init_info.MSAASamples               = VK_SAMPLE_COUNT_1_BIT;
+    init_info.RenderPass                = _renderPass;
 
-    ImGui_ImplVulkan_Init(&init_info, _renderPass);
-
-    // execute a gpu command to upload imgui font textures
-    immediate_submit([&](VkCommandBuffer cmd) { ImGui_ImplVulkan_CreateFontsTexture(cmd); });
+    ImGui_ImplVulkan_Init(&init_info);
+    ImGui_ImplVulkan_CreateFontsTexture();
 
     // clear font textures from cpu data
-    ImGui_ImplVulkan_DestroyFontUploadObjects();
+    // ImGui_ImplVulkan_DestroyFontUploadObjects();
 
     // add the destroy the imgui created structures
     _mainDeletionQueue.push_function([=]() {
@@ -1056,6 +1055,8 @@ VkFormat sdl_to_vk(SDL_PixelFormat* format) {
         case  SDL_PIXELFORMAT_NV12: return VK_FORMAT_UNDEFINED;
         case  SDL_PIXELFORMAT_NV21: return VK_FORMAT_UNDEFINED;
     }
+
+    return VK_FORMAT_UNDEFINED;
 }
 
 void VulkanEngine::load_surface(SDL_Surface* surface){
