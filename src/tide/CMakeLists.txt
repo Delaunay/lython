@@ -13,6 +13,8 @@ ADD_EXECUTABLE(
     bezier.cpp
     block.cpp
 
+    ast_render.cpp
+
     convert/to_graph.cpp
     convert/to_ast.cpp
 
@@ -38,7 +40,11 @@ ENDIF()
 IF (WIN32)
     TARGET_INCLUDE_DIRECTORIES (tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/SDL/include)
     target_link_directories(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/SDL/VisualC/x64/Debug/)
-    SET(SDL_LIBRARY SDL2 SDL2main)
+
+    TARGET_INCLUDE_DIRECTORIES (tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/SDL_ttf)
+    target_link_directories(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/SDL_ttf/VisualC/x64/Debug/)
+    SET(SDL_LIBRARY SDL2 SDL2main SDL2_ttf)
+
 ELSE()
     SET(SDL_LIBRARY SDL2::SDL2-static SDL2::SDL2main)
 ENDIF()

@@ -1,6 +1,6 @@
 #ifndef LYTHON_LLVM_GEN_HEADER
 #define LYTHON_LLVM_GEN_HEADER
-#if WITH_LLVM_CODEGEN
+#if WITH_LLVM && WITH_LLVM_CODEGEN 
 
 #include "ast/magic.h"
 #include "ast/ops.h"

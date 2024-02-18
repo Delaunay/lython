@@ -1,4 +1,4 @@
-#if WITH_LLVM_CODEGEN
+#if WITH_LLVM && WITH_LLVM_CODEGEN 
 
 // include
 #include "codegen/llvm/llvm_gen.h"

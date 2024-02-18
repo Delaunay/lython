@@ -1,4 +1,4 @@
-#if WITH_LLVM_CODEGEN
+#if WITH_LLVM && WITH_LLVM_CODEGEN 
 
 // Include
 #include "codegen/llvm/llvm_jit.h"

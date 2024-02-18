@@ -1,7 +1,7 @@
 
 #ifndef LYTHON_LLVM_JIT_HEADER
 #define LYTHON_LLVM_JIT_HEADER
-#if WITH_LLVM_CODEGEN
+#if WITH_LLVM && WITH_LLVM_CODEGEN 
 
 // Lython
 #include "dtypes.h"

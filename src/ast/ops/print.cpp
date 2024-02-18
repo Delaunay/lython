@@ -593,10 +593,10 @@ ReturnType Printer::constant(Constant const* self, int depth, std::ostream& out,
     return false;
 }
 
-
-Printer::ExprRet Printer::placeholder(Placeholder_t* self, int depth, std::ostream& out, int level) {
+Printer::ExprRet
+Printer::placeholder(Placeholder_t* self, int depth, std::ostream& out, int level) {
     return false;
-} 
+}
 
 ReturnType Printer::namedexpr(NamedExpr const* self, int depth, std::ostream& out, int level) {
     exec(self->target, depth, out, level);
@@ -1067,10 +1067,8 @@ ReturnType Printer::exported(Exported const* self, int depth, std::ostream& out,
     return false;
 }
 
-
 // Helper
 // ==================================================
-
 
 void ConstantValue::debug_print(std::ostream& out) const {
     switch (kind) {
@@ -1095,22 +1093,29 @@ void ConstantValue::debug_print(std::ostream& out) const {
 
     case TBool:
         if (value.boolean) {
-            out << "bool " << "True";
+            out << "bool "
+                << "True";
         } else {
-            out << "bool " << "False";
+            out << "bool "
+                << "False";
         }
         break;
 
-    case TNone: out << "None " << "None"; break;
+    case TNone:
+        out << "None "
+            << "None";
+        break;
 
-    case TString: out << "str " << "\"" << value.string << "\""; break;
+    case TString:
+        out << "str "
+            << "\"" << value.string << "\"";
+        break;
 
     case TObject: _print_object(out << "object "); break;
 
     default: break;
     }
 }
-
 
 void ConstantValue::print(std::ostream& out) const {
     switch (kind) {

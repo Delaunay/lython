@@ -6,6 +6,7 @@
 
 namespace lython {
 
+int  get_precedence(Node const* node);
 void set_context(Node* n, ExprContext ctx);
 
 // Typecheck/Equality

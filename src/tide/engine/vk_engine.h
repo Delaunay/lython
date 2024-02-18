@@ -189,6 +189,7 @@ class VulkanEngine {
     virtual void start();
     virtual void handle_event(SDL_Event const& event);
     virtual void tick(float dt);
+    virtual void overlay(float dt);
     virtual void end();
     // ---
 
@@ -202,6 +203,8 @@ class VulkanEngine {
     std::unordered_map<std::string, Mesh>     _meshes;
     std::unordered_map<std::string, Texture>  _loadedTextures;
     // functions
+
+    void load_surface(SDL_Surface* surface);
 
     // create material and add it to the map
     Material*

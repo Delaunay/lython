@@ -1,58 +1,77 @@
+#include "tide/ast_render.h"
 #include "tide/convert/to_graph.h"
 
+#include <SDL_ttf.h>
 #include <vk_engine.h>
 
 // #include "graphed/graphed.h"
-#include "imgui_impl_vulkan.h"
 #include "convert/to_graph.h"
+#include "imgui_impl_vulkan.h"
 
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "parser/parser.h"
 
+#include "block.h"
+#include "convert/to_graph.h"
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "logging/logging.h"
-#include "parser/parser.h"
 #include "node.h"
-#include "block.h"
-#include "convert/to_graph.h"
+#include "parser/parser.h"
 
 void ShowExampleAppCustomNodeGraph(bool* opened);
 
 using namespace lython;
 
-String code =
-"a = 2\n"
-"b = 1\n"
-"if a > 1:\n"
-"    b = a + 2\n"
-"c = a + b\n"
-;
-
+String code = "a = 2\n"
+              "b = 1\n"
+              "if a > 1:\n"
+              "    b = a + 2\n"
+              "c = a + b\n";
 
 class App: public VulkanEngine {
     public:
     GraphEditor editor;
-    Arena arena;
+    Arena       arena;
+    Module*     module;
 
     App() {}
 
     using TNode = lython::GraphNode;
-    using TPin = lython::GraphNodePin;
+    using TPin  = lython::GraphNodePin;
 
-
-    TPin* new_pin(TNode* n , const char* name, PinDirection dir, PinType tp, PinKind k) {
+    TPin* new_pin(TNode* n, const char* name, PinDirection dir, PinType tp, PinKind k) {
         TPin* p = arena.new_object<TPin>();
         n->pins().push_back(p);
-        p->name() = name;
+        p->name()      = name;
         p->direction() = dir;
-        p->type() = tp;
-        p->kind() = k;
+        p->type()      = tp;
+        p->kind()      = k;
         return p;
     }
 
     void start() {
+
+#define CODE(X) #X
+        String       code = "def func(a: int, b: int) -> int:    # //\n"
+                            "    \"\"\"This is a docstring\"\"\"\n"
+                            "    return a + b                    # //\n";
+        StringBuffer reader(code);
+        Lexer        lex(reader);
+        Parser       parser(lex);
+
+        module = parser.parse_module();
+
+        // TTF_Init();
+        // // TTF_Quit();
+        // Font            = TTF_OpenFont("K:/lython/assets/Red_Hat_Mono/RedHatMono-Regular.ttf",
+        // 50); SDL_Color Color = {20, 20, 20}; TextSurface     = TTF_RenderUTF8_Blended(Font,
+        // "hello", Color);
+
+        // TTF_CloseFont(Font);
+
+        /*
         Forest& forest = editor.forests.emplace_back();
         Tree& tree = forest.trees.emplace_back();
 
@@ -60,9 +79,9 @@ class App: public VulkanEngine {
         StringBuffer reader("a = 2 + 1");
         Lexer  lex(reader);
         Parser parser(lex);
-        Module* m = parser.parse_module();        
+        Module* m = parser.parse_module();
         // ToGraph().exec(m);
-        */
+        * /
 
         //
         StringBuffer reader(code);
@@ -78,8 +97,8 @@ class App: public VulkanEngine {
 
         TNode* n1 = arena.new_object<TNode>();
 
-		{
-            
+                {
+
             tree.nodes.push_back(n1);
             n1->position() = ImVec2(10, 10);
             n1->name() = "First Node";
@@ -91,7 +110,7 @@ class App: public VulkanEngine {
             new_pin(n1, "", PinDirection::Output, PinType::Flow, PinKind::Flow);
             new_pin(n1, "z", PinDirection::Output, PinType::Float, PinKind::Circle);
 
-		}
+                }
 
         ImVec2 s1 = editor.estimate_size(n1);
 
@@ -116,9 +135,9 @@ class App: public VulkanEngine {
             n3->name() = "Pure Function";
 
             new_pin(n2, "x", PinDirection::Output, PinType::Object, PinKind::Circle);
-        }*/
+        }* /
 
-        /*/ Condition
+        /* / Condition
         {
             Node& n = tree.nodes.emplace_back();
             n.pos = ImVec2(600, 100);
@@ -143,32 +162,41 @@ class App: public VulkanEngine {
                 p.type = PinType::Flow;
                 p.name = "False";
             }
-        } */
-        
+        } * /
+
+        */
     }
 
     void handle_event(SDL_Event const& event) {}
 
     void tick(float dt) {
-        editor.draw();
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::Begin(
+            "WorkSpace", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
 
-        /*
-        FlowBlock b;
-        b.draw();
-        */
-    
-        //bool opened = true;
-        //ShowExampleAppCustomNodeGraph(&opened);
+        // ImGui::Text("Here");
+        // ImDrawList* drawlist = ImGui::GetWindowDrawList();
+        // drawlist->AddText(ImVec2(10, 10), ImColor(255, 255, 255), "Hello");
+
+        ASTRenderStyle style;
+        style.font = ImGui::GetFont();
+        ASTRender render(&style);
+        render.run(module);
+
+        ImGui::End();
+        ImGui::PopStyleVar(1);
     }
 
-    void end() {
-    }
+    void end() {}
 };
 
 #include <iostream>
 
-int main(int argc, char* argv[]) 
-{
+int SDL_main(int argc, char* argv[]) {
+    std::cout << "HERE\n";
+
     App engine;
 
     engine.init();

@@ -212,11 +212,14 @@ void VulkanEngine::draw(float dt) {
 
     presentInfo.pImageIndices = &swapchainImageIndex;
 
+    overlay(dt);
     VK_CHECK(vkQueuePresentKHR(_graphicsQueue, &presentInfo));
 
     // increase the number of frames drawn
     _frameNumber++;
 }
+
+void VulkanEngine::overlay(float dt) {}
 
 void VulkanEngine::run() {
     SDL_Event e;
@@ -1009,6 +1012,62 @@ void VulkanEngine::load_images() {
         [=]() { vkDestroyImageView(_device, lostEmpire.imageView, nullptr); });
 
     _loadedTextures["empire_diffuse"] = lostEmpire;
+}
+
+
+VkFormat sdl_to_vk(SDL_PixelFormat* format) {
+    switch (format->format) {
+        case SDL_PIXELFORMAT_UNKNOWN: return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_INDEX1LSB:  return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_INDEX1MSB:  return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_INDEX4LSB:  return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_INDEX4MSB:  return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_INDEX8:  return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_RGB332: return VK_FORMAT_R32G32B32_UINT;
+        case SDL_PIXELFORMAT_RGB444: return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+        case SDL_PIXELFORMAT_RGB555: return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
+        case SDL_PIXELFORMAT_BGR555: return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
+        case SDL_PIXELFORMAT_ARGB4444: return VK_FORMAT_A4R4G4B4_UNORM_PACK16;
+        case SDL_PIXELFORMAT_RGBA4444: return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+        case SDL_PIXELFORMAT_ABGR4444: return VK_FORMAT_A4B4G4R4_UNORM_PACK16;
+        case SDL_PIXELFORMAT_BGRA4444: return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+        case SDL_PIXELFORMAT_ARGB1555: return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+        case SDL_PIXELFORMAT_RGBA5551: return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
+        case SDL_PIXELFORMAT_ABGR1555: return VK_FORMAT_UNDEFINED;
+        case SDL_PIXELFORMAT_BGRA5551: return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
+        case SDL_PIXELFORMAT_RGB565: return VK_FORMAT_R5G6B5_UNORM_PACK16;
+        case SDL_PIXELFORMAT_BGR565: return VK_FORMAT_B5G6R5_UNORM_PACK16;
+        case SDL_PIXELFORMAT_RGB24: return VK_FORMAT_R8G8B8_UINT;
+        case SDL_PIXELFORMAT_BGR24: return VK_FORMAT_B8G8R8_UINT;
+        case  SDL_PIXELFORMAT_RGB888: return VK_FORMAT_R8G8B8_UINT;
+        case  SDL_PIXELFORMAT_RGBX8888: return VK_FORMAT_R8G8B8A8_UINT;
+        case  SDL_PIXELFORMAT_BGR888: return VK_FORMAT_B8G8R8_UINT;
+        case  SDL_PIXELFORMAT_BGRX8888: return VK_FORMAT_B8G8R8A8_UINT;
+        case  SDL_PIXELFORMAT_ARGB8888: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_RGBA8888: return VK_FORMAT_R8G8B8A8_UINT;
+        case  SDL_PIXELFORMAT_ABGR8888: return VK_FORMAT_A8B8G8R8_UINT_PACK32;
+        case  SDL_PIXELFORMAT_BGRA8888: return VK_FORMAT_B8G8R8A8_UINT;
+        case  SDL_PIXELFORMAT_ARGB2101010: return VK_FORMAT_A2R10G10B10_SINT_PACK32;
+        case  SDL_PIXELFORMAT_YV12: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_IYUV: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_YUY2: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_UYVY: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_YVYU: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_NV12: return VK_FORMAT_UNDEFINED;
+        case  SDL_PIXELFORMAT_NV21: return VK_FORMAT_UNDEFINED;
+    }
+}
+
+void VulkanEngine::load_surface(SDL_Surface* surface){
+    Texture gpu_surface;
+
+     VkImageViewCreateInfo imageinfo = vkinit::imageview_create_info(
+        sdl_to_vk(surface->format), 
+        gpu_surface.image._image, 
+        VK_IMAGE_ASPECT_COLOR_BIT
+    );
+
+    vkCreateImageView(_device, &imageinfo, nullptr, &gpu_surface.imageView);
 }
 
 void VulkanEngine::upload_mesh(Mesh& mesh) {
