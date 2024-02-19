@@ -446,6 +446,18 @@ void VulkanEngine::init_imgui() {
     init_info.RenderPass                = _renderPass;
 
     ImGui_ImplVulkan_Init(&init_info);
+
+    // HERE new code
+    #if LINUX
+    const char* path = "/home/newton/work/lython/assets/Red_Hat_Mono/RedHatMono-Regular.ttf";
+    #else
+    const char* path = "K:/lython/assets/Red_Hat_Mono/RedHatMono-Regular.ttf";
+    #endif
+    ImGuiIO& io = ImGui::GetIO();
+    auto new_font = io.Fonts->AddFontFromFileTTF(path, 24);
+    io.Fonts->Fonts.push_back(new_font);
+
+
     ImGui_ImplVulkan_CreateFontsTexture();
 
     // clear font textures from cpu data

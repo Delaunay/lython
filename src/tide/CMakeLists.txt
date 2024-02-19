@@ -14,6 +14,7 @@ ADD_EXECUTABLE(
     block.cpp
 
     ast_render.cpp
+    ast_input.cpp
 
     convert/to_graph.cpp
     convert/to_ast.cpp

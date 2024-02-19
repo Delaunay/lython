@@ -1,3 +1,8 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+#include <imgui_internal.h>
+
+#include "tide/ast_input.h"
 #include "tide/ast_render.h"
 
 #include "ast/magic.h"
@@ -13,13 +18,22 @@
 #include "utilities/strings.h"
 #include "ast/ops.h"
 
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui.h>
-#include <imgui_internal.h>
 
+bool ASTInputText(
+    const char* label, 
+    const char* hint, 
+    char* buf, int buf_size, 
+    const ImVec2& size_arg, 
+    ImGuiInputTextFlags flags,
+    ImGuiInputTextCallback callback, 
+    void* callback_user_data
+);
+
+
+
+#define LOG(X) std::cout << X << std::endl;
 
 namespace lython {
-
 
 ASTRenderContext& ASTRenderContext::operator<< (special::Indent const& str) {
     String idt(4 * _indent, ' ');
@@ -56,17 +70,32 @@ ASTRenderContext& ASTRenderContext::operator<< (special::Newline const& str) {
 
 void ASTRenderContext::inline_string(const char* str, ImColor color) 
 {
-    ImVec2 size = style->font->CalcTextSizeA(style->font_size, FLT_MAX, 0.0f, str);
+#if 0
+    char buffer[64];
+    strcpy(buffer, str);
+    ImVec2 size;
+    ASTInputText(
+        "label", // const char* label, 
+        "hint", // const char* hint, 
+        (char*)buffer, //char* buf, 
+        64, //int buf_size, 
+        size, //const ImVec2& size_arg, 
+        0, //ImGuiInputTextFlags flags, 
+        nullptr, //ImGuiInputTextCallback callback, 
+        nullptr //void* callback_user_data
+    );
 
+    _id += 1;
+    pos += ImVec2(size.x, 0);
+    return;
+#else
+    ImVec2 size = style->font->CalcTextSizeA(style->font_size, FLT_MAX, 0.0f, str);
     ImRect bb(pos, pos + size);
 
     unsigned int id = _id;
     ImGui::ItemAdd(bb, id);
     bool hovered, held;
     bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
-
-    //ImGui::InputText();
-
 
     ImGuiContext* g = ImGui::GetCurrentContext();
     ImGuiInputTextState* state = ImGui::GetInputTextState(id);
@@ -108,16 +137,40 @@ void ASTRenderContext::inline_string(const char* str, ImColor color)
     const bool init_make_active = (user_clicked || user_scroll_finish || input_requested_by_nav);
     const bool init_state = (init_make_active || user_scroll_active);
 
-    if (g->ActiveId != id && init_make_active)
+
+    const char* display_str = str;
+    float size_x = size.x;
+
+    static bool prev = user_clicked;
+
+    if (prev != user_clicked) {
+        LOG("make active: " << user_clicked);
+        prev = user_clicked;
+    }
+
+    if (InputState::state().active_id != id && init_make_active)
     {
         // IM_ASSERT(state && state->ID == id);
         ImGui::SetActiveID(id, window);
         ImGui::SetFocusID(id, window);
         ImGui::FocusWindow(window);
+        InputState::state().set(id, str);
     }
 
-    if (g->ActiveId == id)
+    if (InputState::state().active_id == id)
     {
+        if (io.InputQueueCharacters.Size > 0) {
+            for (int n = 0; n < io.InputQueueCharacters.Size; n++)
+            {
+                unsigned int c = (unsigned int)io.InputQueueCharacters[n];
+                InputState::state().add_character((int)c);
+            }
+            io.InputQueueCharacters.resize(0);
+        }
+
+        display_str = InputState::state().buffer.data();
+        float new_size = (size_x / InputState::state().buffer.size()) * InputState::state().buffer.capacity();
+        size_x = new_size;
     }
 
     ImDrawList* drawlist = ImGui::GetWindowDrawList();
@@ -126,11 +179,12 @@ void ASTRenderContext::inline_string(const char* str, ImColor color)
         style->font_size + int(hovered),
         pos, 
         color, 
-        str
+        display_str
     );
 
     _id += 1;
-    pos += ImVec2(size.x, 0);
+    pos += ImVec2(size_x, 0);
+#endif
 }
 
 ASTRenderContext& ASTRenderContext::operator<< (special::Keyword const& keyword) {
