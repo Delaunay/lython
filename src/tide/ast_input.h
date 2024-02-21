@@ -6,6 +6,7 @@
 
 namespace lython {
 
+
 struct InputState {
     String buffer;
 

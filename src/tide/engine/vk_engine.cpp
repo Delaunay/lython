@@ -448,7 +448,7 @@ void VulkanEngine::init_imgui() {
     ImGui_ImplVulkan_Init(&init_info);
 
     // HERE new code
-    #if LINUX
+    #if __linux__
     const char* path = "/home/newton/work/lython/assets/Red_Hat_Mono/RedHatMono-Regular.ttf";
     #else
     const char* path = "K:/lython/assets/Red_Hat_Mono/RedHatMono-Regular.ttf";

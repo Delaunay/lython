@@ -48,6 +48,38 @@ namespace special {
     };
 }
 
+struct Drawing{
+    ~Drawing() {}
+
+    void draw();
+
+    int             id;
+    Node*           node;
+    ImRect          rectangle;
+    String          string;
+    ImColor         color;
+    ASTRenderStyle* style;
+};
+
+template<typename FunA, typename FunB>
+struct Guard {
+    FunB exit;
+
+    Guard(FunA start, FunB end):
+        exit(end)
+    {
+        start();
+    }
+
+    ~Guard() {
+        exit();
+    }
+};
+
+using GenericGuard = Guard<std::function<void()>, std::function<void()>>;
+
+
+
 struct ASTRenderContext {
     //
     ImVec2          start = ImVec2(10, 10);
@@ -75,23 +107,6 @@ struct ASTRenderContext {
         ss << value;
         return (*this) << ss.str();
     }
-
-    template<typename FunA, typename FunB>
-    struct Guard {
-        FunB exit;
-
-        Guard(FunA start, FunB end):
-            exit(end)
-        {
-            start();
-        }
-
-        ~Guard() {
-            exit();
-        }
-    };
-
-    using GenericGuard = Guard<std::function<void()>, std::function<void()>>;
 
     GenericGuard type() {
         return GenericGuard(
@@ -130,10 +145,10 @@ struct ASTRenderContext {
 
 struct ASTRenderTrait {
     using Trace   = std::false_type;
-    using StmtRet = bool;
-    using ExprRet = bool;
-    using ModRet  = bool;
-    using PatRet  = bool;
+    using StmtRet = ReturnType;
+    using ExprRet = ReturnType;
+    using ModRet  = ReturnType;
+    using PatRet  = ReturnType;
 
     enum
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
@@ -141,8 +156,8 @@ struct ASTRenderTrait {
 
 // Change this to return strings so we can change the format of partial results
 
-struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait, ASTRenderContext&, int> {
-    using Super = BaseVisitor<ASTRender, true, ASTRenderTrait, ASTRenderContext&, int>;
+struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
+    using Super = BaseVisitor<ASTRender, true, ASTRenderTrait>;
 
     ASTRender(ASTRenderStyle* style):
         style(style)
@@ -150,35 +165,111 @@ struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait, ASTRenderC
         context.style = style;
     }
 
-    ASTRenderStyle*  style;
+    ImVec2           start  = ImVec2(10, 10);
+    ASTRenderStyle*  style  = nullptr;
+    ImVec2           cursor = ImVec2(10, 10);
+    float            maxcol = 0;
+    bool            _comment = false;
+    int              level = 0;
+    int             _indent = 0;
     ASTRenderContext context;
+    Array<Drawing>   drawings;
+    Array<Drawing*>  stack;
+
+    void print_op(UnaryOperator op);
+    void print_op(CmpOperator op);
+    void print_op(BinaryOperator op, bool aug);
+    void print_op(BoolOperator op);
+
 
     void run(Module* module) {
         ImGui::PushStyleColor(ImGuiCol_Text, style->color.Value);
-        exec(module, 0, context, 0);
+        exec(module, 0);
         ImGui::PopStyleColor();
     }
 
-    void maybe_inline_comment(Comment* com, int depth, ASTRenderContext& out, int level, CodeLocation const& loc);
+    template<typename T>
+    Drawing& run(T* node, int depth) {
+        Drawing& drawing = drawings.emplace_back();
+        drawing.id = drawings.size() - 1;
+        drawing.node = node;
+        drawing.rectangle.Min = cursor;
+        //drawing.color = color;
+        drawing.style = style;
+
+        stack.push_back(&drawing);
+        exec(node, depth);
+        stack.pop_back();
+
+        if (stack.size() > 0) {
+            Drawing* parent = stack[stack.size() - 1];
+            parent->rectangle.Expand(
+                drawing.rectangle.GetBR()
+            );
+        }
+
+        return drawing;
+    }
+
+    GenericGuard indent() {
+        return GenericGuard(
+            [this]() {  this->_indent += 1; }, 
+            [this]() {  this->_indent -= 1; }
+        );
+    }
+    GenericGuard type() {
+        return GenericGuard(
+            [this]() {
+                ImGui::PushStyleColor(ImGuiCol_Text, this->style->type.Value);
+            }, 
+            [](){
+                ImGui::PopStyleColor();
+            }
+        );
+    }
+
+    GenericGuard comment() {
+        return GenericGuard(
+            [this]() {
+                ImGui::PushStyleColor(ImGuiCol_Text, this->style->comment.Value);
+            }, 
+            [](){
+                ImGui::PopStyleColor();
+            }
+        );
+    }
+
+    ASTRender& operator<< (const char* name);
+    ASTRender& operator<< (String const& name);
+    ASTRender& operator<< (StringRef const& name);
+    ASTRender& operator<< (special::Indent const& name);
+    ASTRender& operator<< (special::Keyword const& name);
+    ASTRender& operator<< (special::Newline const& name);
+    ASTRender& operator<< (special::Docstring const& name);
+    ASTRender& operator<< (special::BeforeComment const& name);
+
+    ASTRender& out() {
+        return *this;
+    }
+
+    void maybe_inline_comment(Comment* com, int depth, CodeLocation const& loc);
 
     ReturnType render_body(Array<StmtNode*> const& body,
                         int                     depth,
-                        ASTRenderContext&           out,
-                        int                     level,
                         bool                    print_last = false);
-    ReturnType excepthandler(ExceptHandler const& self, int depth, ASTRenderContext& out, int level);
-    ReturnType matchcase(MatchCase const& self, int depth, ASTRenderContext& out, int level);
-    void arg(Arg const& self, int depth, ASTRenderContext& out, int level);
+    ReturnType excepthandler(ExceptHandler const& self, int depth);
+    ReturnType matchcase(MatchCase const& self, int depth);
+    void arg(Arg const& self, int depth);
 
-    void arguments(Arguments const& self, int depth, ASTRenderContext& out, int level);
-    void withitem(WithItem const& self, int depth, ASTRenderContext& out, int level);
-    void alias(Alias const& self, int depth, ASTRenderContext& out, int level);
-    void keyword(Keyword const& self, int depth, ASTRenderContext& out, int level);
-    void comprehension(Comprehension const& self, int depthh, ASTRenderContext& out, int level);
-    void comprehensions(Array<Comprehension> const& self, int depthh, ASTRenderContext& out, int level);
+    void arguments(Arguments const& self, int depth);
+    void withitem(WithItem const& self, int depth);
+    void alias(Alias const& self, int depth);
+    void keyword(Keyword const& self, int depth);
+    void comprehension(Comprehension const& self, int depthh);
+    void comprehensions(Array<Comprehension> const& self, int depthh);
 
 #define FUNCTION_GEN(name, fun, rtype) \
-    rtype fun(const name* node, int depth, ASTRenderContext& out, int level);
+    rtype fun(const name* node, int depth);
 
 #define X(name, _)
 #define SECTION(name)
