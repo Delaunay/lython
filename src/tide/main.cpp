@@ -89,6 +89,7 @@ class App: public VulkanEngine {
 
         ASTRender render(&style);
         render.run(module);
+        render.draw();
 
         ImGui::End();
         ImGui::PopStyleVar(1);

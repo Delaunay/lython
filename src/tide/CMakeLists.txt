@@ -13,6 +13,7 @@ ADD_EXECUTABLE(
     bezier.cpp
     block.cpp
 
+    ast_render_visitor.cpp
     ast_render.cpp
     ast_input.cpp
 
