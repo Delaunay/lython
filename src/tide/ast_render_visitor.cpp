@@ -38,6 +38,17 @@ static special::BeforeComment comment_space;
 
 ReturnType ASTRender::render_body(Array<StmtNode*> const& body, int depth, bool print_last) {
 
+    Node* parent = nullptr;
+
+    // Module are not added to the stack
+    if (stack.size() > 0) {
+        parent = stack[stack.size() - 1];
+    }
+
+    int edit_entry = int(edit_order.size());
+    edit_order.push_back(-1);
+    int old_count = drawings.size();
+
     int k = 0;
     for (auto const& stmt: body) {
         k += 1;
@@ -56,6 +67,20 @@ ReturnType ASTRender::render_body(Array<StmtNode*> const& body, int depth, bool 
                 out() << newline;
             }
         }
+    }
+
+    Group* my_group     = new_group();
+    my_group->node      = parent;
+    my_group->body      = &body;
+    int new_count       = drawings.size();
+    my_group->rectangle = drawings[old_count].rectangle;
+    for (int i = old_count; i < new_count; i++) {
+        my_group->rectangle.Add(drawings[i].rectangle);
+    }
+
+    edit_order[edit_entry] = my_group->id - 1;
+    if (edit_entry != int(edit_order.size()) - 1) {
+        edit_order.emplace_back(my_group->id - 1);
     }
 
     return true;
@@ -669,7 +694,7 @@ ReturnType ASTRender::functiondef(FunctionDef const* self, int depth) {
         out() << indentation;
     }
 
-    out() << special::Keyword("def ") << self->name << "(";
+    out() << special::Keyword("def ") << special::Editable(self->name, (Node*)self) << "(";
     arguments(self->args, depth);
     out() << ")";
 
@@ -1174,7 +1199,7 @@ void ASTRender::arguments(Arguments const& self, int depth) {
     int i = 0;
 
     for (auto& arg: self.args) {
-        out() << arg.arg;
+        out() << special::Editable(arg.arg);
 
         if (arg.annotation.has_value()) {
             out() << ": ";

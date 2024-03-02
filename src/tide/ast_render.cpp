@@ -34,7 +34,15 @@ namespace lython {
 
 void Drawing::draw() {
     ImDrawList* drawlist = ImGui::GetWindowDrawList();
-    drawlist->AddText(style->font, style->font_size + hovered, rectangle.GetTL(), color, string.c_str());
+
+    if (string.empty()) {
+        drawlist->AddRect(rectangle.Min, rectangle.Max, color);
+    }
+    else {
+        drawlist->AddText(style->font, style->font_size + hovered, rectangle.GetTL(), color, string.c_str());
+    }
+
+
 };
 
 void Drawing::input() {
@@ -46,6 +54,7 @@ Drawing* ASTRender::new_drawing() {
     Drawing& drawing = drawings.emplace_back();
     drawing.id       = drawings.size();
     drawing.style    = style;
+    drawing.node     = stack[stack.size() - 1];
     return &drawing;
 }
 
@@ -126,6 +135,19 @@ ASTRender& ASTRender::operator<<(special::BeforeComment const& name) {
 
     _comment = true;
     return *this;
+}
+
+ASTRender& ASTRender::operator<<(special::Editable const& name) 
+{
+    Drawing* drawing = text(name.name.c_str(), style->color);
+
+    Group* group = new_group();
+    group->node = name.parent;
+
+    edit_order.push_back(group->id - 1);
+    group->rectangle = drawing->rectangle;
+
+    return (*this);
 }
 
 void ASTRender::maybe_inline_comment(Comment* com, int depth, CodeLocation const& loc) {

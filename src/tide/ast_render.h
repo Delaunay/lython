@@ -21,6 +21,8 @@ struct ASTRenderStyle {
 
 #define ReturnType bool
 
+
+
 namespace special {
 struct Newline {};
 struct Indent {};
@@ -36,6 +38,16 @@ struct Docstring {
 struct Type {
     Type(String const& name): name(name) {}
     String name;
+};
+struct Editable {
+    Editable(String const& name, Node* parent=nullptr): name(name), parent(parent) {}
+
+    Editable(StringRef name, Node* parent=nullptr):
+        Editable(String(name), parent)
+    {}
+
+    String name;
+    Node* parent;
 };
 }  // namespace special
 
@@ -54,14 +66,26 @@ struct Drawing: public Drawable {
 
     int             id;
     Node*           node;
-    ImRect          rectangle;
+    ImRect          rectangle = ImRect(ImVec2(0, 0), ImVec2(0, 0));
     String          string;
     ImColor         color = ImColor(255, 255, 255);
     ASTRenderStyle* style;
 
     bool hovered = false;
-    bool held = false;
+    bool held    = false;
     bool pressed = false;
+};
+
+struct Group {
+    Node*                   node = nullptr;
+    int id                  = -1;
+    ImRect                  rectangle = ImRect(ImVec2(0, 0), ImVec2(0, 0));
+    Array<StmtNode*> const* body = nullptr;
+};
+
+struct EditableString {
+    String buffer;
+    String original;
 };
 
 template <typename FunA, typename FunB>
@@ -91,19 +115,26 @@ struct ASTRenderTrait {
 struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
     using Super = BaseVisitor<ASTRender, true, ASTRenderTrait>;
 
-    ASTRender(ASTRenderStyle* style): style(style) { }
+    ASTRender(ASTRenderStyle* style = nullptr): style(style) {}
 
-    ImVec2           start    = ImVec2(20, 20);
-    ASTRenderStyle*  style    = nullptr;
-    ImVec2           cursor   = ImVec2(20, 20);
-    float            maxcol   = 0;
-    bool             _comment = false;
-    int              level    = 0;
-    int              _indent  = 0;
+    ImVec2          start    = ImVec2(60, 20);
+    ASTRenderStyle* style    = nullptr;
+    ImVec2          cursor   = ImVec2(60, 20);
+    float           maxcol   = 0;
+    bool            _comment = false;
+    int             level    = 0;
+    int             _indent  = 0;
 
-    
-    Array<Drawing>   drawings;
-    Array<Drawing*>  stack;
+    Array<Drawing> drawings;
+    Array<Group>   groups;
+    Array<Node*>   stack;
+    Array<int>     edit_order;
+
+    Group* new_group() {
+        Group& grp = groups.emplace_back();
+        grp.id = int(groups.size());
+        return &grp;
+    }
 
     Drawing* new_drawing();
     Drawing* text(const char* name, ImColor color);
@@ -117,22 +148,35 @@ struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
 
     void run(Module* module) {
         ImGui::PushStyleColor(ImGuiCol_Text, style->color.Value);
-        exec(module, 0);
+        run(module, 0);
         ImGui::PopStyleColor();
     }
 
     template <typename T>
     Drawing* run(T* node, int depth) {
-        // Drawing* drawing      = new_drawing();
-        // drawing->node          = node;
-        // drawing->rectangle.Min = cursor;
-        // // drawing.color = color;
-        // drawing->style = style;
-        // assert(drawing.style != nullptr, "");
+        stack.push_back(node);
+        
+        int edit_entry = int(edit_order.size());
+        edit_order.push_back(-1);
 
-        // stack.push_back(&drawing);
+        int old_count = drawings.size();
         exec(node, depth);
-        // stack.pop_back();
+        stack.pop_back();
+
+        Group* group = new_group();
+        group->node = node;
+        int new_count    = int(drawings.size());
+        group->rectangle = drawings[old_count].rectangle;
+        
+        for (int i = old_count; i < new_count; i++) {
+            group->rectangle.Add(drawings[i].rectangle);
+        }
+
+        edit_order[edit_entry] = group->id - 1;
+        if (edit_entry != int(edit_order.size()) - 1)
+        {
+            edit_order.emplace_back(group->id - 1);
+        }
 
         // if (stack.size() > 0) {
         //     Drawing* parent = stack[stack.size() - 1];
@@ -167,6 +211,7 @@ struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
     ASTRender& operator<<(special::Newline const& name);
     ASTRender& operator<<(special::Docstring const& name);
     ASTRender& operator<<(special::BeforeComment const& name);
+    ASTRender& operator<<(special::Editable const& name);
 
     ASTRender& out() { return *this; }
 

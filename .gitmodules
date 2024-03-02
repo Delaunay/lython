@@ -61,3 +61,6 @@
 [submodule "dependencies/SDL_ttf"]
 	path = dependencies/SDL_ttf
 	url = https://github.com/libsdl-org/SDL_ttf.git
+[submodule "dependencies/flecs"]
+	path = dependencies/flecs
+	url = https://github.com/SanderMertens/flecs.git

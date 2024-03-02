@@ -19,6 +19,7 @@
 #include "logging/logging.h"
 #include "node.h"
 #include "parser/parser.h"
+#include "ast_input.h"
 
 void ShowExampleAppCustomNodeGraph(bool* opened);
 
@@ -28,11 +29,13 @@ String code1 = "a = 2\n"
               "b = 1\n"
               "if a > 1:\n"
               "    b = a + 2\n"
+              "    c = b + 2\n"
               "c = a + b\n";
 
 class App: public VulkanEngine {
     public:
     GraphEditor editor;
+    ASTEditor   ast_editor;
     Arena       arena;
     Module*     module;
     ImFont* font;
@@ -57,6 +60,7 @@ class App: public VulkanEngine {
         #define CODE(X) #X
         String       code = "def func(a: int, b: int) -> int:    # //\n"
                             "    \"\"\"This is a docstring\"\"\" # //\n"
+                            "    a += 1\n"
                             "    return a + b                    # //\n" +
                             code1;
                         
@@ -84,12 +88,25 @@ class App: public VulkanEngine {
         // drawlist->AddText(ImVec2(10, 10), ImColor(255, 255, 255), "Hello");
 
         ImGuiIO& io = ImGui::GetIO();
-        ASTRenderStyle style;
-        style.font = io.Fonts->Fonts[1];
+        ast_editor.style.font = io.Fonts->Fonts[1];
 
-        ASTRender render(&style);
-        render.run(module);
-        render.draw();
+        ast_editor.input(dt);
+        ast_editor.draw(dt);
+
+        // In the future we could instantiate the render outside the loop
+        // and have the AST Editor update the rendering as it is required
+        // ASTRender render(&style);
+        // render.run(module);
+        // render.draw();
+
+        static bool do_once = true;
+        if (do_once) {
+            ast_editor.renderer.run(module);
+            do_once = false;
+        }
+        ast_editor.renderer.draw();
+
+        ast_editor.test();
 
         ImGui::End();
         ImGui::PopStyleVar(1);

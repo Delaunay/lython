@@ -23,6 +23,7 @@ void print(StmtNode const*& obj, std::ostream& out);
 void print(ModNode const*& obj, std::ostream& out);
 
 String str(ExprNode const* obj);
+String str(Node const* obj);
 
 bool has_circle(ExprNode const* obj);
 bool has_circle(Pattern const* obj);

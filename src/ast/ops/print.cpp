@@ -1429,4 +1429,13 @@ String str(ExprNode const* obj) {
     return ss.str();
 }
 
+String str(Node const* obj) {
+    if (obj != nullptr) {
+        StringStream ss;
+        print(obj, ss);
+        return ss.str();
+    }
+    return String("None");
+}
+
 }  // namespace lython
