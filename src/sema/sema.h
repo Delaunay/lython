@@ -96,7 +96,7 @@ struct SemaContext {
  *      Raised when importing a statement that was not found from a module
  *
  */
-struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
+struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
     Bindings                              bindings;             // This should be outside of sema so it can live on after sema
     bool                                  forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
@@ -105,7 +105,8 @@ struct SemanticAnalyser: BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> 
     Dict<StringRef, bool>                 flags;
     ImportLib*                            importsys = nullptr;
     Array<Exported*>                      exported_stack;
-
+    bool                                  eager = false;
+    
     // Should I remove the types for the runtime info
     // the type can have their own query struct 
     // which might or might not be included in the final binary

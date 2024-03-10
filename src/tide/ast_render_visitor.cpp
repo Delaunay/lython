@@ -19,11 +19,13 @@
 #include "utilities/allocator.h"
 #include "utilities/strings.h"
 
+#define MAYBE_CONST 
+
 bool ASTInputText(const char*            label,
                   const char*            hint,
                   char*                  buf,
                   int                    buf_size,
-                  const ImVec2&          size_arg,
+                  MAYBE_CONST ImVec2&          size_arg,
                   ImGuiInputTextFlags    flags,
                   ImGuiInputTextCallback callback,
                   void*                  callback_user_data);
@@ -36,7 +38,7 @@ static special::Newline       newline;
 static special::Indent        indentation;
 static special::BeforeComment comment_space;
 
-ReturnType ASTRender::render_body(Array<StmtNode*> const& body, int depth, bool print_last) {
+ReturnType ASTRender::render_body(Array<StmtNode*> MAYBE_CONST& body, int depth, bool print_last) {
 
     Node* parent = nullptr;
 
@@ -50,7 +52,7 @@ ReturnType ASTRender::render_body(Array<StmtNode*> const& body, int depth, bool 
     int old_count = drawings.size();
 
     int k = 0;
-    for (auto const& stmt: body) {
+    for (auto MAYBE_CONST& stmt: body) {
         k += 1;
 
         out() << indentation;
@@ -72,6 +74,7 @@ ReturnType ASTRender::render_body(Array<StmtNode*> const& body, int depth, bool 
     Group* my_group     = new_group();
     my_group->node      = parent;
     my_group->body      = &body;
+    my_group->edit_id = edit_entry;
     int new_count       = drawings.size();
     my_group->rectangle = drawings[old_count].rectangle;
     for (int i = old_count; i < new_count; i++) {
@@ -86,7 +89,7 @@ ReturnType ASTRender::render_body(Array<StmtNode*> const& body, int depth, bool 
     return true;
 }
 
-ReturnType ASTRender::excepthandler(ExceptHandler const& self, int depth) {
+ReturnType ASTRender::excepthandler(ExceptHandler MAYBE_CONST& self, int depth) {
     out() << newline << indentation << special::Keyword("except ");
 
     if (self.type.has_value()) {
@@ -108,7 +111,7 @@ ReturnType ASTRender::excepthandler(ExceptHandler const& self, int depth) {
     }
 }
 
-ReturnType ASTRender::matchcase(MatchCase const& self, int depth) {
+ReturnType ASTRender::matchcase(MatchCase MAYBE_CONST& self, int depth) {
     out() << indentation << special::Keyword("case ");
     run(self.pattern, depth);
 
@@ -127,7 +130,7 @@ ReturnType ASTRender::matchcase(MatchCase const& self, int depth) {
     }
 }
 
-void ASTRender::arg(Arg const& self, int depth) {
+void ASTRender::arg(Arg MAYBE_CONST& self, int depth) {
     out() << self.arg;
 
     if (self.annotation.has_value()) {
@@ -136,14 +139,14 @@ void ASTRender::arg(Arg const& self, int depth) {
     }
 }
 
-ReturnType ASTRender::attribute(Attribute const* self, int depth) {
+ReturnType ASTRender::attribute(Attribute MAYBE_CONST* self, int depth) {
     run(self->value, depth);
     out() << ".";
     out() << self->attr;
     return false;
 }
 
-ReturnType ASTRender::subscript(Subscript const* self, int depth) {
+ReturnType ASTRender::subscript(Subscript MAYBE_CONST* self, int depth) {
     run(self->value, depth);
     out() << "[";
     run(self->slice, depth);
@@ -151,17 +154,17 @@ ReturnType ASTRender::subscript(Subscript const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::starred(Starred const* self, int depth) {
+ReturnType ASTRender::starred(Starred MAYBE_CONST* self, int depth) {
     out() << "*";
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::module(Module const* self, int depth) {
+ReturnType ASTRender::module(Module MAYBE_CONST* self, int depth) {
     return render_body(self->body, depth);
 }
 
-ReturnType ASTRender::raise(Raise const* self, int depth) {
+ReturnType ASTRender::raise(Raise MAYBE_CONST* self, int depth) {
     out() << special::Keyword("raise ");
     if (self->exc.has_value()) {
         run(self->exc.value(), depth);
@@ -174,7 +177,7 @@ ReturnType ASTRender::raise(Raise const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::assertstmt(Assert const* self, int depth) {
+ReturnType ASTRender::assertstmt(Assert MAYBE_CONST* self, int depth) {
     out() << special::Keyword("assert ");
     run(self->test, depth);
 
@@ -185,11 +188,11 @@ ReturnType ASTRender::assertstmt(Assert const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::with(With const* self, int depth) {
+ReturnType ASTRender::with(With MAYBE_CONST* self, int depth) {
     out() << special::Keyword("with ");
 
     int i = 0;
-    for (auto const& item: self->items) {
+    for (auto MAYBE_CONST& item: self->items) {
         run(item.context_expr, depth);
 
         if (item.optional_vars.has_value()) {
@@ -213,11 +216,11 @@ ReturnType ASTRender::with(With const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::import(Import const* self, int depth) {
+ReturnType ASTRender::import(Import MAYBE_CONST* self, int depth) {
     out() << special::Keyword("import ");
 
     int i = 0;
-    for (auto const& alias: self->names) {
+    for (auto MAYBE_CONST& alias: self->names) {
         out() << alias.name;
 
         if (alias.asname.has_value()) {
@@ -233,7 +236,7 @@ ReturnType ASTRender::import(Import const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::importfrom(ImportFrom const* self, int depth) {
+ReturnType ASTRender::importfrom(ImportFrom MAYBE_CONST* self, int depth) {
     out() << special::Keyword("from ");
     if (self->module.has_value()) {
         out() << self->module.value();
@@ -241,7 +244,7 @@ ReturnType ASTRender::importfrom(ImportFrom const* self, int depth) {
     out() << special::Keyword(" import ");
 
     int i = 0;
-    for (auto const& alias: self->names) {
+    for (auto MAYBE_CONST& alias: self->names) {
         out() << alias.name;
 
         if (alias.asname.has_value()) {
@@ -257,7 +260,7 @@ ReturnType ASTRender::importfrom(ImportFrom const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::slice(Slice const* self, int depth) {
+ReturnType ASTRender::slice(Slice MAYBE_CONST* self, int depth) {
     if (self->lower.has_value()) {
         run(self->lower.value(), depth);
     }
@@ -275,7 +278,7 @@ ReturnType ASTRender::slice(Slice const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::tupleexpr(TupleExpr const* self, int depth) {
+ReturnType ASTRender::tupleexpr(TupleExpr MAYBE_CONST* self, int depth) {
     if (level == -1) {
         out() << join<ExprNode*>(", ", self->elts);
     } else {
@@ -284,17 +287,17 @@ ReturnType ASTRender::tupleexpr(TupleExpr const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::listexpr(ListExpr const* self, int depth) {
+ReturnType ASTRender::listexpr(ListExpr MAYBE_CONST* self, int depth) {
     out() << "[" << join<ExprNode*>(", ", self->elts) << "]";
     return false;
 }
 
-ReturnType ASTRender::setexpr(SetExpr const* self, int depth) {
+ReturnType ASTRender::setexpr(SetExpr MAYBE_CONST* self, int depth) {
     out() << "{" << join<ExprNode*>(", ", self->elts) << "}";
     return false;
 }
 
-ReturnType ASTRender::dictexpr(DictExpr const* self, int depth) {
+ReturnType ASTRender::dictexpr(DictExpr MAYBE_CONST* self, int depth) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -306,25 +309,25 @@ ReturnType ASTRender::dictexpr(DictExpr const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchvalue(MatchValue const* self, int depth) {
+ReturnType ASTRender::matchvalue(MatchValue MAYBE_CONST* self, int depth) {
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::matchsingleton(MatchSingleton const* self, int depth) {
+ReturnType ASTRender::matchsingleton(MatchSingleton MAYBE_CONST* self, int depth) {
     StringStream ss;
     self->value.print(ss);
     out() << ss.str();
     return false;
 }
 
-ReturnType ASTRender::matchsequence(MatchSequence const* self, int depth) {
+ReturnType ASTRender::matchsequence(MatchSequence MAYBE_CONST* self, int depth) {
     auto result = join(", ", self->patterns);
     out() << "[" << result << "]";
     return false;
 }
 
-ReturnType ASTRender::matchmapping(MatchMapping const* self, int depth) {
+ReturnType ASTRender::matchmapping(MatchMapping MAYBE_CONST* self, int depth) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -343,7 +346,7 @@ ReturnType ASTRender::matchmapping(MatchMapping const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchclass(MatchClass const* self, int depth) {
+ReturnType ASTRender::matchclass(MatchClass MAYBE_CONST* self, int depth) {
     run(self->cls, depth);
     out() << "(" << join(", ", self->patterns);
 
@@ -363,7 +366,7 @@ ReturnType ASTRender::matchclass(MatchClass const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchstar(MatchStar const* self, int depth) {
+ReturnType ASTRender::matchstar(MatchStar MAYBE_CONST* self, int depth) {
     out() << "*";
 
     if (self->name.has_value()) {
@@ -372,7 +375,7 @@ ReturnType ASTRender::matchstar(MatchStar const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchas(MatchAs const* self, int depth) {
+ReturnType ASTRender::matchas(MatchAs MAYBE_CONST* self, int depth) {
     if (self->pattern.has_value()) {
         run(self->pattern.value(), depth);
     }
@@ -383,12 +386,12 @@ ReturnType ASTRender::matchas(MatchAs const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchor(MatchOr const* self, int depth) {
+ReturnType ASTRender::matchor(MatchOr MAYBE_CONST* self, int depth) {
     out() << join(" | ", self->patterns);
     return false;
 }
 
-ReturnType ASTRender::ifstmt(If const* self, int depth) {
+ReturnType ASTRender::ifstmt(If MAYBE_CONST* self, int depth) {
     out() << special::Keyword("if ");
     run(self->test, depth);
     out() << ":";
@@ -429,7 +432,7 @@ ReturnType ASTRender::ifstmt(If const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::match(Match const* self, int depth) {
+ReturnType ASTRender::match(Match MAYBE_CONST* self, int depth) {
     out() << special::Keyword("match ");
     run(self->subject, depth);
     out() << ":";
@@ -437,7 +440,7 @@ ReturnType ASTRender::match(Match const* self, int depth) {
     out() << newline;
 
     int i = 0;
-    for (auto const& case_: self->cases) {
+    for (auto MAYBE_CONST& case_: self->cases) {
         matchcase(case_, depth + 1);
 
         if (i + 1 < self->cases.size()) {
@@ -449,7 +452,7 @@ ReturnType ASTRender::match(Match const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::lambda(Lambda const* self, int depth) {
+ReturnType ASTRender::lambda(Lambda MAYBE_CONST* self, int depth) {
     out() << special::Keyword("lambda ");
     arguments(self->args, depth);
     out() << ": ";
@@ -457,7 +460,7 @@ ReturnType ASTRender::lambda(Lambda const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::ifexp(IfExp const* self, int depth) {
+ReturnType ASTRender::ifexp(IfExp MAYBE_CONST* self, int depth) {
     run(self->body, depth);
     out() << special::Keyword(" if ");
     run(self->test, depth);
@@ -466,7 +469,7 @@ ReturnType ASTRender::ifexp(IfExp const* self, int depth) {
     return false;
 }
 
-void ASTRender::comprehension(Comprehension const& self, int depth) {
+void ASTRender::comprehension(Comprehension MAYBE_CONST& self, int depth) {
     out() << special::Keyword(" for ");
     run(self.target, depth);
     out() << special::Keyword(" in ");
@@ -478,13 +481,13 @@ void ASTRender::comprehension(Comprehension const& self, int depth) {
     }
 }
 
-void ASTRender::comprehensions(Array<Comprehension> const& self, int depth) {
-    for (Comprehension const& comp: self) {
+void ASTRender::comprehensions(Array<Comprehension> MAYBE_CONST& self, int depth) {
+    for (Comprehension MAYBE_CONST& comp: self) {
         comprehension(comp, depth);
     }
 }
 
-ReturnType ASTRender::listcomp(ListComp const* self, int depth) {
+ReturnType ASTRender::listcomp(ListComp MAYBE_CONST* self, int depth) {
     out() << "[";
     run(self->elt, depth);
 
@@ -494,7 +497,7 @@ ReturnType ASTRender::listcomp(ListComp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::setcomp(SetComp const* self, int depth) {
+ReturnType ASTRender::setcomp(SetComp MAYBE_CONST* self, int depth) {
     out() << "{";
     run(self->elt, depth);
 
@@ -504,7 +507,7 @@ ReturnType ASTRender::setcomp(SetComp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::generateexpr(GeneratorExp const* self, int depth) {
+ReturnType ASTRender::generateexpr(GeneratorExp MAYBE_CONST* self, int depth) {
     out() << "(";
     run(self->elt, depth);
 
@@ -514,7 +517,7 @@ ReturnType ASTRender::generateexpr(GeneratorExp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::dictcomp(DictComp const* self, int depth) {
+ReturnType ASTRender::dictcomp(DictComp MAYBE_CONST* self, int depth) {
     out() << "{";
     run(self->key, depth);
     out() << ": ";
@@ -525,13 +528,13 @@ ReturnType ASTRender::dictcomp(DictComp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::await(Await const* self, int depth) {
+ReturnType ASTRender::await(Await MAYBE_CONST* self, int depth) {
     out() << special::Keyword("await ");
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::yield(Yield const* self, int depth) {
+ReturnType ASTRender::yield(Yield MAYBE_CONST* self, int depth) {
     out() << special::Keyword("yield");
     if (self->value.has_value()) {
         out() << " ";
@@ -540,13 +543,13 @@ ReturnType ASTRender::yield(Yield const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::yieldfrom(YieldFrom const* self, int depth) {
+ReturnType ASTRender::yieldfrom(YieldFrom MAYBE_CONST* self, int depth) {
     out() << special::Keyword("yield from ");
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::call(Call const* self, int depth) {
+ReturnType ASTRender::call(Call MAYBE_CONST* self, int depth) {
 
     // StringStream fname = fmt(self->func, depth, level);
     // out() << fname.str() << "(";
@@ -562,7 +565,7 @@ ReturnType ASTRender::call(Call const* self, int depth) {
     }
 
     for (int i = 0; i < self->keywords.size(); i++) {
-        auto const& key = self->keywords[i];
+        auto MAYBE_CONST& key = self->keywords[i];
 
         out() << self->keywords[i].arg;
         out() << "=";
@@ -577,7 +580,7 @@ ReturnType ASTRender::call(Call const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::constant(Constant const* self, int depth) {
+ReturnType ASTRender::constant(Constant MAYBE_CONST* self, int depth) {
     StringStream ss;
     self->value.print(ss);
     out() << ss.str();
@@ -586,14 +589,14 @@ ReturnType ASTRender::constant(Constant const* self, int depth) {
 
 ASTRender::ExprRet ASTRender::placeholder(Placeholder_t* self, int depth) { return false; }
 
-ReturnType ASTRender::namedexpr(NamedExpr const* self, int depth) {
+ReturnType ASTRender::namedexpr(NamedExpr MAYBE_CONST* self, int depth) {
     run(self->target, depth);
     out() << " := ";
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::classdef(ClassDef const* self, int depth) {
+ReturnType ASTRender::classdef(ClassDef MAYBE_CONST* self, int depth) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -625,7 +628,7 @@ ReturnType ASTRender::classdef(ClassDef const* self, int depth) {
     Array<String> kwd;
     kwd.reserve(self->keywords.size());
 
-    for (auto const& kw: self->keywords) {
+    for (auto MAYBE_CONST& kw: self->keywords) {
         kwd.push_back(fmtstr("{}={}", str(kw.arg), str(kw.value)));
     }
 
@@ -640,7 +643,7 @@ ReturnType ASTRender::classdef(ClassDef const* self, int depth) {
     out() << newline;
 
     if (self->docstring.has_value()) {
-        Docstring const& doc = self->docstring.value();
+        Docstring MAYBE_CONST& doc = self->docstring.value();
         out() << indentation << "\"\"\"" << doc.docstring << "\"\"\"";
 
         maybe_inline_comment(doc.comment, depth, LOC);
@@ -649,7 +652,7 @@ ReturnType ASTRender::classdef(ClassDef const* self, int depth) {
 
     bool assign = false;
     k           = 0;
-    for (auto const& stmt: self->body) {
+    for (auto MAYBE_CONST& stmt: self->body) {
 
         assign = stmt->kind == NodeKind::Assign || stmt->kind == NodeKind::AnnAssign ||
                  stmt->kind == NodeKind::Pass;
@@ -676,7 +679,7 @@ ReturnType ASTRender::classdef(ClassDef const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::functiondef(FunctionDef const* self, int depth) {
+ReturnType ASTRender::functiondef(FunctionDef MAYBE_CONST* self, int depth) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -711,7 +714,7 @@ ReturnType ASTRender::functiondef(FunctionDef const* self, int depth) {
     out() << newline;
 
     if (self->docstring.has_value()) {
-        Docstring const& doc = self->docstring.value();
+        Docstring MAYBE_CONST& doc = self->docstring.value();
 
         {
             auto _ = indent();
@@ -731,11 +734,11 @@ ReturnType ASTRender::functiondef(FunctionDef const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::inlinestmt(Inline const* self, int depth) {
+ReturnType ASTRender::inlinestmt(Inline MAYBE_CONST* self, int depth) {
     out() << indentation;
 
     int k = 0;
-    for (auto const& stmt: self->body) {
+    for (auto MAYBE_CONST& stmt: self->body) {
         run(stmt, depth);
 
         if (k + 1 < self->body.size()) {
@@ -748,7 +751,7 @@ ReturnType ASTRender::inlinestmt(Inline const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::forstmt(For const* self, int depth) {
+ReturnType ASTRender::forstmt(For MAYBE_CONST* self, int depth) {
     out() << special::Keyword("for ");
     run(self->target, depth);
     out() << special::Keyword(" in ");
@@ -778,7 +781,7 @@ ReturnType ASTRender::forstmt(For const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::trystmt(Try const* self, int depth) {
+ReturnType ASTRender::trystmt(Try MAYBE_CONST* self, int depth) {
     out() << special::Keyword("try:");
     maybe_inline_comment(self->comment, depth, LOC);
     out() << newline;
@@ -788,7 +791,7 @@ ReturnType ASTRender::trystmt(Try const* self, int depth) {
         render_body(self->body, depth + 1);
     }
 
-    for (auto const& handler: self->handlers) {
+    for (auto MAYBE_CONST& handler: self->handlers) {
         excepthandler(handler, depth);
     }
 
@@ -817,7 +820,7 @@ ReturnType ASTRender::trystmt(Try const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::compare(Compare const* self, int depth) {
+ReturnType ASTRender::compare(Compare MAYBE_CONST* self, int depth) {
     run(self->left, depth);
     int n = int(self->comparators.size());
 
@@ -833,7 +836,7 @@ ReturnType ASTRender::compare(Compare const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::binop(BinOp const* self, int depth) {
+ReturnType ASTRender::binop(BinOp MAYBE_CONST* self, int depth) {
     auto sself   = get_precedence(self);
     auto lhspred = get_precedence(self->left) < sself;
     auto rhspred = get_precedence(self->right) < sself;
@@ -859,7 +862,7 @@ ReturnType ASTRender::binop(BinOp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::invalidstmt(InvalidStatement const* self, int depth) {
+ReturnType ASTRender::invalidstmt(InvalidStatement MAYBE_CONST* self, int depth) {
     //
     if (!self->tokens.empty()) {
         Unlex        unlex;
@@ -870,7 +873,7 @@ ReturnType ASTRender::invalidstmt(InvalidStatement const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::boolop(BoolOp const* self, int depth) {
+ReturnType ASTRender::boolop(BoolOp MAYBE_CONST* self, int depth) {
 
     int m = self->opcount + 1;
 
@@ -889,7 +892,7 @@ ReturnType ASTRender::boolop(BoolOp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::unaryop(UnaryOp const* self, int depth) {
+ReturnType ASTRender::unaryop(UnaryOp MAYBE_CONST* self, int depth) {
     print_op(self->op);
     out() << " ";
     run(self->operand, depth);
@@ -897,7 +900,7 @@ ReturnType ASTRender::unaryop(UnaryOp const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::whilestmt(While const* self, int depth) {
+ReturnType ASTRender::whilestmt(While MAYBE_CONST* self, int depth) {
     out() << special::Keyword("while ");
     run(self->test, depth);
     out() << ":";
@@ -922,7 +925,7 @@ ReturnType ASTRender::whilestmt(While const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::returnstmt(Return const* self, int depth) {
+ReturnType ASTRender::returnstmt(Return MAYBE_CONST* self, int depth) {
     out() << special::Keyword("return ");
 
     if (self->value.has_value()) {
@@ -932,7 +935,7 @@ ReturnType ASTRender::returnstmt(Return const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::deletestmt(Delete const* self, int depth) {
+ReturnType ASTRender::deletestmt(Delete MAYBE_CONST* self, int depth) {
     out() << special::Keyword("del ");
 
     for (int i = 0; i < self->targets.size(); i++) {
@@ -945,7 +948,7 @@ ReturnType ASTRender::deletestmt(Delete const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::augassign(AugAssign const* self, int depth) {
+ReturnType ASTRender::augassign(AugAssign MAYBE_CONST* self, int depth) {
     run(self->target, depth);
     print_op(self->op, true);
     out() << "= ";
@@ -953,14 +956,14 @@ ReturnType ASTRender::augassign(AugAssign const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::assign(Assign const* self, int depth) {
+ReturnType ASTRender::assign(Assign MAYBE_CONST* self, int depth) {
     run(self->targets[0], depth);
     out() << " = ";
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::annassign(AnnAssign const* self, int depth) {
+ReturnType ASTRender::annassign(AnnAssign MAYBE_CONST* self, int depth) {
     run(self->target, depth);
     out() << ": ";
 
@@ -973,45 +976,45 @@ ReturnType ASTRender::annassign(AnnAssign const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::pass(Pass const* self, int depth) {
+ReturnType ASTRender::pass(Pass MAYBE_CONST* self, int depth) {
     out() << special::Keyword("pass");
     return false;
 }
 
-ReturnType ASTRender::breakstmt(Break const* self, int depth) {
+ReturnType ASTRender::breakstmt(Break MAYBE_CONST* self, int depth) {
     out() << special::Keyword("break");
     return false;
 }
 
-ReturnType ASTRender::continuestmt(Continue const* self, int depth) {
+ReturnType ASTRender::continuestmt(Continue MAYBE_CONST* self, int depth) {
     out() << special::Keyword("continue");
     return false;
 }
 
-ReturnType ASTRender::exprstmt(Expr const* self, int depth) {
+ReturnType ASTRender::exprstmt(Expr MAYBE_CONST* self, int depth) {
     if (self->value != nullptr)
         run(self->value, depth);
 
     return false;
 }
 
-ReturnType ASTRender::global(Global const* self, int depth) {
+ReturnType ASTRender::global(Global MAYBE_CONST* self, int depth) {
     out() << special::Keyword("global ") << join(", ", self->names);
     return false;
 }
 
-ReturnType ASTRender::nonlocal(Nonlocal const* self, int depth) {
+ReturnType ASTRender::nonlocal(Nonlocal MAYBE_CONST* self, int depth) {
     out() << special::Keyword("nonlocal ") << join(", ", self->names);
     return false;
 }
 
-ReturnType ASTRender::arrow(Arrow const* self, int depth) {
+ReturnType ASTRender::arrow(Arrow MAYBE_CONST* self, int depth) {
     out() << '(' << join<ExprNode*>(", ", self->args) << ") -> ";
     out() << str(self->returns);
     return false;
 }
 
-ReturnType ASTRender::dicttype(DictType const* self, int depth) {
+ReturnType ASTRender::dicttype(DictType MAYBE_CONST* self, int depth) {
     out() << "Dict[";
     out() << str(self->key);
     out() << ", ";
@@ -1019,35 +1022,35 @@ ReturnType ASTRender::dicttype(DictType const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::settype(SetType const* self, int depth) {
+ReturnType ASTRender::settype(SetType MAYBE_CONST* self, int depth) {
     out() << "Set[";
     out() << str(self->value) << "]";
     return false;
 }
 
-ReturnType ASTRender::name(Name const* self, int depth) {
+ReturnType ASTRender::name(Name MAYBE_CONST* self, int depth) {
     out() << self->id;
     return false;
 }
 
-ReturnType ASTRender::arraytype(ArrayType const* self, int depth) {
+ReturnType ASTRender::arraytype(ArrayType MAYBE_CONST* self, int depth) {
     out() << "Array[";
     out() << str(self->value) << "]";
     return false;
 }
 
-ReturnType ASTRender::tupletype(TupleType const* self, int depth) {
+ReturnType ASTRender::tupletype(TupleType MAYBE_CONST* self, int depth) {
     out() << "Tuple[";
     out() << join<ExprNode*>(", ", self->types) << "]";
     return false;
 }
 
-ReturnType ASTRender::builtintype(BuiltinType const* self, int depth) {
+ReturnType ASTRender::builtintype(BuiltinType MAYBE_CONST* self, int depth) {
     out() << self->name;
     return false;
 }
 
-ReturnType ASTRender::joinedstr(JoinedStr const* self, int depth) {
+ReturnType ASTRender::joinedstr(JoinedStr MAYBE_CONST* self, int depth) {
     out() << "f\"";
 
     for (auto* val: self->values) {
@@ -1062,7 +1065,7 @@ ReturnType ASTRender::joinedstr(JoinedStr const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::formattedvalue(FormattedValue const* self, int depth) {
+ReturnType ASTRender::formattedvalue(FormattedValue MAYBE_CONST* self, int depth) {
     out() << "{";
     run(self->value, depth);
     out() << ":";
@@ -1081,12 +1084,12 @@ ReturnType ASTRender::formattedvalue(FormattedValue const* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::classtype(ClassType const* self, int depth) {
+ReturnType ASTRender::classtype(ClassType MAYBE_CONST* self, int depth) {
     out() << self->def->name;
     return false;
 }
 
-ReturnType ASTRender::exported(Exported const* self, int depth) {
+ReturnType ASTRender::exported(Exported MAYBE_CONST* self, int depth) {
     // run(self->node, depth);
     return false;
 }
@@ -1161,7 +1164,7 @@ void ASTRender::print_op(UnaryOperator op) {
     // clang-format on
 }
 
-void ASTRender::keyword(Keyword const& self, int depth) {
+void ASTRender::keyword(Keyword MAYBE_CONST& self, int depth) {
     out() << self.arg;
     if (self.value != nullptr) {
         out() << " = ";
@@ -1169,20 +1172,20 @@ void ASTRender::keyword(Keyword const& self, int depth) {
     }
 }
 
-void ASTRender::alias(Alias const& self, int depth) {
+void ASTRender::alias(Alias MAYBE_CONST& self, int depth) {
     out() << self.name;
     if (self.asname.has_value()) {
         out() << special::Keyword(" as ") << self.asname.value();
     }
 }
 
-ReturnType ASTRender::functiontype(FunctionType const* self, int depth) { return false; }
+ReturnType ASTRender::functiontype(FunctionType MAYBE_CONST* self, int depth) { return false; }
 
-ReturnType ASTRender::expression(Expression const* self, int depth) { return false; }
+ReturnType ASTRender::expression(Expression MAYBE_CONST* self, int depth) { return false; }
 
-ReturnType ASTRender::interactive(Interactive const* self, int depth) { return false; }
+ReturnType ASTRender::interactive(Interactive MAYBE_CONST* self, int depth) { return false; }
 
-void ASTRender::withitem(WithItem const& self, int depth) {
+void ASTRender::withitem(WithItem MAYBE_CONST& self, int depth) {
     run(self.context_expr, depth);
     if (self.optional_vars.has_value()) {
         out() << special::Keyword(" as ");
@@ -1190,16 +1193,28 @@ void ASTRender::withitem(WithItem const& self, int depth) {
     }
 }
 
-ReturnType ASTRender::comment(Comment const* n, int depth) {
+ReturnType ASTRender::comment(Comment MAYBE_CONST* n, int depth) {
     out() << "#" << n->comment;
     return false;
 }
 
-void ASTRender::arguments(Arguments const& self, int depth) {
+void ASTRender::arguments(Arguments MAYBE_CONST& self, int depth) {
     int i = 0;
 
     for (auto& arg: self.args) {
-        out() << special::Editable(arg.arg);
+        auto config = special::Editable(arg.arg);
+        config.backspace = [&]() {
+            String string = str(arg.arg);
+            arg.arg = StringRef(string.substr(0, string.size() - 1));
+            _redraw = true;
+        };
+        config.input = [&](unsigned int c) {
+            String string = str(arg.arg);
+            string.push_back(c);
+            arg.arg = StringRef(string);
+            _redraw = true;
+        };
+        out() << config;
 
         if (arg.annotation.has_value()) {
             out() << ": ";
@@ -1239,7 +1254,7 @@ void ASTRender::arguments(Arguments const& self, int depth) {
     }
 
     i = 0;
-    for (auto const& kw: self.kwonlyargs) {
+    for (auto MAYBE_CONST& kw: self.kwonlyargs) {
         out() << kw.arg;
 
         if (kw.annotation.has_value()) {

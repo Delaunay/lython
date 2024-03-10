@@ -48,6 +48,11 @@ void Drawing::draw() {
 void Drawing::input() {
     ImGui::ItemAdd(rectangle, id);
     pressed = ImGui::ButtonBehavior(rectangle, id, &hovered, &held, 0);
+
+    // ImGuiMouseButton button = ImGuiMouseButton_Left;
+    // if (hovered && ImGui::IsMouseDoubleClicked(button)) {
+    //     doubleclicked = true;
+    // }
 }
 
 Drawing* ASTRender::new_drawing() {
@@ -121,6 +126,12 @@ ASTRender& ASTRender::operator<<(special::Docstring const& keyword) {
         style->font->CalcTextSizeA(style->font_size, FLT_MAX, 0.0f, drawing->string.c_str());
 
     drawing->rectangle = ImRect(cursor, cursor + size);
+
+    Group* group = new_group();
+    group->edit_id = group->id - 1;
+    edit_order.push_back(group->id - 1);
+    group->rectangle = drawing->rectangle;
+
     cursor.x += size.x;
     return *this;
 }
@@ -146,7 +157,8 @@ ASTRender& ASTRender::operator<<(special::Editable const& name)
 
     edit_order.push_back(group->id - 1);
     group->rectangle = drawing->rectangle;
-
+    group->backspace = name.backspace;
+    group->input = name.input;
     return (*this);
 }
 

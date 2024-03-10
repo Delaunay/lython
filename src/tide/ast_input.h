@@ -4,6 +4,7 @@
 
 #include "dtypes.h"
 
+#include "sema/sema.h"
 #include "tide/ast_render.h"
 
 namespace lython {
@@ -50,6 +51,8 @@ struct ASTEditor {
     struct Node* focused_node;
     ASTRenderStyle style;
     ASTRender renderer;
+
+    SemanticAnalyser sema = nullptr;
 
     void draw_lines_num();
     void draw_current_line();

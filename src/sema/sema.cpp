@@ -1154,7 +1154,7 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
     }
 
     // if sema was already done on the function
-    if (n->type) {
+    if (n->type && !eager) {
         kwinfo("Send cached type {}", str(n->type));
         return n->type;
     }

@@ -609,6 +609,15 @@ struct Name: public ExprNode {
     bool dynamic = false;  // if true we will do a reverse lookup to take into account that
                            // recursive call make the binding table offset
 
+    // bool given = false;
+    // std::function<StringRef()> name_giver;
+
+    // StringRef name() {
+    //     if (given)
+    //         return name_giver();
+    //     return id;
+    // }
+
     Name(): ExprNode(NodeKind::Name) {}
 };
 
@@ -841,8 +850,8 @@ struct Attribute: public ExprNode {
 
 
 struct Exported: public ExprNode {
-    Exported(): 
-        ExprNode(NodeKind::Exported) 
+    Exported():
+        ExprNode(NodeKind::Exported)
     {}
 
     struct Bindings* source;

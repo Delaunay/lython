@@ -48,6 +48,9 @@ struct Editable {
 
     String name;
     Node* parent;
+
+    std::function<void()> backspace;
+    std::function<void(unsigned int)> input;
 };
 }  // namespace special
 
@@ -70,6 +73,7 @@ struct Drawing: public Drawable {
     String          string;
     ImColor         color = ImColor(255, 255, 255);
     ASTRenderStyle* style;
+    bool            doubleclicked = false;
 
     bool hovered = false;
     bool held    = false;
@@ -79,8 +83,12 @@ struct Drawing: public Drawable {
 struct Group {
     Node*                   node = nullptr;
     int id                  = -1;
+    int edit_id             = -1;
     ImRect                  rectangle = ImRect(ImVec2(0, 0), ImVec2(0, 0));
     Array<StmtNode*> const* body = nullptr;
+
+    std::function<void()> backspace;
+    std::function<void(unsigned int)> input;
 };
 
 struct EditableString {
@@ -112,8 +120,8 @@ struct ASTRenderTrait {
 
 // Change this to return strings so we can change the format of partial results
 
-struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
-    using Super = BaseVisitor<ASTRender, true, ASTRenderTrait>;
+struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
+    using Super = BaseVisitor<ASTRender, false, ASTRenderTrait>;
 
     ASTRender(ASTRenderStyle* style = nullptr): style(style) {}
 
@@ -124,6 +132,7 @@ struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
     bool            _comment = false;
     int             level    = 0;
     int             _indent  = 0;
+    bool            _redraw  = false;
 
     Array<Drawing> drawings;
     Array<Group>   groups;
@@ -167,7 +176,8 @@ struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
         group->node = node;
         int new_count    = int(drawings.size());
         group->rectangle = drawings[old_count].rectangle;
-        
+        group->edit_id = edit_entry;
+
         for (int i = old_count; i < new_count; i++) {
             group->rectangle.Add(drawings[i].rectangle);
         }
@@ -217,19 +227,19 @@ struct ASTRender: public BaseVisitor<ASTRender, true, ASTRenderTrait> {
 
     void maybe_inline_comment(Comment* com, int depth, CodeLocation const& loc);
 
-    ReturnType render_body(Array<StmtNode*> const& body, int depth, bool print_last = false);
-    ReturnType excepthandler(ExceptHandler const& self, int depth);
-    ReturnType matchcase(MatchCase const& self, int depth);
-    void       arg(Arg const& self, int depth);
+    ReturnType render_body(Array<StmtNode*> & body, int depth, bool print_last = false);
+    ReturnType excepthandler(ExceptHandler & self, int depth);
+    ReturnType matchcase(MatchCase & self, int depth);
+    void       arg(Arg & self, int depth);
 
-    void arguments(Arguments const& self, int depth);
-    void withitem(WithItem const& self, int depth);
-    void alias(Alias const& self, int depth);
-    void keyword(Keyword const& self, int depth);
-    void comprehension(Comprehension const& self, int depthh);
-    void comprehensions(Array<Comprehension> const& self, int depthh);
+    void arguments(Arguments & self, int depth);
+    void withitem(WithItem & self, int depth);
+    void alias(Alias & self, int depth);
+    void keyword(Keyword & self, int depth);
+    void comprehension(Comprehension & self, int depthh);
+    void comprehensions(Array<Comprehension> & self, int depthh);
 
-#define FUNCTION_GEN(name, fun, rtype) rtype fun(const name* node, int depth);
+#define FUNCTION_GEN(name, fun, rtype) rtype fun(name* node, int depth);
 
 #define X(name, _)
 #define SECTION(name)
