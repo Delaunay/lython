@@ -50,12 +50,20 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install tools
+      - name: Install Vulkan
         run: |
           wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
           sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-jammy.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-jammy.list
           sudo apt-get update
           sudo apt-get install vulkan-sdk
+      - name: Install LLVM
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh ${LLVM_VERSION}
+
+      - name: Install Rest
+        run: |
           sudo apt-get install -f -y "gcc-${GCC_VERSION}" "g++-${GCC_VERSION}"                      \
                                      "llvm-${LLVM_VERSION}-dev" "llvm-${LLVM_VERSION}-linker-tools" \
                                      "libclang-${LLVM_VERSION}-dev" "clang-${LLVM_VERSION}"         \

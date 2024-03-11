@@ -32,25 +32,6 @@ void GCObject::remove_child(GCObject* child, bool dofree) {
     children.erase(data);
     child->parent = nullptr;
 
-    /*
-    auto elem = std::find(children.rbegin(), children.rend(), child);
-    assert(elem == children.rend(), "Should be a child");
-    // This is why people hate C++
-    //
-    // This removes the element found by the reverse iterator.
-    // Reverse iterator do not point to the found element
-    // but the element before it.
-    // erase is not specialized to take reverse iterator
-    // so we need to convert ifreet ourselves and KNOW that this is what is
-    // expected but nobody could have guessed that
-    auto n     = children.size();
-    auto found = std::next(elem).base();
-
-    assert(*found == child, "Child should match");
-    children.erase(found);
-    assert(n > children.size(), "Child was not removed");
-    */
-
     if (dofree) {
         free(child);
     }

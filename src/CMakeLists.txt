@@ -183,6 +183,7 @@ IF(UNIX AND WITH_COVERAGE)
         EXECUTABLE ctest --timeout 10 --output-on-failure
         BASE_DIRECTORY "."
         DEPENDS test
+        EXCLUDE "dependencies/*" "src/tide/dependencies"
     )
 ENDIF()
 
