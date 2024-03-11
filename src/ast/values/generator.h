@@ -29,7 +29,7 @@ struct Generator: public NativeObject {
     bool is_native() const override { return false; }
     bool is_pointer() const override { return false; }
     bool is_valid() const override { return true; }
-    int8* _memory() { return nullptr; }
+    int8* _memory() override { return nullptr; }
 };
 }  // namespace lython
 

@@ -34,6 +34,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Project's Options
 # ====================================
 OPTION(BUILD_TESTING "Enable tests" ON)
+OPTION(BUILD_USING_CLANG "Enable with clang" OFF)
 OPTION(BUILD_BENCHMARKS "Build Benchmarks" ON)
 OPTION(BUILD_DOCUMENTATION "Build docs" OFF)
 OPTION(BUILD_DOXYGEN "Build Doxygen docs" ON)
@@ -43,6 +44,13 @@ OPTION(WITH_VALGRIND "Disable mimalloc for better valgrind support" OFF)
 OPTION(WITH_COVERAGE "Enable coverage generation" ON)
 OPTION(WITH_LOG "Enable compiler log" ON)
 OPTION(WITH_COZ "Enable coz profiler" OFF)
+
+IF(BUILD_USING_CLANG)
+    IF (WITH_COVERAGE)
+        ADD_COMPILE_OPTIONS(-fprofile-instr-generate -fcoverage-mapping)
+        LINK_LIBRARIES(-fprofile-instr-generate -fcoverage-mapping)
+    ENDIF()
+ENDIF()
 
 # Identify Targets
 SET(BUILD_WEBASSEMBLY 0)

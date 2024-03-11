@@ -1,6 +1,6 @@
 name: tests
 
-on: 
+on:
   push:
   pull_request:
   workflow_dispatch:
@@ -38,13 +38,13 @@ jobs:
         continue-on-error: true
         run: |
           echo ">>>>"
-          apt list --installed | grep llvm 
+          apt list --installed | grep llvm
           LLVM_PACKAGES=$(apt list --installed "*llvm*" 2>/dev/null |awk -F'/' 'NR>1{print $1}')
           CLANG_PACKAGES=$(apt list --installed "*clang*" 2>/dev/null |awk -F'/' 'NR>1{print $1}')
           sudo apt remove -y $LLVM_PACKAGES $CLANG_PACKAGES
           sudo apt autoremove -y
           echo "<<<<"
-  
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
