@@ -531,11 +531,12 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
 
         // NOTE: we should call __new__ here implictly
         //
-
+        Node*         ctor = nullptr;
         String        ctor_name = String(cls->name) + String(".__init__");
         BindingEntry* entry     = bindings.find(StringRef(ctor_name));
-        Node*         ctor      = entry->value;
-
+        if (entry != nullptr) {
+            ctor      = entry->value;
+        }
         if (ctor == nullptr) {
             kwwarn("Could not resolve class constructor");
             // SEMA_ERROR(n, UnsupportedOperand, str(op), prev_t, cmp_t)
