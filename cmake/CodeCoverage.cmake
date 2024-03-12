@@ -417,6 +417,7 @@ function(setup_target_for_coverage_gcovr_html)
             --exclude-directories /usr/
             --exclude-directories 'dependencies/.*'
             --exclude-directories 'tests/.*'
+            --exclude-directories 'src/tide/dependencies/.*'
 
         BYPRODUCTS ${PROJECT_BINARY_DIR}/${Coverage_NAME}  # report directory
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
