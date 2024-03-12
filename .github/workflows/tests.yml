@@ -1,6 +1,6 @@
 name: tests
 
-on: 
+on:
   push:
   pull_request:
   workflow_dispatch:
@@ -38,13 +38,13 @@ jobs:
         continue-on-error: true
         run: |
           echo ">>>>"
-          apt list --installed | grep llvm 
+          apt list --installed | grep llvm
           LLVM_PACKAGES=$(apt list --installed "*llvm*" 2>/dev/null |awk -F'/' 'NR>1{print $1}')
           CLANG_PACKAGES=$(apt list --installed "*clang*" 2>/dev/null |awk -F'/' 'NR>1{print $1}')
           sudo apt remove -y $LLVM_PACKAGES $CLANG_PACKAGES
           sudo apt autoremove -y
           echo "<<<<"
-  
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
         with:
@@ -56,13 +56,12 @@ jobs:
           sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.3.243-jammy.list https://packages.lunarg.com/vulkan/1.3.243/lunarg-vulkan-1.3.243-jammy.list
           sudo apt-get update
           sudo apt-get install vulkan-sdk
-
       - name: Install LLVM
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh ${LLVM_VERSION}
-      
+
       - name: Install Rest
         run: |
           sudo apt-get install -f -y "gcc-${GCC_VERSION}" "g++-${GCC_VERSION}"                      \

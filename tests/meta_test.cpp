@@ -97,11 +97,11 @@ TEST_CASE("NATIVE Object") {
 
 TEST_CASE("ArrowBuilder") {
 
+    lython::Module m;
     lython::Bindings bindings;
     lython::Expression root;
     lython::Arrow* type = lython::function_type_builder(
-        &root,
-        bindings,
+        &m,
         add
     );
 

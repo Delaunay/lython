@@ -35,6 +35,8 @@
 
 // Fixes for zigg
 #if __clang__
+#    undef LY_NOEXCEPT
+#    define LY_NOEXCEPT _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
 #elif __GNUC__
 #    undef LY_NOEXCEPT
 #    define LY_NOEXCEPT _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
