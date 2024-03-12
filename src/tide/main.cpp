@@ -56,7 +56,6 @@ class App: public VulkanEngine {
     }
 
     void start() {
-
 #define CODE(X) #X
         String code = "def func(a: i32, b: i32) -> i32:    # //\n"
                       "    \"\"\"This is a docstring\"\"\" # //\n"
@@ -90,6 +89,7 @@ class App: public VulkanEngine {
         ast_editor.input(dt);
 
         if (ast_editor.renderer.drawings.empty()) {
+            ast_editor.renderer.maxcol = 0;
             ast_editor.renderer.run(module);
             ast_editor.sema.errors.clear();
             ast_editor.sema.eager = true;

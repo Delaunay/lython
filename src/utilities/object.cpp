@@ -26,7 +26,7 @@ void GCObject::remove_child(GCObject* child, bool dofree) {
     } else {
         kwinfo("Removed (child: {}) from (parent: {})", (void*)child, (void*)this);
     }
-    // assert(i != -1, "Should find child");
+    // lyassert(i != -1, "Should find child");
 
     Array<GCObject*>::iterator data = children.begin() + i;
     children.erase(data);
@@ -110,7 +110,7 @@ void GCObject::free(GCObject* child) {
     // Remove from parent right away
     if (child->parent != nullptr) {
         child->parent->remove_child(child, false);
-        assert(child->parent == nullptr, "parent should be null");
+        lyassert(child->parent == nullptr, "parent should be null");
     }
 
     private_free(child);
@@ -135,7 +135,7 @@ GCObject::~GCObject() {
     COZ_PROGRESS_NAMED("GCObject::delete");
     COZ_END("T::GCObject::delete");
 
-    assert(children.size() == 0,
+    lyassert(children.size() == 0,
            "Makes sure nobody added more nodes while we were busy destroying them");
 }
 

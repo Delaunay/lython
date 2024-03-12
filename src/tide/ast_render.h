@@ -3,6 +3,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <flecs.h>
 
 #include "ast/visitor.h"
 
@@ -19,7 +20,7 @@ struct ASTRenderStyle {
     ImColor docstring = ImColor(0, 255, 255);
 };
 
-#define ReturnType bool
+#define LY_ReturnType bool
 
 
 
@@ -109,10 +110,10 @@ using GenericGuard = Guard<std::function<void()>, std::function<void()>>;
 
 struct ASTRenderTrait {
     using Trace   = std::false_type;
-    using StmtRet = ReturnType;
-    using ExprRet = ReturnType;
-    using ModRet  = ReturnType;
-    using PatRet  = ReturnType;
+    using StmtRet = LY_ReturnType;
+    using ExprRet = LY_ReturnType;
+    using ModRet  = LY_ReturnType;
+    using PatRet  = LY_ReturnType;
 
     enum
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
@@ -134,6 +135,7 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
     int             _indent  = 0;
     bool            _redraw  = false;
 
+    flecs::world   ecs;
     Array<Drawing> drawings;
     Array<Group>   groups;
     Array<Node*>   stack;
@@ -142,6 +144,8 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
     Group* new_group() {
         Group& grp = groups.emplace_back();
         grp.id = int(groups.size());
+
+        flecs::entity newgrp = ecs.entity(grp.id);
         return &grp;
     }
 
@@ -163,6 +167,15 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
 
     template <typename T>
     Drawing* run(T* node, int depth) {
+        //*
+        if (node->is_leaf()) {
+            stack.push_back(node);
+            exec(node, depth);
+            stack.pop_back();
+            //std::cout << "here" << std::endl;
+            return nullptr;
+        }//*/
+        //std::cout << str(node) << std::endl;
         stack.push_back(node);
         
         int edit_entry = int(edit_order.size());
@@ -188,7 +201,7 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
             edit_order.emplace_back(group->id - 1);
         }
 
-        // if (stack.size() > 0) {
+        // if (stack.size() > 0) {Drawing
         //     Drawing* parent = stack[stack.size() - 1];
         //     // parent->rectangle.Expand(drawing.rectangle.GetBR());
         // }
@@ -227,9 +240,9 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
 
     void maybe_inline_comment(Comment* com, int depth, CodeLocation const& loc);
 
-    ReturnType render_body(Array<StmtNode*> & body, int depth, bool print_last = false);
-    ReturnType excepthandler(ExceptHandler & self, int depth);
-    ReturnType matchcase(MatchCase & self, int depth);
+    LY_ReturnType render_body(Array<StmtNode*> & body, int depth, bool print_last = false);
+    LY_ReturnType excepthandler(ExceptHandler & self, int depth);
+    LY_ReturnType matchcase(MatchCase & self, int depth);
     void       arg(Arg & self, int depth);
 
     void arguments(Arguments & self, int depth);
@@ -243,10 +256,10 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
 
 #define X(name, _)
 #define SECTION(name)
-#define EXPR(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
-#define STMT(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
-#define MOD(name, fun)   FUNCTION_GEN(name, fun, ReturnType)
-#define MATCH(name, fun) FUNCTION_GEN(name, fun, ReturnType)
+#define EXPR(name, fun)  FUNCTION_GEN(name, fun, LY_ReturnType)
+#define STMT(name, fun)  FUNCTION_GEN(name, fun, LY_ReturnType)
+#define MOD(name, fun)   FUNCTION_GEN(name, fun, LY_ReturnType)
+#define MATCH(name, fun) FUNCTION_GEN(name, fun, LY_ReturnType)
 
     NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
 

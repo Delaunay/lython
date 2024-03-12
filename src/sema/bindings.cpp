@@ -61,7 +61,7 @@ inline std::ostream& print(std::ostream& out, int i, BindingEntry const& entry) 
 int Bindings::add(StringRef const& name, Node* value, TypeExpr* type, int type_id) {
     COZ_BEGIN("T::Bindings::add");
 
-    assert(name != StringRef(), "Should have a name");
+    lyassert(name != StringRef(), "Should have a name");
     auto size = int(bindings.size());
 
     bool dynamic = !nested;

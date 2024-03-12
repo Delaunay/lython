@@ -100,7 +100,7 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
 
             } else if (bnative) {
                 auto native = n->native_operator[i];
-                assert(native, "Operator needs to be set");
+                lyassert(native, "Operator needs to be set");
 
                 ConstantValue v = native(left_const->value, right_const->value);
                 result          = result && v.get<bool>();
@@ -597,7 +597,7 @@ PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
     // the issue is that we need the object called in the case of a method
     auto* function = exec(n->func, depth);
 
-    assert(function, "Function should be found");
+    lyassert(function, "Function should be found");
 
     if (FunctionDef_t* fun = cast<FunctionDef>(function)) {
         if (fun->generator) {
@@ -646,7 +646,7 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
         return variable;
     }
 
-    assert(bindings.bindings.size() > 0, "");
+    lyassert(bindings.bindings.size() > 0, "");
     int last = bindings.bindings.size() - 1;
 
     for (int i = last; i >= 0; i--) {
@@ -736,7 +736,7 @@ PartialResult* TreeEvaluator::assign(Assign_t* n, int depth) {
     TupleExpr* targets = cast<TupleExpr>(n->targets[0]);
     TupleExpr* values  = cast<TupleExpr>(value);
     if (values != nullptr && targets != nullptr) {
-        assert(values->elts.size() == targets->elts.size(), "Size must match");
+        lyassert(values->elts.size() == targets->elts.size(), "Size must match");
 
         // this probably does not work quite right in some cases
         for (int i = 0; i < values->elts.size(); i++) {
@@ -919,7 +919,7 @@ PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
         Constant* value = cast<Constant>(exec(n->test, depth));
         // TODO if it is not a value that means we could not evaluate it so we should return the
         // node itself
-        assert(value, "While test should return a boolean");
+        lyassert(value, "While test should return a boolean");
 
         bool bcontinue = value != nullptr && value->value.get<bool>();
 
@@ -968,7 +968,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
     if (!n->tests.empty()) {
         for (int i = 0; i < n->tests.size(); i++) {
             Constant* value = cast<Constant>(exec(n->test, depth));
-            assert(value, "If test should return a boolean");
+            lyassert(value, "If test should return a boolean");
 
             bool btrue = value->value.get<bool>();
             if (btrue) {
@@ -985,7 +985,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
     // Simple
     PartialResult* test  = exec(n->test, depth);
     Constant*      value = cast<Constant>(test);
-    assert(value, "If test should return a boolean");
+    lyassert(value, "If test should return a boolean");
 
     bool btrue = value->value.get<bool>();
 
@@ -1353,7 +1353,7 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     if (has_exceptions()) {
         lyException* except = exceptions[exceptions.size() - 1];
 
-        assert(except != nullptr, "Exception is null");
+        lyassert(except != nullptr, "Exception is null");
 
         fmt::print("Traceback (most recent call last):\n");
         for (StackTrace& st: except->traces()) {

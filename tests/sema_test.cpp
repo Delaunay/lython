@@ -274,7 +274,7 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
 
     kwinfo("{}", "Parse");
     mod = parser.parse_module();
-    assert(mod->body.size() > 0, "Should parse more than one expression");
+    lyassert(mod->body.size() > 0, "Should parse more than one expression");
 
     kwinfo("{}", "Sema");
 

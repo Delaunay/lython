@@ -59,7 +59,7 @@ class Trie {
             ptr = ptr->children[c].get();
         }
 
-        assert(ptr != nullptr, "ptr cant be null");
+        lyassert(ptr != nullptr, "ptr cant be null");
 
         if (ptr->leaf()) {
             return false;

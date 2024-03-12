@@ -54,13 +54,13 @@ inline bool equal_it(String code_a, String code_b) {
     Lexer        lex1(reader1);
     Parser       parser1(lex1);
     Module*      mod1 = parser1.parse_module();
-    assert(mod1->body.size() > 0, "Should parse more than one expression");
+    lyassert(mod1->body.size() > 0, "Should parse more than one expression");
 
     StringBuffer reader2(code_b);
     Lexer        lex2(reader2);
     Parser       parser2(lex2);
     Module*      mod2 = parser2.parse_module();
-    assert(mod2->body.size() > 0, "Should parse more than one expression");
+    lyassert(mod2->body.size() > 0, "Should parse more than one expression");
 
     auto a        = mod1->body[0];
     auto b        = mod2->body[0];

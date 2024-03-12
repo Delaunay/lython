@@ -45,8 +45,8 @@ struct Matrix {
 
 void gemm_single_friendly(Matrix* a, Matrix* b, Matrix* c) {
     // (n x m) . (m x p) => (n x p)
-    assert(a->col == b->row, "");
-    assert(c->row == a->row && c->col == b->col, "");
+    lyassert(a->col == b->row, "");
+    lyassert(c->row == a->row && c->col == b->col, "");
 
     for (int i = 0; i < c->row * c->col; ++i) {
         c->mem.ptr[i] = 0;
@@ -64,8 +64,8 @@ void gemm_single_friendly(Matrix* a, Matrix* b, Matrix* c) {
 
 void gemm_single_bad(Matrix* a, Matrix* b, Matrix* c) {
     // (n x m) . (m x p) => (n x p)
-    assert(a->col == b->row, "");
-    assert(c->row == a->row && c->col == b->col, "");
+    lyassert(a->col == b->row, "");
+    lyassert(c->row == a->row && c->col == b->col, "");
 
     for (int i = 0; i < c->row * c->col; ++i) {
         c->mem.ptr[i] = 0;
@@ -83,8 +83,8 @@ void gemm_single_bad(Matrix* a, Matrix* b, Matrix* c) {
 
 void gemm_parallel(Matrix a, Matrix b, Matrix c) {
     // (n x m) . (m x p) => (n x p)
-    assert(a.col == b.row, "");
-    assert(c.row == a.row && c.col == b.col, "");
+    lyassert(a.col == b.row, "");
+    lyassert(c.row == a.row && c.col == b.col, "");
 
     auto fun = [&](int n) {
         // Col Major case iterates over the cols first
@@ -118,8 +118,8 @@ void gemm_parallel(Matrix a, Matrix b, Matrix c) {
 
 void gemm_parallel_block(Matrix a, Matrix b, Matrix c) {
     // (n x m) . (m x p) => (n x p)
-    assert(a.col == b.row, "");
-    assert(c.row == a.row && c.col == b.col, "");
+    lyassert(a.col == b.row, "");
+    lyassert(c.row == a.row && c.col == b.col, "");
 
     auto fun = [&](int n) {
         // Col Major case iterates over the cols first

@@ -95,7 +95,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     mod = parser.parse_module();
 
     if (code != "") {
-        assert(mod->body.size() > 0, "Should parse more than one expression");
+        lyassert(mod->body.size() > 0, "Should parse more than one expression");
         REQUIRE(parser.has_errors() == false);
     }
     parser.show_diagnostics(std::cout);

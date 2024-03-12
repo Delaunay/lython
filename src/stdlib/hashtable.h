@@ -215,7 +215,7 @@ struct HashTable {
     // this cannot be exposed because it returns a pointer
     // that could change once rehash is called
     Item const* _find(const Key& name) const {
-        assert(is_power2(_storage.size()));
+        lyassert(is_power2(_storage.size()));
         uint64_t i = H::hash(name);
 
         // linear probing
@@ -254,7 +254,7 @@ struct HashTable {
     static bool
     insert(Storage& data, Item const& inserted_item, bool upsert, int& used, int& collision) {
 
-        assert(is_power2(data.size()));
+        lyassert(is_power2(data.size()));
         uint64_t i = inserted_item.hash();
 
         for (uint64_t offset = 0; offset < data.size(); offset++) {

@@ -58,6 +58,10 @@ void ASTEditor::input(float dt) {
     ImGuiIO& io = ImGui::GetIO();
     int      n  = int(renderer.edit_order.size());
 
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        ImVec2 pos = ImGui::GetCursorPos();
+    }
+
     input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_RightArrow, [this, n]() {
         this->index = clamp(this->index + 1, 0, n - 1);
     });
@@ -146,7 +150,7 @@ void ASTEditor::test() {
             if (expr == nullptr) {
                 expr = &group;
 
-                if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     index = expr->edit_id;
                 }
             }

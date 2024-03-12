@@ -60,6 +60,7 @@ TARGET_LINK_LIBRARIES(tide
     liblython
     vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY} 
     Vulkan::Vulkan ${SDL_LIBRARY} liblogging argparse
+    flecs::flecs_static
 )
 
 # TARGET_LINK_LIBRARIES(tide Vulkan::Vulkan 

@@ -59,6 +59,8 @@ struct Node: public GCObject {
         return kind == nodekind<T>();
     }
 
+    virtual bool is_leaf() = 0;
+
     Node const* get_parent() const { return static_cast<Node*>(get_gc_parent()); }
 };
 
@@ -66,12 +68,16 @@ struct ModNode: public Node {
     ModNode(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Module; }
+
+    bool is_leaf() { return false; }
 };
 
 struct Comment;
 
 struct StmtNode: public CommonAttributes, public Node {
     StmtNode(NodeKind kind): Node(kind) {}
+
+    bool is_leaf() override { return false; }
 
     NodeFamily family() const override { return NodeFamily::Statement; }
 
@@ -99,6 +105,8 @@ struct ExprNode: public CommonAttributes, public Node {
     ExprNode(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Expression; }
+
+    bool is_leaf() override { return false; }
 };
 
 enum class ConversionKind : int8_t
@@ -271,6 +279,8 @@ struct Pattern: public CommonAttributes, public Node {
     Pattern(NodeKind kind): Node(kind) {}
 
     NodeFamily family() const override { return NodeFamily::Pattern; }
+
+    bool is_leaf() { return false; }
 };
 
 struct MatchValue: public Pattern {
@@ -359,6 +369,8 @@ struct Constant: public ExprNode {
     Constant(T const& v): ExprNode(NodeKind::Constant), value(v) {}
 
     Constant(): Constant(ConstantValue::invalid_t()) {}
+
+    bool is_leaf() {    return true; }
 };
 
 // Dummy, expression representing a value to be pluged at runtime
@@ -366,6 +378,8 @@ struct Placeholder: public ExprNode {
     Placeholder(): ExprNode(NodeKind::Placeholder) {}
 
     ExprNode* expr;
+
+    bool is_leaf() {    return true; }
 };
 
 /*
@@ -452,6 +466,8 @@ struct NamedExpr: public ExprNode {
     ExprNode* value  = nullptr;
 
     NamedExpr(): ExprNode(NodeKind::NamedExpr) {}
+
+    bool is_leaf() override { return true; }
 };
 
 struct BinOp: public ExprNode {
@@ -619,6 +635,8 @@ struct Name: public ExprNode {
     // }
 
     Name(): ExprNode(NodeKind::Name) {}
+
+    bool is_leaf() override { return true; }
 };
 
 struct ListExpr: public ExprNode {
@@ -666,6 +684,7 @@ struct Expression: public ModNode {
     ExprNode* body = nullptr;
 
     Expression(): ModNode(NodeKind::Expression) {}
+
 };
 
 struct FunctionType: public ModNode {
@@ -1021,6 +1040,9 @@ struct Expr: public StmtNode {
     ExprNode* value = nullptr;
 
     Expr(): StmtNode(NodeKind::Expr) {}
+
+
+    bool is_leaf() override { return value && value->is_leaf(); }
 };
 
 struct Pass: public StmtNode {
@@ -1191,7 +1213,7 @@ T const* cast(Node const* obj) {
 
 template <typename T>
 T* checked_cast(Node* obj) {
-    assert(obj->is_instance<T>(),
+    lyassert(obj->is_instance<T>(),
            fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
     return cast<T>(obj);
 }

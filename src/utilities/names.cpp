@@ -72,7 +72,7 @@ StringView StringDatabase::operator[](std::size_t i) const {
     wait_time += timer.stop();
 #endif
 
-    assert(i < size, "array out of bound");
+    lyassert(i < size, "array out of bound");
 
     if (i < size) {
         [[likely]] return get(i).data;

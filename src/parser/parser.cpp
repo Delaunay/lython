@@ -2520,7 +2520,7 @@ Comment* Parser::parse_comment(Node* parent, int depth) {
     TRACE_START();
 
     Comment* com = parent->new_object<Comment>();
-    assert(token().type() == tok_comment, "Need a comment token");
+    lyassert(token().type() == tok_comment, "Need a comment token");
 
     com->comment = token().identifier();
     next_token();

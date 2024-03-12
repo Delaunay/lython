@@ -67,13 +67,13 @@ public:
     template<typename MemberT, typename MemberLookup>
     MemberT* member(MemberLookup name) {
         if (!is_valid()) {
-            assert(0, "Underlying object is null");
+            lyassert(0, "Underlying object is null");
             return nullptr;
         }
         meta::Member const& member = _get_member(name);
 
         if (member.type != meta::type_id<MemberT>()) {
-            assert(0, "Member type should match");
+            lyassert(0, "Member type should match");
             return nullptr;
         }
 

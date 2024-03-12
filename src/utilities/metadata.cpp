@@ -353,7 +353,7 @@ Member const& nomember() {
 Member const& member(int _typeid, int id) {
     ClassMetadata& registry = classmeta(_typeid);
     if (id >= registry.members.size()) {
-        assert(0, "Member should exist");
+        lyassert(0, "Member should exist");
         return nomember();
     }
     return registry.members[id];

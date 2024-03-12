@@ -120,8 +120,8 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
             if (lhs_op_binding != nullptr) {
                 Arrow* operator_type = cast<Arrow>(lhs_op_binding->type);
 
-                assert(operator_type, "Bool operator needs to be Callable");
-                assert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
+                lyassert(operator_type, "Bool operator needs to be Callable");
+                lyassert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
 
                 typecheck(lhs, lhs_t, nullptr, operator_type->args[0], LOC);
                 typecheck(rhs, rhs_t, nullptr, operator_type->args[1], LOC);
@@ -131,8 +131,8 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
                 if (rhs_op_binding != nullptr) {
                     Arrow* operator_type = cast<Arrow>(rhs_op_binding->type);
 
-                    assert(operator_type, "Bool operator needs to be Callable");
-                    assert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
+                    lyassert(operator_type, "Bool operator needs to be Callable");
+                    lyassert(operator_type->args.size() == 2, "Bool operator requires 2 arguments");
 
                     typecheck(lhs, lhs_t, nullptr, operator_type->args[1], LOC);
                     typecheck(rhs, rhs_t, nullptr, operator_type->args[0], LOC);
@@ -199,7 +199,7 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
     Name* name = cast<Name>(node);
 
     if (name != nullptr) {
-        assert(bindings.bindings.size() > 0, "");
+        lyassert(bindings.bindings.size() > 0, "");
         int last = bindings.bindings.size() - 1;
 
         for (int i = last; i >= 0; i--) {
@@ -209,7 +209,7 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
             }
         }
 
-        // assert(name->varid >= 0, "Type need to be resolved");
+        // lyassert(name->varid >= 0, "Type need to be resolved");
         // return static_cast<TypeExpr*>(bindings.get_value(name->varid));
     }
 
@@ -291,7 +291,7 @@ TypeExpr* SemanticAnalyser::unaryop(UnaryOp* n, int depth) {
         SEMA_ERROR(n, UnsupportedOperand, str(n->op), expr_t, nullptr);
     }
 
-    // assert(handler != nullptr, "Unary operation require native handler");
+    // lyassert(handler != nullptr, "Unary operation require native handler");
     n->native_operator = handler;
 
     // TODO: fetch native operator
@@ -474,7 +474,7 @@ Node* SemanticAnalyser::load_name(Name_t* n) {
 
     if (n->dynamic) {
         // Local variables | Arguments
-        assert(n->offset != -1, "Reference should have a reverse lookup offset");
+        lyassert(n->offset != -1, "Reference should have a reverse lookup offset");
         varid  = int(bindings.bindings.size()) - n->offset;
         result = bindings.get_value(varid);
     } else {
@@ -494,7 +494,7 @@ ClassDef* SemanticAnalyser::get_class(ExprNode* classref, int depth) {
     }
 
     cls_name->ctx = ExprContext::Load;
-    // assert(cls_name->ctx == ExprContext::Load, "Reference to the class should be loaded");
+    // lyassert(cls_name->ctx == ExprContext::Load, "Reference to the class should be loaded");
     auto* cls = cast<ClassDef>(load_name(cls_name));
 
     return cls;
@@ -554,7 +554,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
 
         // Now we can switch the function being called from being the class
         // to being the constructor of the class
-        assert(fun->kind == NodeKind::Name, "Expect a reference to the class");
+        lyassert(fun->kind == NodeKind::Name, "Expect a reference to the class");
 
         // --update the ref to point to the constructor if we found it--
         // We should not do that, we need the class definition to know
@@ -930,7 +930,7 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
         }
     }
 
-    // assert(n->varid != -1, "Should have been founds");
+    // lyassert(n->varid != -1, "Should have been founds");
 
     auto* t = bindings.get_type(n->varid);
     if (t == nullptr) {

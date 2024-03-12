@@ -37,7 +37,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     kwdebug("{}", "Parse");
 
     mod = parser.parse_module();
-    assert(mod->body.size() > 0, "Should parse more than one expression");
+    lyassert(mod->body.size() > 0, "Should parse more than one expression");
     parser.show_diagnostics(std::cout);
     if(parser.has_errors()) {
         return "";

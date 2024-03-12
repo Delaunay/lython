@@ -50,7 +50,7 @@ inline String parse_it(String code)
     Parser parser(lex);
 
     auto mod = Unique<Module>(parser.parse_module());
-    assert(mod->body.size() > 0, "Should parse more than one expression");
+    lyassert(mod->body.size() > 0, "Should parse more than one expression");
 
     std::cout << std::string(80, '-') << '\n';
     std::cout << "Parsing Diag\n";

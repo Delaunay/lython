@@ -6,7 +6,7 @@ namespace lython {
 
 struct ConstantValue NativeObject::cmember(int member_id) {
         if (!is_valid()) {
-            assert(0, "Underlying object is null");
+            lyassert(0, "Underlying object is null");
             return ConstantValue();
         }
         meta::Member const& member = _get_member(member_id);

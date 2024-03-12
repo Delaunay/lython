@@ -57,7 +57,7 @@ class Parser {
     ParsingError&
     parser_kwerror(lython::CodeLocation const& loc, String const& exception, String const& msg) {
         current_error += 1;
-        assert(current_error == errors.size(), "Only one error at a time can happen");
+        lyassert(current_error == errors.size(), "Only one error at a time can happen");
 
         auto& details          = errors.emplace_back(ParsingError());
         details.error_kind     = exception;

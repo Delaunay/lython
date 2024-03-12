@@ -19,13 +19,12 @@
 #include "utilities/allocator.h"
 #include "utilities/strings.h"
 
-#define MAYBE_CONST 
 
 bool ASTInputText(const char*            label,
                   const char*            hint,
                   char*                  buf,
                   int                    buf_size,
-                  MAYBE_CONST ImVec2&          size_arg,
+                   ImVec2&          size_arg,
                   ImGuiInputTextFlags    flags,
                   ImGuiInputTextCallback callback,
                   void*                  callback_user_data);
@@ -34,11 +33,27 @@ bool ASTInputText(const char*            label,
 
 namespace lython {
 
+#define LY_BACKSPACE(obj, attr)                                      \
+    [this, obj]() {                                                     \
+        String __str = str(attr);                              \
+        attr = StringRef(__str.substr(0, __str.size() - 1));  \
+        this->_redraw = true;                                   \
+    }
+
+#define LY_INPUT(obj, attr)                                          \
+    [this, obj](unsigned int c) {                                       \
+        String __str = str(attr);                              \
+        __str.push_back(c);                                    \
+        attr = StringRef(__str);                               \
+        this->_redraw = true;                                   \
+    } 
+
+
 static special::Newline       newline;
 static special::Indent        indentation;
 static special::BeforeComment comment_space;
 
-ReturnType ASTRender::render_body(Array<StmtNode*> MAYBE_CONST& body, int depth, bool print_last) {
+LY_ReturnType ASTRender::render_body(Array<StmtNode*> & body, int depth, bool print_last) {
 
     Node* parent = nullptr;
 
@@ -52,7 +67,7 @@ ReturnType ASTRender::render_body(Array<StmtNode*> MAYBE_CONST& body, int depth,
     int old_count = drawings.size();
 
     int k = 0;
-    for (auto MAYBE_CONST& stmt: body) {
+    for (auto & stmt: body) {
         k += 1;
 
         out() << indentation;
@@ -89,7 +104,7 @@ ReturnType ASTRender::render_body(Array<StmtNode*> MAYBE_CONST& body, int depth,
     return true;
 }
 
-ReturnType ASTRender::excepthandler(ExceptHandler MAYBE_CONST& self, int depth) {
+LY_ReturnType ASTRender::excepthandler(ExceptHandler & self, int depth) {
     out() << newline << indentation << special::Keyword("except ");
 
     if (self.type.has_value()) {
@@ -111,7 +126,7 @@ ReturnType ASTRender::excepthandler(ExceptHandler MAYBE_CONST& self, int depth) 
     }
 }
 
-ReturnType ASTRender::matchcase(MatchCase MAYBE_CONST& self, int depth) {
+LY_ReturnType ASTRender::matchcase(MatchCase & self, int depth) {
     out() << indentation << special::Keyword("case ");
     run(self.pattern, depth);
 
@@ -130,7 +145,7 @@ ReturnType ASTRender::matchcase(MatchCase MAYBE_CONST& self, int depth) {
     }
 }
 
-void ASTRender::arg(Arg MAYBE_CONST& self, int depth) {
+void ASTRender::arg(Arg & self, int depth) {
     out() << self.arg;
 
     if (self.annotation.has_value()) {
@@ -139,14 +154,14 @@ void ASTRender::arg(Arg MAYBE_CONST& self, int depth) {
     }
 }
 
-ReturnType ASTRender::attribute(Attribute MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::attribute(Attribute * self, int depth) {
     run(self->value, depth);
     out() << ".";
     out() << self->attr;
     return false;
 }
 
-ReturnType ASTRender::subscript(Subscript MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::subscript(Subscript * self, int depth) {
     run(self->value, depth);
     out() << "[";
     run(self->slice, depth);
@@ -154,17 +169,17 @@ ReturnType ASTRender::subscript(Subscript MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::starred(Starred MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::starred(Starred * self, int depth) {
     out() << "*";
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::module(Module MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::module(Module * self, int depth) {
     return render_body(self->body, depth);
 }
 
-ReturnType ASTRender::raise(Raise MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::raise(Raise * self, int depth) {
     out() << special::Keyword("raise ");
     if (self->exc.has_value()) {
         run(self->exc.value(), depth);
@@ -177,7 +192,7 @@ ReturnType ASTRender::raise(Raise MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::assertstmt(Assert MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::assertstmt(Assert * self, int depth) {
     out() << special::Keyword("assert ");
     run(self->test, depth);
 
@@ -188,11 +203,11 @@ ReturnType ASTRender::assertstmt(Assert MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::with(With MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::with(With * self, int depth) {
     out() << special::Keyword("with ");
 
     int i = 0;
-    for (auto MAYBE_CONST& item: self->items) {
+    for (auto & item: self->items) {
         run(item.context_expr, depth);
 
         if (item.optional_vars.has_value()) {
@@ -216,11 +231,11 @@ ReturnType ASTRender::with(With MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::import(Import MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::import(Import * self, int depth) {
     out() << special::Keyword("import ");
 
     int i = 0;
-    for (auto MAYBE_CONST& alias: self->names) {
+    for (auto & alias: self->names) {
         out() << alias.name;
 
         if (alias.asname.has_value()) {
@@ -236,7 +251,7 @@ ReturnType ASTRender::import(Import MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::importfrom(ImportFrom MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::importfrom(ImportFrom * self, int depth) {
     out() << special::Keyword("from ");
     if (self->module.has_value()) {
         out() << self->module.value();
@@ -244,7 +259,7 @@ ReturnType ASTRender::importfrom(ImportFrom MAYBE_CONST* self, int depth) {
     out() << special::Keyword(" import ");
 
     int i = 0;
-    for (auto MAYBE_CONST& alias: self->names) {
+    for (auto & alias: self->names) {
         out() << alias.name;
 
         if (alias.asname.has_value()) {
@@ -260,7 +275,7 @@ ReturnType ASTRender::importfrom(ImportFrom MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::slice(Slice MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::slice(Slice * self, int depth) {
     if (self->lower.has_value()) {
         run(self->lower.value(), depth);
     }
@@ -278,7 +293,7 @@ ReturnType ASTRender::slice(Slice MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::tupleexpr(TupleExpr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::tupleexpr(TupleExpr * self, int depth) {
     if (level == -1) {
         out() << join<ExprNode*>(", ", self->elts);
     } else {
@@ -287,17 +302,17 @@ ReturnType ASTRender::tupleexpr(TupleExpr MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::listexpr(ListExpr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::listexpr(ListExpr * self, int depth) {
     out() << "[" << join<ExprNode*>(", ", self->elts) << "]";
     return false;
 }
 
-ReturnType ASTRender::setexpr(SetExpr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::setexpr(SetExpr * self, int depth) {
     out() << "{" << join<ExprNode*>(", ", self->elts) << "}";
     return false;
 }
 
-ReturnType ASTRender::dictexpr(DictExpr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::dictexpr(DictExpr * self, int depth) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -309,25 +324,25 @@ ReturnType ASTRender::dictexpr(DictExpr MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchvalue(MatchValue MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchvalue(MatchValue * self, int depth) {
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::matchsingleton(MatchSingleton MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchsingleton(MatchSingleton * self, int depth) {
     StringStream ss;
     self->value.print(ss);
     out() << ss.str();
     return false;
 }
 
-ReturnType ASTRender::matchsequence(MatchSequence MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchsequence(MatchSequence * self, int depth) {
     auto result = join(", ", self->patterns);
     out() << "[" << result << "]";
     return false;
 }
 
-ReturnType ASTRender::matchmapping(MatchMapping MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchmapping(MatchMapping * self, int depth) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -346,7 +361,7 @@ ReturnType ASTRender::matchmapping(MatchMapping MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchclass(MatchClass MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchclass(MatchClass * self, int depth) {
     run(self->cls, depth);
     out() << "(" << join(", ", self->patterns);
 
@@ -366,7 +381,7 @@ ReturnType ASTRender::matchclass(MatchClass MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchstar(MatchStar MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchstar(MatchStar * self, int depth) {
     out() << "*";
 
     if (self->name.has_value()) {
@@ -375,7 +390,7 @@ ReturnType ASTRender::matchstar(MatchStar MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchas(MatchAs MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchas(MatchAs * self, int depth) {
     if (self->pattern.has_value()) {
         run(self->pattern.value(), depth);
     }
@@ -386,12 +401,12 @@ ReturnType ASTRender::matchas(MatchAs MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::matchor(MatchOr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::matchor(MatchOr * self, int depth) {
     out() << join(" | ", self->patterns);
     return false;
 }
 
-ReturnType ASTRender::ifstmt(If MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::ifstmt(If * self, int depth) {
     out() << special::Keyword("if ");
     run(self->test, depth);
     out() << ":";
@@ -432,7 +447,7 @@ ReturnType ASTRender::ifstmt(If MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::match(Match MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::match(Match * self, int depth) {
     out() << special::Keyword("match ");
     run(self->subject, depth);
     out() << ":";
@@ -440,7 +455,7 @@ ReturnType ASTRender::match(Match MAYBE_CONST* self, int depth) {
     out() << newline;
 
     int i = 0;
-    for (auto MAYBE_CONST& case_: self->cases) {
+    for (auto & case_: self->cases) {
         matchcase(case_, depth + 1);
 
         if (i + 1 < self->cases.size()) {
@@ -452,7 +467,7 @@ ReturnType ASTRender::match(Match MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::lambda(Lambda MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::lambda(Lambda * self, int depth) {
     out() << special::Keyword("lambda ");
     arguments(self->args, depth);
     out() << ": ";
@@ -460,7 +475,7 @@ ReturnType ASTRender::lambda(Lambda MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::ifexp(IfExp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::ifexp(IfExp * self, int depth) {
     run(self->body, depth);
     out() << special::Keyword(" if ");
     run(self->test, depth);
@@ -469,7 +484,7 @@ ReturnType ASTRender::ifexp(IfExp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-void ASTRender::comprehension(Comprehension MAYBE_CONST& self, int depth) {
+void ASTRender::comprehension(Comprehension & self, int depth) {
     out() << special::Keyword(" for ");
     run(self.target, depth);
     out() << special::Keyword(" in ");
@@ -481,13 +496,13 @@ void ASTRender::comprehension(Comprehension MAYBE_CONST& self, int depth) {
     }
 }
 
-void ASTRender::comprehensions(Array<Comprehension> MAYBE_CONST& self, int depth) {
-    for (Comprehension MAYBE_CONST& comp: self) {
+void ASTRender::comprehensions(Array<Comprehension> & self, int depth) {
+    for (Comprehension & comp: self) {
         comprehension(comp, depth);
     }
 }
 
-ReturnType ASTRender::listcomp(ListComp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::listcomp(ListComp * self, int depth) {
     out() << "[";
     run(self->elt, depth);
 
@@ -497,7 +512,7 @@ ReturnType ASTRender::listcomp(ListComp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::setcomp(SetComp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::setcomp(SetComp * self, int depth) {
     out() << "{";
     run(self->elt, depth);
 
@@ -507,7 +522,7 @@ ReturnType ASTRender::setcomp(SetComp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::generateexpr(GeneratorExp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::generateexpr(GeneratorExp * self, int depth) {
     out() << "(";
     run(self->elt, depth);
 
@@ -517,7 +532,7 @@ ReturnType ASTRender::generateexpr(GeneratorExp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::dictcomp(DictComp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::dictcomp(DictComp * self, int depth) {
     out() << "{";
     run(self->key, depth);
     out() << ": ";
@@ -528,13 +543,13 @@ ReturnType ASTRender::dictcomp(DictComp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::await(Await MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::await(Await * self, int depth) {
     out() << special::Keyword("await ");
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::yield(Yield MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::yield(Yield * self, int depth) {
     out() << special::Keyword("yield");
     if (self->value.has_value()) {
         out() << " ";
@@ -543,13 +558,13 @@ ReturnType ASTRender::yield(Yield MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::yieldfrom(YieldFrom MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::yieldfrom(YieldFrom * self, int depth) {
     out() << special::Keyword("yield from ");
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::call(Call MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::call(Call * self, int depth) {
 
     // StringStream fname = fmt(self->func, depth, level);
     // out() << fname.str() << "(";
@@ -565,7 +580,7 @@ ReturnType ASTRender::call(Call MAYBE_CONST* self, int depth) {
     }
 
     for (int i = 0; i < self->keywords.size(); i++) {
-        auto MAYBE_CONST& key = self->keywords[i];
+        auto & key = self->keywords[i];
 
         out() << self->keywords[i].arg;
         out() << "=";
@@ -580,23 +595,35 @@ ReturnType ASTRender::call(Call MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::constant(Constant MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::constant(Constant * self, int depth) {
     StringStream ss;
     self->value.print(ss);
-    out() << ss.str();
+
+    // bit more tricky here
+    // we need to parse the value on change
+    // and the value might not be correct so we need to keep
+    // a input buffer
+    auto config = special::Editable(ss.str());
+    config.input = [](unsigned int c){
+
+    };
+    config.backspace= [](){
+        
+    };
+    out() << config;
     return false;
 }
 
 ASTRender::ExprRet ASTRender::placeholder(Placeholder_t* self, int depth) { return false; }
 
-ReturnType ASTRender::namedexpr(NamedExpr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::namedexpr(NamedExpr * self, int depth) {
     run(self->target, depth);
     out() << " := ";
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::classdef(ClassDef MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -628,7 +655,7 @@ ReturnType ASTRender::classdef(ClassDef MAYBE_CONST* self, int depth) {
     Array<String> kwd;
     kwd.reserve(self->keywords.size());
 
-    for (auto MAYBE_CONST& kw: self->keywords) {
+    for (auto & kw: self->keywords) {
         kwd.push_back(fmtstr("{}={}", str(kw.arg), str(kw.value)));
     }
 
@@ -643,7 +670,7 @@ ReturnType ASTRender::classdef(ClassDef MAYBE_CONST* self, int depth) {
     out() << newline;
 
     if (self->docstring.has_value()) {
-        Docstring MAYBE_CONST& doc = self->docstring.value();
+        Docstring & doc = self->docstring.value();
         out() << indentation << "\"\"\"" << doc.docstring << "\"\"\"";
 
         maybe_inline_comment(doc.comment, depth, LOC);
@@ -652,7 +679,7 @@ ReturnType ASTRender::classdef(ClassDef MAYBE_CONST* self, int depth) {
 
     bool assign = false;
     k           = 0;
-    for (auto MAYBE_CONST& stmt: self->body) {
+    for (auto & stmt: self->body) {
 
         assign = stmt->kind == NodeKind::Assign || stmt->kind == NodeKind::AnnAssign ||
                  stmt->kind == NodeKind::Pass;
@@ -679,7 +706,7 @@ ReturnType ASTRender::classdef(ClassDef MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::functiondef(FunctionDef MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -697,7 +724,11 @@ ReturnType ASTRender::functiondef(FunctionDef MAYBE_CONST* self, int depth) {
         out() << indentation;
     }
 
-    out() << special::Keyword("def ") << special::Editable(self->name, (Node*)self) << "(";
+    auto config = special::Editable(self->name, (Node*)self);
+    config.backspace = LY_BACKSPACE(self, self->name);
+    config.input = LY_INPUT(self, self->name);
+    
+    out() << special::Keyword("def ") << config << "(";
     arguments(self->args, depth);
     out() << ")";
 
@@ -714,7 +745,7 @@ ReturnType ASTRender::functiondef(FunctionDef MAYBE_CONST* self, int depth) {
     out() << newline;
 
     if (self->docstring.has_value()) {
-        Docstring MAYBE_CONST& doc = self->docstring.value();
+        Docstring & doc = self->docstring.value();
 
         {
             auto _ = indent();
@@ -734,11 +765,11 @@ ReturnType ASTRender::functiondef(FunctionDef MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::inlinestmt(Inline MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::inlinestmt(Inline * self, int depth) {
     out() << indentation;
 
     int k = 0;
-    for (auto MAYBE_CONST& stmt: self->body) {
+    for (auto & stmt: self->body) {
         run(stmt, depth);
 
         if (k + 1 < self->body.size()) {
@@ -751,7 +782,7 @@ ReturnType ASTRender::inlinestmt(Inline MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::forstmt(For MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::forstmt(For * self, int depth) {
     out() << special::Keyword("for ");
     run(self->target, depth);
     out() << special::Keyword(" in ");
@@ -781,7 +812,7 @@ ReturnType ASTRender::forstmt(For MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::trystmt(Try MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::trystmt(Try * self, int depth) {
     out() << special::Keyword("try:");
     maybe_inline_comment(self->comment, depth, LOC);
     out() << newline;
@@ -791,7 +822,7 @@ ReturnType ASTRender::trystmt(Try MAYBE_CONST* self, int depth) {
         render_body(self->body, depth + 1);
     }
 
-    for (auto MAYBE_CONST& handler: self->handlers) {
+    for (auto & handler: self->handlers) {
         excepthandler(handler, depth);
     }
 
@@ -820,7 +851,7 @@ ReturnType ASTRender::trystmt(Try MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::compare(Compare MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::compare(Compare * self, int depth) {
     run(self->left, depth);
     int n = int(self->comparators.size());
 
@@ -836,7 +867,7 @@ ReturnType ASTRender::compare(Compare MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::binop(BinOp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::binop(BinOp * self, int depth) {
     auto sself   = get_precedence(self);
     auto lhspred = get_precedence(self->left) < sself;
     auto rhspred = get_precedence(self->right) < sself;
@@ -862,7 +893,7 @@ ReturnType ASTRender::binop(BinOp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::invalidstmt(InvalidStatement MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::invalidstmt(InvalidStatement * self, int depth) {
     //
     if (!self->tokens.empty()) {
         Unlex        unlex;
@@ -873,7 +904,7 @@ ReturnType ASTRender::invalidstmt(InvalidStatement MAYBE_CONST* self, int depth)
     return false;
 }
 
-ReturnType ASTRender::boolop(BoolOp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::boolop(BoolOp * self, int depth) {
 
     int m = self->opcount + 1;
 
@@ -892,7 +923,7 @@ ReturnType ASTRender::boolop(BoolOp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::unaryop(UnaryOp MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::unaryop(UnaryOp * self, int depth) {
     print_op(self->op);
     out() << " ";
     run(self->operand, depth);
@@ -900,7 +931,7 @@ ReturnType ASTRender::unaryop(UnaryOp MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::whilestmt(While MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::whilestmt(While * self, int depth) {
     out() << special::Keyword("while ");
     run(self->test, depth);
     out() << ":";
@@ -925,7 +956,7 @@ ReturnType ASTRender::whilestmt(While MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::returnstmt(Return MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::returnstmt(Return * self, int depth) {
     out() << special::Keyword("return ");
 
     if (self->value.has_value()) {
@@ -935,7 +966,7 @@ ReturnType ASTRender::returnstmt(Return MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::deletestmt(Delete MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::deletestmt(Delete * self, int depth) {
     out() << special::Keyword("del ");
 
     for (int i = 0; i < self->targets.size(); i++) {
@@ -948,7 +979,7 @@ ReturnType ASTRender::deletestmt(Delete MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::augassign(AugAssign MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::augassign(AugAssign * self, int depth) {
     run(self->target, depth);
     print_op(self->op, true);
     out() << "= ";
@@ -956,14 +987,14 @@ ReturnType ASTRender::augassign(AugAssign MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::assign(Assign MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::assign(Assign * self, int depth) {
     run(self->targets[0], depth);
     out() << " = ";
     run(self->value, depth);
     return false;
 }
 
-ReturnType ASTRender::annassign(AnnAssign MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::annassign(AnnAssign * self, int depth) {
     run(self->target, depth);
     out() << ": ";
 
@@ -976,81 +1007,84 @@ ReturnType ASTRender::annassign(AnnAssign MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::pass(Pass MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::pass(Pass * self, int depth) {
     out() << special::Keyword("pass");
     return false;
 }
 
-ReturnType ASTRender::breakstmt(Break MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::breakstmt(Break * self, int depth) {
     out() << special::Keyword("break");
     return false;
 }
 
-ReturnType ASTRender::continuestmt(Continue MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::continuestmt(Continue * self, int depth) {
     out() << special::Keyword("continue");
     return false;
 }
 
-ReturnType ASTRender::exprstmt(Expr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::exprstmt(Expr * self, int depth) {
     if (self->value != nullptr)
         run(self->value, depth);
 
     return false;
 }
 
-ReturnType ASTRender::global(Global MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::global(Global * self, int depth) {
     out() << special::Keyword("global ") << join(", ", self->names);
     return false;
 }
 
-ReturnType ASTRender::nonlocal(Nonlocal MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::nonlocal(Nonlocal * self, int depth) {
     out() << special::Keyword("nonlocal ") << join(", ", self->names);
     return false;
 }
 
-ReturnType ASTRender::arrow(Arrow MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::arrow(Arrow * self, int depth) {
     out() << '(' << join<ExprNode*>(", ", self->args) << ") -> ";
     out() << str(self->returns);
     return false;
 }
 
-ReturnType ASTRender::dicttype(DictType MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::dicttype(DictType * self, int depth) {
     out() << "Dict[";
-    out() << str(self->key);
+    out() << str(self->key);   // this is wrong 
     out() << ", ";
     out() << str(self->value) << "]";
     return false;
 }
 
-ReturnType ASTRender::settype(SetType MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::settype(SetType * self, int depth) {
     out() << "Set[";
     out() << str(self->value) << "]";
     return false;
 }
 
-ReturnType ASTRender::name(Name MAYBE_CONST* self, int depth) {
-    out() << self->id;
+LY_ReturnType ASTRender::name(Name * self, int depth) {
+    auto config = special::Editable(self->id);
+    config.backspace = LY_BACKSPACE(self, self->id);
+    config.input = LY_INPUT(self, self->id);
+    out() << config;
     return false;
 }
 
-ReturnType ASTRender::arraytype(ArrayType MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::arraytype(ArrayType * self, int depth) {
     out() << "Array[";
     out() << str(self->value) << "]";
     return false;
 }
 
-ReturnType ASTRender::tupletype(TupleType MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::tupletype(TupleType * self, int depth) {
     out() << "Tuple[";
     out() << join<ExprNode*>(", ", self->types) << "]";
     return false;
 }
 
-ReturnType ASTRender::builtintype(BuiltinType MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::builtintype(BuiltinType * self, int depth) {
     out() << self->name;
     return false;
 }
 
-ReturnType ASTRender::joinedstr(JoinedStr MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::joinedstr(JoinedStr * self, int depth) {
     out() << "f\"";
 
     for (auto* val: self->values) {
@@ -1065,7 +1099,7 @@ ReturnType ASTRender::joinedstr(JoinedStr MAYBE_CONST* self, int depth) {
     return false;
 }
 
-ReturnType ASTRender::formattedvalue(FormattedValue MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::formattedvalue(FormattedValue * self, int depth) {
     out() << "{";
     run(self->value, depth);
     out() << ":";
@@ -1084,12 +1118,12 @@ ReturnType ASTRender::formattedvalue(FormattedValue MAYBE_CONST* self, int depth
     return false;
 }
 
-ReturnType ASTRender::classtype(ClassType MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::classtype(ClassType * self, int depth) {
     out() << self->def->name;
     return false;
 }
 
-ReturnType ASTRender::exported(Exported MAYBE_CONST* self, int depth) {
+LY_ReturnType ASTRender::exported(Exported * self, int depth) {
     // run(self->node, depth);
     return false;
 }
@@ -1164,7 +1198,7 @@ void ASTRender::print_op(UnaryOperator op) {
     // clang-format on
 }
 
-void ASTRender::keyword(Keyword MAYBE_CONST& self, int depth) {
+void ASTRender::keyword(Keyword & self, int depth) {
     out() << self.arg;
     if (self.value != nullptr) {
         out() << " = ";
@@ -1172,20 +1206,20 @@ void ASTRender::keyword(Keyword MAYBE_CONST& self, int depth) {
     }
 }
 
-void ASTRender::alias(Alias MAYBE_CONST& self, int depth) {
+void ASTRender::alias(Alias & self, int depth) {
     out() << self.name;
     if (self.asname.has_value()) {
         out() << special::Keyword(" as ") << self.asname.value();
     }
 }
 
-ReturnType ASTRender::functiontype(FunctionType MAYBE_CONST* self, int depth) { return false; }
+LY_ReturnType ASTRender::functiontype(FunctionType * self, int depth) { return false; }
 
-ReturnType ASTRender::expression(Expression MAYBE_CONST* self, int depth) { return false; }
+LY_ReturnType ASTRender::expression(Expression * self, int depth) { return false; }
 
-ReturnType ASTRender::interactive(Interactive MAYBE_CONST* self, int depth) { return false; }
+LY_ReturnType ASTRender::interactive(Interactive * self, int depth) { return false; }
 
-void ASTRender::withitem(WithItem MAYBE_CONST& self, int depth) {
+void ASTRender::withitem(WithItem & self, int depth) {
     run(self.context_expr, depth);
     if (self.optional_vars.has_value()) {
         out() << special::Keyword(" as ");
@@ -1193,27 +1227,19 @@ void ASTRender::withitem(WithItem MAYBE_CONST& self, int depth) {
     }
 }
 
-ReturnType ASTRender::comment(Comment MAYBE_CONST* n, int depth) {
+LY_ReturnType ASTRender::comment(Comment * n, int depth) {
     out() << "#" << n->comment;
     return false;
 }
 
-void ASTRender::arguments(Arguments MAYBE_CONST& self, int depth) {
+void ASTRender::arguments(Arguments & self, int depth) {
     int i = 0;
 
-    for (auto& arg: self.args) {
+    for (Arg& arg: self.args) {
         auto config = special::Editable(arg.arg);
-        config.backspace = [&]() {
-            String string = str(arg.arg);
-            arg.arg = StringRef(string.substr(0, string.size() - 1));
-            _redraw = true;
-        };
-        config.input = [&](unsigned int c) {
-            String string = str(arg.arg);
-            string.push_back(c);
-            arg.arg = StringRef(string);
-            _redraw = true;
-        };
+        config.backspace = LY_BACKSPACE(&arg, arg.arg);
+        config.input = LY_INPUT(&arg, arg.arg);
+    
         out() << config;
 
         if (arg.annotation.has_value()) {
@@ -1254,7 +1280,7 @@ void ASTRender::arguments(Arguments MAYBE_CONST& self, int depth) {
     }
 
     i = 0;
-    for (auto MAYBE_CONST& kw: self.kwonlyargs) {
+    for (auto & kw: self.kwonlyargs) {
         out() << kw.arg;
 
         if (kw.annotation.has_value()) {

@@ -41,8 +41,6 @@ void Drawing::draw() {
     else {
         drawlist->AddText(style->font, style->font_size + hovered, rectangle.GetTL(), color, string.c_str());
     }
-
-
 };
 
 void Drawing::input() {
@@ -128,7 +126,7 @@ ASTRender& ASTRender::operator<<(special::Docstring const& keyword) {
     drawing->rectangle = ImRect(cursor, cursor + size);
 
     Group* group = new_group();
-    group->edit_id = group->id - 1;
+    group->edit_id = edit_order.size();
     edit_order.push_back(group->id - 1);
     group->rectangle = drawing->rectangle;
 
@@ -154,7 +152,7 @@ ASTRender& ASTRender::operator<<(special::Editable const& name)
 
     Group* group = new_group();
     group->node = name.parent;
-
+    group->edit_id = edit_order.size();
     edit_order.push_back(group->id - 1);
     group->rectangle = drawing->rectangle;
     group->backspace = name.backspace;

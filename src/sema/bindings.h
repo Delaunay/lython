@@ -39,7 +39,7 @@ struct Bindings {
     int add(StringRef const& name, Node* value, TypeExpr* type, int type_id=-1);
 
     BindingEntry* find(StringRef const& name) {
-        assert (bindings.size() > 0 , "");
+        lyassert(bindings.size() > 0 , "");
         int last = int(bindings.size()) - 1;
 
         for(int i = last; i >= 0; i--){

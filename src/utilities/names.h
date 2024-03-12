@@ -111,22 +111,22 @@ class StringDatabase {
 class StringRef {
     public:
     StringRef(std::size_t r = 0): ref(StringDatabase::instance().inc(r)) {
-        assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        lyassert(ref < StringDatabase::instance().count(), "StringRef is valid");
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     StringRef(String const& name): ref(StringDatabase::instance().string(name).ref) {
-        assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        lyassert(ref < StringDatabase::instance().count(), "StringRef is valid");
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     StringRef(StringRef const& name): ref(StringDatabase::instance().inc(name.ref)) {
-        assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        lyassert(ref < StringDatabase::instance().count(), "StringRef is valid");
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
     StringRef(StringRef const&& name): ref(StringDatabase::instance().inc(name.ref)) {
-        assert(ref < StringDatabase::instance().count(), "StringRef is valid");
+        lyassert(ref < StringDatabase::instance().count(), "StringRef is valid");
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 

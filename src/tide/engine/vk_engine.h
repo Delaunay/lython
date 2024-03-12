@@ -116,6 +116,7 @@ struct GPUObjectData {
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
+
 class VulkanEngine {
     public:
     bool _isInitialized{false};
