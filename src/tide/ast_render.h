@@ -172,7 +172,6 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
             stack.push_back(node);
             exec(node, depth);
             stack.pop_back();
-            //std::cout << "here" << std::endl;
             return nullptr;
         }//*/
         //std::cout << str(node) << std::endl;
