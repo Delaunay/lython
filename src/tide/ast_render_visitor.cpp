@@ -724,7 +724,7 @@ LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
         out() << indentation;
     }
 
-    auto config = special::Editable(self->name, (Node*)self);
+    auto config = special::Editable(self->name ? self->name: StringRef("<function>"), (Node*)self);
     config.backspace = LY_BACKSPACE(self, self->name);
     config.input = LY_INPUT(self, self->name);
     
@@ -1236,7 +1236,7 @@ void ASTRender::arguments(Arguments & self, int depth) {
     int i = 0;
 
     for (Arg& arg: self.args) {
-        auto config = special::Editable(arg.arg);
+        auto config = special::Editable(arg.arg ? arg.arg: StringRef("<arg name>"));
         config.backspace = LY_BACKSPACE(&arg, arg.arg);
         config.input = LY_INPUT(&arg, arg.arg);
     
