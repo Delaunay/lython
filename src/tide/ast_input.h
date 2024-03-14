@@ -36,6 +36,8 @@ struct ASTEditor {
     float pop_speed = 0.150;
     float pop_time = 0;
 
+    ImVec2 blinky;
+    
     void draw(float dt);
     void input(float dt);
 

@@ -39,7 +39,19 @@ void Drawing::draw() {
         drawlist->AddRect(rectangle.Min, rectangle.Max, color);
     }
     else {
-        drawlist->AddText(style->font, style->font_size + hovered, rectangle.GetTL(), color, string.c_str());
+        const char* str = string.c_str();
+        auto color_1 = color;
+
+        if (string[0] == '<') {
+            color_1 = ImColor(25, 25, 25);
+        }
+        drawlist->AddText(
+            style->font, 
+            style->font_size + hovered, 
+            rectangle.GetTL(), 
+            color_1, 
+            str
+        );
     }
 };
 
@@ -62,6 +74,11 @@ Drawing* ASTRender::new_drawing() {
 }
 
 Drawing* ASTRender::text(const char* name, ImColor color) {
+
+    if (strcmp(name, "") == 0) {
+        name = "<missing>";
+    }
+
     Drawing* drawing = new_drawing();
     drawing->string  = name;
     drawing->color   = color;

@@ -64,12 +64,14 @@ void ASTEditor::input(float dt) {
 
     input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_RightArrow, [this, n]() {
         this->index = clamp(this->index + 1, 0, n - 1);
-    });
-    input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_Tab, [this, n]() {
-        this->index = clamp(this->index + 1, 0, n - 1);
+        // blinky.x += 1;
     });
     input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_LeftArrow, [this, n]() {
         this->index = clamp(this->index - 1, 0, n - 1);
+        // blinky.x -= 1;
+    });
+    input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_Tab, [this, n]() {
+        this->index = clamp(this->index + 1, 0, n - 1);
     });
     input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_Backspace, [this]() {
         // this->input_buffer.pop_back();
@@ -108,6 +110,10 @@ void ASTEditor::suggest() {
 
 void ASTEditor::test() {
     ImVec2 pos = ImGui::GetMousePos();
+    ImVec2 char_size = style.font->CalcTextSizeA(
+        style.font_size, FLT_MAX, 0.0f, " ");
+
+
     // int count = 0;
     // for(Drawing& draw: renderer.drawings) {
     //     if (draw.rectangle.Contains(pos)) {
@@ -152,6 +158,12 @@ void ASTEditor::test() {
 
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     index = expr->edit_id;
+                    // I have the group but not the drawing that holds
+                    // the string to deduce the cursor
+                    // but given the size of the box I might be able to deduce it
+                    //ImVec2 offset = ImVec2(50, 20);
+                    //string_cursor = pos.y / char_size.y;
+                    //line = pos.x / char_size.x;
                 }
             }
         }
@@ -167,7 +179,7 @@ void ASTEditor::test() {
 }
 
 void ASTEditor::draw(float dt) {
-    ImVec2 offset = ImVec2(50, 20);
+    ImVec2 offset = ImVec2(60, 20);
     ImVec2 pos    = ImGui::GetMousePos();
     ImVec2 size   = style.font->CalcTextSizeA(style.font_size, FLT_MAX, 0.0f, "    ");
 
@@ -177,7 +189,7 @@ void ASTEditor::draw(float dt) {
 
     auto get_line = [&](float y) -> int {
         float char_height = (size.y + this->style.extra_line_space);
-        return int(float((y - offset.y - 0.5 * char_height) / char_height));
+        return int(float((y - offset.y - 0.0 * char_height) / char_height));
     };
 
     auto get_col = [&](float x) -> int {
@@ -189,6 +201,47 @@ void ASTEditor::draw(float dt) {
 
 
 
+    {
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            // I have the group but not the drawing that holds
+            // the string to deduce the cursor
+            // but given the size of the box I might be able to deduce it
+        blinky.x = get_col(pos.x) + 1;
+        blinky.y = get_line(pos.y) + 1;
+            
+        }
+
+        float char_width = size.x / 4;
+        ImVec2 k(
+            (blinky.x + 0.0) * char_width + offset.x,
+            (blinky.y - 1.0) * line_height - style.extra_line_space * 0.0f + offset.y
+        );
+
+        static float tt = 0;
+        static bool on = true;
+        tt += dt;
+
+        if (tt > 0.5) {
+            on = !on;
+            tt = 0;
+        }
+        if (on) {
+            drawlist->AddLine(
+                k + ImVec2(0, style.extra_line_space * 0.5),
+                k + ImVec2(0, size.y - style.extra_line_space * 0.5),
+                ImColor(255, 255, 255),
+                1.0f    
+            );
+        }
+
+        
+        drawlist->AddRect(
+            offset,
+            offset + ImVec2(1, 1) * 1000,
+            ImColor(255, 255, 255)
+        );
+        
+    }
 
 // Draw current line
 #if 0

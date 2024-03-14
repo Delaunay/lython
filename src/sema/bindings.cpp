@@ -61,7 +61,8 @@ inline std::ostream& print(std::ostream& out, int i, BindingEntry const& entry) 
 int Bindings::add(StringRef const& name, Node* value, TypeExpr* type, int type_id) {
     COZ_BEGIN("T::Bindings::add");
 
-    lyassert(name != StringRef(), "Should have a name");
+    // It is possile the name is missing during edit
+    // lyassert(name != StringRef(), "Should have a name");
     auto size = int(bindings.size());
 
     bool dynamic = !nested;
