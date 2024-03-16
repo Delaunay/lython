@@ -129,10 +129,9 @@ void ASTEditor::input(float dt) {
 
         if (io.InputQueueCharacters.Size > 0) {
             // FIXME we need an undo
-            // FIXME add cursor insert 
+            // we should give the entire queue to input and input should generate a undo entry
             int insert_pos = get_insert_cursor(group);
 
-            // we should give the entire queue to input and input should generate a undo entry
             for (int n = 0; n < io.InputQueueCharacters.Size; n++) {
                 unsigned int c = (unsigned int)io.InputQueueCharacters[n];
                 // input_buffer.push_back(c);
