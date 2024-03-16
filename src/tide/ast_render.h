@@ -135,18 +135,27 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
     int             _indent  = 0;
     bool            _redraw  = false;
 
-    flecs::world   ecs;
-    Array<Drawing> drawings;
-    Array<Group>   groups;
-    Array<Node*>   stack;
-    Array<int>     edit_order;
+    
+    flecs::world& get_ecs() {
+        static flecs::world ecs;
+        return ecs;
+    }
+    Array<flecs::entity> drawings;
+    Array<flecs::entity>   groups;
+    Array<Node*>    stack;
+    Array<int>           edit_order;
+    Array<flecs::entity> entities;
 
     Group* new_group() {
-        Group& grp = groups.emplace_back();
-        grp.id = int(groups.size());
+        flecs::entity entity = get_ecs().entity()
+            .add<Group>();
 
-        flecs::entity newgrp = ecs.entity(grp.id);
-        return &grp;
+        entities.push_back(entity);
+
+        Group* grp = entity.get_mut<Group>();
+        groups.push_back(entity);
+        grp->id = int(groups.size());
+        return grp;
     }
 
     Drawing* new_drawing();
@@ -187,11 +196,11 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
         Group* group = new_group();
         group->node = node;
         int new_count    = int(drawings.size());
-        group->rectangle = drawings[old_count].rectangle;
+        group->rectangle = drawings[old_count].get_mut<Drawing>()->rectangle;
         group->edit_id = edit_entry;
 
         for (int i = old_count; i < new_count; i++) {
-            group->rectangle.Add(drawings[i].rectangle);
+            group->rectangle.Add(drawings[i].get_mut<Drawing>()->rectangle);
         }
 
         edit_order[edit_entry] = group->id - 1;

@@ -91,9 +91,9 @@ LY_ReturnType ASTRender::render_body(Array<StmtNode*> & body, int depth, bool pr
     my_group->body      = &body;
     my_group->edit_id = edit_entry;
     int new_count       = drawings.size();
-    my_group->rectangle = drawings[old_count].rectangle;
+    my_group->rectangle = drawings[old_count].get_mut<Drawing>()->rectangle;
     for (int i = old_count; i < new_count; i++) {
-        my_group->rectangle.Add(drawings[i].rectangle);
+        my_group->rectangle.Add(drawings[i].get_mut<Drawing>()->rectangle);
     }
 
     edit_order[edit_entry] = my_group->id - 1;

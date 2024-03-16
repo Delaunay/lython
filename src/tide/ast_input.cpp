@@ -51,6 +51,10 @@ void ASTEditor::input(float dt) {
         renderer.drawings.clear();
         renderer.groups.clear();
         renderer.edit_order.clear();
+        for(auto entity: renderer.entities) {
+            entity.destruct();
+        }
+        renderer.entities.clear();
         renderer.cursor = renderer.start;
         // renderer.run(module);
     };
@@ -77,24 +81,24 @@ void ASTEditor::input(float dt) {
         // this->input_buffer.pop_back();
         if (this->index >= 0 && !renderer.edit_order.empty()) {
             int idx = renderer.edit_order[this->index];
-            Group& group = renderer.groups[idx];
+            Group* group = renderer.groups[idx].get_mut<Group>();
 
-            if (group.backspace) {
-                group.backspace();
+            if (group->backspace) {
+                group->backspace();
             }
         }
     });
 
     if (this->index >= 0 && !renderer.edit_order.empty()) {
         int idx = renderer.edit_order[this->index];
-        Group& group = renderer.groups[idx];
+        Group* group = renderer.groups[idx].get_mut<Group>();
 
         if (io.InputQueueCharacters.Size > 0) {
             for (int n = 0; n < io.InputQueueCharacters.Size; n++) {
                 unsigned int c = (unsigned int)io.InputQueueCharacters[n];
                 // input_buffer.push_back(c);
-                if (group.input) {
-                    group.input(c);
+                if (group->input) {
+                    group->input(c);
                 }
             }
             io.InputQueueCharacters.resize(0);
@@ -137,7 +141,8 @@ void ASTEditor::test() {
     };
 
     ImDrawList* drawlist = ImGui::GetWindowDrawList();
-    for (Group& group: renderer.groups) {
+    // for (Group* group: renderer.groups) 
+    {
 
         // drawlist->AddRect(group.rectangle.Min, group.rectangle.Max, ImColor(255, 255, 255), 0, 0,
         // 1);
@@ -146,15 +151,17 @@ void ASTEditor::test() {
     Group* body = nullptr;
     Group* expr = nullptr;
     int i = 0;
-    for (Group& group: renderer.groups) {
-        if (group.rectangle.Contains(pos)) {
-            if (group.body != nullptr) {
-                body = &group;
+    for (auto entity: renderer.groups) {
+        Group* group = entity.get_mut<Group>();
+
+        if (group->rectangle.Contains(pos)) {
+            if (group->body != nullptr) {
+                body = group;
                 break;
             }
 
             if (expr == nullptr) {
-                expr = &group;
+                expr = group;
 
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     index = expr->edit_id;
@@ -318,7 +325,7 @@ void ASTEditor::draw(float dt) {
                 drawlist->AddRectFilled(pos, pos + size, ImColor(0, 0, 0), 0, 0);
             }
 
-            Group* group = &renderer.groups[k];
+            Group* group = renderer.groups[k].get_mut<Group>();
             ImGui::SetCursorPos(pos);
             ImGui::Text("Group %3d (%3d:%2d) -> (%3d:%2d)",
                         group->id,
@@ -342,7 +349,7 @@ void ASTEditor::draw(float dt) {
     if (renderer.edit_order.size() > 0) {
         int idx = renderer.edit_order[clamp(index, 0, int(renderer.edit_order.size()) - 1)];
         if (idx >= 0) {
-            Group* selected = &renderer.groups[clamp(idx, 0, int(renderer.groups.size()) - 1)];
+            Group* selected = renderer.groups[clamp(idx, 0, int(renderer.groups.size()) - 1)].get_mut<Group>();
 
             drawlist->AddRect(
                 selected->rectangle.Min, selected->rectangle.Max, ImColor(255, 0, 0), 0, 0, 1);
