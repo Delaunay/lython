@@ -149,6 +149,7 @@ ASTRender& ASTRender::operator<<(special::Docstring const& keyword) {
     drawing->rectangle = ImRect(cursor, cursor + size);
 
     Group* group = new_group();
+    group->drawing = drawing;
     group->edit_id = edit_order.size();
     edit_order.push_back(group->id - 1);
     group->rectangle = drawing->rectangle;
@@ -175,6 +176,7 @@ ASTRender& ASTRender::operator<<(special::Editable const& name)
 
     Group* group = new_group();
     group->node = name.parent;
+    group->drawing = drawing;
     group->edit_id = edit_order.size();
     edit_order.push_back(group->id - 1);
     group->rectangle = drawing->rectangle;

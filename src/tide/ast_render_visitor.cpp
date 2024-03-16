@@ -33,17 +33,21 @@ bool ASTInputText(const char*            label,
 
 namespace lython {
 
+// attr = StringRef(__str.substr(0, __str.size() - 1));  
 #define LY_BACKSPACE(obj, attr)                                      \
-    [this, obj]() {                                                     \
+    [this, obj](int cursor) {                                                     \
         String __str = str(attr);                              \
-        attr = StringRef(__str.substr(0, __str.size() - 1));  \
+        __str.erase(cursor, 1);                                 \
+        attr = StringRef(__str);                                                        \
         this->_redraw = true;                                   \
     }
 
+// __str.push_back(c);
 #define LY_INPUT(obj, attr)                                          \
-    [this, obj](unsigned int c) {                                       \
+    [this, obj](int cursor, unsigned int c) {                        \
+        std::cout << cursor << std::endl;\
         String __str = str(attr);                              \
-        __str.push_back(c);                                    \
+        __str.insert(cursor, 1, c);                                  \
         attr = StringRef(__str);                               \
         this->_redraw = true;                                   \
     } 
@@ -603,11 +607,11 @@ LY_ReturnType ASTRender::constant(Constant * self, int depth) {
     // we need to parse the value on change
     // and the value might not be correct so we need to keep
     // a input buffer
-    auto config = special::Editable(ss.str());
-    config.input = [](unsigned int c){
+    auto config = special::Editable(ss.str(), self);
+    config.input = [](int cursor, unsigned int c){
 
     };
-    config.backspace= [](){
+    config.backspace= [](int cursor){
         
     };
     out() << config;
@@ -1060,7 +1064,7 @@ LY_ReturnType ASTRender::settype(SetType * self, int depth) {
 }
 
 LY_ReturnType ASTRender::name(Name * self, int depth) {
-    auto config = special::Editable(self->id);
+    auto config = special::Editable(self->id, self);
     config.backspace = LY_BACKSPACE(self, self->id);
     config.input = LY_INPUT(self, self->id);
     out() << config;
@@ -1236,7 +1240,7 @@ void ASTRender::arguments(Arguments & self, int depth) {
     int i = 0;
 
     for (Arg& arg: self.args) {
-        auto config = special::Editable(arg.arg ? arg.arg: StringRef("<arg name>"));
+        auto config = special::Editable(arg.arg ? arg.arg: StringRef("<arg name>"), stack[stack.size() -1]);
         config.backspace = LY_BACKSPACE(&arg, arg.arg);
         config.input = LY_INPUT(&arg, arg.arg);
     
