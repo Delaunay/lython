@@ -121,6 +121,33 @@ TEST_CASE("SEMA_ClassDef_Attribute") {
     run_testcase("ClassDef", ex);
 }
 
+TEST_CASE("SEMA_IfStmt") {
+    static Array<TestCase> ex = {True
+        // FIXME, sema need to detect this
+        {
+            // `a` might be set
+            "c = True\n"
+            "if c:\n"
+            "    a = 2\n"
+            "b = a + 1\n",
+        },
+        {   // `a` will NEVER be set
+            "if False:\n"
+            "    a = 2\n"
+            "b = a + 1\n",
+        },
+        {   // `a` will always be set
+            "if True:\n"
+            "    a = 2\n"
+            "else:\n"
+            "    a = 3\n"
+            "b = a + 1\n",
+        },
+    };
+
+    run_testcase("Conditional_Assign", ex);
+}
+
 TEST_CASE("SEMA_Unpacking") {
     static Array<TestCase> ex = {
         {
