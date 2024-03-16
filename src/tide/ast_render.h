@@ -50,8 +50,8 @@ struct Editable {
     String name;
     Node* parent;
 
-    std::function<void()> backspace;
-    std::function<void(unsigned int)> input;
+    std::function<void(int)> backspace;
+    std::function<void(int, unsigned int)> input;
 };
 }  // namespace special
 
@@ -83,13 +83,14 @@ struct Drawing: public Drawable {
 
 struct Group {
     Node*                   node = nullptr;
+    Drawing*                drawing = nullptr;
     int id                  = -1;
     int edit_id             = -1;
     ImRect                  rectangle = ImRect(ImVec2(0, 0), ImVec2(0, 0));
     Array<StmtNode*> const* body = nullptr;
 
-    std::function<void()> backspace;
-    std::function<void(unsigned int)> input;
+    std::function<void(int)> backspace;
+    std::function<void(int, unsigned int)> input;
 };
 
 struct EditableString {

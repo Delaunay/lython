@@ -66,6 +66,37 @@ void ASTEditor::input(float dt) {
         ImVec2 pos = ImGui::GetCursorPos();
     }
 
+    auto get_insert_cursor = [this](Group* group) -> int {
+        if (group == nullptr) {
+            return -1;
+        }
+        ImVec2 char_size = this->style.font->CalcTextSizeA(
+            this->style.font_size, FLT_MAX, 0.0f, " ");
+        float char_width = char_size.x;
+
+        float insert_pos = 0;
+        if (group->drawing != nullptr) {
+
+            // text being modified
+            ImRect position = group->drawing->rectangle;
+            String const& text = group->drawing->string;
+
+            ImVec2 pos = this->blinky_px - position.Min;
+            insert_pos = pos.x / char_width;
+        }
+        return insert_pos;
+    };
+
+    auto move_blinky = [this](float dir){
+        ImVec2 char_size = this->style.font->CalcTextSizeA(
+            this->style.font_size, FLT_MAX, 0.0f, " ");
+        float char_width = char_size.x;
+
+        blinky += ImVec2(1, 0) * dir;
+        blinky_px += ImVec2(char_width, 0) * dir;
+    };
+
+
     input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_RightArrow, [this, n]() {
         this->index = clamp(this->index + 1, 0, n - 1);
         // blinky.x += 1;
@@ -77,14 +108,17 @@ void ASTEditor::input(float dt) {
     input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_Tab, [this, n]() {
         this->index = clamp(this->index + 1, 0, n - 1);
     });
-    input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_Backspace, [this]() {
+    input_action_pressed_held(dt, pop_time, pop_speed, ImGuiKey_Backspace, [&, this]() {
         // this->input_buffer.pop_back();
         if (this->index >= 0 && !renderer.edit_order.empty()) {
             int idx = renderer.edit_order[this->index];
             Group* group = renderer.groups[idx].get_mut<Group>();
 
+            // do samething for input & backspace
             if (group->backspace) {
-                group->backspace();
+                int insert_pos = get_insert_cursor(group);
+                group->backspace(insert_pos - 1);
+                move_blinky(-1);
             }
         }
     });
@@ -94,13 +128,20 @@ void ASTEditor::input(float dt) {
         Group* group = renderer.groups[idx].get_mut<Group>();
 
         if (io.InputQueueCharacters.Size > 0) {
+            // FIXME we need an undo
+            // FIXME add cursor insert 
+            int insert_pos = get_insert_cursor(group);
+
+            // we should give the entire queue to input and input should generate a undo entry
             for (int n = 0; n < io.InputQueueCharacters.Size; n++) {
                 unsigned int c = (unsigned int)io.InputQueueCharacters[n];
                 // input_buffer.push_back(c);
                 if (group->input) {
-                    group->input(c);
+                    group->input(int(insert_pos), c);
+                    move_blinky(1);
                 }
             }
+            
             io.InputQueueCharacters.resize(0);
         }
     }
@@ -165,6 +206,9 @@ void ASTEditor::test() {
 
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     index = expr->edit_id;
+
+    
+
                     // I have the group but not the drawing that holds
                     // the string to deduce the cursor
                     // but given the size of the box I might be able to deduce it
@@ -182,6 +226,12 @@ void ASTEditor::test() {
     }
     if (expr) {
         drawlist->AddRect(expr->rectangle.Min, expr->rectangle.Max, ImColor(0, 0, 255), 0, 0, 1);
+
+        Node* node = expr->node;
+        if (node) {
+            String kind = str(node->kind);
+            drawlist->AddText(ImVec2(500, 500), ImColor(155, 155, 155), kind.c_str());
+        }
     }
 }
 
@@ -213,13 +263,12 @@ void ASTEditor::draw(float dt) {
             // I have the group but not the drawing that holds
             // the string to deduce the cursor
             // but given the size of the box I might be able to deduce it
-        blinky.x = get_col(pos.x) + 1;
-        blinky.y = get_line(pos.y) + 1;
-            
+            blinky.x = get_col(pos.x) + 1;
+            blinky.y = get_line(pos.y) + 1;
         }
 
         float char_width = size.x / 4;
-        ImVec2 k(
+        blinky_px = ImVec2(
             (blinky.x + 0.0) * char_width + offset.x,
             (blinky.y - 1.0) * line_height - style.extra_line_space * 0.0f + offset.y
         );
@@ -234,20 +283,18 @@ void ASTEditor::draw(float dt) {
         }
         if (on) {
             drawlist->AddLine(
-                k + ImVec2(0, style.extra_line_space * 0.5),
-                k + ImVec2(0, size.y - style.extra_line_space * 0.5),
+                blinky_px + ImVec2(0, style.extra_line_space * 0.5),
+                blinky_px + ImVec2(0, size.y - style.extra_line_space * 0.5),
                 ImColor(255, 255, 255),
                 1.0f    
             );
         }
 
-        
         drawlist->AddRect(
             offset,
             offset + ImVec2(1, 1) * 1000,
             ImColor(255, 255, 255)
         );
-        
     }
 
 // Draw current line
