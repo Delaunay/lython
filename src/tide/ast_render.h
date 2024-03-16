@@ -35,6 +35,9 @@ struct Keyword {
 struct Docstring {
     Docstring(String const& name): name(name) {}
     String name;
+
+    std::function<void(int)> backspace;
+    std::function<void(int, unsigned int)> input;
 };
 struct Type {
     Type(String const& name): name(name) {}
@@ -281,5 +284,6 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
 
 #undef FUNCTION_GEN
 };
+
 
 }  // namespace lython

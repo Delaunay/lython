@@ -140,7 +140,7 @@ ASTRender& ASTRender::operator<<(special::Newline const& name) {
 ASTRender& ASTRender::operator<<(special::Docstring const& keyword) {
     Drawing* drawing       = new_drawing();
     drawing->color         = style->comment;
-    drawing->string        = String("\"\"\"") + keyword.name + String("\"\"\"");
+    drawing->string        = keyword.name.empty() ? String("<docstring>") : keyword.name;
     drawing->rectangle.Min = cursor;
 
     ImVec2 size =
@@ -153,6 +153,8 @@ ASTRender& ASTRender::operator<<(special::Docstring const& keyword) {
     group->edit_id = edit_order.size();
     edit_order.push_back(group->id - 1);
     group->rectangle = drawing->rectangle;
+    group->input = keyword.input;
+    group->backspace = keyword.backspace;
 
     cursor.x += size.x;
     return *this;

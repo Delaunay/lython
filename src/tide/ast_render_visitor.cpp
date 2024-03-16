@@ -20,6 +20,40 @@
 #include "utilities/strings.h"
 
 
+// attr = StringRef(__str.substr(0, __str.size() - 1));  
+#define LY_BACKSPACE(obj, attr)                                      \
+    [this, obj](int cursor) {                                                     \
+        String __str = str(attr);                              \
+        __str.erase(cursor, 1);                                 \
+        attr = StringRef(__str);                                                        \
+        this->_redraw = true;                                   \
+    }
+
+// __str.push_back(c);
+#define LY_INPUT(obj, attr)                                          \
+    [this, obj](int cursor, unsigned int c) {                        \
+        String __str = str(attr);                              \
+        __str.insert(cursor, 1, c);                                  \
+        attr = StringRef(__str);                               \
+        this->_redraw = true;                                   \
+    } 
+
+
+// attr = StringRef(__str.substr(0, __str.size() - 1));  
+#define LY_BACKSPACE_STR(obj, attr)                                      \
+    [this, obj](int cursor) {                                                     \
+        attr.erase(cursor, 1);                                 \
+        this->_redraw = true;                                   \
+    }
+
+// __str.push_back(c);
+#define LY_INPUT_STR(obj, attr)                                          \
+    [this, obj](int cursor, unsigned int c) {                        \
+        attr.insert(cursor, 1, c);                                  \
+        this->_redraw = true;                                   \
+    } 
+
+
 bool ASTInputText(const char*            label,
                   const char*            hint,
                   char*                  buf,
@@ -33,24 +67,6 @@ bool ASTInputText(const char*            label,
 
 namespace lython {
 
-// attr = StringRef(__str.substr(0, __str.size() - 1));  
-#define LY_BACKSPACE(obj, attr)                                      \
-    [this, obj](int cursor) {                                                     \
-        String __str = str(attr);                              \
-        __str.erase(cursor, 1);                                 \
-        attr = StringRef(__str);                                                        \
-        this->_redraw = true;                                   \
-    }
-
-// __str.push_back(c);
-#define LY_INPUT(obj, attr)                                          \
-    [this, obj](int cursor, unsigned int c) {                        \
-        std::cout << cursor << std::endl;\
-        String __str = str(attr);                              \
-        __str.insert(cursor, 1, c);                                  \
-        attr = StringRef(__str);                               \
-        this->_redraw = true;                                   \
-    } 
 
 
 static special::Newline       newline;
@@ -675,6 +691,7 @@ LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
 
     if (self->docstring.has_value()) {
         Docstring & doc = self->docstring.value();
+    
         out() << indentation << "\"\"\"" << doc.docstring << "\"\"\"";
 
         maybe_inline_comment(doc.comment, depth, LOC);
@@ -750,10 +767,14 @@ LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
 
     if (self->docstring.has_value()) {
         Docstring & doc = self->docstring.value();
+        auto config = special::Docstring(doc.docstring);
+
+        config.input = LY_INPUT_STR(&doc, doc.docstring);
+        config.backspace = LY_BACKSPACE_STR(&doc, doc.docstring);
 
         {
             auto _ = indent();
-            out() << indentation << special::Docstring(doc.docstring);
+            out() << indentation << config;
         }
 
         maybe_inline_comment(doc.comment, depth, LOC);
@@ -1232,7 +1253,10 @@ void ASTRender::withitem(WithItem & self, int depth) {
 }
 
 LY_ReturnType ASTRender::comment(Comment * n, int depth) {
-    out() << "#" << n->comment;
+    auto config = special::Editable(!n->comment.empty() ? n->comment: String("<comment>"), n);
+    config.input = LY_INPUT_STR(n, n->comment);
+    config.backspace = LY_BACKSPACE_STR(n, n->comment);
+    out() << "#" << config;
     return false;
 }
 
