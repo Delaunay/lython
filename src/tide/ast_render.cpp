@@ -66,11 +66,17 @@ void Drawing::input() {
 }
 
 Drawing* ASTRender::new_drawing() {
-    Drawing& drawing = drawings.emplace_back();
-    drawing.id       = drawings.size();
-    drawing.style    = style;
-    drawing.node     = stack[stack.size() - 1];
-    return &drawing;
+    flecs::entity entity = get_ecs().entity().add<Drawing>();
+    entities.push_back(entity);
+
+    Drawing* drawing = entity.get_mut<Drawing>();
+    drawings.push_back(entity);
+
+    drawing->id       = drawings.size();
+    drawing->style    = style;
+    drawing->node     = stack[stack.size() - 1];
+
+    return drawing;
 }
 
 Drawing* ASTRender::text(const char* name, ImColor color) {
@@ -91,9 +97,9 @@ Drawing* ASTRender::text(const char* name, ImColor color) {
 }
 
 void ASTRender::draw() {
-    for (auto& drawing: drawings) {
-        drawing.input();
-        drawing.draw();
+    for (flecs::entity& entity: drawings) {
+        entity.get_mut<Drawing>()->input();
+        entity.get_mut<Drawing>()->draw();
     }
 }
 
