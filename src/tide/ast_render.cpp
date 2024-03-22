@@ -32,6 +32,15 @@ bool ASTInputText(const char*            label,
 
 namespace lython {
 
+
+Drawing* DrawingRef::operator ->() {
+    return _holder->drawings[id].get_mut<Drawing>();
+}
+
+Group* GroupRef::operator ->() {
+    return _holder->drawings[id].get_mut<Group>();
+}
+
 void Drawing::draw() {
     ImDrawList* drawlist = ImGui::GetWindowDrawList();
 
@@ -65,7 +74,7 @@ void Drawing::input() {
     // }
 }
 
-Drawing* ASTRender::new_drawing() {
+DrawingRef ASTRender::new_drawing() {
     flecs::entity entity = get_ecs().entity().add<Drawing>();
     entities.push_back(entity);
 
@@ -76,16 +85,16 @@ Drawing* ASTRender::new_drawing() {
     drawing->style    = style;
     drawing->node     = stack[stack.size() - 1];
 
-    return drawing;
+    return DrawingRef{drawing->id - 1, this};
 }
 
-Drawing* ASTRender::text(const char* name, ImColor color) {
+DrawingRef ASTRender::text(const char* name, ImColor color) {
 
     if (strcmp(name, "") == 0) {
         name = "<missing>";
     }
 
-    Drawing* drawing = new_drawing();
+    DrawingRef drawing = new_drawing();
     drawing->string  = name;
     drawing->color   = color;
 
@@ -138,7 +147,7 @@ ASTRender& ASTRender::operator<<(special::Newline const& name) {
     return *this;
 }
 ASTRender& ASTRender::operator<<(special::Docstring const& keyword) {
-    Drawing* drawing       = new_drawing();
+    DrawingRef drawing       = new_drawing();
     drawing->color         = style->comment;
     drawing->string        = keyword.name.empty() ? String("<docstring>") : keyword.name;
     drawing->rectangle.Min = cursor;
@@ -174,7 +183,7 @@ ASTRender& ASTRender::operator<<(special::BeforeComment const& name) {
 
 ASTRender& ASTRender::operator<<(special::Editable const& name) 
 {
-    Drawing* drawing = text(name.name.c_str(), style->color);
+    DrawingRef drawing = text(name.name.c_str(), style->color);
 
     Group* group = new_group();
     group->node = name.parent;

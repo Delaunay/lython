@@ -4,8 +4,10 @@
 #include <array>
 #include <cstdio>
 #include <memory>
+#include <iostream>
 
 #include "logging/logging.h"
+#include "dtypes.h"
 
 namespace lython {
 
@@ -25,6 +27,8 @@ class Trie {
     }
 
     Trie(Trie const& trie) {
+        _leaf = trie._leaf;
+
         for (size_t i = 0; i < size; i++) {
             auto& child = trie.children[i];
 
@@ -36,6 +40,8 @@ class Trie {
     }
 
     Trie operator=(Trie const& trie) {
+        _leaf = trie._leaf;
+        
         for (size_t i = 0; i < size; i++) {
             auto& child = trie.children[i];
 
@@ -47,6 +53,75 @@ class Trie {
 
         return *this;
     }
+
+    bool remove(std::string_view const& name) {
+        Trie* parent = nullptr;
+        Trie* current = this;
+
+        Array<std::tuple<Trie*, int>> path;
+
+        for (auto c: name) {
+            // we do not have the value in the trie
+            if (current->children[c] == nullptr) {
+                return false;
+            }
+            
+            if (current->children[c]->has_children() <= 1) {
+                // queue this char for deletion
+                path.push_back(std::make_tuple(current, c));
+            }
+
+            else {
+                // this path has children we cannot delete it
+                path.clear();
+            }
+
+            parent = current;
+            current = current->children[c].get();
+        }
+
+        if (path.size() > 0) {
+            // we only need to delete the first one
+            // destructor will take care of the rest
+            Trie* begin = nullptr;
+            int c = '\0';
+            std::tie(begin, c) = path[0];
+            begin->children[c] = nullptr;
+            return true;
+        }
+        return false;
+    }
+
+    Array<String> retrieve() const {
+        Array<String> results;
+        _retrieve(results, "");
+        return results;
+    }
+
+    void _retrieve(Array<String>& results, String const& prev) const {
+        for (int i = 0; i < size; i++) {
+            Trie const* ptr = children[i].get() ;
+
+            if (ptr != nullptr) {
+                String newprev = prev + char(i);
+                if (ptr->leaf()) {
+                    results.push_back(newprev);
+                }
+                ptr->_retrieve(results, newprev);
+            }
+        }
+    }
+
+    Array<String> complete(String const& name) const {
+        Trie const* ptr = matching(name);
+        Array<String> suggestions;
+
+        if (ptr != nullptr) {
+            ptr->_retrieve(suggestions, name);
+        }
+        return suggestions;
+    }
+
 
     //! Returns if the the value was inserted of not
     bool insert(std::string_view const& name) {

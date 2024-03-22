@@ -39,6 +39,9 @@ using HashNodeInternal = std::_List_node<T, void* __ptr64>;
 
 template <typename T, bool cache>
 using ListIterator = std::_List_unchecked_iterator<std::_List_val<std::_List_simple_types<T>>>;
+
+template <typename T, bool cache>
+using ListConstIterator = std::_List_unchecked_const_iterator<std::_List_val<std::_List_simple_types<T>>>;
 #endif
 
 template <typename T>
@@ -262,6 +265,102 @@ void _metadata_init_names_windows() {
                         typename std::allocator_traits<
                             std::allocator<Array<StringDatabase::StringEntry>>>::void_pointer>>(
         "ListNode[Array[StringEntry]]");
+
+    meta::override_typename<
+        std::_List_node<
+            std::pair<
+                std::string_view const,
+                uint64_t
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[StringView, uint64]]");
+
+
+   meta::override_typename<
+        Array<StringDatabase::StringEntry>*
+    >
+    ("Array[StringEntry]*");
+
+
+    meta::override_typename<
+        std::_List_node<
+            std::pair<
+                String const,
+                OpConfig
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[String, OpConfig]]");
+
+
+    meta::override_typename<
+        OpConfig
+    >
+    ("OpConfig");
+
+   meta::override_typename<
+        std::_List_node<
+            std::pair<
+                String const,
+                TokenType
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[String, TokenType]]");
+
+
+   meta::override_typename<
+        std::_List_node<
+            std::pair<
+                int const,
+                String
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[int, String]]");
+
+    meta::override_typename<
+        std::_List_node<
+            std::pair<
+                StringRef const,
+                ConstantValue (*)(ConstantValue const&, ConstantValue const&)
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[StringRef, NativeBinaryFun]]");
+
+  meta::override_typename<
+        std::_List_node<
+            std::pair<
+                StringRef const,
+                ConstantValue (*)(ConstantValue const&)
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[StringRef, NativeUnaryFun]]");
+
+   meta::override_typename<
+        std::_List_node<
+            char,
+            void*
+        >
+    >
+    ("ListNode[char]");
+
+    meta::override_typename<ListConstIterator<char, true>>(
+        "Iterator[char]");
+
+    meta::override_typename<
+        std::tuple<lython::Trie<128>*, int>
+    >
+    ("Tuple[Trie*, int]");
 #endif
 }
 void _metadata_init_names_unix() {

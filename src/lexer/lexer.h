@@ -22,6 +22,7 @@
 namespace lython {
 
 struct OpConfig {
+    String         operator_name;
     int            precedence       = -1;
     bool           left_associative = true;
     TokenType      type             = TokenType::tok_eof;
@@ -37,9 +38,18 @@ struct OpConfig {
             << "(bool: " << int(boolkind) << ") "
             << "(cmp: " << int(cmpkind) << ") ";
     }
+
+    operator bool() {
+        return binarykind != BinaryOperator::None ||
+        unarykind != UnaryOperator::None ||
+        boolkind != BoolOperator::None ||
+        cmpkind != CmpOperator::None 
+        ;
+    }
 };
 
 Dict<String, OpConfig> const& default_precedence();
+Array<OpConfig> const& all_operators();
 
 class LexerOperators {
     public:

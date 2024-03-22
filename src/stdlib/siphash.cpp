@@ -84,7 +84,7 @@ int siphash(const void *in, const size_t inlen, const void *k, uint8_t *out,
     const unsigned char *ni = (const unsigned char *)in;
     const unsigned char *kk = (const unsigned char *)k;
 
-    lyassert((outlen == 8) || (outlen == 16));
+    assert((outlen == 8) || (outlen == 16));
     uint64_t v0 = UINT64_C(0x736f6d6570736575);
     uint64_t v1 = UINT64_C(0x646f72616e646f6d);
     uint64_t v2 = UINT64_C(0x6c7967656e657261);

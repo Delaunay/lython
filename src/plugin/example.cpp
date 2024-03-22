@@ -41,6 +41,8 @@ ExprRet ExampleVisitor::tupletype(TupleType_t* n, int depth) { return ExprRet();
 ExprRet ExampleVisitor::settype(SetType_t* n, int depth) { return ExprRet(); }
 ExprRet ExampleVisitor::classtype(ClassType_t* n, int depth) { return ExprRet(); }
 ExprRet ExampleVisitor::comment(Comment_t* n, int depth) { return ExprRet(); }
+ExprRet ExampleVisitor::exported(Exported_t* n, int depth) { return ExprRet(); }
+ExprRet ExampleVisitor::placeholder(Placeholder_t* n, int depth) { return ExprRet(); }
 
 StmtRet ExampleVisitor::functiondef(FunctionDef_t* n, int depth) { return StmtRet(); }
 StmtRet ExampleVisitor::classdef(ClassDef_t* n, int depth) { return StmtRet(); }

@@ -75,7 +75,7 @@ void ASTEditor::input(float dt) {
         float char_width = char_size.x;
 
         float insert_pos = 0;
-        if (group->drawing != nullptr) {
+        if (group->drawing) {
 
             // text being modified
             ImRect position = group->drawing->rectangle;
@@ -117,8 +117,11 @@ void ASTEditor::input(float dt) {
             // do samething for input & backspace
             if (group->backspace) {
                 int insert_pos = get_insert_cursor(group);
-                group->backspace(insert_pos - 1);
-                move_blinky(-1);
+                bool success = group->backspace(insert_pos - 1);
+
+                if (success) {
+                    move_blinky(-1);
+                }
             }
         }
     });
@@ -136,8 +139,10 @@ void ASTEditor::input(float dt) {
                 unsigned int c = (unsigned int)io.InputQueueCharacters[n];
                 // input_buffer.push_back(c);
                 if (group->input) {
-                    group->input(int(insert_pos), c);
-                    move_blinky(1);
+                    bool success = group->input(int(insert_pos), c);
+                    if (success) {
+                        move_blinky(1);
+                    }
                 }
             }
             
@@ -146,10 +151,43 @@ void ASTEditor::input(float dt) {
     }
 }
 
-void ASTEditor::suggest() {
-    if (input_buffer == "def") {
-        suggestions = {"def function", "name"};
+void ASTEditor::update_trie() {
+    Array<String> statements = {
+        "def",          // create a function
+        "while",        // create a while statement
+        "for",
+        "match",
+        "class",
+        "return",
+        "async",
+        "del",
+        "if",
+        "with",
+        "raise",
+        "try",
+        "assert",
+        "import",
+        "from",
+        "global",
+        "nonlocal",
+        "pass",
+        "break",
+        "continue",
+        "expr",        // <= Insert ExprStmt to hold an expression
+    };
+
+    //suggest_trie.insert(SuggestTrieContext::Statement);
+    //SuggestTrie* stmt = suggest_trie.matching(SuggestTrieContext::Statement);
+
+    SuggestTrie* stmt  = &suggest_trie;
+    for(String const& str: statements) {
+        stmt->insert(str);
     }
+}
+
+void ASTEditor::suggest() {
+    update_trie();
+    suggestions = suggest_trie.complete(input_buffer);
 }
 
 void ASTEditor::test() {
@@ -205,9 +243,8 @@ void ASTEditor::test() {
 
                 if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
                     index = expr->edit_id;
-
-    
-
+                    // get the text here
+                
                     // I have the group but not the drawing that holds
                     // the string to deduce the cursor
                     // but given the size of the box I might be able to deduce it
@@ -232,6 +269,17 @@ void ASTEditor::test() {
             drawlist->AddText(ImVec2(500, 500), ImColor(155, 155, 155), kind.c_str());
         }
     }
+
+    if (index >= 0 && !renderer.edit_order.empty()) {
+        int idx = renderer.edit_order[index];
+        Group* group = renderer.groups[idx].get_mut<Group>();
+        
+        if (group->drawing) {
+            input_buffer = group->drawing->string;
+            suggest();
+        }
+    }
+
 }
 
 void ASTEditor::draw(float dt) {
@@ -317,7 +365,7 @@ void ASTEditor::draw(float dt) {
     }
 
     // Show suggestion tooltip
-    suggestions = {"first suggestion", "second suggestion"};
+    // suggest();
 
     if (!suggestions.empty()) {
         ImVec2 margin(10, 10);
@@ -327,10 +375,10 @@ void ASTEditor::draw(float dt) {
         for (int i = 0; i < suggestions.size(); i++) {
             ImVec2 size =
                 style.font->CalcTextSizeA(style.font_size, FLT_MAX, 0.0f, suggestions[i].c_str());
-            rect.Add(rect.GetBL() + size);
+            rect.Add(rect.GetBL() + size + ImVec2(0, style.extra_line_space));
         }
 
-        rect.Add(rect.GetBR() + margin * 2);
+        rect.Add(rect.GetBR() + margin);
 
         drawlist->AddRectFilled(rect.Min, rect.Max, ImColor(0, 0, 0), 0, 0);
 
@@ -358,7 +406,7 @@ void ASTEditor::draw(float dt) {
     // draw current buffer
     float  current_line = float(line) * line_height - style.extra_line_space * 0.5f + offset.y;
     ImVec2 cursor       = ImVec2(60, current_line);
-    drawlist->AddText(cursor, ImColor(255, 255, 255), input_buffer.c_str());
+    // drawlist->AddText(cursor, ImColor(255, 255, 255), input_buffer.c_str());
 
     // Debug draw
     {

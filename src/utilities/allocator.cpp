@@ -96,10 +96,10 @@ void show_alloc_stats() {
 
     auto& db = meta::TypeRegistry::instance().id_to_meta;
 
-    auto line = String(4 + 40 + 10 + 10 + 10 + 10 + 10 + 10 + 7 + 1, '-');
+    auto line = String(4 + 50 + 10 + 10 + 10 + 10 + 10 + 10 + 7 + 1, '-');
 
     std::cout << line << '\n';
-    std::cout << fmt::format("{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+    std::cout << fmt::format("{:>4} {:>50} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
                              "id",
                              "name",
                              "alloc",
@@ -134,7 +134,7 @@ void show_alloc_stats() {
                 ss << remain;
             }
             std::cout << fmt::format(
-                "{:>4} {:>41} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
+                "{:>4} {:>50} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n",
                 klass.type_id,
                 String(name.c_str()),
                 alloc,
