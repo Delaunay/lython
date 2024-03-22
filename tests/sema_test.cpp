@@ -122,7 +122,7 @@ TEST_CASE("SEMA_ClassDef_Attribute") {
 }
 
 TEST_CASE("SEMA_IfStmt") {
-    static Array<TestCase> ex = {True
+    static Array<TestCase> ex = {
         // FIXME, sema need to detect this
         {
             // `a` might be set

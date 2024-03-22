@@ -8,6 +8,11 @@
 #include "ast/visitor.h"
 
 namespace lython {
+
+using BackspaceEventHandler = std::function<bool(int)>;
+using InputEventHandler = std::function<bool(int, unsigned int)>;
+
+
 struct ASTRenderStyle {
     ImFont const* font             = nullptr;
     float         font_size        = 24;
@@ -36,8 +41,8 @@ struct Docstring {
     Docstring(String const& name): name(name) {}
     String name;
 
-    std::function<void(int)> backspace;
-    std::function<void(int, unsigned int)> input;
+    BackspaceEventHandler backspace;
+    InputEventHandler input;
 };
 struct Type {
     Type(String const& name): name(name) {}
@@ -53,8 +58,8 @@ struct Editable {
     String name;
     Node* parent;
 
-    std::function<void(int)> backspace;
-    std::function<void(int, unsigned int)> input;
+    BackspaceEventHandler backspace;
+    InputEventHandler input;
 };
 }  // namespace special
 
@@ -84,17 +89,40 @@ struct Drawing: public Drawable {
     bool pressed = false;
 };
 
+struct DrawingRef {
+    int id = -1;
+    struct ASTRender* _holder = nullptr;
+
+    Drawing* operator ->();
+
+    operator bool() {
+        return id != -1 && _holder != nullptr;
+    }
+};
+
 struct Group {
     Node*                   node = nullptr;
-    Drawing*                drawing = nullptr;
+    DrawingRef              drawing;
     int id                  = -1;
     int edit_id             = -1;
     ImRect                  rectangle = ImRect(ImVec2(0, 0), ImVec2(0, 0));
     Array<StmtNode*> const* body = nullptr;
 
-    std::function<void(int)> backspace;
-    std::function<void(int, unsigned int)> input;
+    BackspaceEventHandler backspace;
+    InputEventHandler input;
 };
+
+struct GroupRef {
+    int id = -1;
+    struct ASTRender* _holder = nullptr;
+
+    Group* operator ->();
+
+    operator bool() {
+        return id != -1 && _holder != nullptr;
+    }
+};
+
 
 struct EditableString {
     String buffer;
@@ -125,6 +153,7 @@ struct ASTRenderTrait {
 
 // Change this to return strings so we can change the format of partial results
 
+
 struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
     using Super = BaseVisitor<ASTRender, false, ASTRenderTrait>;
 
@@ -149,10 +178,12 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
     Array<Node*>    stack;
     Array<int>           edit_order;
     Array<flecs::entity> entities;
+    Dict<Node*, String> buffer;
 
     Group* new_group() {
         flecs::entity entity = get_ecs().entity()
             .add<Group>();
+
 
         entities.push_back(entity);
 
@@ -162,12 +193,12 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
         return grp;
     }
 
-    Drawing* new_drawing();
-    Drawing* text(const char* name, ImColor color);
+    DrawingRef new_drawing();
+    DrawingRef text(const char* name, ImColor color);
 
     void print_op(UnaryOperator op);
     void print_op(CmpOperator op);
-    void print_op(BinaryOperator op, bool aug);
+    void print_op(Node* bin, BinaryOperator op, bool aug);
     void print_op(BoolOperator op);
 
     void draw();

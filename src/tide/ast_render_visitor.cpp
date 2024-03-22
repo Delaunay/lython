@@ -3,6 +3,7 @@
 #include <imgui_internal.h>
 #include <iostream>
 
+#include "lexer/lexer.h"
 #include "tide/ast_input.h"
 #include "tide/ast_render.h"
 
@@ -19,46 +20,55 @@
 #include "utilities/allocator.h"
 #include "utilities/strings.h"
 
+namespace lython {
+bool safe_erase(String& str, int cursor) {
+    if (cursor >= 0 && !str.empty()) {
+        str.erase(cursor, 1);
+        return true;
+    }
+    return false;
+}
+}  // namespace lython
 
-// attr = StringRef(__str.substr(0, __str.size() - 1));  
-#define LY_BACKSPACE(obj, attr)                                      \
-    [this, obj](int cursor) {                                                     \
-        String __str = str(attr);                              \
-        __str.erase(cursor, 1);                                 \
-        attr = StringRef(__str);                                                        \
-        this->_redraw = true;                                   \
+// attr = StringRef(__str.substr(0, __str.size() - 1));
+#define LY_BACKSPACE(obj, attr)                    \
+    [this, obj](int cursor) -> bool {              \
+        String __str  = str(attr);                 \
+        this->_redraw = safe_erase(__str, cursor); \
+        attr          = StringRef(__str);          \
+        return this->_redraw;                      \
     }
 
 // __str.push_back(c);
-#define LY_INPUT(obj, attr)                                          \
-    [this, obj](int cursor, unsigned int c) {                        \
-        String __str = str(attr);                              \
-        __str.insert(cursor, 1, c);                                  \
-        attr = StringRef(__str);                               \
-        this->_redraw = true;                                   \
-    } 
+#define LY_INPUT(obj, attr)                           \
+    [this, obj](int cursor, unsigned int c) -> bool { \
+        String __str = str(attr);                     \
+        __str.insert(cursor, 1, c);                   \
+        attr          = StringRef(__str);             \
+        this->_redraw = true;                         \
+        return true;                                  \
+    }
 
-
-// attr = StringRef(__str.substr(0, __str.size() - 1));  
-#define LY_BACKSPACE_STR(obj, attr)                                      \
-    [this, obj](int cursor) {                                                     \
-        attr.erase(cursor, 1);                                 \
-        this->_redraw = true;                                   \
+// attr = StringRef(__str.substr(0, __str.size() - 1));
+#define LY_BACKSPACE_STR(obj, attr)               \
+    [this, obj](int cursor) -> bool {             \
+        this->_redraw = safe_erase(attr, cursor); \
+        return this->_redraw;                     \
     }
 
 // __str.push_back(c);
-#define LY_INPUT_STR(obj, attr)                                          \
-    [this, obj](int cursor, unsigned int c) {                        \
-        attr.insert(cursor, 1, c);                                  \
-        this->_redraw = true;                                   \
-    } 
-
+#define LY_INPUT_STR(obj, attr)                       \
+    [this, obj](int cursor, unsigned int c) -> bool { \
+        attr.insert(cursor, 1, c);                    \
+        this->_redraw = true;                         \
+        return true;                                  \
+    }
 
 bool ASTInputText(const char*            label,
                   const char*            hint,
                   char*                  buf,
                   int                    buf_size,
-                   ImVec2&          size_arg,
+                  ImVec2&                size_arg,
                   ImGuiInputTextFlags    flags,
                   ImGuiInputTextCallback callback,
                   void*                  callback_user_data);
@@ -67,13 +77,11 @@ bool ASTInputText(const char*            label,
 
 namespace lython {
 
-
-
 static special::Newline       newline;
 static special::Indent        indentation;
 static special::BeforeComment comment_space;
 
-LY_ReturnType ASTRender::render_body(Array<StmtNode*> & body, int depth, bool print_last) {
+LY_ReturnType ASTRender::render_body(Array<StmtNode*>& body, int depth, bool print_last) {
 
     Node* parent = nullptr;
 
@@ -87,7 +95,7 @@ LY_ReturnType ASTRender::render_body(Array<StmtNode*> & body, int depth, bool pr
     int old_count = drawings.size();
 
     int k = 0;
-    for (auto & stmt: body) {
+    for (auto& stmt: body) {
         k += 1;
 
         out() << indentation;
@@ -109,7 +117,7 @@ LY_ReturnType ASTRender::render_body(Array<StmtNode*> & body, int depth, bool pr
     Group* my_group     = new_group();
     my_group->node      = parent;
     my_group->body      = &body;
-    my_group->edit_id = edit_entry;
+    my_group->edit_id   = edit_entry;
     int new_count       = drawings.size();
     my_group->rectangle = drawings[old_count].get_mut<Drawing>()->rectangle;
     for (int i = old_count; i < new_count; i++) {
@@ -124,7 +132,7 @@ LY_ReturnType ASTRender::render_body(Array<StmtNode*> & body, int depth, bool pr
     return true;
 }
 
-LY_ReturnType ASTRender::excepthandler(ExceptHandler & self, int depth) {
+LY_ReturnType ASTRender::excepthandler(ExceptHandler& self, int depth) {
     out() << newline << indentation << special::Keyword("except ");
 
     if (self.type.has_value()) {
@@ -146,7 +154,7 @@ LY_ReturnType ASTRender::excepthandler(ExceptHandler & self, int depth) {
     }
 }
 
-LY_ReturnType ASTRender::matchcase(MatchCase & self, int depth) {
+LY_ReturnType ASTRender::matchcase(MatchCase& self, int depth) {
     out() << indentation << special::Keyword("case ");
     run(self.pattern, depth);
 
@@ -165,7 +173,7 @@ LY_ReturnType ASTRender::matchcase(MatchCase & self, int depth) {
     }
 }
 
-void ASTRender::arg(Arg & self, int depth) {
+void ASTRender::arg(Arg& self, int depth) {
     out() << self.arg;
 
     if (self.annotation.has_value()) {
@@ -174,14 +182,14 @@ void ASTRender::arg(Arg & self, int depth) {
     }
 }
 
-LY_ReturnType ASTRender::attribute(Attribute * self, int depth) {
+LY_ReturnType ASTRender::attribute(Attribute* self, int depth) {
     run(self->value, depth);
     out() << ".";
     out() << self->attr;
     return false;
 }
 
-LY_ReturnType ASTRender::subscript(Subscript * self, int depth) {
+LY_ReturnType ASTRender::subscript(Subscript* self, int depth) {
     run(self->value, depth);
     out() << "[";
     run(self->slice, depth);
@@ -189,17 +197,15 @@ LY_ReturnType ASTRender::subscript(Subscript * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::starred(Starred * self, int depth) {
+LY_ReturnType ASTRender::starred(Starred* self, int depth) {
     out() << "*";
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::module(Module * self, int depth) {
-    return render_body(self->body, depth);
-}
+LY_ReturnType ASTRender::module(Module* self, int depth) { return render_body(self->body, depth); }
 
-LY_ReturnType ASTRender::raise(Raise * self, int depth) {
+LY_ReturnType ASTRender::raise(Raise* self, int depth) {
     out() << special::Keyword("raise ");
     if (self->exc.has_value()) {
         run(self->exc.value(), depth);
@@ -212,7 +218,7 @@ LY_ReturnType ASTRender::raise(Raise * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::assertstmt(Assert * self, int depth) {
+LY_ReturnType ASTRender::assertstmt(Assert* self, int depth) {
     out() << special::Keyword("assert ");
     run(self->test, depth);
 
@@ -223,11 +229,11 @@ LY_ReturnType ASTRender::assertstmt(Assert * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::with(With * self, int depth) {
+LY_ReturnType ASTRender::with(With* self, int depth) {
     out() << special::Keyword("with ");
 
     int i = 0;
-    for (auto & item: self->items) {
+    for (auto& item: self->items) {
         run(item.context_expr, depth);
 
         if (item.optional_vars.has_value()) {
@@ -251,11 +257,11 @@ LY_ReturnType ASTRender::with(With * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::import(Import * self, int depth) {
+LY_ReturnType ASTRender::import(Import* self, int depth) {
     out() << special::Keyword("import ");
 
     int i = 0;
-    for (auto & alias: self->names) {
+    for (auto& alias: self->names) {
         out() << alias.name;
 
         if (alias.asname.has_value()) {
@@ -271,7 +277,7 @@ LY_ReturnType ASTRender::import(Import * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::importfrom(ImportFrom * self, int depth) {
+LY_ReturnType ASTRender::importfrom(ImportFrom* self, int depth) {
     out() << special::Keyword("from ");
     if (self->module.has_value()) {
         out() << self->module.value();
@@ -279,7 +285,7 @@ LY_ReturnType ASTRender::importfrom(ImportFrom * self, int depth) {
     out() << special::Keyword(" import ");
 
     int i = 0;
-    for (auto & alias: self->names) {
+    for (auto& alias: self->names) {
         out() << alias.name;
 
         if (alias.asname.has_value()) {
@@ -295,7 +301,7 @@ LY_ReturnType ASTRender::importfrom(ImportFrom * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::slice(Slice * self, int depth) {
+LY_ReturnType ASTRender::slice(Slice* self, int depth) {
     if (self->lower.has_value()) {
         run(self->lower.value(), depth);
     }
@@ -313,7 +319,7 @@ LY_ReturnType ASTRender::slice(Slice * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::tupleexpr(TupleExpr * self, int depth) {
+LY_ReturnType ASTRender::tupleexpr(TupleExpr* self, int depth) {
     if (level == -1) {
         out() << join<ExprNode*>(", ", self->elts);
     } else {
@@ -322,17 +328,17 @@ LY_ReturnType ASTRender::tupleexpr(TupleExpr * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::listexpr(ListExpr * self, int depth) {
+LY_ReturnType ASTRender::listexpr(ListExpr* self, int depth) {
     out() << "[" << join<ExprNode*>(", ", self->elts) << "]";
     return false;
 }
 
-LY_ReturnType ASTRender::setexpr(SetExpr * self, int depth) {
+LY_ReturnType ASTRender::setexpr(SetExpr* self, int depth) {
     out() << "{" << join<ExprNode*>(", ", self->elts) << "}";
     return false;
 }
 
-LY_ReturnType ASTRender::dictexpr(DictExpr * self, int depth) {
+LY_ReturnType ASTRender::dictexpr(DictExpr* self, int depth) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -344,25 +350,25 @@ LY_ReturnType ASTRender::dictexpr(DictExpr * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::matchvalue(MatchValue * self, int depth) {
+LY_ReturnType ASTRender::matchvalue(MatchValue* self, int depth) {
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::matchsingleton(MatchSingleton * self, int depth) {
+LY_ReturnType ASTRender::matchsingleton(MatchSingleton* self, int depth) {
     StringStream ss;
     self->value.print(ss);
     out() << ss.str();
     return false;
 }
 
-LY_ReturnType ASTRender::matchsequence(MatchSequence * self, int depth) {
+LY_ReturnType ASTRender::matchsequence(MatchSequence* self, int depth) {
     auto result = join(", ", self->patterns);
     out() << "[" << result << "]";
     return false;
 }
 
-LY_ReturnType ASTRender::matchmapping(MatchMapping * self, int depth) {
+LY_ReturnType ASTRender::matchmapping(MatchMapping* self, int depth) {
     Array<String> strs;
     strs.reserve(self->keys.size());
 
@@ -381,7 +387,7 @@ LY_ReturnType ASTRender::matchmapping(MatchMapping * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::matchclass(MatchClass * self, int depth) {
+LY_ReturnType ASTRender::matchclass(MatchClass* self, int depth) {
     run(self->cls, depth);
     out() << "(" << join(", ", self->patterns);
 
@@ -401,7 +407,7 @@ LY_ReturnType ASTRender::matchclass(MatchClass * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::matchstar(MatchStar * self, int depth) {
+LY_ReturnType ASTRender::matchstar(MatchStar* self, int depth) {
     out() << "*";
 
     if (self->name.has_value()) {
@@ -410,7 +416,7 @@ LY_ReturnType ASTRender::matchstar(MatchStar * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::matchas(MatchAs * self, int depth) {
+LY_ReturnType ASTRender::matchas(MatchAs* self, int depth) {
     if (self->pattern.has_value()) {
         run(self->pattern.value(), depth);
     }
@@ -421,12 +427,12 @@ LY_ReturnType ASTRender::matchas(MatchAs * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::matchor(MatchOr * self, int depth) {
+LY_ReturnType ASTRender::matchor(MatchOr* self, int depth) {
     out() << join(" | ", self->patterns);
     return false;
 }
 
-LY_ReturnType ASTRender::ifstmt(If * self, int depth) {
+LY_ReturnType ASTRender::ifstmt(If* self, int depth) {
     out() << special::Keyword("if ");
     run(self->test, depth);
     out() << ":";
@@ -467,7 +473,7 @@ LY_ReturnType ASTRender::ifstmt(If * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::match(Match * self, int depth) {
+LY_ReturnType ASTRender::match(Match* self, int depth) {
     out() << special::Keyword("match ");
     run(self->subject, depth);
     out() << ":";
@@ -475,7 +481,7 @@ LY_ReturnType ASTRender::match(Match * self, int depth) {
     out() << newline;
 
     int i = 0;
-    for (auto & case_: self->cases) {
+    for (auto& case_: self->cases) {
         matchcase(case_, depth + 1);
 
         if (i + 1 < self->cases.size()) {
@@ -487,7 +493,7 @@ LY_ReturnType ASTRender::match(Match * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::lambda(Lambda * self, int depth) {
+LY_ReturnType ASTRender::lambda(Lambda* self, int depth) {
     out() << special::Keyword("lambda ");
     arguments(self->args, depth);
     out() << ": ";
@@ -495,7 +501,7 @@ LY_ReturnType ASTRender::lambda(Lambda * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::ifexp(IfExp * self, int depth) {
+LY_ReturnType ASTRender::ifexp(IfExp* self, int depth) {
     run(self->body, depth);
     out() << special::Keyword(" if ");
     run(self->test, depth);
@@ -504,7 +510,7 @@ LY_ReturnType ASTRender::ifexp(IfExp * self, int depth) {
     return false;
 }
 
-void ASTRender::comprehension(Comprehension & self, int depth) {
+void ASTRender::comprehension(Comprehension& self, int depth) {
     out() << special::Keyword(" for ");
     run(self.target, depth);
     out() << special::Keyword(" in ");
@@ -516,13 +522,13 @@ void ASTRender::comprehension(Comprehension & self, int depth) {
     }
 }
 
-void ASTRender::comprehensions(Array<Comprehension> & self, int depth) {
-    for (Comprehension & comp: self) {
+void ASTRender::comprehensions(Array<Comprehension>& self, int depth) {
+    for (Comprehension& comp: self) {
         comprehension(comp, depth);
     }
 }
 
-LY_ReturnType ASTRender::listcomp(ListComp * self, int depth) {
+LY_ReturnType ASTRender::listcomp(ListComp* self, int depth) {
     out() << "[";
     run(self->elt, depth);
 
@@ -532,7 +538,7 @@ LY_ReturnType ASTRender::listcomp(ListComp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::setcomp(SetComp * self, int depth) {
+LY_ReturnType ASTRender::setcomp(SetComp* self, int depth) {
     out() << "{";
     run(self->elt, depth);
 
@@ -542,7 +548,7 @@ LY_ReturnType ASTRender::setcomp(SetComp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::generateexpr(GeneratorExp * self, int depth) {
+LY_ReturnType ASTRender::generateexpr(GeneratorExp* self, int depth) {
     out() << "(";
     run(self->elt, depth);
 
@@ -552,7 +558,7 @@ LY_ReturnType ASTRender::generateexpr(GeneratorExp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::dictcomp(DictComp * self, int depth) {
+LY_ReturnType ASTRender::dictcomp(DictComp* self, int depth) {
     out() << "{";
     run(self->key, depth);
     out() << ": ";
@@ -563,13 +569,13 @@ LY_ReturnType ASTRender::dictcomp(DictComp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::await(Await * self, int depth) {
+LY_ReturnType ASTRender::await(Await* self, int depth) {
     out() << special::Keyword("await ");
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::yield(Yield * self, int depth) {
+LY_ReturnType ASTRender::yield(Yield* self, int depth) {
     out() << special::Keyword("yield");
     if (self->value.has_value()) {
         out() << " ";
@@ -578,13 +584,13 @@ LY_ReturnType ASTRender::yield(Yield * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::yieldfrom(YieldFrom * self, int depth) {
+LY_ReturnType ASTRender::yieldfrom(YieldFrom* self, int depth) {
     out() << special::Keyword("yield from ");
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::call(Call * self, int depth) {
+LY_ReturnType ASTRender::call(Call* self, int depth) {
 
     // StringStream fname = fmt(self->func, depth, level);
     // out() << fname.str() << "(";
@@ -600,7 +606,7 @@ LY_ReturnType ASTRender::call(Call * self, int depth) {
     }
 
     for (int i = 0; i < self->keywords.size(); i++) {
-        auto & key = self->keywords[i];
+        auto& key = self->keywords[i];
 
         out() << self->keywords[i].arg;
         out() << "=";
@@ -615,7 +621,7 @@ LY_ReturnType ASTRender::call(Call * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::constant(Constant * self, int depth) {
+LY_ReturnType ASTRender::constant(Constant* self, int depth) {
     StringStream ss;
     self->value.print(ss);
 
@@ -623,27 +629,23 @@ LY_ReturnType ASTRender::constant(Constant * self, int depth) {
     // we need to parse the value on change
     // and the value might not be correct so we need to keep
     // a input buffer
-    auto config = special::Editable(ss.str(), self);
-    config.input = [](int cursor, unsigned int c){
-
-    };
-    config.backspace= [](int cursor){
-        
-    };
+    auto config      = special::Editable(ss.str(), self);
+    config.input     = [](int cursor, unsigned int c) -> bool { return false; };
+    config.backspace = [](int cursor) -> bool { return false; };
     out() << config;
     return false;
 }
 
 ASTRender::ExprRet ASTRender::placeholder(Placeholder_t* self, int depth) { return false; }
 
-LY_ReturnType ASTRender::namedexpr(NamedExpr * self, int depth) {
+LY_ReturnType ASTRender::namedexpr(NamedExpr* self, int depth) {
     run(self->target, depth);
     out() << " := ";
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
+LY_ReturnType ASTRender::classdef(ClassDef* self, int depth) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -675,7 +677,7 @@ LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
     Array<String> kwd;
     kwd.reserve(self->keywords.size());
 
-    for (auto & kw: self->keywords) {
+    for (auto& kw: self->keywords) {
         kwd.push_back(fmtstr("{}={}", str(kw.arg), str(kw.value)));
     }
 
@@ -690,8 +692,8 @@ LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
     out() << newline;
 
     if (self->docstring.has_value()) {
-        Docstring & doc = self->docstring.value();
-    
+        Docstring& doc = self->docstring.value();
+
         out() << indentation << "\"\"\"" << doc.docstring << "\"\"\"";
 
         maybe_inline_comment(doc.comment, depth, LOC);
@@ -700,7 +702,7 @@ LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
 
     bool assign = false;
     k           = 0;
-    for (auto & stmt: self->body) {
+    for (auto& stmt: self->body) {
 
         assign = stmt->kind == NodeKind::Assign || stmt->kind == NodeKind::AnnAssign ||
                  stmt->kind == NodeKind::Pass;
@@ -727,7 +729,7 @@ LY_ReturnType ASTRender::classdef(ClassDef * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
+LY_ReturnType ASTRender::functiondef(FunctionDef* self, int depth) {
     int k = 0;
     for (auto decorator: self->decorator_list) {
         if (k > 0) {
@@ -745,10 +747,10 @@ LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
         out() << indentation;
     }
 
-    auto config = special::Editable(self->name ? self->name: StringRef("<function>"), (Node*)self);
+    auto config = special::Editable(self->name ? self->name : StringRef("<function>"), (Node*)self);
     config.backspace = LY_BACKSPACE(self, self->name);
-    config.input = LY_INPUT(self, self->name);
-    
+    config.input     = LY_INPUT(self, self->name);
+
     out() << special::Keyword("def ") << config << "(";
     arguments(self->args, depth);
     out() << ")";
@@ -766,10 +768,10 @@ LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
     out() << newline;
 
     if (self->docstring.has_value()) {
-        Docstring & doc = self->docstring.value();
-        auto config = special::Docstring(doc.docstring);
+        Docstring& doc    = self->docstring.value();
+        auto       config = special::Docstring(doc.docstring);
 
-        config.input = LY_INPUT_STR(&doc, doc.docstring);
+        config.input     = LY_INPUT_STR(&doc, doc.docstring);
         config.backspace = LY_BACKSPACE_STR(&doc, doc.docstring);
 
         {
@@ -790,11 +792,11 @@ LY_ReturnType ASTRender::functiondef(FunctionDef * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::inlinestmt(Inline * self, int depth) {
+LY_ReturnType ASTRender::inlinestmt(Inline* self, int depth) {
     out() << indentation;
 
     int k = 0;
-    for (auto & stmt: self->body) {
+    for (auto& stmt: self->body) {
         run(stmt, depth);
 
         if (k + 1 < self->body.size()) {
@@ -807,7 +809,7 @@ LY_ReturnType ASTRender::inlinestmt(Inline * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::forstmt(For * self, int depth) {
+LY_ReturnType ASTRender::forstmt(For* self, int depth) {
     out() << special::Keyword("for ");
     run(self->target, depth);
     out() << special::Keyword(" in ");
@@ -837,7 +839,7 @@ LY_ReturnType ASTRender::forstmt(For * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::trystmt(Try * self, int depth) {
+LY_ReturnType ASTRender::trystmt(Try* self, int depth) {
     out() << special::Keyword("try:");
     maybe_inline_comment(self->comment, depth, LOC);
     out() << newline;
@@ -847,7 +849,7 @@ LY_ReturnType ASTRender::trystmt(Try * self, int depth) {
         render_body(self->body, depth + 1);
     }
 
-    for (auto & handler: self->handlers) {
+    for (auto& handler: self->handlers) {
         excepthandler(handler, depth);
     }
 
@@ -876,7 +878,7 @@ LY_ReturnType ASTRender::trystmt(Try * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::compare(Compare * self, int depth) {
+LY_ReturnType ASTRender::compare(Compare* self, int depth) {
     run(self->left, depth);
     int n = int(self->comparators.size());
 
@@ -892,7 +894,7 @@ LY_ReturnType ASTRender::compare(Compare * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::binop(BinOp * self, int depth) {
+LY_ReturnType ASTRender::binop(BinOp* self, int depth) {
     auto sself   = get_precedence(self);
     auto lhspred = get_precedence(self->left) < sself;
     auto rhspred = get_precedence(self->right) < sself;
@@ -905,7 +907,7 @@ LY_ReturnType ASTRender::binop(BinOp * self, int depth) {
         out() << ')';
     }
 
-    print_op(self->op, false);
+    print_op(self, self->op, false);
 
     if (rhspred) {
         out() << '(';
@@ -918,7 +920,7 @@ LY_ReturnType ASTRender::binop(BinOp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::invalidstmt(InvalidStatement * self, int depth) {
+LY_ReturnType ASTRender::invalidstmt(InvalidStatement* self, int depth) {
     //
     if (!self->tokens.empty()) {
         Unlex        unlex;
@@ -929,7 +931,7 @@ LY_ReturnType ASTRender::invalidstmt(InvalidStatement * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::boolop(BoolOp * self, int depth) {
+LY_ReturnType ASTRender::boolop(BoolOp* self, int depth) {
 
     int m = self->opcount + 1;
 
@@ -948,7 +950,7 @@ LY_ReturnType ASTRender::boolop(BoolOp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::unaryop(UnaryOp * self, int depth) {
+LY_ReturnType ASTRender::unaryop(UnaryOp* self, int depth) {
     print_op(self->op);
     out() << " ";
     run(self->operand, depth);
@@ -956,7 +958,7 @@ LY_ReturnType ASTRender::unaryop(UnaryOp * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::whilestmt(While * self, int depth) {
+LY_ReturnType ASTRender::whilestmt(While* self, int depth) {
     out() << special::Keyword("while ");
     run(self->test, depth);
     out() << ":";
@@ -981,7 +983,7 @@ LY_ReturnType ASTRender::whilestmt(While * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::returnstmt(Return * self, int depth) {
+LY_ReturnType ASTRender::returnstmt(Return* self, int depth) {
     out() << special::Keyword("return ");
 
     if (self->value.has_value()) {
@@ -991,7 +993,7 @@ LY_ReturnType ASTRender::returnstmt(Return * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::deletestmt(Delete * self, int depth) {
+LY_ReturnType ASTRender::deletestmt(Delete* self, int depth) {
     out() << special::Keyword("del ");
 
     for (int i = 0; i < self->targets.size(); i++) {
@@ -1004,22 +1006,22 @@ LY_ReturnType ASTRender::deletestmt(Delete * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::augassign(AugAssign * self, int depth) {
+LY_ReturnType ASTRender::augassign(AugAssign* self, int depth) {
     run(self->target, depth);
-    print_op(self->op, true);
+    print_op(self, self->op, true);
     out() << "= ";
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::assign(Assign * self, int depth) {
+LY_ReturnType ASTRender::assign(Assign* self, int depth) {
     run(self->targets[0], depth);
     out() << " = ";
     run(self->value, depth);
     return false;
 }
 
-LY_ReturnType ASTRender::annassign(AnnAssign * self, int depth) {
+LY_ReturnType ASTRender::annassign(AnnAssign* self, int depth) {
     run(self->target, depth);
     out() << ": ";
 
@@ -1032,84 +1034,84 @@ LY_ReturnType ASTRender::annassign(AnnAssign * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::pass(Pass * self, int depth) {
+LY_ReturnType ASTRender::pass(Pass* self, int depth) {
     out() << special::Keyword("pass");
     return false;
 }
 
-LY_ReturnType ASTRender::breakstmt(Break * self, int depth) {
+LY_ReturnType ASTRender::breakstmt(Break* self, int depth) {
     out() << special::Keyword("break");
     return false;
 }
 
-LY_ReturnType ASTRender::continuestmt(Continue * self, int depth) {
+LY_ReturnType ASTRender::continuestmt(Continue* self, int depth) {
     out() << special::Keyword("continue");
     return false;
 }
 
-LY_ReturnType ASTRender::exprstmt(Expr * self, int depth) {
+LY_ReturnType ASTRender::exprstmt(Expr* self, int depth) {
     if (self->value != nullptr)
         run(self->value, depth);
 
     return false;
 }
 
-LY_ReturnType ASTRender::global(Global * self, int depth) {
+LY_ReturnType ASTRender::global(Global* self, int depth) {
     out() << special::Keyword("global ") << join(", ", self->names);
     return false;
 }
 
-LY_ReturnType ASTRender::nonlocal(Nonlocal * self, int depth) {
+LY_ReturnType ASTRender::nonlocal(Nonlocal* self, int depth) {
     out() << special::Keyword("nonlocal ") << join(", ", self->names);
     return false;
 }
 
-LY_ReturnType ASTRender::arrow(Arrow * self, int depth) {
+LY_ReturnType ASTRender::arrow(Arrow* self, int depth) {
     out() << '(' << join<ExprNode*>(", ", self->args) << ") -> ";
     out() << str(self->returns);
     return false;
 }
 
-LY_ReturnType ASTRender::dicttype(DictType * self, int depth) {
+LY_ReturnType ASTRender::dicttype(DictType* self, int depth) {
     out() << "Dict[";
-    out() << str(self->key);   // this is wrong 
+    out() << str(self->key);  // this is wrong
     out() << ", ";
     out() << str(self->value) << "]";
     return false;
 }
 
-LY_ReturnType ASTRender::settype(SetType * self, int depth) {
+LY_ReturnType ASTRender::settype(SetType* self, int depth) {
     out() << "Set[";
     out() << str(self->value) << "]";
     return false;
 }
 
-LY_ReturnType ASTRender::name(Name * self, int depth) {
-    auto config = special::Editable(self->id, self);
+LY_ReturnType ASTRender::name(Name* self, int depth) {
+    auto config      = special::Editable(self->id, self);
     config.backspace = LY_BACKSPACE(self, self->id);
-    config.input = LY_INPUT(self, self->id);
+    config.input     = LY_INPUT(self, self->id);
     out() << config;
     return false;
 }
 
-LY_ReturnType ASTRender::arraytype(ArrayType * self, int depth) {
+LY_ReturnType ASTRender::arraytype(ArrayType* self, int depth) {
     out() << "Array[";
     out() << str(self->value) << "]";
     return false;
 }
 
-LY_ReturnType ASTRender::tupletype(TupleType * self, int depth) {
+LY_ReturnType ASTRender::tupletype(TupleType* self, int depth) {
     out() << "Tuple[";
     out() << join<ExprNode*>(", ", self->types) << "]";
     return false;
 }
 
-LY_ReturnType ASTRender::builtintype(BuiltinType * self, int depth) {
+LY_ReturnType ASTRender::builtintype(BuiltinType* self, int depth) {
     out() << self->name;
     return false;
 }
 
-LY_ReturnType ASTRender::joinedstr(JoinedStr * self, int depth) {
+LY_ReturnType ASTRender::joinedstr(JoinedStr* self, int depth) {
     out() << "f\"";
 
     for (auto* val: self->values) {
@@ -1124,7 +1126,7 @@ LY_ReturnType ASTRender::joinedstr(JoinedStr * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::formattedvalue(FormattedValue * self, int depth) {
+LY_ReturnType ASTRender::formattedvalue(FormattedValue* self, int depth) {
     out() << "{";
     run(self->value, depth);
     out() << ":";
@@ -1143,12 +1145,12 @@ LY_ReturnType ASTRender::formattedvalue(FormattedValue * self, int depth) {
     return false;
 }
 
-LY_ReturnType ASTRender::classtype(ClassType * self, int depth) {
+LY_ReturnType ASTRender::classtype(ClassType* self, int depth) {
     out() << self->def->name;
     return false;
 }
 
-LY_ReturnType ASTRender::exported(Exported * self, int depth) {
+LY_ReturnType ASTRender::exported(Exported* self, int depth) {
     // run(self->node, depth);
     return false;
 }
@@ -1166,27 +1168,77 @@ void ASTRender::print_op(BoolOperator op) {
     // clang-format on
 }
 
-void ASTRender::print_op(BinaryOperator op, bool aug) {
-    // clang-format off
-    switch (op) {
-    case BinaryOperator::Add:       out() << " +"; break;
-    case BinaryOperator::Sub:       out() << " -"; break;
-    case BinaryOperator::Mult:      out() << " *"; break;
-    case BinaryOperator::MatMult:   out() << " @"; break;
-    case BinaryOperator::Div:       out() << " /"; break;
-    case BinaryOperator::Mod:       out() << " %"; break;
-    case BinaryOperator::Pow:       out() << " **";  break;
-    case BinaryOperator::LShift:    out() << " <<";  break;
-    case BinaryOperator::RShift:    out() << " >>";  break;
-    case BinaryOperator::BitOr:     out() << " |";   break;
-    case BinaryOperator::BitXor:    out() << " ^";   break;
-    case BinaryOperator::BitAnd:    out() << " &";   break;
-    case BinaryOperator::FloorDiv:  out() << " //";  break;
-    case BinaryOperator::EltMult:   out() << " .*";  break;
-    case BinaryOperator::EltDiv:    out() << " ./";  break;
-    case BinaryOperator::None:      out() << " <Binary:None>"; break;
+OpConfig get_operator_config(String const& op) {
+    for (auto const& opconf: all_operators()) {
+        if (opconf.operator_name == op) {
+            return opconf;
+        }
     }
-    // clang-format on
+    return OpConfig();
+}
+
+String to_str(BinaryOperator op) {
+    for (auto const& opconf: all_operators()) {
+        if (opconf.binarykind == op) {
+            return opconf.operator_name;
+        }
+    }
+    return ("<Binary Operator>");
+}
+
+BinaryOperator to_binop(String const& op) {
+    if (OpConfig opconf = get_operator_config(op)) {
+        return opconf.binarykind;
+    }
+    return BinaryOperator::None;
+}
+
+void ASTRender::print_op(Node* bin, BinaryOperator op, bool aug) {
+    // clang-format off
+    out() << " ";
+
+    auto iter = buffer.find(bin);
+    if (iter == buffer.end()) {
+        buffer[bin] = to_str(op);
+    }
+
+    auto config = special::Editable(buffer[bin].empty() ? "<binop>" : buffer[bin], bin);
+
+    auto update_op = [this, bin]() {
+        auto newop = to_binop(this->buffer[bin]);
+        if (newop != BinaryOperator::None) {
+            // update the operator
+            if (BinOp* binop = cast<BinOp>(bin)) {
+                binop->op = newop;
+            }
+
+            if (AugAssign* aug = cast<AugAssign>(bin)) {
+                aug->op = newop;
+            }
+        }
+        // here we are checking for full match
+        // but we could be checking for partial match
+        // and fill the auto complete
+
+        // TODO: handle the wrong op here
+        // This is a parsing/syntax error issue that needs to be shown
+    };
+
+    // we need a buffer for the input
+    // we display the buffer, update the buffer
+    // when the input is valid we update the tree
+    config.input = [this, bin, update_op](int cursor_1, unsigned int c_1) -> bool {
+        LY_INPUT(bin, this->buffer[bin])(cursor_1, c_1);    // handle the input
+        update_op();                                        // update the tree
+        return true;
+    };
+    config.backspace = [this, bin, update_op](int cursor_1) -> bool {
+        bool success = LY_BACKSPACE(bin, this->buffer[bin])(cursor_1); // handle the input
+        update_op();                                    // update the tree
+        return success;
+    };
+
+    out() << config;
 
     if (!aug) {
         out() << " ";
@@ -1223,7 +1275,7 @@ void ASTRender::print_op(UnaryOperator op) {
     // clang-format on
 }
 
-void ASTRender::keyword(Keyword & self, int depth) {
+void ASTRender::keyword(Keyword& self, int depth) {
     out() << self.arg;
     if (self.value != nullptr) {
         out() << " = ";
@@ -1231,20 +1283,20 @@ void ASTRender::keyword(Keyword & self, int depth) {
     }
 }
 
-void ASTRender::alias(Alias & self, int depth) {
+void ASTRender::alias(Alias& self, int depth) {
     out() << self.name;
     if (self.asname.has_value()) {
         out() << special::Keyword(" as ") << self.asname.value();
     }
 }
 
-LY_ReturnType ASTRender::functiontype(FunctionType * self, int depth) { return false; }
+LY_ReturnType ASTRender::functiontype(FunctionType* self, int depth) { return false; }
 
-LY_ReturnType ASTRender::expression(Expression * self, int depth) { return false; }
+LY_ReturnType ASTRender::expression(Expression* self, int depth) { return false; }
 
-LY_ReturnType ASTRender::interactive(Interactive * self, int depth) { return false; }
+LY_ReturnType ASTRender::interactive(Interactive* self, int depth) { return false; }
 
-void ASTRender::withitem(WithItem & self, int depth) {
+void ASTRender::withitem(WithItem& self, int depth) {
     run(self.context_expr, depth);
     if (self.optional_vars.has_value()) {
         out() << special::Keyword(" as ");
@@ -1252,22 +1304,23 @@ void ASTRender::withitem(WithItem & self, int depth) {
     }
 }
 
-LY_ReturnType ASTRender::comment(Comment * n, int depth) {
-    auto config = special::Editable(!n->comment.empty() ? n->comment: String("<comment>"), n);
-    config.input = LY_INPUT_STR(n, n->comment);
+LY_ReturnType ASTRender::comment(Comment* n, int depth) {
+    auto config      = special::Editable(!n->comment.empty() ? n->comment : String("<comment>"), n);
+    config.input     = LY_INPUT_STR(n, n->comment);
     config.backspace = LY_BACKSPACE_STR(n, n->comment);
     out() << "#" << config;
     return false;
 }
 
-void ASTRender::arguments(Arguments & self, int depth) {
+void ASTRender::arguments(Arguments& self, int depth) {
     int i = 0;
 
     for (Arg& arg: self.args) {
-        auto config = special::Editable(arg.arg ? arg.arg: StringRef("<arg name>"), stack[stack.size() -1]);
+        auto config =
+            special::Editable(arg.arg ? arg.arg : StringRef("<arg name>"), stack[stack.size() - 1]);
         config.backspace = LY_BACKSPACE(&arg, arg.arg);
-        config.input = LY_INPUT(&arg, arg.arg);
-    
+        config.input     = LY_INPUT(&arg, arg.arg);
+
         out() << config;
 
         if (arg.annotation.has_value()) {
@@ -1308,7 +1361,7 @@ void ASTRender::arguments(Arguments & self, int depth) {
     }
 
     i = 0;
-    for (auto & kw: self.kwonlyargs) {
+    for (auto& kw: self.kwonlyargs) {
         out() << kw.arg;
 
         if (kw.annotation.has_value()) {

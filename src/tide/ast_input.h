@@ -3,8 +3,9 @@
 #include <iostream>
 
 #include "dtypes.h"
-
 #include "sema/sema.h"
+#include "utilities/trie.h"
+
 #include "tide/ast_render.h"
 
 namespace lython {
@@ -28,6 +29,12 @@ struct InputState {
     // }
 
     // static InputState& state();
+};
+
+enum class SuggestTrieContext {
+    Expression,
+    Statement,
+    Pattern,
 };
 
 struct ASTEditor {
@@ -60,7 +67,18 @@ struct ASTEditor {
     void draw_lines_num();
     void draw_current_line();
 
-    void test() ;
+    void test();
+
+    void update_trie();
+
+    // WE could use token on the top level to make
+    // context aware trie
+    //
+    // suggest_trie.matching(SuggestTrieContext::Expression);
+    //
+    // It would be like having a trie per context
+    using SuggestTrie = Trie<128>;
+    SuggestTrie suggest_trie;
 };
 
 }  // namespace lython

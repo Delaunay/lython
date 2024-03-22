@@ -2,10 +2,12 @@
 #include "utilities/trie.h"
 #include <catch2/catch_all.hpp>
 
-TEST_CASE("Trie") {
-    using Trie = lython::Trie<128>;
+using namespace lython;
 
-    Trie base;
+TEST_CASE("Trie") {
+    using TestTrie = lython::Trie<128>;
+
+    TestTrie base;
 
     base.insert("abcd");
     // Trie cp;
@@ -20,6 +22,7 @@ TEST_CASE("Trie") {
 
     REQUIRE(base.matching("a")->leaf() == false);
     REQUIRE(base.matching("ab")->leaf() == false);
+    REQUIRE(base.matching("abc")->leaf() == false);
     REQUIRE(base.matching("abcd")->leaf() == true);
 
     REQUIRE(base.matching("a")->has_children() >= 1);
@@ -29,7 +32,17 @@ TEST_CASE("Trie") {
     base.insert("abce");
     auto lookup = base.matching("abc");
     REQUIRE(lookup != nullptr);
+    REQUIRE(lookup->retrieve() == Array<String>{"d", "e"});
 
     auto leaf = lookup->matching("d");
     REQUIRE(leaf->leaf() == true);
+
+    REQUIRE(base.complete("abc") == Array<String>{"abcd", "abce"});
+    REQUIRE(base.retrieve() == Array<String>{"abcd", "abce"});
+
+    REQUIRE(base.remove("abce") == true);
+    REQUIRE(base.retrieve() == Array<String>{"abcd"});
+
+    auto newbase = base;
+    REQUIRE(newbase.retrieve() == Array<String>{"abcd"});
 }
