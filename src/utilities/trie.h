@@ -11,54 +11,42 @@
 
 namespace lython {
 
+
+
+
+struct _dummy {};
+
 // This use a flat array to store children
 // it use more memory than a simple node trie
 //
 // Depth is usually 2-3 tries since it is only used for operators
 //
 //
-template <size_t size>
+template <size_t size, typename ValueT = _dummy>
 class Trie {
-    public:
+    struct TrieNode{
+        using Children = std::array<Trie*, size>;
+
+        TrieNode() {
+            children.fill(nullptr);
+        }
+
+        Children children;
+        bool     is_end = false;
+        ValueT   value = ValueT();
+    };
+    Array<TrieNode> nodes;
+
+public:
     Trie() {
-        for (auto& child: children) {
-            child = nullptr;
-        }
+        nodes.emplace_back();
     }
 
-    Trie(Trie const& trie) {
-        _leaf = trie._leaf;
+    bool remove(String const& name) {
+        TrieNode* parent = nullptr;
+        TrieNode* current = this;
 
-        for (size_t i = 0; i < size; i++) {
-            auto& child = trie.children[i];
-
-            if (child != nullptr) {
-                // call copy constructor recursively
-                children[i] = ::std::make_unique<Trie>(*child.get());
-            }
-        }
-    }
-
-    Trie operator=(Trie const& trie) {
-        _leaf = trie._leaf;
-        
-        for (size_t i = 0; i < size; i++) {
-            auto& child = trie.children[i];
-
-            if (child != nullptr) {
-                // call copy constructor recursively
-                children[i] = std::make_unique<Trie>(*child.get());
-            }
-        }
-
-        return *this;
-    }
-
-    bool remove(std::string_view const& name) {
-        Trie* parent = nullptr;
-        Trie* current = this;
-
-        Array<std::tuple<Trie*, int>> path;
+        Array<std::tuple<TrieNode*, int>> path;
 
         for (auto c: name) {
             // we do not have the value in the trie
@@ -81,6 +69,11 @@ class Trie {
         }
 
         if (path.size() > 0) {
+            for(auto item: path) {
+                TrieNode* rm = item.first->children[item.second];
+                item.first->children[item.second] = nullptr;
+                nodes.remove(rm);
+            }
             // we only need to delete the first one
             // destructor will take care of the rest
             Trie* begin = nullptr;
@@ -100,11 +93,11 @@ class Trie {
 
     void _retrieve(Array<String>& results, String const& prev) const {
         for (int i = 0; i < size; i++) {
-            Trie const* ptr = children[i].get() ;
+            TrieNode const* ptr = children[i];
 
             if (ptr != nullptr) {
                 String newprev = prev + char(i);
-                if (ptr->leaf()) {
+                if (ptr->is_end) {
                     results.push_back(newprev);
                 }
                 ptr->_retrieve(results, newprev);
@@ -113,7 +106,7 @@ class Trie {
     }
 
     Array<String> complete(String const& name) const {
-        Trie const* ptr = matching(name);
+        TrieNode const* ptr = search(nodes[0], name);
         Array<String> suggestions;
 
         if (ptr != nullptr) {
@@ -122,69 +115,50 @@ class Trie {
         return suggestions;
     }
 
-
     //! Returns if the the value was inserted of not
-    bool insert(std::string_view const& name) {
-        Trie* ptr = this;
+    bool insert(String const& name, ValueT value = ValueT(), bool override = true) {
+        TrieNode* ptr = &nodes[0];
         for (auto c: name) {
             if (ptr->children[c] == nullptr) {
-                ptr->children[c] = std::make_unique<Trie>();
+                ptr->children[c] = &nodes.emplace_back();
             }
-
-            ptr = ptr->children[c].get();
+            ptr = ptr->children[c];
         }
-
         lyassert(ptr != nullptr, "ptr cant be null");
-
-        if (ptr->leaf()) {
+        if (ptr->is_end) {
+            if (override) {
+                ptr->value = value;
+            }
             return false;
         }
-
-        ptr->_leaf = true;
+        ptr->value = value;
+        ptr->is_end = true;
         return true;
     }
 
-    //! return the last Trie that match the given string
-    //! for autocompletion for example
-    Trie const* matching(std::string_view const& name) const {
-        Trie const* ptr = this;
+    int children_count(TrieNode const* node) const {
+        int count = 0;
+        for(TrieNode const* child: node->children) {
+            count += (child != nullptr);
+        }
+        return count;
+    } 
 
-        for (auto c: name) {
-            ptr = ptr->matching(int(c));
+    TrieNode const* search(TrieNode const* node, String const& path) const {
+        for(auto p: path) {
+            if (p >= size) {
+                return nullptr;
+            } 
 
-            if (ptr == nullptr) {
+            node = node->children[p];
+
+            if (node == nullptr) {
                 return nullptr;
             }
         }
-        return ptr;
+        return node;
     }
 
-    Trie const* matching(int c) const {
-        if (c >= size) {
-            return nullptr;
-        }
-
-        return children.at(c).get();
-    }
-
-    bool has(std::string_view const& name) const {
-        Trie const* ptr = matching(name);
-        return ptr != nullptr && ptr->leaf();
-    }
-
-    int has_children() const {
-        int count = 0;
-        for (auto& child: children) {
-            count += child != nullptr;
-        }
-        return count;
-    }
-
-    bool leaf() const { return _leaf; }
-
-    private:
-    std::array<std::unique_ptr<Trie>, size> children;
-    bool                                    _leaf = false;
 };
 
 // naive CoWTrie
