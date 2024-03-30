@@ -183,21 +183,170 @@ ExprRet LLVMGen::binary_operator(
 ExprRet LLVMGen::binop(BinOp_t* n, int depth) {
     // Generic case is function call to a kiwi method/function
     //
-    return binary_operator(builder.get(), n->left, n->right, 0, depth);
+    // return binary_operator(builder.get(), n->left, n->right, 0, depth);
+    
+    Value* left  = exec(n->left, depth);
+    Value* right = exec(n->right, depth);
+
+    if (left == nullptr || right == nullptr) {
+        kwerror("Could not generate binary operator");
+        return nullptr;
+    }
+
+    switch(n->op) {
+        case BinaryOperator::Add: {
+            return builder->CreateFAdd(left, right, "addtmp");
+            return builder->CreateAdd(left, right, "addtmp");
+        }
+        case BinaryOperator::Sub:       
+            return builder->CreateFSub(left, right, "subtmp");
+            return builder->CreateSub(left, right, "subtmp");
+        
+        case BinaryOperator::Mult:      
+            return builder->CreateFMul(left, right, "multtmp");
+            return builder->CreateMul(left, right, "multtmp");
+        
+        case BinaryOperator::Div:       
+            return builder->CreateFDiv(left, right, "divtmp");
+            return builder->CreateSDiv(left, right, "divtmp");
+            return builder->CreateUDiv(left, right, "divtmp");
+
+        case BinaryOperator::Mod: {      
+            // Function *powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::mo, {builder->getDoubleTy()});
+            return builder->CreateSRem(left, right);
+            return builder->CreateFRem(left, right);
+            return builder->CreateURem(left, right);
+        }
+        case BinaryOperator::Pow: {      
+            Function *powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {builder->getDoubleTy()});
+            return builder->CreateCall(powFunc, {left, right});;
+        }
+        case BinaryOperator::LShift:    return builder->CreateLShr(left, right, "addtmp");
+        case BinaryOperator::RShift:    return builder->CreateShl(left, right, "addtmp");
+        case BinaryOperator::BitOr:     return builder->CreateOr(left, right, "bitortmp");
+        case BinaryOperator::BitXor:    return builder->CreateXor(left, right, "bitxortmp");
+        case BinaryOperator::BitAnd:    return builder->CreateAnd(left, right, "bitandtmp");
+
+        case BinaryOperator::FloorDiv: {      
+            return builder->CreateSDiv(left, right, "sdivtmp");    
+            // return builder->CreateUDiv(left, right, "");
+        }
+        case BinaryOperator::MatMult:   return nullptr;
+        case BinaryOperator::EltDiv:    return nullptr;
+        case BinaryOperator::EltMult:   return nullptr;
+    
+    }
+
+    kwerror("binary operator not handled");
+    return nullptr;
 }
-ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) { return ExprRet(); }
-ExprRet LLVMGen::unaryop(UnaryOp_t* n, int depth) { return ExprRet(); }
-ExprRet LLVMGen::compare(Compare_t* n, int depth) { return ExprRet(); }
+ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) { 
+
+    Array<Value*> values(n->values.size());
+
+    for(int i = 0; i < n->values.size(); i++) {
+        values[i] = exec(n->values[i], depth);
+    }
+
+    auto fun = [this, n](Value* a, Value* b) -> Value* {
+        switch (n->op) {
+            case BoolOperator::Or:    
+                return builder->CreateOr(a, b, "ortmp");
+            case BoolOperator::And:    
+                return builder->CreateAnd(a, b, "andtmp");
+        }
+    };
+
+    // does this even matter ?
+    // log2(op)
+    while (values.size() > 2) {
+        int count = values.size() / 2;
+        int extra = values.size() % 2;
+        Array<Value*> next(count + extra);
+
+        for(int i = 0; i < count; i++) {
+            next[i] = fun(values[i * 2], values[i * 2 + 1]);
+        }
+        if (extra > 0) {
+            next[count + extra] = values[values.size() - 1];
+        }
+        values = next;
+    }
+    return values[0]; 
+}
+
+ExprRet LLVMGen::unaryop(UnaryOp_t* n, int depth) { 
+    Value* arg = exec(n->operand, depth);
+
+    switch(n->op) {
+        case UnaryOperator::Invert: 
+            return builder->CreateXor(arg, ConstantInt::get(builder->getInt32Ty(), -1));
+        case UnaryOperator::Not:
+            // arg xor 1
+            return builder->CreateXor(arg, ConstantInt::get(builder->getInt1Ty(), 1));
+        case UnaryOperator::UAdd:   
+            return arg;
+        case UnaryOperator::USub:   
+            return builder->CreateSub(ConstantInt::get(builder->getInt32Ty(), 0), arg, "subtmp");
+    }
+    return nullptr; 
+}
+ExprRet LLVMGen::compare(Compare_t* n, int depth) { 
+    
+    auto fun = [this](CmpOperator op, Value* lhs, Value* rhs) -> Value* {
+        switch (op) {
+            case CmpOperator::Eq:    return builder->CreateFCmp(CmpInst::FCMP_OEQ, lhs, rhs, "");
+            case CmpOperator::NotEq: return builder->CreateFCmp(CmpInst::FCMP_UNE, lhs, rhs, "");
+            case CmpOperator::Lt:    return builder->CreateFCmpOLT(lhs, rhs, "");
+            case CmpOperator::LtE:   return builder->CreateFCmpOLE(lhs, rhs, "");
+            case CmpOperator::Gt:    return builder->CreateFCmpOGT(lhs, rhs, "");
+            case CmpOperator::GtE:   return builder->CreateFCmpOGE(lhs, rhs, "");
+            case CmpOperator::Is:    return nullptr;
+            case CmpOperator::IsNot: return nullptr;
+            case CmpOperator::In:    return nullptr;
+            case CmpOperator::NotIn: return nullptr;
+        }
+        // this->builder->CreateFCmpOLT()
+    };
+
+    Value* left = exec(n->left, depth);
+    Array<Value*> comparisons;
+
+    for(int i = 0; i < n->ops.size(); i++) {
+        Value* right = exec(n->comparators[i], depth);
+        comparisons.push_back(fun(n->ops[i], left, right));
+        left = right;
+    }
+
+    Value* prev = comparisons[0];
+    for(int i = 1; i < comparisons.size(); i++) {
+        prev = builder->CreateAnd(prev, comparisons[i]);
+    }
+
+    return prev; 
+}
 
 ExprRet LLVMGen::namedexpr(NamedExpr_t* n, int depth) {
     ExprRet target = exec(n->target, depth);
     ExprRet value  = exec(n->value, depth);
+
+    // ?
+    // builder->CreateStore(value, target);
     return value;
 }
 ExprRet LLVMGen::exported(Exported* n, int depth) {
     return nullptr;
 }   
-ExprRet LLVMGen::lambda(Lambda_t* n, int depth) { return ExprRet(); }
+ExprRet LLVMGen::lambda(Lambda_t* n, int depth) { 
+    Function *lambdaFunc = Function::Create(
+        nullptr, // lambdaFuncType, 
+        Function::ExternalLinkage, 
+        "", 
+        llmodule.get()
+    );
+
+    return ExprRet(); 
+}
 ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
     Value* cond = exec(n->test, depth);
 
@@ -299,9 +448,18 @@ ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 
     return nullptr;
 }
-ExprRet LLVMGen::attribute(Attribute_t* n, int depth) { return ExprRet(); }
-ExprRet LLVMGen::subscript(Subscript_t* n, int depth) { return ExprRet(); }
-ExprRet LLVMGen::starred(Starred_t* n, int depth) { return ExprRet(); }
+ExprRet LLVMGen::attribute(Attribute_t* n, int depth) { 
+    // struct lookup
+    return ExprRet(); 
+}
+ExprRet LLVMGen::subscript(Subscript_t* n, int depth) { 
+    // slice
+    return ExprRet(); 
+}
+ExprRet LLVMGen::starred(Starred_t* n, int depth) { 
+    //
+    return ExprRet(); 
+}
 
 ExprRet LLVMGen::name(Name_t* n, int depth) {
 
@@ -509,7 +667,6 @@ StmtRet LLVMGen::deletestmt(Delete_t* n, int depth) {
 }
 
 StmtRet LLVMGen::assign(Assign_t* n, int depth) {
-
     // Unpacking ?
     // create the variable
     Value* variable = exec(n->targets[0], depth);
@@ -682,9 +839,47 @@ StmtRet LLVMGen::trystmt(Try_t* n, int depth) {
 
     return StmtRet();
 }
-StmtRet LLVMGen::assertstmt(Assert_t* n, int depth) { return StmtRet(); }
-StmtRet LLVMGen::global(Global_t* n, int depth) { return StmtRet(); }
-StmtRet LLVMGen::nonlocal(Nonlocal_t* n, int depth) { return StmtRet(); }
+StmtRet LLVMGen::assertstmt(Assert_t* n, int depth) { 
+    // raise an error
+    Value* test = exec(n->test, depth);
+
+    // BasicBlock* merged = BasicBlock::Create(*context, "ifcont");
+    // Value* condcmp = builder->CreateFCmpONE(
+    //     test, 
+    //     ConstantFP::get(*context, APFloat(0.0)), 
+    //     "ifstmt_cond"
+    // );
+    // BasicBlock* merged = BasicBlock::Create(*context, "assert_failed");
+
+    // builder->CreateCondBr(condcmp, then, elxpr);
+
+    // then
+    // builder->SetInsertPoint(then);
+
+    // The unreachable instruction indicates to the compiler 
+    // that the current code path is unreachable, meaning that
+    // it should never be executed under any circumstances
+    //
+    // Not good because not catchable, only used for optimization
+    //
+    // builder->CreateUnreachable();
+
+    // indicate an unrecoverable error
+    //
+    // This is not good too because not catchable as well
+    //
+    // builder->CreateIntrinsic(Intrinsic::trap, {}, {});
+
+    return StmtRet(); 
+}
+StmtRet LLVMGen::global(Global_t* n, int depth) { 
+    //
+    return StmtRet(); 
+}
+StmtRet LLVMGen::nonlocal(Nonlocal_t* n, int depth) { 
+    //
+    return StmtRet(); 
+}
 
 StmtRet LLVMGen::exprstmt(Expr_t* n, int depth) {
     exec(n->value, depth);
@@ -711,15 +906,52 @@ StmtRet LLVMGen::continuestmt(Continue_t* n, int depth) {
     return StmtRet();
 }
 
-StmtRet LLVMGen::match(Match_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::inlinestmt(Inline_t* n, int depth) {
     for (auto* stmt: n->body) {
         exec(stmt, depth);
     }
     return StmtRet();
 }
-StmtRet LLVMGen::import(Import_t* n, int depth) { return StmtRet(); }
-StmtRet LLVMGen::importfrom(ImportFrom_t* n, int depth) { return StmtRet(); }
+
+StmtRet LLVMGen::import(Import_t* n, int depth) { 
+    // schedule module for code gen
+    // we could extract the type from sema
+    // so we can continue the code gen of this file
+    // without having the end result
+
+
+    // Build function type
+    // FunctionType *fooFuncType = FunctionType::get(builder.getInt32Ty(), false);
+    // Function *fooFunc = Function::Create(fooFuncType, Function::ExternalLinkage, "foo", module);
+
+    // Declare an external global variable: @my_global
+    // Type *globalType = builder.getInt32Ty(); // Assuming the type of the global is i32
+    // GlobalVariable *myGlobal = new GlobalVariable(module, globalType, false, GlobalValue::ExternalLinkage, nullptr, "my_global");
+
+
+    return StmtRet(); 
+}
+
+StmtRet LLVMGen::importfrom(ImportFrom_t* n, int depth) { 
+    //
+    return StmtRet(); 
+}
+
+StmtRet LLVMGen::match(Match_t* n, int depth) { 
+    //
+    Value* val = exec(n->subject, depth);
+
+    for(auto const& kase: n->cases) {
+        // Generate the pattern matching conditions
+        // we should
+        exec(kase.pattern, depth);          //
+        exec(kase.guard.value(), depth);    // <= 
+
+        // exec(kase.body, depth);
+    }
+    
+    return StmtRet(); 
+}
 
 PatRet LLVMGen::matchvalue(MatchValue_t* n, int depth) { return PatRet(); }
 PatRet LLVMGen::matchsingleton(MatchSingleton_t* n, int depth) { return PatRet(); }

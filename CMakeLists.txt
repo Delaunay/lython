@@ -44,6 +44,7 @@ OPTION(WITH_VALGRIND "Disable mimalloc for better valgrind support" OFF)
 OPTION(WITH_COVERAGE "Enable coverage generation" ON)
 OPTION(WITH_LOG "Enable compiler log" ON)
 OPTION(WITH_COZ "Enable coz profiler" OFF)
+OPTION(NO_LLVM "Disable LLVM" OFF)
 
 IF(BUILD_USING_CLANG)
     IF (WITH_COVERAGE)
