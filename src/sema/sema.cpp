@@ -77,6 +77,10 @@ SemanticAnalyser::find_method(TypeExpr* class_type, String const& methodname, in
 
 // classname.__and__
 String SemanticAnalyser::operator_function(TypeExpr* expr_t, StringRef op) {
+    if (expr_t == nullptr) {
+        return "";
+    }
+    
     auto*     cls_ref  = cast<Name>(expr_t);
     ClassDef* expr_cls = cast<ClassDef>(load_name(cls_ref));
 
