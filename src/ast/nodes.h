@@ -649,7 +649,7 @@ struct ListExpr: public ExprNode {
 struct TupleExpr: public ExprNode {
     Array<ExprNode*> elts;
     ExprContext      ctx;
-
+    // We need the typing of the tuple
     TupleExpr(): ExprNode(NodeKind::TupleExpr) {}
 };
 
