@@ -22,7 +22,7 @@ else()
     find_package(ZLIB)
 endif(WIN32)
 
-SET(NO_LLVM 1)
+# SET(NO_LLVM 1)
 
 
 IF(NO_LLVM)
