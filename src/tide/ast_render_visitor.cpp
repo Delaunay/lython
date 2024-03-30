@@ -1308,7 +1308,7 @@ LY_ReturnType ASTRender::comment(Comment* n, int depth) {
     auto config      = special::Editable(!n->comment.empty() ? n->comment : String("<comment>"), n);
     config.input     = LY_INPUT_STR(n, n->comment);
     config.backspace = LY_BACKSPACE_STR(n, n->comment);
-    out() << "#" << config;
+    out() << "# " << config;
     return false;
 }
 
