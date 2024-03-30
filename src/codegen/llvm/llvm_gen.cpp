@@ -450,14 +450,21 @@ ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 }
 ExprRet LLVMGen::attribute(Attribute_t* n, int depth) { 
     // struct lookup
-    return ExprRet(); 
+    Value* obj = exec(n->value, depth);
+    
+    return builder->CreateStructGEP(
+        dyn_cast<StructType>(obj->getType()), 
+        obj, 
+        n->attrid, 
+        str(n->attr).c_str()
+    );
 }
 ExprRet LLVMGen::subscript(Subscript_t* n, int depth) { 
     // slice
     return ExprRet(); 
 }
 ExprRet LLVMGen::starred(Starred_t* n, int depth) { 
-    //
+    // unpacking wont exist anymore at that point right
     return ExprRet(); 
 }
 
@@ -498,7 +505,29 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
 }
 
 ExprRet LLVMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
-ExprRet LLVMGen::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
+ExprRet LLVMGen::tupleexpr(TupleExpr_t* n, int depth) { 
+    // make a fake struct
+
+    Array<llvm::Type*> fields;
+    llvm::Type*        int_type = llvm::Type::getInt32Ty(*context);
+
+    StructType* clstype = llvm::StructType::create(
+        *context, 
+        fields, 
+        ""
+    );
+    llmodule->getOrInsertGlobal("", clstype);
+
+    AllocaInst *structInst = builder->CreateAlloca(clstype);
+
+    for(int i = 0; i < n->elts.size(); i++) {
+        Value *member = builder->CreateStructGEP(clstype, structInst, i);
+        Value* newvalue = exec(n->elts[0], depth);
+        builder->CreateStore(newvalue, member);
+    }
+    
+    return ExprRet(); 
+}
 ExprRet LLVMGen::slice(Slice_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::dicttype(DictType_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::arraytype(ArrayType_t* n, int depth) { return ExprRet(); }
@@ -640,6 +669,13 @@ StmtRet LLVMGen::classdef(ClassDef_t* n, int depth) {
 
     StructType* clstype = llvm::StructType::create(*context, fields, tostr(n->name));
     llmodule->getOrInsertGlobal(tostr(n->name), clstype);
+
+
+    // // Create a struct instance
+    // AllocaInst *structInst = builder.CreateAlloca(structType);
+    // Value *floatMember = builder.CreateStructGEP(structType, structInst, 0);
+    // Value *intMember = builder.CreateStructGEP(structType, structInst, 1);
+
 
     // index_to_index[n->name] = named_values.size();
     // named_values.push_back(clstype);
