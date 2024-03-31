@@ -185,8 +185,8 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
 
     Array<TypeExpr*> exec_body(Array<StmtNode*>& body, int depth);
 
-    Name* make_ref(Node* parent, StringRef const& name);
-    Name* make_ref(Node* parent, String const& name);
+    Name* make_ref(Node* parent, StringRef const& name, ExprNode* type = nullptr);
+    Name* make_ref(Node* parent, String const& name, ExprNode* type = nullptr);
 
     void record_attributes(ClassDef*               n,
                            Array<StmtNode*> const& body,

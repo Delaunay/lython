@@ -17,6 +17,7 @@ bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type)
 
     if (name != nullptr) {
         name->ctx = ExprContext::Store;
+        name->type = type;
         bindings.add(name->id, value, type);
         return true;
     }
@@ -24,11 +25,11 @@ bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type)
     return false;
 }
 
-Name* SemanticAnalyser::make_ref(Node* parent, StringRef const& name) {
-    return bindings.make_reference(parent, name);
+Name* SemanticAnalyser::make_ref(Node* parent, StringRef const& name, ExprNode* type) {
+    return bindings.make_reference(parent, name, type);
 }
-Name* SemanticAnalyser::make_ref(Node* parent, String const& name) {
-    return make_ref(parent, StringRef(name));
+Name* SemanticAnalyser::make_ref(Node* parent, String const& name, ExprNode* type) {
+    return make_ref(parent, StringRef(name), type);
 }
 
 bool SemanticAnalyser::typecheck(
@@ -80,7 +81,7 @@ String SemanticAnalyser::operator_function(TypeExpr* expr_t, StringRef op) {
     if (expr_t == nullptr) {
         return "";
     }
-    
+
     auto*     cls_ref  = cast<Name>(expr_t);
     ClassDef* expr_cls = cast<ClassDef>(load_name(cls_ref));
 
@@ -92,7 +93,7 @@ String SemanticAnalyser::operator_function(TypeExpr* expr_t, StringRef op) {
 }
 
 TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
-    auto* bool_type        = make_ref(n, "bool");
+    auto* bool_type        = make_ref(n, "bool", Type_t());
     bool  and_implemented  = false;
     bool  rand_implemented = false;
     auto* return_t         = bool_type;
@@ -129,7 +130,7 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
 
                 typecheck(lhs, lhs_t, nullptr, operator_type->args[0], LOC);
                 typecheck(rhs, rhs_t, nullptr, operator_type->args[1], LOC);
-                typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool"), LOC);
+                typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool", Type_t()), LOC);
             } else {
                 BindingEntry* rhs_op_binding = bindings.find(StringRef(rhs_op));
                 if (rhs_op_binding != nullptr) {
@@ -140,7 +141,7 @@ TypeExpr* SemanticAnalyser::boolop(BoolOp* n, int depth) {
 
                     typecheck(lhs, lhs_t, nullptr, operator_type->args[1], LOC);
                     typecheck(rhs, rhs_t, nullptr, operator_type->args[0], LOC);
-                    typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool"), LOC);
+                    typecheck(nullptr, operator_type->returns, nullptr, make_ref(n, "bool", Type_t()), LOC);
                 }
 
                 if (lhs_op_binding == nullptr && rhs_op_binding == nullptr) {
@@ -251,7 +252,7 @@ TypeExpr* SemanticAnalyser::compare(Compare* n, int depth) {
         prev_t = cmp_t;
     }
 
-    return make_ref(n, "bool");
+    return make_ref(n, "bool", Type_t());
 }
 
 TypeExpr* SemanticAnalyser::binop(BinOp* n, int depth) {
@@ -314,7 +315,7 @@ TypeExpr* SemanticAnalyser::lambda(Lambda* n, int depth) {
 TypeExpr* SemanticAnalyser::ifexp(IfExp* n, int depth) {
     auto* test_t = exec(n->test, depth);
 
-    typecheck(n->test, test_t, nullptr, make_ref(n, "bool"), LOC);
+    typecheck(n->test, test_t, nullptr, make_ref(n, "bool", Type_t()), LOC);
     auto* body_t   = exec(n->body, depth);
     auto* orelse_t = exec(n->orelse, depth);
 
@@ -535,11 +536,11 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
 
         // NOTE: we should call __new__ here implictly
         //
-        Node*         ctor = nullptr;
+        Node*         ctor      = nullptr;
         String        ctor_name = String(cls->name) + String(".__init__");
         BindingEntry* entry     = bindings.find(StringRef(ctor_name));
         if (entry != nullptr) {
-            ctor      = entry->value;
+            ctor = entry->value;
         }
         if (ctor == nullptr) {
             kwwarn("Could not resolve class constructor");
@@ -580,7 +581,7 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
 
         if (init == nullptr) {
             kwdebug("Use default ctor");
-            auto*  cls_ref = make_ref(fun, cls->name);
+            auto*  cls_ref = make_ref(fun, cls->name, Type_t());
             Arrow* arrow   = fun->new_object<Arrow>();
             arrow->add_arg_type(cls_ref);
             arrow->returns = cls_ref;
@@ -693,7 +694,7 @@ TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) {
     for (auto* value: n->values) {
         exec(value, depth);
     }
-    return make_ref(n, "str");
+    return make_ref(n, "str", Type_t());
 }
 
 TypeExpr* SemanticAnalyser::exported(Exported* n, int depth) {
@@ -785,20 +786,20 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
 TypeExpr* SemanticAnalyser::placeholder(Placeholder* n, int depth) { return nullptr; }
 TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
     switch (n->value.type()) {
-    case ConstantValue::Ti8: return make_ref(n, "i8");
-    case ConstantValue::Ti16: return make_ref(n, "i16");
-    case ConstantValue::Ti32: return make_ref(n, "i32");
-    case ConstantValue::Ti64: return make_ref(n, "i64");
+    case ConstantValue::Ti8: return make_ref(n, "i8", Type_t());
+    case ConstantValue::Ti16: return make_ref(n, "i16", Type_t());
+    case ConstantValue::Ti32: return make_ref(n, "i32", Type_t());
+    case ConstantValue::Ti64: return make_ref(n, "i64", Type_t());
 
-    case ConstantValue::Tu8: return make_ref(n, "u8");
-    case ConstantValue::Tu16: return make_ref(n, "u16");
-    case ConstantValue::Tu32: return make_ref(n, "u32");
-    case ConstantValue::Tu64: return make_ref(n, "u64");
+    case ConstantValue::Tu8: return make_ref(n, "u8", Type_t());
+    case ConstantValue::Tu16: return make_ref(n, "u16", Type_t());
+    case ConstantValue::Tu32: return make_ref(n, "u32", Type_t());
+    case ConstantValue::Tu64: return make_ref(n, "u64", Type_t());
 
-    case ConstantValue::Tf32: return make_ref(n, "f32");
-    case ConstantValue::Tf64: return make_ref(n, "f64");
-    case ConstantValue::TString: return make_ref(n, "str");
-    case ConstantValue::TBool: return make_ref(n, "bool");
+    case ConstantValue::Tf32: return make_ref(n, "f32", Type_t());
+    case ConstantValue::Tf64: return make_ref(n, "f64", Type_t());
+    case ConstantValue::TString: return make_ref(n, "str", Type_t());
+    case ConstantValue::TBool: return make_ref(n, "bool", Type_t());
     default: return nullptr;
     }
 
@@ -834,6 +835,7 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
                     Name* name  = n->new_object<Name>();
                     name->id    = bind.name;
                     name->varid = i;
+                    name->type = bind.type;
                     return name;
                 }
                 i += 1;
@@ -901,6 +903,7 @@ TypeExpr* SemanticAnalyser::starred(Starred* n, int depth) {
 TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
     BindingEntry const* entry = lookup(n);
     if (entry) {
+        n->type = entry->type;
         return entry->type;
     }
 
@@ -987,6 +990,7 @@ TypeExpr* SemanticAnalyser::tupleexpr(TupleExpr* n, int depth) {
         type->types.push_back(val_t);
     }
 
+    n->type = type;
     return type;
 }
 TypeExpr* SemanticAnalyser::slice(Slice* n, int depth) {
@@ -1007,7 +1011,7 @@ TypeExpr* SemanticAnalyser::slice(Slice* n, int depth) {
 void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* def, int depth) {
     TypeExpr* class_t = nullptr;
     if (def != nullptr) {
-        class_t = make_ref(arrow, str(def->name));
+        class_t = make_ref(arrow, str(def->name), Type_t());
     }
 
     auto resolve_argument = [&](TypeExpr* annotation, ExprNode* value) -> TypeExpr* {
@@ -1367,7 +1371,7 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     // a class is a new type
     // the type of a class is type
     int   id      = bindings.add(n->name, n, Type_t());
-    Name* class_t = make_ref(n, str(n->name));
+    Name* class_t = make_ref(n, str(n->name), Type_t());
 
     // TODO: go through bases and add their elements
     for (auto* base: n->bases) {

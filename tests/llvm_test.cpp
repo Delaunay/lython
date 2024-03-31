@@ -4,6 +4,7 @@
 #include "revision_data.h"
 #include "sema/sema.h"
 #include "utilities/strings.h"
+
 #include "codegen/llvm/llvm_gen.h"
 
 #include <catch2/catch_all.hpp>
@@ -22,7 +23,7 @@ using namespace lython;
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
-String eval_it(String const& code, String const& expr, Module*& mod) {
+String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
     std::cout << ">>>>>> Start\n";
 
     StringBuffer reader(code);
@@ -114,7 +115,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
         ss << "_" << i;
 
         // write_fuzz_file(name + ss.str(), c.code);
-        String result = eval_it(c.code, c.call, mod);
+        String result = llvm_codegen_it(c.code, c.call, mod);
 
         // REQUIRE(errors == c.errors);
 

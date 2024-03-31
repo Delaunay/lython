@@ -77,10 +77,11 @@ int Bindings::add(StringRef const& name, Node* value, TypeExpr* type, int type_i
     return size;
 }
 
-struct Name* Bindings::make_reference(Node* parent, StringRef const& name) {
+struct Name* Bindings::make_reference(Node* parent, StringRef const& name, ExprNode* type) {
     Name* ref = parent->new_object<Name>();
     ref->id  = name;
     ref->ctx = ExprContext::Load;
+    ref->type = type;
     return ref;
 }
 

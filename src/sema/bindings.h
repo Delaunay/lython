@@ -33,7 +33,7 @@ std::ostream& print(std::ostream& out, BindingEntry const& entry);
 struct Bindings {
     Bindings();
 
-    struct Name* make_reference(Node* parent, StringRef const& name);
+    struct Name* make_reference(Node* parent, StringRef const& name, ExprNode* type = nullptr);
 
     // returns the varid it was inserted as
     int add(StringRef const& name, Node* value, TypeExpr* type, int type_id=-1);

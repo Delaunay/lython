@@ -1,5 +1,15 @@
 #ifndef LYTHON_LLVM_GEN_HEADER
 #define LYTHON_LLVM_GEN_HEADER
+
+#ifndef WITH_LLVM
+#define WITH_LLVM 1
+#endif
+
+#ifndef WITH_LLVM_CODEGEN
+#define WITH_LLVM_CODEGEN 1
+#endif
+
+
 #if WITH_LLVM && WITH_LLVM_CODEGEN 
 
 #include "ast/magic.h"
@@ -18,9 +28,43 @@
 
 namespace lython {
 
+struct ValueOrType {
+    union Holder {
+        llvm::Value* value;
+        llvm::Type* type;
+    };
+
+    Holder one_of;
+    int tag;
+  
+    ValueOrType(): tag(-1) {}
+
+    ValueOrType(std::nullptr_t t): tag(-1) {}
+
+    ValueOrType(llvm::Value* value): tag(0) {
+        one_of.value = value;
+    }
+
+    ValueOrType(llvm::Type* type): tag(1) {
+        one_of.type = type;
+    }
+    llvm::Value* value() {
+        if (tag == 0) {
+            return one_of.value;
+        }
+        return nullptr;
+    }
+    llvm::Type* type() {
+        if (tag == 1) {
+            return one_of.type;
+        }
+        return nullptr;
+    }
+};
+
 struct LLVMGenVisitorTrait {
     using StmtRet = void;
-    using ExprRet = llvm::Value*;
+    using ExprRet = ValueOrType;
     using ModRet  = void;
     using PatRet  = void;
     using IsConst = std::false_type;
@@ -38,9 +82,9 @@ struct ArrayScope {
     }
 
     ~ArrayScope() {
-        for (std::size_t i = oldsize; i < array.size(); i++) {
-            array[oldsize] = nullptr;
-        }
+        // for (std::size_t i = oldsize; i < array.size(); i++) {
+        //     array[oldsize] = T();
+        // }
         array.resize(oldsize);
     }
 
@@ -48,6 +92,17 @@ struct ArrayScope {
     std::size_t oldsize;
 };
 
+
+
+struct VariableEntry {
+    VariableEntry(Identifier name = Identifier(), llvm::Value* value = nullptr, llvm::Type* type = nullptr):
+        name(name), value(value), type(type)
+    {}
+
+    Identifier   name;
+    llvm::Value* value;
+    llvm::Type*  type;
+};
 
 // 
 // X86
@@ -82,8 +137,11 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     Unique<llvm::Module>      llmodule;
     Unique<llvm::IRBuilder<>> builder;
 
-    Array<llvm::Value*> named_values;
-    Dict<Identifier, std::size_t> index_to_index;
+    Array<VariableEntry> variables;
+    Array<VariableEntry> types;
+
+    // Array<llvm::Value*> named_values;
+    // Dict<Identifier, std::size_t> index_to_index;
 
     llvm::Type* builtin_type(StringRef name);
     llvm::Type* retrieve_type(ExprNode* type, int depth);
@@ -102,8 +160,7 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     void emit_location(ExprNode* node);
 #    endif
 
-    ExprRet
-    binary_operator(llvm::IRBuilder<>* builder, ExprNode* left, ExprNode* right, int op, int depth);
+    llvm::FunctionType* functiontype(Arrow_t* n, int depth);
 
     LLVMGen();
     ~LLVMGen();
