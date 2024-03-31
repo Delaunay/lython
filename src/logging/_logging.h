@@ -172,7 +172,7 @@ inline void assert_true(bool                        cond,
     if (!cond) {
         lython::log(lython::LogLevel::Error,
                     loc,
-                    "Assertion errror: {}\n"
+                    "Assertion error: {}\n"
                     "  - expr: {}",
                     message,
                     assert_expr);

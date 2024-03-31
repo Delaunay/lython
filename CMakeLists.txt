@@ -17,7 +17,7 @@ IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         ADD_LINK_OPTIONS(-rdynamic)
     ENDIF(UNIX)
 ELSE()
-    MESSAGE(STATUS "Building Release Version")
+    MESSAGE(STATUS "Building Release Version: " ${CMAKE_BUILD_TYPE})
 
     # causes: nvcc fatal   : redefinition of argument 'optimize'
     # ADD_DEFINITIONS(-O2)

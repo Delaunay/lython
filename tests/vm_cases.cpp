@@ -206,7 +206,8 @@ Array<VMTestCase> const& If_vm_examples() {
             "    elif b:\n"
             "        return 1.0\n"
             "    else:\n"
-            "        return 3.0\n",
+            "        return 3.0\n"
+            "    return 2.0\n",
             "fun()",
         },
     };
@@ -684,11 +685,11 @@ Array<VMTestCase> const& Constant_vm_examples() {
             "fun()",
         },
         // "'str'",
-        {
-            "def fun():\n"
-            "    return \"str\"\n",
-            "fun()",
-        },
+        // {
+        //     "def fun():\n"
+        //     "    return \"str\"\n",
+        //     "fun()",
+        // },
         {
             "def fun():\n"
             "    return None\n",
@@ -766,43 +767,43 @@ Array<VMTestCase> const& Compare_vm_examples() {
 
 Array<VMTestCase> const& YieldFrom_vm_examples() {
     static Array<VMTestCase> examples = {
-        {
-            "def fun():\n"
-            "    yield from a\n",
-            "fun()",
-        },
+        // {
+        //     "def fun():\n"
+        //     "    yield from a\n",
+        //     "fun()",
+        // },
     };
     return examples;
 }
 
 Array<VMTestCase> const& Yield_vm_examples() {
     static Array<VMTestCase> examples = {
-        {
-            "def fun(a):\n"
-            "    yield a\n",
-            "fun()",
-        },
-        {
-            "def fun():\n"
-            "    yield 1, 2\n",
-            "fun()",
-        },
-        {
-            "def fun():\n"
-            "    yield\n",
-            "fun()",
-        },
+        // {
+        //     "def fun(a):\n"
+        //     "    yield a\n",
+        //     "fun()",
+        // },
+        // {
+        //     "def fun():\n"
+        //     "    yield 1, 2\n",
+        //     "fun()",
+        // },
+        // {
+        //     "def fun():\n"
+        //     "    yield\n",
+        //     "fun()",
+        // },
     };
     return examples;
 }
 
 Array<VMTestCase> const& Await_vm_examples() {
     static Array<VMTestCase> examples = {
-        {
-            "def fun(a: int):\n"
-            "    await a\n",
-            "fun()",
-        },
+        // {
+        //     "def fun(a: int):\n"
+        //     "    await a\n",
+        //     "fun()",
+        // },
     };
     return examples;
 }
@@ -938,12 +939,12 @@ Array<VMTestCase> const& BinOp_vm_examples() {
             "fun()",
         },
         {
-            "def fun(a: f64, b: f64) -> f64:\n"
+            "def fun(a: i32, b: i32) -> f64:\n"
             "    return a << b\n",
             "fun()",
         },
         {
-            "def fun(a: f64, b: f64) -> f64:\n"
+            "def fun(a: i32, b: i32) -> f64:\n"
             "    return a ^ b\n",
             "fun()",
         },

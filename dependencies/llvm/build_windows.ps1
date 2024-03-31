@@ -18,7 +18,7 @@ $LLVM_ARGS = "-DCMAKE_INSTALL_PREFIX=${env:INSTALL_DIR} -DLLVM_ENABLE_PROJECTS=c
 $TARGETS = "X86;AMDGPU;NVPTX;WebAssembly"
 $OLD = "$pwd"
 
-# 
+#
 New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/Debug
 cd $env:BUILD_DIR/Debug
 cmake -G "Visual Studio 17 2022" $LLVM_ARGS -DCMAKE_BUILD_TYPE=Debug -DLLVM_ENABLE_PROJECTS=clang -DLLVM_TARGETS_TO_BUILD="$TARGETS" $env:SOURCE_DIR/llvm
@@ -36,3 +36,11 @@ cmake  -G "Visual Studio 17 2022" $LLVM_ARGS -DCMAKE_BUILD_TYPE=RelWithDebInfo -
 cmake --build . --config RelWithDebInfo
 
 cd $OLD
+
+# New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/binaries/Debug
+# New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/binaries/Release
+# New-Item -ItemType Directory -Force -Path $env:BUILD_DIR/binaries/RelWithDebInfo
+
+# Move-Item -Path "$env:BUILD_DIR/Debug/Debug" -Destination "$env:BUILD_DIR/binaries/Debug" -Recurse
+# Move-Item -Path "$env:BUILD_DIR/Release/Release" -Destination "$env:BUILD_DIR/binaries/Release" -Recurse
+# Move-Item -Path "$env:BUILD_DIR/RelWithDebInfo/RelWithDebInfo" -Destination "$env:BUILD_DIR/binaries/RelWithDebInfo" -Recurse

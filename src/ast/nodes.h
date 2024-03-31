@@ -618,6 +618,9 @@ struct Name: public ExprNode {
     Identifier  id;
     ExprContext ctx;
 
+    // A bit redundant when it comes to AnnAssign
+    ExprNode* type = nullptr;
+
     // Variable id, resolved by SEMA
     int  varid   = -1;
     int  size    = -1;     // size of the context when it was defined
@@ -649,6 +652,9 @@ struct ListExpr: public ExprNode {
 struct TupleExpr: public ExprNode {
     Array<ExprNode*> elts;
     ExprContext      ctx;
+
+    struct TupleType* type = nullptr;
+
     // We need the typing of the tuple
     TupleExpr(): ExprNode(NodeKind::TupleExpr) {}
 };
