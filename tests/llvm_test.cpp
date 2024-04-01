@@ -25,7 +25,7 @@ String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 String reg_modules_path() { return String(_SOURCE_DIRECTORY) + "/code/llvm"; }
 
 String
-llvm_codegen_it(String const& name, int i, String const& code, String const& expr, Module*& mod) {
+llvm_codegen_it(llvm::raw_fd_ostream& out, String const& code, String const& expr, Module*& mod) {
     std::cout << ">>>>>> Start\n";
 
     StringBuffer reader(code);
@@ -95,22 +95,7 @@ llvm_codegen_it(String const& name, int i, String const& code, String const& exp
 
     std::cout << "Module dump\n";
 
-    StringStream sspath;
-    sspath << reg_modules_path() << "/current/" << name << "_" << i << ".ll";
-    String path = sspath.str();
-
-    {
-        std::error_code      EC;
-        llvm::raw_fd_ostream out(path.c_str(), EC);
-
-        std::istringstream iss(code.c_str());
-        std::string        line;
-        while (std::getline(iss, line)) {
-            // Process each line here
-            out << "; " << line << "\n";
-        };
-        generator.llmodule->print(out, nullptr);
-    }
+    generator.llmodule->print(out, nullptr);
 
     emod->dump(std::cout);
     delete emod;
@@ -123,8 +108,19 @@ llvm_codegen_it(String const& name, int i, String const& code, String const& exp
 void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     kwinfo("Testing {}", name);
 
+    if (cases.size() <= 0) {
+        return;
+    }
+
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
+
+    StringStream sspath;
+    sspath << reg_modules_path() << "/current/" << name << ".ll";
+    String path = sspath.str();
+
+    std::error_code      EC;
+    llvm::raw_fd_ostream out(path.c_str(), EC);
 
     int i = 0;
     for (auto& c: cases) {
@@ -133,8 +129,23 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
         StringStream ss;
         ss << "_" << i;
 
+        std::istringstream iss(c.code.c_str());
+        std::string        line;
+        out << ">>>>>>>\n";
+        out << "; Example " << i << "\n";
+        out << "; ------------\n";
+
+        while (std::getline(iss, line)) {
+            // Process each line here
+            out << "; " << line << "\n";
+        };
+
+        out << "\n";
+
         // write_fuzz_file(name + ss.str(), c.code);
-        String result = llvm_codegen_it(name, i, c.code, c.call, mod);
+        String result = llvm_codegen_it(out, c.code, c.call, mod);
+
+        out << "<<<<<<\n\n";
 
         REQUIRE(result == "");
 
