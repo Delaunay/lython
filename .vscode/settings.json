@@ -82,7 +82,8 @@
         "fstream": "cpp",
         "shared_mutex": "cpp",
         "future": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "regex": "cpp"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"
