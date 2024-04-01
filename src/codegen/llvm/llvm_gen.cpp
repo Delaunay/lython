@@ -155,16 +155,67 @@ Value* fmul(IRBuilder<>* builder, Value* left, Value* right) {
     return builder->CreateFMul(left, right, "addtmp");
 }
 
-// BuiltinBinaryOperators const& builtin_binary_operators() {
-//     static BuiltinBinaryOperators ops = {
-//         {String("f+"), fadd},
-//         {String("f-"), fsub},
-//         {String("f*"), fmul},
-//     };
-//     return ops;
-// }
+llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm::Value* right) {
+    Type* type = left->getType();
 
-// Dict<String, std::function<Value*(Value*, Value*)>> operators
+    // clang-format: off
+    if (type->isIntegerTy()) {
+        switch (op) {
+        case BinaryOperator::Add: return builder->CreateAdd(left, right, "addtmp");
+        case BinaryOperator::Sub: return builder->CreateSub(left, right, "subtmp");
+        case BinaryOperator::Mult: return builder->CreateMul(left, right, "multtmp");
+        case BinaryOperator::Div:
+            return builder->CreateSDiv(
+                left, right, "divtmp");  // return builder->CreateUDiv(left, right, "divtmp");
+        case BinaryOperator::Mod:
+            return builder->CreateSRem(left, right);  // return builder->CreateURem(left, right);
+        case BinaryOperator::FloorDiv:
+            return builder->CreateSDiv(
+                left, right, "sdivtmp");  // return builder->CreateUDiv(left, right, "");
+        case BinaryOperator::Pow: {
+            Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
+            return builder->CreateCall(powFunc, {left, right});
+        }
+        case BinaryOperator::LShift: return builder->CreateLShr(left, right, "addtmp");
+        case BinaryOperator::RShift: return builder->CreateShl(left, right, "addtmp");
+        case BinaryOperator::BitOr: return builder->CreateOr(left, right, "bitortmp");
+        case BinaryOperator::BitXor: return builder->CreateXor(left, right, "bitxortmp");
+        case BinaryOperator::BitAnd: return builder->CreateAnd(left, right, "bitandtmp");
+        case BinaryOperator::MatMult: return nullptr;
+        case BinaryOperator::EltDiv: return nullptr;
+        case BinaryOperator::EltMult: return nullptr;
+        }
+    } else if (type->isFloatingPointTy()) {
+        switch (op) {
+        case BinaryOperator::Add: return builder->CreateFAdd(left, right, "addtmp");
+        case BinaryOperator::Sub: return builder->CreateFSub(left, right, "subtmp");
+        case BinaryOperator::Mult: return builder->CreateFMul(left, right, "multtmp");
+        case BinaryOperator::Div: return builder->CreateFDiv(left, right, "divtmp");
+        case BinaryOperator::Mod: return builder->CreateFRem(left, right);
+        case BinaryOperator::Pow: {
+            Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
+            return builder->CreateCall(powFunc, {left, right});
+        }
+        case BinaryOperator::FloorDiv: {
+            // cast to int
+            return builder->CreateFPToSI(builder->CreateFDiv(left, right, "sdivtmp"),
+                                         IntegerType::get(*context, 32));
+        }
+        case BinaryOperator::MatMult: return nullptr;
+        case BinaryOperator::EltDiv: return nullptr;
+        case BinaryOperator::EltMult: return nullptr;
+        case BinaryOperator::LShift: return nullptr;
+        case BinaryOperator::RShift: return nullptr;
+        case BinaryOperator::BitOr: return nullptr;
+        case BinaryOperator::BitXor: return nullptr;
+        case BinaryOperator::BitAnd: return nullptr;
+        }
+    }
+    // clang-format: on
+
+    kwerror("binary operator not handled");
+    return nullptr;
+}
 
 ExprRet LLVMGen::binop(BinOp_t* n, int depth) {
     Value* left  = exec(n->left, depth).value();
@@ -175,54 +226,7 @@ ExprRet LLVMGen::binop(BinOp_t* n, int depth) {
         return nullptr;
     }
 
-    switch (n->op) {
-    case BinaryOperator::Add: {
-        return builder->CreateFAdd(left, right, "addtmp");
-        return builder->CreateAdd(left, right, "addtmp");
-    }
-    case BinaryOperator::Sub:
-        return builder->CreateFSub(left, right, "subtmp");
-        return builder->CreateSub(left, right, "subtmp");
-
-    case BinaryOperator::Mult:
-        return builder->CreateFMul(left, right, "multtmp");
-        return builder->CreateMul(left, right, "multtmp");
-
-    case BinaryOperator::Div:
-        return builder->CreateFDiv(left, right, "divtmp");
-        return builder->CreateSDiv(left, right, "divtmp");
-        return builder->CreateUDiv(left, right, "divtmp");
-
-    case BinaryOperator::Mod: {
-        // Function *powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::mo,
-        // {builder->getDoubleTy()});
-        return builder->CreateSRem(left, right);
-        return builder->CreateFRem(left, right);
-        return builder->CreateURem(left, right);
-    }
-    case BinaryOperator::Pow: {
-        Function* powFunc =
-            Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {builder->getDoubleTy()});
-        return builder->CreateCall(powFunc, {left, right});
-        ;
-    }
-    case BinaryOperator::LShift: return builder->CreateLShr(left, right, "addtmp");
-    case BinaryOperator::RShift: return builder->CreateShl(left, right, "addtmp");
-    case BinaryOperator::BitOr: return builder->CreateOr(left, right, "bitortmp");
-    case BinaryOperator::BitXor: return builder->CreateXor(left, right, "bitxortmp");
-    case BinaryOperator::BitAnd: return builder->CreateAnd(left, right, "bitandtmp");
-
-    case BinaryOperator::FloorDiv: {
-        return builder->CreateSDiv(left, right, "sdivtmp");
-        // return builder->CreateUDiv(left, right, "");
-    }
-    case BinaryOperator::MatMult: return nullptr;
-    case BinaryOperator::EltDiv: return nullptr;
-    case BinaryOperator::EltMult: return nullptr;
-    }
-
-    kwerror("binary operator not handled");
-    return nullptr;
+    return binary_operator(n->op, left, right);
 }
 ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) {
 
@@ -277,19 +281,46 @@ ExprRet LLVMGen::unaryop(UnaryOp_t* n, int depth) {
 ExprRet LLVMGen::compare(Compare_t* n, int depth) {
 
     auto fun = [this](CmpOperator op, Value* lhs, Value* rhs) -> Value* {
-        switch (op) {
-        case CmpOperator::Eq: return builder->CreateFCmp(CmpInst::FCMP_OEQ, lhs, rhs, "");
-        case CmpOperator::NotEq: return builder->CreateFCmp(CmpInst::FCMP_UNE, lhs, rhs, "");
-        case CmpOperator::Lt: return builder->CreateFCmpOLT(lhs, rhs, "");
-        case CmpOperator::LtE: return builder->CreateFCmpOLE(lhs, rhs, "");
-        case CmpOperator::Gt: return builder->CreateFCmpOGT(lhs, rhs, "");
-        case CmpOperator::GtE: return builder->CreateFCmpOGE(lhs, rhs, "");
-        case CmpOperator::Is: return nullptr;
-        case CmpOperator::IsNot: return nullptr;
-        case CmpOperator::In: return nullptr;
-        case CmpOperator::NotIn: return nullptr;
+        Type* type = lhs->getType();
+
+        if (type->isIntegerTy()) {
+            IntegerType* ITy = dyn_cast<IntegerType>(type);
+
+            // if (ITy->isSigned())
+            {
+                // clang-format: off
+                switch (op) {
+                case CmpOperator::Eq: return builder->CreateICmpEQ(lhs, rhs, "");
+                case CmpOperator::NotEq: return builder->CreateICmpNE(lhs, rhs, "");
+                case CmpOperator::Lt: return builder->CreateICmpSLT(lhs, rhs, "");
+                case CmpOperator::LtE: return builder->CreateICmpSLE(lhs, rhs, "");
+                case CmpOperator::Gt: return builder->CreateICmpSGT(lhs, rhs, "");
+                case CmpOperator::GtE: return builder->CreateICmpSGE(lhs, rhs, "");
+                case CmpOperator::Is: return nullptr;
+                case CmpOperator::IsNot: return nullptr;
+                case CmpOperator::In: return nullptr;
+                case CmpOperator::NotIn:
+                    return nullptr;
+                    // clang-format: on
+                }
+            }
+        } else if (type->isFloatingPointTy()) {
+            // clang-format: off
+            switch (op) {
+            case CmpOperator::Eq: return builder->CreateFCmp(CmpInst::FCMP_OEQ, lhs, rhs, "");
+            case CmpOperator::NotEq: return builder->CreateFCmp(CmpInst::FCMP_UNE, lhs, rhs, "");
+            case CmpOperator::Lt: return builder->CreateFCmpOLT(lhs, rhs, "");
+            case CmpOperator::LtE: return builder->CreateFCmpOLE(lhs, rhs, "");
+            case CmpOperator::Gt: return builder->CreateFCmpOGT(lhs, rhs, "");
+            case CmpOperator::GtE: return builder->CreateFCmpOGE(lhs, rhs, "");
+            case CmpOperator::Is: return nullptr;
+            case CmpOperator::IsNot: return nullptr;
+            case CmpOperator::In: return nullptr;
+            case CmpOperator::NotIn:
+                return nullptr;
+                // clang-format: on
+            }
         }
-        // this->builder->CreateFCmpOLT()
         return nullptr;
     };
 
@@ -327,17 +358,38 @@ ExprRet LLVMGen::lambda(Lambda_t* n, int depth) {
 
     return ExprRet();
 }
-ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
-    Value* cond = exec(n->test, depth).value();
 
-    if (cond == nullptr) {
-        return nullptr;
+llvm::Value* LLVMGen::make_condition(ExprNode* condition_expression, int depth, int i) {
+    Value* condition = exec(condition_expression, depth).value();
+    kwassert(condition != nullptr, "Condition cannot be empty");
+
+    Value*       condcmp = nullptr;
+    Type*        type    = condition->getType();
+    StringStream ss;
+    ss << "cond_" << i;
+    String str = ss.str();
+
+    if (type->isIntegerTy()) {
+        condcmp = builder->CreateICmpNE(  // Compare Not Equal
+            condition,                    //
+            ConstantInt::get(type, 0),    //
+            str.c_str()                   //
+        );
+    } else if (type->isFloatingPointTy()) {
+        condcmp = builder->CreateFCmpONE(  // Float Compare Ordered Not Equal
+            condition,                     //
+            ConstantFP::get(type, 0.0f),   //
+            str.c_str()                    //
+        );
     }
 
-    Value* condcmp =
-        builder->CreateFCmpONE(cond, ConstantFP::get(*context, APFloat(0.0)), "ifstmt_cond");
+    kwassert(condcmp != nullptr, "Condition cannot be empty");
+    return condcmp;
+}
 
-    Function* fundef = builder->GetInsertBlock()->getParent();
+ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
+    Value*    condcmp = make_condition(n->test, depth, 0);
+    Function* fundef  = builder->GetInsertBlock()->getParent();
 
     BasicBlock* then   = BasicBlock::Create(*context, "then", fundef);
     BasicBlock* elxpr  = BasicBlock::Create(*context, "else");
@@ -370,7 +422,7 @@ ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
     builder->SetInsertPoint(merged);
 
     // Conditional value
-    PHINode* cond_value = builder->CreatePHI(Type::getDoubleTy(*context), 2, "iftmp");
+    PHINode* cond_value = builder->CreatePHI(else_value->getType(), 2, "iftmp");
     cond_value->addIncoming(then_value, then);
     cond_value->addIncoming(else_value, elxpr);
     return cond_value;
@@ -459,32 +511,42 @@ ExprRet LLVMGen::starred(Starred_t* n, int depth) {
 
 ExprRet LLVMGen::name(Name_t* n, int depth) {
 
-    if (n->ctx == ExprContext::Store) {
-        Function* fundef = builder->GetInsertBlock()->getParent();
-
-        IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
-
-        Type* type = retrieve_type(n->type, depth);
-
-        AllocaInst* variable = allocabuilder.CreateAlloca(  //
-            type,                                           // Type
-            nullptr,                                        // Value *ArraySize = nullptr
-            tostr(n->id)                                    // Name
-        );
-
-        variables.emplace_back(  //
-            n->id,
-            variable,
-            type);
-        return variable;
-    }
-
     VariableEntry* found = nullptr;
     for (int i = variables.size() - 1; i >= 0; --i) {
         VariableEntry& entry = variables[i];
 
         if (entry.name == n->id) {
             found = &entry;
+        }
+    }
+
+    if (n->ctx == ExprContext::Store) {
+        if (found != nullptr) {
+            kwdebug("Variable name found");
+            return found->value;
+        }
+
+        // Variable does not exist and it is a store
+        if (found == nullptr) {
+            kwdebug("Variable name not found, creating");
+            Function* fundef = builder->GetInsertBlock()->getParent();
+
+            IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
+
+            Type* type = retrieve_type(n->type, depth);
+
+            AllocaInst* variable = allocabuilder.CreateAlloca(  //
+                type,                                           // Type
+                nullptr,                                        // Value *ArraySize = nullptr
+                tostr(n->id)                                    // Name
+            );
+
+            variables.emplace_back(  //
+                n->id,
+                variable,
+                type,
+                true);
+            return variable;
         }
     }
 
@@ -506,8 +568,10 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
     }
 
     // Load the value.
-    // return builder->CreateLoad(value, tostr(n->id));
-    return builder->CreateLoad(found->type, found->value, tostr(n->id));
+    if (found->is_alloca) {
+        return builder->CreateLoad(found->type, found->value, tostr(n->id));
+    }
+    return found->value;
 }
 
 ExprRet LLVMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
@@ -618,13 +682,15 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     unsigned                  i = 0;
     ArrayScope<VariableEntry> scope(variables);
 
-    for (auto& arg: fundef->args()) {
+    for (llvm::Argument& arg: fundef->args()) {
         Identifier argname_ref = n->args.args[i].arg;
         Type*      type        = arrow->params()[i];
 
         std::string argname = tostr(argname_ref);
         arg.setName(argname);
 
+        // alloca are not necessary if we do not modify the arguments
+        // but it is a common ppatern
         IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
 
         AllocaInst* arg_mem = allocabuilder.CreateAlloca(  //
@@ -633,7 +699,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
             arg.getName()                                  //
         );
 
-        variables.emplace_back(argname_ref, arg_mem, type);
+        variables.emplace_back(argname_ref, arg_mem /*&arg*/, type, true);
 
 #if WITH_LLVM_DEBUG_SYMBOL
         DILocalVariable* vard = dbuilder->createParameterVariable(
@@ -659,9 +725,8 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
 
     // LLVM does not like empty basic block
     // it is the control flow optimization pass that need something
-    if (block->empty()) {
-        builder->CreateRetVoid();
-    }
+    // if (block->empty())
+    { builder->CreateRetVoid(); }
 
     verifyFunction(*fundef);
 
@@ -796,12 +861,16 @@ StmtRet LLVMGen::assign(Assign_t* n, int depth) {
 }
 
 StmtRet LLVMGen::augassign(AugAssign_t* n, int depth) {
+    // AUG does both load and store
     Value* variable = exec(n->target, depth).value();
     Value* val      = exec(n->value, depth).value();
 
-    // Call the binary oerator here
+    Value* original = builder->CreateLoad(val->getType(), variable);
 
-    builder->CreateStore(val, variable);
+    // Call the binary operator here
+    llvm::Value* newval = binary_operator(n->op, original, val);
+
+    builder->CreateStore(newval, variable);
     return StmtRet();
 }
 StmtRet LLVMGen::annassign(AnnAssign_t* n, int depth) {
@@ -872,35 +941,6 @@ StmtRet LLVMGen::whilestmt(While_t* n, int depth) {
 }
 
 StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
-
-    auto make_cond = [this, depth](ExprNode* condition_expression, int i) {
-        Value* condition = exec(condition_expression, depth).value();
-        kwassert(condition != nullptr, "Condition cannot be empty");
-
-        Value*       condcmp = nullptr;
-        Type*        type    = condition->getType();
-        StringStream ss;
-        ss << "cond_" << i;
-        String str = ss.str();
-
-        if (type->isIntegerTy()) {
-            condcmp = builder->CreateICmpNE(  // Compare Not Equal
-                condition,                    //
-                ConstantInt::get(type, 0),    //
-                str.c_str()                   //
-            );
-        } else if (type->isFloatingPointTy()) {
-            condcmp = builder->CreateFCmpONE(  // Float Compare Ordered Not Equal
-                condition,                     //
-                ConstantFP::get(type, 0.0f),   //
-                str.c_str()                    //
-            );
-        }
-
-        kwassert(condcmp != nullptr, "Condition cannot be empty");
-        return condcmp;
-    };
-
     Function* fundef = builder->GetInsertBlock()->getParent();
 
     // First if
@@ -911,7 +951,7 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
     {
         // Create the condition
         //  (n->test != 0)
-        builder->CreateCondBr(make_cond(n->test, 0), then_br, else_br);
+        builder->CreateCondBr(make_condition(n->test, depth, 0), then_br, else_br);
 
         builder->SetInsertPoint(then_br);
         for (auto* stmt: n->body) {
@@ -937,7 +977,7 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
         then_br = BasicBlock::Create(*context, ss1.str().c_str());
         else_br = BasicBlock::Create(*context, ss2.str().c_str());
 
-        builder->CreateCondBr(make_cond(n->tests[i], i + 1), then_br, else_br);
+        builder->CreateCondBr(make_condition(n->tests[i], depth, i + 1), then_br, else_br);
 
         fundef->insert(fundef->end(), then_br);
         builder->SetInsertPoint(then_br);

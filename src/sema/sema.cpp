@@ -902,6 +902,8 @@ TypeExpr* SemanticAnalyser::starred(Starred* n, int depth) {
 }
 TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
     BindingEntry const* entry = lookup(n);
+    n->ctx = expr_context;
+
     if (entry) {
         n->type = entry->type;
         return entry->type;
@@ -1500,8 +1502,9 @@ TypeExpr* SemanticAnalyser::assign(Assign* n, int depth) {
 
     return type;
 }
-TypeExpr* SemanticAnalyser::augassign(AugAssign* n, int depth) {
-    auto* expected_type = exec(n->target, depth);
+TypeExpr* SemanticAnalyser::augassign(AugAssign* n, int depth) 
+{
+    auto* expected_type = exec_with_ctx(ExprContext::Store, n->target, depth);
     auto* type          = exec(n->value, depth);
 
     String signature = join("-", Array<String>{str(n->op), str(expected_type), str(type)});

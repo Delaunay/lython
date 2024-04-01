@@ -22,14 +22,15 @@
 using namespace lython;
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
+String reg_modules_path() { return String(_SOURCE_DIRECTORY) + "/code/llvm"; }
 
-String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
+String
+llvm_codegen_it(String const& name, int i, String const& code, String const& expr, Module*& mod) {
     std::cout << ">>>>>> Start\n";
 
     StringBuffer reader(code);
     Lexer        lex(reader);
     Parser       parser(lex);
-
 
     std::cout << code << std::endl;
 
@@ -40,8 +41,8 @@ String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
     mod = parser.parse_module();
     lyassert(mod->body.size() > 0, "Should parse more than one expression");
     parser.show_diagnostics(std::cout);
-    if(parser.has_errors()) {
-        return "";
+    if (parser.has_errors()) {
+        return "bad_parse";
     }
 
     kwinfo("{}", "Sema");
@@ -51,7 +52,7 @@ String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout);
     if (sema.has_errors()) {
-        return "";
+        return "bad_sema";
     }
     // REQUIRE(sema.has_errors() == false);
 
@@ -65,7 +66,7 @@ String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
     // REQUIRE(expr_parser.has_errors() == false);
 
     if (expr_parser.has_errors()) {
-        return "";
+        return "bad_parse";
     }
     auto* stmt = emod->body[0];
 
@@ -73,11 +74,11 @@ String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
     sema.exec(stmt, 0);
 
     sema.show_diagnostic(std::cout);
-    
+
     // FIXME
     // REQUIRE(sema.has_errors() == false);
     if (sema.has_errors()) {
-        return "";
+        return "bad_sema";
     }
     kwinfo("{}", "Eval");
 
@@ -90,9 +91,27 @@ String llvm_codegen_it(String const& code, String const& expr, Module*& mod) {
     // auto          partial = str(eval.eval(stmt));
 
     std::cout << "Value Tree\n";
-    //eval.root.dump(std::cout);
+    // eval.root.dump(std::cout);
 
     std::cout << "Module dump\n";
+
+    StringStream sspath;
+    sspath << reg_modules_path() << "/current/" << name << "_" << i << ".ll";
+    String path = sspath.str();
+
+    {
+        std::error_code      EC;
+        llvm::raw_fd_ostream out(path.c_str(), EC);
+
+        std::istringstream iss(code.c_str());
+        std::string        line;
+        while (std::getline(iss, line)) {
+            // Process each line here
+            out << "; " << line << "\n";
+        };
+        generator.llmodule->print(out, nullptr);
+    }
+
     emod->dump(std::cout);
     delete emod;
 
@@ -115,9 +134,9 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
         ss << "_" << i;
 
         // write_fuzz_file(name + ss.str(), c.code);
-        String result = llvm_codegen_it(c.code, c.call, mod);
+        String result = llvm_codegen_it(name, i, c.code, c.call, mod);
 
-        // REQUIRE(errors == c.errors);
+        REQUIRE(result == "");
 
         // FIXME: check for correctness
         delete mod;
@@ -127,7 +146,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     }
 }
 #define GENTEST(name)                                                   \
-    TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                      \
+    TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                    \
         run_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
     }
 
