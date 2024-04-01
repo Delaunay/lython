@@ -15,7 +15,7 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 
-#include "vm_cases.cpp"
+#include "cases_vm.h"
 
 using namespace lython;
 

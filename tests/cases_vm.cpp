@@ -1,15 +1,7 @@
 #include "dtypes.h"
+#include "libtest.h"
 
 namespace lython {
-
-struct VMTestCase {
-    VMTestCase(String const& c, String const& call, String const& t = ""):
-        code(c), call(call), expected_type(t) {}
-
-    String code;
-    String call;
-    String expected_type;
-};
 
 Array<VMTestCase> const& Match_vm_examples() {
     static Array<VMTestCase> examples = {
@@ -87,7 +79,7 @@ Array<VMTestCase> const& Nonlocal_vm_examples() {
 Array<VMTestCase> const& Global_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "a: int = 1\n"
+            "a: i32 = 1\n"
             "def fun():\n"
             "    global a\n"
             "    a += 1\n"
@@ -302,7 +294,7 @@ Array<VMTestCase> const& AnnAssign_vm_examples() {
         },
         {
             "def fun() -> f64:\n"
-            "    a: f64 = 2.0\n",
+            "    a: f64 = 2.0\n"
             "    return a\n",
 
             "fun()",

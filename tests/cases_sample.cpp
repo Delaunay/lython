@@ -1,4 +1,4 @@
-#include "samples.h"
+#include "cases_sample.h"
 
 #define DEFINE_SAMPLE_CODE(name, code)   \
     lython::String const& name() {       \

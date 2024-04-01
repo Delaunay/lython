@@ -14,8 +14,9 @@
 
 #include <catch2/catch_all.hpp>
 #include <iostream>
+#include <fstream>
 
-#include "vm_cases.cpp"
+#include "cases_vm.h"
 
 #if WITH_LLVM_CODEGEN
 
@@ -115,50 +116,79 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
 
-    StringStream sspath;
-    sspath << reg_modules_path() << "/current/" << name << ".ll";
-    String path = sspath.str();
+    String current = [&](){
+        StringStream sspath;
+        sspath << reg_modules_path() << "/current/" << name << ".ll";
+        return sspath.str();
+    }();
 
-    std::error_code      EC;
-    llvm::raw_fd_ostream out(path.c_str(), EC);
+    String expected = [&]() {
+        StringStream sspath;
+        sspath << reg_modules_path() << "/" << name << ".ll";
+        return sspath.str();
+    }();
 
-    int i = 0;
-    for (auto& c: cases) {
-        Module* mod;
+    {
+        std::error_code      EC;
+        llvm::raw_fd_ostream out(current.c_str(), EC);
+ 
+        auto write_example = [&](llvm::raw_fd_ostream& out, int i, String const& code){
+            std::istringstream iss(code.c_str());
+            std::string        line;
+            out << ">>>>>>>\n";
+            out << "; Example " << i << "\n";
+            out << "; ------------\n";
 
-        StringStream ss;
-        ss << "_" << i;
+            while (std::getline(iss, line)) {
+                // Process each line here
+                out << "; " << line << "\n";
+            };
 
-        std::istringstream iss(c.code.c_str());
-        std::string        line;
-        out << ">>>>>>>\n";
-        out << "; Example " << i << "\n";
-        out << "; ------------\n";
-
-        while (std::getline(iss, line)) {
-            // Process each line here
-            out << "; " << line << "\n";
+            out << "\n";
         };
 
-        out << "\n";
+        int i = 0;
 
-        // write_fuzz_file(name + ss.str(), c.code);
-        String result = llvm_codegen_it(out, c.code, c.call, mod);
+        for (auto& c: cases) {
+            Module* mod;
 
-        out << "<<<<<<\n\n";
+            write_example(out, i, c.code);
 
-        REQUIRE(result == "");
+            String result = llvm_codegen_it(out, c.code, c.call, mod);
 
-        // FIXME: check for correctness
-        delete mod;
+            out << "<<<<<<\n\n";
 
-        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
-        i += 1;
+            REQUIRE(result == "");
+
+            // FIXME: check for correctness
+            delete mod;
+            kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+            i += 1;
+        }
+    }
+
+    // Regression
+    {
+        std::ifstream fp_current(current.c_str());
+        std::ifstream fp_expected(expected.c_str());
+
+        std::string line_expected, line_current;
+
+        int diff = 0;
+        while (std::getline(fp_current, line_current) && std::getline(fp_expected, line_expected)) {
+            if (line_current != line_expected) {
+                diff += 1;
+            }
+        }
+
+        REQUIRE(diff == 0);
     }
 }
-#define GENTEST(name)                                                   \
-    TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                    \
-        run_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
+
+#define GENTEST(name)                                                                   \
+    TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                                    \
+        auto cases = get_test_cases(str(nodekind<TestType>()), name##_vm_examples());   \
+        run_testcases(str(nodekind<TestType>()), cases);                                \
     }
 
 #define X(name, _)
