@@ -72,7 +72,7 @@ Array<VMTestCase> const& Nonlocal_vm_examples() {
     static Array<VMTestCase> examples = {
         {
             "def fun():\n"
-            "    a: list = []"
+            "    a: list = []\n"
             "    def _():\n"
             "       nonlocal a\n"
             "       a.append(1)\n"
@@ -87,7 +87,7 @@ Array<VMTestCase> const& Nonlocal_vm_examples() {
 Array<VMTestCase> const& Global_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "a: int = 1"
+            "a: int = 1\n"
             "def fun():\n"
             "    global a\n"
             "    a += 1\n"
@@ -217,12 +217,13 @@ Array<VMTestCase> const& If_vm_examples() {
 Array<VMTestCase> const& While_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    while a:\n"
-            "        pass\n"
+            "def fun(limit: i32):\n"
+            "    a = 0\n"
+            "    while a < limit:\n"
+            "        a += 1\n"
             "    else:\n"
             "        pass\n",
-            "fun()",
+            "fun(10)",
         },
     };
     return examples;
@@ -263,13 +264,13 @@ Array<VMTestCase> const& Break_vm_examples() {
 Array<VMTestCase> const& For_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun(a):"
-            "    for a in b:\n"
-            "        a\n"
-            "        b\n"
-            "        c\n"
+            "def fun(a: i32) -> i32:"
+            "    acc = 0\n"
+            "    for a in range(10):\n"
+            "        acc += a\n"
             "    else:\n"
-            "        pass\n",
+            "        pass\n"
+            "    return acc\n",
             "fun()",
         },
         {
@@ -285,29 +286,25 @@ Array<VMTestCase> const& For_vm_examples() {
 Array<VMTestCase> const& AnnAssign_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun() -> bool:\n"
             "    a: bool = True\n"
             "    return a\n",
             "fun()",
         },
         // TODO: those a lexer tests!
         // make sure "int" is not read as "in t"
+        // make sure isnot is not read as is not
         {
-            "def fun():\n"
-            "    a: int = 1\n"
-            "    return a\n",
-            "fun()",
-        },
-        // make sure "isnt" is not read as "is nt"
-        {
-            "def fun():\n"
-            "    a: isnt = 1\n"
+            "def fun() -> i32:\n"
+            "    a: i32 = 1\n"
             "    return a\n",
             "fun()",
         },
         {
-            "def fun():\n"
-            "    a: f32 = 2.0\n",
+            "def fun() -> f64:\n"
+            "    a: f64 = 2.0\n",
+            "    return a\n",
+
             "fun()",
         },
     };
@@ -317,16 +314,16 @@ Array<VMTestCase> const& AnnAssign_vm_examples() {
 Array<VMTestCase> const& AugAssign_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun(a: i32, b: i32) -> i32:\n"
             "    a += b\n"
             "    return a\n",
-            "fun()",
+            "fun(2, 1)",
         },
         {
-            "def fun():\n"
+            "def fun(a: i32, b: i32) -> i32:\n"
             "    a -= b\n"
             "    return a\n",
-            "fun()",
+            "fun(2, 1)",
         },
     };
     return examples;
@@ -336,21 +333,21 @@ Array<VMTestCase> const& Assign_vm_examples() {
     static Array<VMTestCase> examples = {
         // Undefined variables
         {
-            "def fun():\n"
+            "def fun(b: i32) -> i32:\n"
             "    a = b\n"
             "    return a\n",
-            "fun()",
+            "fun(1)",
         },
         {
-            "def fun():\n"
+            "def fun(c: Tuple[i32, i32]) -> i32:\n"
             "    a, b = c\n"
             "    return a\n",
-            "fun()",
+            "fun((1, 2))",
         },
 
         // Type deduction check
         {
-            "def fun():\n"
+            "def fun() -> i32:\n"
             "    a = 1\n"
             "    return a\n",
             "fun()",
@@ -447,9 +444,9 @@ Array<VMTestCase> const& Assign_vm_examples() {
 Array<VMTestCase> const& Delete_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun(a: i32, b: i32):\n"
             "    del a, b\n",
-            "fun()",
+            "fun(1, 2)",
         },
     };
     return examples;
@@ -458,25 +455,20 @@ Array<VMTestCase> const& Delete_vm_examples() {
 Array<VMTestCase> const& Return_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun(a: i32) -> i32:\n"
             "    return a\n",
             "fun()",
         },
         {
-            "def fun():\n"
+            "def fun() -> Tuple[i32, i32]:\n"
             "    return 1, 2\n",
             "fun()",
         },
         {
-            "def fun():\n"
-            "    return a + b\n",
+            "def fun() -> i32:\n"
+            "    return 1 + 2\n",
             "fun()",
-        },
-        {
-            "def fun():\n"
-            "    return p.x + p.y\n",
-            "fun()",
-        },
+        }
     };
     return examples;
 }
@@ -499,7 +491,9 @@ Array<VMTestCase> const& ClassDef_vm_examples() {
             "    z = 1.2\n"              // c4
             "\n"                         // c5
             "    def __init__(self):\n"  // c7
-            "        self.x = 2\n",      // c8
+            "        self.x = 2\n"       // c8
+            "def fun():\n"
+            "    return Name().x\n",
             "fun()",
             //"\n"
             //"    class Nested:\n"
@@ -586,9 +580,9 @@ Array<VMTestCase> const& Module_vm_examples() {
 Array<VMTestCase> const& Slice_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return a[b:c:d]\n",
-            "fun()",
+            "def fun(a: list[i32], s: i32, step: i32, e: i32):\n"
+            "    return a[s:step:e]\n",
+            "fun([1, 2, 3, 4, 5, 6], 0, 2 ,4)",
         },
     };
     return examples;
@@ -597,21 +591,23 @@ Array<VMTestCase> const& Slice_vm_examples() {
 Array<VMTestCase> const& TupleExpr_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return a, b, c\n",
-            "fun()",
+            "def fun(a: i32) -> Tuple[i32, i32, i32]:\n"
+            "    return a, a, a\n",
+            "fun(1)",
         },
         {
-            "def fun():\n"
-            "    a, (b, c), d\n"
-            "    return \n",
-            "fun()",
+            "def fun(v: Tuple[i32, Tuple[i32, i32], i32]):\n"
+            "    a, (b, c), d = v\n"
+            "    return b\n",
+            "fun((1, (2, 3), 4))",
         },
+        // Unpacking
         {
-            "def fun():\n"
+            "def fun(v: Tuple[i32, i32]) -> i32:\n"
+            "    d, e, f = v\n"
             "    a, b, c = d, e, f\n"
-            "    return \n",
-            "fun()",
+            "    return b\n",
+            "fun((1, 2, 3))",
         },
     };
     return examples;
@@ -620,9 +616,9 @@ Array<VMTestCase> const& TupleExpr_vm_examples() {
 Array<VMTestCase> const& ListExpr_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return [a, b, c]\n",
-            "fun()",
+            "def fun(a: i32) -> list[i32]:\n"
+            "    return [a, a, a]\n",
+            "fun(1)",
         },
     };
     return examples;
@@ -631,9 +627,9 @@ Array<VMTestCase> const& ListExpr_vm_examples() {
 Array<VMTestCase> const& Name_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun(a: i32) -> i32:\n"
             "    return a\n",
-            "fun()",
+            "fun(1)",
         },
     };
     return examples;
@@ -642,9 +638,9 @@ Array<VMTestCase> const& Name_vm_examples() {
 Array<VMTestCase> const& Starred_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun(a: list[i32]) -> list[i32]:\n"
             "    return *a\n",
-            "fun()",
+            "fun([1, 2])",
         },
     };
     return examples;
@@ -653,9 +649,9 @@ Array<VMTestCase> const& Starred_vm_examples() {
 Array<VMTestCase> const& Subscript_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return a[b]\n",
-            "fun()",
+            "def fun(a: list[i32]) -> i32:\n"
+            "    return a[0]\n",
+            "fun([1, 2])",
         },
     };
     return examples;
@@ -664,9 +660,13 @@ Array<VMTestCase> const& Subscript_vm_examples() {
 Array<VMTestCase> const& Attribute_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return a.b\n",
-            "fun()",
+            "class Point:\n"
+            "    x: i32\n"
+            "    y: i32\n"
+            "\n"
+            "def fun(a: Point) -> i32:\n"
+            "    return a.x\n",
+            "fun(Point())",
         },
     };
     return examples;
@@ -720,15 +720,14 @@ Array<VMTestCase> const& JoinedStr_vm_examples() {
 }
 
 Array<VMTestCase> const& Call_vm_examples() {
-    static Array<VMTestCase> examples = {
-        {
-            "def myfunction(a: f64, b: f64) -> f64:\n"
-            "    return a + b\n"
-            "\n"
-            "def fun():\n"
-            "    return myfunction(1.0, 2.0)\n",
-            "fun()",
-        }
+    static Array<VMTestCase> examples = {{
+        "def myfunction(a: f64, b: f64) -> f64:\n"
+        "    return a + b\n"
+        "\n"
+        "def fun():\n"
+        "    return myfunction(1.0, 2.0)\n",
+        "fun()",
+    }
 
     };
     return examples;
@@ -737,7 +736,7 @@ Array<VMTestCase> const& Call_vm_examples() {
 Array<VMTestCase> const& Compare_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
+            "def fun(a: i32, b: i32, c: i32, d: i32) -> bool:\n"
             "    return a < b > c != d\n",
             "fun()",
         },
@@ -811,9 +810,9 @@ Array<VMTestCase> const& Await_vm_examples() {
 Array<VMTestCase> const& DictComp_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return {a: c for a in b if a > c}\n",
-            "fun()",
+            "def fun(b: i32):\n"
+            "    return {a: a for a in range(10) if a > b}\n",
+            "fun(2)",
         },
     };
     return examples;
@@ -821,9 +820,9 @@ Array<VMTestCase> const& DictComp_vm_examples() {
 
 Array<VMTestCase> const& SetComp_vm_examples() {
     static Array<VMTestCase> examples = {
-        {"def fun():\n"
-         "    return {a for a in b if a > c}\n",
-         "fun()"},
+        {"def fun(b: i32):\n"
+         "    return {a for a in range(10) if a > b}\n",
+         "fun(2)"},
     };
     return examples;
 }
@@ -831,9 +830,9 @@ Array<VMTestCase> const& SetComp_vm_examples() {
 Array<VMTestCase> const& GeneratorExp_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return (a for a in b if a > c)\n",
-            "fun()",
+            "def fun(b: i32) -> list[i32]:\n"
+            "    return (a for a in range(10) if a > b)\n",
+            "fun(2)",
         },
     };
     return examples;
@@ -842,9 +841,9 @@ Array<VMTestCase> const& GeneratorExp_vm_examples() {
 Array<VMTestCase> const& ListComp_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun():\n"
-            "    return [a for a in b if a > c]\n",
-            "fun()",
+            "def fun(b: i32) -> list[i32]:\n"
+            "    return [a for a in range(10) if a > b]\n",
+            "fun(2)",
         },
     };
     return examples;
@@ -854,7 +853,7 @@ Array<VMTestCase> const& SetExpr_vm_examples() {
     static Array<VMTestCase> examples = {
         {
             "def fun():\n"
-            "    return {a, b}\n",
+            "    return {1, 2}\n",
             "fun()",
         },
     };
@@ -865,7 +864,7 @@ Array<VMTestCase> const& DictExpr_vm_examples() {
     static Array<VMTestCase> examples = {
         {
             "def fun():\n"
-            "    return {a: b, c: d}\n",
+            "    return {1: 2, 3: 4}\n",
             "fun()",
         },
     };
@@ -875,9 +874,9 @@ Array<VMTestCase> const& DictExpr_vm_examples() {
 Array<VMTestCase> const& IfExp_vm_examples() {
     static Array<VMTestCase> examples = {
         {
-            "def fun(c: i32, b: i32):\n"
-            "    return a = c if True else d\n",
-            "fun()",
+            "def fun(a: i32, b: i32) -> i32:\n"
+            "    return a if True else b\n",
+            "fun(1, 2)",
         },
         // this is the real python version
         // "a = b if c else d",
@@ -939,12 +938,12 @@ Array<VMTestCase> const& BinOp_vm_examples() {
             "fun()",
         },
         {
-            "def fun(a: i32, b: i32) -> f64:\n"
+            "def fun(a: i32, b: i32) -> i32:\n"
             "    return a << b\n",
             "fun()",
         },
         {
-            "def fun(a: i32, b: i32) -> f64:\n"
+            "def fun(a: i32, b: i32) -> i32:\n"
             "    return a ^ b\n",
             "fun()",
         },
@@ -956,7 +955,7 @@ Array<VMTestCase> const& NamedExpr_vm_examples() {
     static Array<VMTestCase> examples = {
         {
             "def fun(c: i32):\n"
-            "    return a = b := c\n",
+            "    return a := c\n",
             "fun()",
         },
     };
@@ -968,17 +967,17 @@ Array<VMTestCase> const& BoolOp_vm_examples() {
         {
             "def fun(a: bool, b: bool) -> bool:\n"
             "    return a and b\n",
-            "fun()",
+            "fun(True, False)",
         },
         {
             "def fun(a: bool, b: bool) -> bool:\n"
             "    return a or b\n",
-            "fun()",
+            "fun(True, False)",
         },
         {
             "def fun(a: bool, b: bool, c: bool) -> bool:\n"
             "    return a or b or c\n",
-            "fun()",
+            "fun(True, False, False)",
         },
     };
     return examples;

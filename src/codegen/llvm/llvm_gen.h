@@ -95,13 +95,17 @@ struct ArrayScope {
 
 
 struct VariableEntry {
-    VariableEntry(Identifier name = Identifier(), llvm::Value* value = nullptr, llvm::Type* type = nullptr):
-        name(name), value(value), type(type)
+    VariableEntry(Identifier name = Identifier(), 
+                  llvm::Value* value = nullptr, 
+                  llvm::Type* type = nullptr, 
+                  bool is_alloca = false):
+        name(name), value(value), type(type), is_alloca(is_alloca)
     {}
 
     Identifier   name;
     llvm::Value* value;
     llvm::Type*  type;
+    bool         is_alloca = false;
 };
 
 // 
@@ -149,6 +153,8 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     llvm::BasicBlock* start_block = nullptr;
     llvm::BasicBlock* end_block = nullptr;
 
+    llvm::Value* binary_operator(BinaryOperator op, llvm::Value* lhs, llvm::Value* rhs);
+    llvm::Value* make_condition(ExprNode* condition_expression, int depth, int i);
     //--
     Unique<llvm::legacy::FunctionPassManager> fun_optim;
 

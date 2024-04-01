@@ -106,7 +106,8 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
     ImportLib*                            importsys = nullptr;
     Array<Exported*>                      exported_stack;
     bool                                  eager = false;
-    
+    ExprContext                           expr_context = ExprContext::Load;
+
     // Should I remove the types for the runtime info
     // the type can have their own query struct 
     // which might or might not be included in the final binary
@@ -127,6 +128,15 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
             return global_ctx;
         }
         return semactx[semactx.size() - 1];
+    }
+
+    template<typename ...Args>
+    TypeExpr* exec_with_ctx(ExprContext ctx, Args... args) {
+        ExprContext old = expr_context;
+        expr_context = ctx;
+        TypeExpr* r = exec(args...);
+        expr_context = old;
+        return r;
     }
 
     void show_diagnostic(std::ostream& out, class AbstractLexer* lexer = nullptr);
