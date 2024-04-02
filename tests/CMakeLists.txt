@@ -135,3 +135,7 @@ ADD_TEST(
 IF(UNIX AND WITH_COVERAGE)
   ADD_DEPENDENCIES(coverage lython)
 ENDIF()
+
+
+
+add_executable(new_value new_value.cpp)

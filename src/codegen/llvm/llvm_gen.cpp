@@ -529,11 +529,30 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
         // Variable does not exist and it is a store
         if (found == nullptr) {
             kwdebug("Variable name not found, creating");
-            Function* fundef = builder->GetInsertBlock()->getParent();
+            auto* insert_block = builder->GetInsertBlock();
+            auto* type         = retrieve_type(n->type, depth);
+
+            if (insert_block == nullptr) {
+                // Global variable
+                GlobalVariable* variable = new llvm::GlobalVariable(
+                    *llmodule.get(),  // Module to add the global variable to
+                    type,             // Type of the global variable
+                    false,            // Whether the variable is constant (false for mutable)
+                    GlobalValue::ExternalLinkage,  // Linkage type
+                    ConstantInt::get(type, 0),     // Initial value (optional)
+                    str(n->id).c_str()             // Name of the global variable
+                );
+                variables.emplace_back(  //
+                    n->id,
+                    variable,
+                    type,
+                    true);
+                return variable;
+            }
+
+            Function* fundef = insert_block->getParent();
 
             IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
-
-            Type* type = retrieve_type(n->type, depth);
 
             AllocaInst* variable = allocabuilder.CreateAlloca(  //
                 type,                                           // Type
@@ -874,6 +893,7 @@ StmtRet LLVMGen::augassign(AugAssign_t* n, int depth) {
     return StmtRet();
 }
 StmtRet LLVMGen::annassign(AnnAssign_t* n, int depth) {
+    // Special case: global variable
     Value* variable = exec(n->target, depth).value();
 
     Value* val = nullptr;
