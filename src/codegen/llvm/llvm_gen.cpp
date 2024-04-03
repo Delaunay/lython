@@ -102,7 +102,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     // values.push_back(llvm::ConstantFP::get(llvm::Type::getFloatTy(*context), 3.14));
     // llvm::Constant* myStructInstance = llvm::ConstantStruct::get(struct_type, values);
 
-    Value*                    callee   = exec(n->func, depth).value();
+    llvm::Value*              callee   = exec(n->func, depth).value();
     Function*                 function = dyn_cast_or_null<Function>(callee);
     llvm::FunctionType const* ftype    = nullptr;
 
@@ -112,7 +112,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     }
     ftype = function->getFunctionType();
 
-    Array<Value*> args;
+    Array<llvm::Value*> args;
     for (size_t i = 0, end = n->args.size(); i != end; ++i) {
         Value* argvalue = exec(n->args[i], depth).value();
         args.push_back(argvalue);

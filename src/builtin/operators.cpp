@@ -4,17 +4,19 @@
 #include "dependencies/coz_wrap.h"
 #include "utilities/names.h"
 
+#define LAMBDA(op, type) KIWI_WRAP(op<type>::call);
+
 namespace lython {
-Dict<StringRef, BinOp::NativeBinaryOp> build_native_binary_operators() {
+Dict<StringRef, Function> build_native_binary_operators() {
     // FIXME: add return type, the return type can be different
-    Dict<StringRef, BinOp::NativeBinaryOp> map;
+    Dict<StringRef, Function> map;
 
     // clang-format off
 #define JOIN(op, t1, t2) op-t1-t2
 #define JOIN1(op, t1) op-t1
     // clang-format on
 
-#define LAMBDA(op, type) op<type>::vm;
+
 
     // clang-format off
     // Float
@@ -166,18 +168,18 @@ V get(Dict<K, V> const& map, K key, V value) {
     return maybe->second;
 }
 
-Dict<StringRef, BinOp::NativeBinaryOp> const& native_binary_operators() {
-    static Dict<StringRef, BinOp::NativeBinaryOp> ops = build_native_binary_operators();
+Dict<StringRef, Function> const& native_binary_operators() {
+    static Dict<StringRef, Function> ops = build_native_binary_operators();
     return ops;
 }
 
-BinOp::NativeBinaryOp get_native_binary_operation(StringRef signature) {
-    return get(native_binary_operators(), signature, BinOp::NativeBinaryOp());
+Function get_native_binary_operation(StringRef signature) {
+    return get(native_binary_operators(), signature, Function());
 }
 
 // Bool
-Dict<StringRef, BoolOp::NativeBoolyOp> build_native_bool_operators() {
-    Dict<StringRef, BoolOp::NativeBoolyOp> map;
+Dict<StringRef, Function> build_native_bool_operators() {
+    Dict<StringRef, Function> map;
 
     // clang-format off
     map[StringRef(STR(JOIN(and, bool, bool)))] = LAMBDA(And, bool);
@@ -186,18 +188,18 @@ Dict<StringRef, BoolOp::NativeBoolyOp> build_native_bool_operators() {
     return map;
 }
 
-Dict<StringRef, BoolOp::NativeBoolyOp> const& native_bool_operators() {
+Dict<StringRef, Function> const& native_bool_operators() {
     static auto ops = build_native_bool_operators();
     return ops;
 }
 
-BoolOp::NativeBoolyOp get_native_bool_operation(StringRef signature) {
-    return get(native_bool_operators(), signature, BoolOp::NativeBoolyOp());
+Function get_native_bool_operation(StringRef signature) {
+    return get(native_bool_operators(), signature, Function());
 }
 
 // Unary
-Dict<StringRef, UnaryOp::NativeUnaryOp> build_native_unary_operators() {
-    Dict<StringRef, UnaryOp::NativeUnaryOp> map;
+Dict<StringRef, Function> build_native_unary_operators() {
+    Dict<StringRef, Function> map;
 
     // clang-format off
     map[StringRef(STR(JOIN1(Invert, u8)))]  = LAMBDA(Invert, uint8);
@@ -251,18 +253,18 @@ Dict<StringRef, UnaryOp::NativeUnaryOp> build_native_unary_operators() {
     return map;
 }
 
-Dict<StringRef, UnaryOp::NativeUnaryOp> const& native_unary_operators() {
+Dict<StringRef, Function> const& native_unary_operators() {
     static auto ops = build_native_unary_operators();
     return ops;
 }
 
-UnaryOp::NativeUnaryOp get_native_unary_operation(StringRef signature) {
-    return get(native_unary_operators(), signature, UnaryOp::NativeUnaryOp());
+Function get_native_unary_operation(StringRef signature) {
+    return get(native_unary_operators(), signature, Function());
 }
 
 // Cmp
-Dict<StringRef, Compare::NativeCompOp> build_native_cmp_operators() {
-    Dict<StringRef, Compare::NativeCompOp> map;
+Dict<StringRef, Function> build_native_cmp_operators() {
+    Dict<StringRef, Function> map;
 
     // clang-format off
     map[StringRef(STR(JOIN(Eq   , u8, u8)))] = LAMBDA(Eq   , uint8);
@@ -359,13 +361,13 @@ Dict<StringRef, Compare::NativeCompOp> build_native_cmp_operators() {
     return map;
 }
 
-Dict<StringRef, Compare::NativeCompOp> const& native_cmp_operators() {
+Dict<StringRef, Function> const& native_cmp_operators() {
     static auto ops = build_native_cmp_operators();
     return ops;
 }
 
-Compare::NativeCompOp get_native_cmp_operation(StringRef signature) {
-    return get(native_cmp_operators(), signature, Compare::NativeCompOp());
+Function get_native_cmp_operation(StringRef signature) {
+    return get(native_cmp_operators(), signature, Function());
 }
 
 }  // namespace lython
