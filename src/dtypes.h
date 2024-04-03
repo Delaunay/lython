@@ -66,9 +66,6 @@ using StringView = std::string_view;
 
 struct Value;
 
-struct None {
-};
-
 using Function = Value(*)(void*, Array<Value>&);
 
 }  // namespace lython

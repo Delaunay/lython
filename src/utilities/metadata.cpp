@@ -5,12 +5,9 @@
 #include "builtin/operators.h"
 #include "parser/parser.h"
 #include "sema/sema.h"
-#include "ast/values/object.h"
-
 #include "allocator.h"
 #include "metadata_1.h"
 #include "metadata.h"
-#include "ast/values/exception.h"
 
 namespace lython {
 
@@ -81,13 +78,14 @@ bool _metadata_init_names() {
 
     meta::override_typename<char>("char");
     meta::override_typename<int>("int");
-    meta::override_typename<lython::NativeObject*>("NativeObject*");
-    // meta::override_typename<lython::NativePointer<>*>("NativePointer*");
-    meta::override_typename<lython::lyException*>("Exception*");
-    meta::override_typename<lython::Object>("Object");
-    meta::override_typename<lython::lyException>("Exception");
     meta::override_typename<lython::Node>("Node");
-    meta::override_typename<lython::StackTrace>("StackTrace");
+
+    // meta::override_typename<lython::NativeObject*>("NativeObject*");
+    // // meta::override_typename<lython::NativePointer<>*>("NativePointer*");
+    // meta::override_typename<lython::lyException*>("Exception*");
+    // meta::override_typename<lython::Object>("Object");
+    // meta::override_typename<lython::lyException>("Exception");
+    // meta::override_typename<lython::StackTrace>("StackTrace");
 
     meta::override_typename<lython::String>("String");
     meta::override_typename<lython::StringRef>("StringRef");
@@ -97,8 +95,8 @@ bool _metadata_init_names() {
     meta::override_typename<lython::GCObject*>("GCObject*");
     meta::override_typename<lython::ExprNode*>("ExprNode*");
     meta::override_typename<lython::StmtNode*>("StmtNode*");
-    meta::override_typename<lython::ConstantValue>("ConstantValue");
-    meta::override_typename<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
+    // meta::override_typename<lython::ConstantValue>("ConstantValue");
+    // meta::override_typename<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
 
     meta::override_typename<UniquePtrInternal<lython::SemaException>>("SemaException");
     meta::override_typename<UniquePtrInternal<lython::ParsingException>>("ParsingException");
@@ -245,13 +243,13 @@ void _metadata_init_names_windows() {
     meta::override_typename<ListIterator<std::pair<const String, TokenType>, false>>(
         "Iterator[Pair[String, TokenType]]");
 
-    meta::override_typename<
-        ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
-        "Iterator[Pair[StringRef, NativeBinaryOp]]");
+    // meta::override_typename<
+    //     ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
+    //     "Iterator[Pair[StringRef, NativeBinaryOp]]");
 
-    meta::override_typename<
-        ListIterator<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
-        "Iterator[Pair[StringRef, NativeUnaryOp]]");
+    // meta::override_typename<
+    //     ListIterator<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
+    //     "Iterator[Pair[StringRef, NativeUnaryOp]]");
 
     meta::override_typename<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
         "Iterator[Pair[StringRef, ExprNode*]]");
@@ -323,27 +321,27 @@ void _metadata_init_names_windows() {
     >
     ("ListNode[Pair[int, String]]");
 
-    meta::override_typename<
-        std::_List_node<
-            std::pair<
-                StringRef const,
-                ConstantValue (*)(ConstantValue const&, ConstantValue const&)
-            >,
-            void*
-        >
-    >
-    ("ListNode[Pair[StringRef, NativeBinaryFun]]");
+    // meta::override_typename<
+    //     std::_List_node<
+    //         std::pair<
+    //             StringRef const,
+    //             ConstantValue (*)(ConstantValue const&, ConstantValue const&)
+    //         >,
+    //         void*
+    //     >
+    // >
+    // ("ListNode[Pair[StringRef, NativeBinaryFun]]");
 
-  meta::override_typename<
-        std::_List_node<
-            std::pair<
-                StringRef const,
-                ConstantValue (*)(ConstantValue const&)
-            >,
-            void*
-        >
-    >
-    ("ListNode[Pair[StringRef, NativeUnaryFun]]");
+//   meta::override_typename<
+//         std::_List_node<
+//             std::pair<
+//                 StringRef const,
+//                 ConstantValue (*)(ConstantValue const&)
+//             >,
+//             void*
+//         >
+//     >
+//     ("ListNode[Pair[StringRef, NativeUnaryFun]]");
 
    meta::override_typename<
         std::_List_node<
@@ -425,11 +423,11 @@ TypeRegistry& TypeRegistry::instance() {
 
 TypeRegistry::TypeRegistry() {
 
-    #define SET_FIXED_ID(type, name)                                \
-        {                                                           \
-            ClassMetadata& data = id_to_meta[int(ValueTypes::name)];\
-            data.type_id = int(ValueTypes::name);                   \
-            data.name = ##type;                                     \                 
+    #define SET_FIXED_ID(type, nn)                                \
+        {                                                         \
+            ClassMetadata& data = id_to_meta[int(ValueTypes::nn)];\
+            data.type_id = int(ValueTypes::nn);                   \
+            data.name = #type;                                    \
         }
 
         KIWI_VALUE_TYPES(SET_FIXED_ID)

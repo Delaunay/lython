@@ -1,6 +1,9 @@
 #pragma once
 
 namespace lython {
+
+struct None {};
+
 namespace meta {
 #define TYPES_METADATA(X) \
     X(String, String)     \

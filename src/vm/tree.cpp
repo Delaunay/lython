@@ -1,8 +1,6 @@
 
-#include "../dtypes.h"
 #include "ast/values/exception.h"
-#include "ast/values/generator.h"
-#include "ast/values/object.h"
+#include "dtypes.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
 #include "utilities/guard.h"
@@ -59,7 +57,7 @@ void TreeEvaluator::raise_exception(PartialResult* exception, PartialResult* cau
     //     // TODO:
     // }
 
-    lyException* except = root.new_object<lyException>(traces);
+    _LyException* except = root.new_object<_LyException>(traces);
     // Constant*  except_value = root.new_object<Constant>(except);
 
     exceptions.push_back(except);
@@ -99,11 +97,11 @@ PartialResult* TreeEvaluator::compare(Compare_t* n, int depth) {
                 value = cast<Constant>(exec(n->resolved_operator[i], depth));
 
             } else if (bnative) {
-                auto native = n->native_operator[i];
+                Function native = n->native_operator[i];
                 lyassert(native, "Operator needs to be set");
 
-                ConstantValue v = native(left_const->value, right_const->value);
-                result          = result && v.get<bool>();
+                Value v = binary_invoke((void*)this, native, left_const->value, right_const->value);
+                result  = result && v.as<bool>();
             }
 
             // One comparison is false so the entire thing does not work
@@ -173,11 +171,12 @@ PartialResult* TreeEvaluator::boolop(BoolOp_t* n, int depth) {
 
                 value = cast<Constant>(exec(n->resolved_operator, depth));
 
-                result = reduce(result, value->value.get<bool>());
+                result = reduce(result, value->value.as<bool>());
 
             } else if (n->native_operator != nullptr) {
-                ConstantValue v = n->native_operator(first->value, second->value);
-                result          = reduce(result, v.get<bool>());
+                Value v =
+                    binary_invoke((void*)this, n->native_operator, first->value, second->value);
+                result = reduce(result, v.as<bool>());
             }
 
             // Shortcut
@@ -242,7 +241,8 @@ PartialResult* TreeEvaluator::binop(BinOp_t* n, int depth) {
             Constant* lhsc = static_cast<Constant*>(lhs);
             Constant* rhsc = static_cast<Constant*>(rhs);
 
-            result = root.new_object<Constant>(n->native_operator(lhsc->value, rhsc->value));
+            Value v = binary_invoke((void*)this, n->native_operator, lhsc->value, rhsc->value);
+            result  = root.new_object<Constant>(v);
         }
 
         if (result != nullptr) {
@@ -291,7 +291,8 @@ PartialResult* TreeEvaluator::unaryop(UnaryOp_t* n, int depth) {
 
         if (n->native_operator != nullptr) {
             Constant* operandc = static_cast<Constant*>(operand);
-            return root.new_object<Constant>(n->native_operator(operandc->value));
+            Value     v        = unary_invoke((void*)this, n->native_operator, operandc->value);
+            return root.new_object<Constant>(v);
         }
     }
 
@@ -347,7 +348,7 @@ PartialResult* TreeEvaluator::ifexp(IfExp_t* n, int depth) {
         return n;
     }
 
-    bool btrue = value->value.get<bool>();
+    bool btrue = value->value.as<bool>();
 
     if (btrue) {
         return exec(n->body, depth);
@@ -434,17 +435,18 @@ PartialResult* TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function,
 }
 
 Constant* object__new__(GCObject* parent, ClassDef* class_t) {
-    Constant* value = parent->new_object<Constant>();
+    // Constant* value = parent->new_object<Constant>();
 
-    Object* obj = value->new_object<Object>();
-    obj->attributes.resize(class_t->attributes.size());
+    // Object* obj = value->new_object<Object>();
+    // obj->attributes.resize(class_t->attributes.size());
 
-    for (int i = 0; i < class_t->attributes.size(); i++) {
-        obj->attributes[i] = obj->new_object<Constant>();
-    }
+    // for (int i = 0; i < class_t->attributes.size(); i++) {
+    //     obj->attributes[i] = obj->new_object<Constant>();
+    // }
 
-    value->value = ConstantValue(obj);
-    return value;
+    // value->value = ConstantValue(obj);
+    // return value;
+    return nullptr;
 }
 
 PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) {
@@ -455,9 +457,9 @@ PartialResult* TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, in
 
     // Fetch construtor
     // TODO: this lookup should not exist
-    String       ctor_name = String(cls->name) + String(".__init__");
-    BindingEntry* entry = bindings.find(StringRef(ctor_name));
-    FunctionDef* ctor      = cast<FunctionDef>(entry->value);
+    String        ctor_name = String(cls->name) + String(".__init__");
+    BindingEntry* entry     = bindings.find(StringRef(ctor_name));
+    FunctionDef*  ctor      = cast<FunctionDef>(entry->value);
 
     if (ctor == nullptr) {
         static StringRef name("__init__");
@@ -569,19 +571,19 @@ Constant* TreeEvaluator::make(ClassDef* class_t, Array<Constant*> args, int dept
 }
 
 PartialResult* TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
+    // Generator* gen = root.new_object<Generator>();
+    // gen->scope     = bindings;
 
-    Generator* gen = root.new_object<Generator>();
-    gen->scope     = bindings;
+    // for (int i = 0; i < call->args.size(); i++) {
+    //     PartialResult* arg = exec(call->args[i], depth);
+    //     gen->scope.add(StringRef(), arg, nullptr);
+    // }
 
-    for (int i = 0; i < call->args.size(); i++) {
-        PartialResult* arg = exec(call->args[i], depth);
-        gen->scope.add(StringRef(), arg, nullptr);
-    }
+    // Constant* val = root.new_object<Constant>();
+    // val->value    = ConstantValue(gen);
 
-    Constant* val = root.new_object<Constant>();
-    val->value    = ConstantValue(gen);
-
-    return val;
+    // return val;
+    return nullptr;
 }
 
 PartialResult* TreeEvaluator::call(Call_t* n, int depth) {
@@ -807,8 +809,9 @@ PartialResult* TreeEvaluator::augassign(AugAssign_t* n, int depth) {
         else if (n->native_operator != nullptr) {
             // std::cout << "HERE " << str(n->op) << " " << str(left_v->value) << " " <<
             // str(right_v->value) << std::endl;
-            auto result = n->native_operator(left_v->value, right_v->value);
-            value       = root.new_object<Constant>(result);
+
+            Value v = binary_invoke((void*)this, n->native_operator, left_v->value, right_v->value);
+            value   = root.new_object<Constant>(v);
         } else {
             kwerror("Operator does not have implementation!");
         }
@@ -921,7 +924,7 @@ PartialResult* TreeEvaluator::whilestmt(While_t* n, int depth) {
         // node itself
         lyassert(value, "While test should return a boolean");
 
-        bool bcontinue = value != nullptr && value->value.get<bool>();
+        bool bcontinue = value != nullptr && value->value.as<bool>();
 
         if (!bcontinue || broke) {
             break;
@@ -970,7 +973,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
             Constant* value = cast<Constant>(exec(n->test, depth));
             lyassert(value, "If test should return a boolean");
 
-            bool btrue = value->value.get<bool>();
+            bool btrue = value->value.as<bool>();
             if (btrue) {
                 body = n->bodies[i];
                 break;
@@ -987,7 +990,7 @@ PartialResult* TreeEvaluator::ifstmt(If_t* n, int depth) {
     Constant*      value = cast<Constant>(test);
     lyassert(value, "If test should return a boolean");
 
-    bool btrue = value->value.get<bool>();
+    bool btrue = value->value.as<bool>();
 
     if (btrue) {
         body = n->body;
@@ -1001,7 +1004,7 @@ PartialResult* TreeEvaluator::assertstmt(Assert_t* n, int depth) {
     PartialResult* btest = exec(n->test, depth);
     Constant*      value = cast<Constant>(btest);
     if (value != nullptr) {
-        if (!value->value.get<bool>()) {
+        if (!value->value.as<bool>()) {
             // make_ref(n, "AssertionError") n->msg
             raise_exception(nullptr, nullptr);
             return None();
@@ -1066,7 +1069,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
         auto _ = HandleException(this);
 
         ExceptHandler const* matched          = nullptr;
-        lyException*         latest_exception = exceptions[exceptions.size() - 1];
+        _LyException*        latest_exception = exceptions[exceptions.size() - 1];
 
         for (ExceptHandler const& handler: n->handlers) {
             // match the exception type to the one we received
@@ -1080,7 +1083,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
             }
 
             // FIXME: we do not have the type at runtime!!!
-            else if (equal(handler.type.value(), latest_exception->type())) {
+            else if (equal(handler.type.value(), latest_exception->type)) {
                 matched       = &handler;
                 found_matcher = true;
             }
@@ -1096,7 +1099,7 @@ PartialResult* TreeEvaluator::trystmt(Try_t* n, int depth) {
 
             // Execute Handler
             if (matched->name.has_value()) {
-                exception.value = latest_exception->custom();
+                exception.value = latest_exception->custom;
                 bindings.add(matched->name.value(), &exception, nullptr);
             }
 
@@ -1239,29 +1242,29 @@ PartialResult* TreeEvaluator::attribute(Attribute_t* n, int depth) {
         return n->resolved->stmt;
     }
 
-    if (obj != nullptr) {
-        // Native module creates a new ClassDef
-        // but this does not know about it
-        // it fetch the member through metadata system
-        // the attribute should be resolved in sema so
-        // we did not
-        NativeObject* nv     = obj->value.get<NativeObject*>();
-        auto*         result = root.new_object<Constant>();
-        result->value        = nv->cmember(n->attrid);
-        return result;
+    // if (obj != nullptr) {
+    //     // Native module creates a new ClassDef
+    //     // but this does not know about it
+    //     // it fetch the member through metadata system
+    //     // the attribute should be resolved in sema so
+    //     // we did not
+    //     NativeObject* nv     = obj->value.get<NativeObject*>();
+    //     auto*         result = root.new_object<Constant>();
+    //     result->value        = nv->cmember(n->attrid);
+    //     return result;
 
-        if (nv->class_id == meta::type_id<Object>()) {
-            Object* nvobj = reinterpret_cast<Object*>(nv);
+    //     if (nv->class_id == meta::type_id<Object>()) {
+    //         Object* nvobj = reinterpret_cast<Object*>(nv);
 
-            // If Object held ConstantValue
-            // we would pass down a copy of the attribute not a reference to them
-            // return root.new_object<Constant>(nvobj->attributes[n->attrid]);
+    //         // If Object held ConstantValue
+    //         // we would pass down a copy of the attribute not a reference to them
+    //         // return root.new_object<Constant>(nvobj->attributes[n->attrid]);
 
-            // Object is holding a Constant Node
-            // we pass a reference to it not a copy
-            return nvobj->attributes[n->attrid];
-        }
-    }
+    //         // Object is holding a Constant Node
+    //         // we pass a reference to it not a copy
+    //         return nvobj->attributes[n->attrid];
+    //     }
+    // }
 
     return nullptr;
 }
@@ -1351,17 +1354,17 @@ PartialResult* TreeEvaluator::eval(StmtNode_t* stmt) {
     auto* result = exec(stmt, 0);
 
     if (has_exceptions()) {
-        lyException* except = exceptions[exceptions.size() - 1];
+        _LyException* except = exceptions[exceptions.size() - 1];
 
         lyassert(except != nullptr, "Exception is null");
 
         fmt::print("Traceback (most recent call last):\n");
-        for (StackTrace& st: except->traces()) {
-            printkwtrace(st);
-        }
+        // for (StackTrace& st: except->traces()) {
+        //     printkwtrace(st);
+        // }
 
-        String exception_type = except->type_str();
-        String exception_msg  = except->message();
+        String exception_type = str(except->type);
+        String exception_msg  = "";
         fmt::print("{}: {}\n", exception_type, exception_msg);
     }
     return result;

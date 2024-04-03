@@ -291,6 +291,13 @@ struct MatchValue: public Pattern {
 
 struct MatchSingleton: public Pattern {
     Value value;
+    ValueDeleter deleter;
+
+    ~MatchSingleton() {
+        if (deleter) {
+            deleter(value);
+        }
+    }
 
     MatchSingleton(): Pattern(NodeKind::MatchSingleton) {}
 };

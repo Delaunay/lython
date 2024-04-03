@@ -103,7 +103,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     // llvm::Constant* myStructInstance = llvm::ConstantStruct::get(struct_type, values);
 
     llvm::Value*              callee   = exec(n->func, depth).value();
-    Function*                 function = dyn_cast_or_null<Function>(callee);
+    llvm::Function*                 function = dyn_cast_or_null<llvm::Function>(callee);
     llvm::FunctionType const* ftype    = nullptr;
 
     if (function == nullptr) {
@@ -114,7 +114,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
 
     Array<llvm::Value*> args;
     for (size_t i = 0, end = n->args.size(); i != end; ++i) {
-        Value* argvalue = exec(n->args[i], depth).value();
+        llvm::Value* argvalue = exec(n->args[i], depth).value();
         args.push_back(argvalue);
 
         if (argvalue == nullptr) {
@@ -137,7 +137,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     // return builder->CreateCall(callee, args, "calltmp");
 }
 
-using BuiltinBinaryOperators = Dict<String, std::function<Value*(IRBuilder<>*, Value*, Value*)>>;
+using BuiltinBinaryOperators = Dict<String, std::function<llvm::Value*(IRBuilder<>*, llvm::Value*, llvm::Value*)>>;
 
 #define LLMV_OPERATORS(OP) \
     OP(FAdd)               \
@@ -145,13 +145,13 @@ using BuiltinBinaryOperators = Dict<String, std::function<Value*(IRBuilder<>*, V
     OP(FMul)               \
     OP(FCmp)
 
-Value* fadd(IRBuilder<>* builder, Value* left, Value* right) {
+llvm::Value* fadd(IRBuilder<>* builder, llvm::Value* left, llvm::Value* right) {
     return builder->CreateFAdd(left, right, "addtmp");
 }
-Value* fsub(IRBuilder<>* builder, Value* left, Value* right) {
+llvm::Value* fsub(IRBuilder<>* builder, llvm::Value* left, llvm::Value* right) {
     return builder->CreateFSub(left, right, "addtmp");
 }
-Value* fmul(IRBuilder<>* builder, Value* left, Value* right) {
+llvm::Value* fmul(IRBuilder<>* builder, llvm::Value* left, llvm::Value* right) {
     return builder->CreateFMul(left, right, "addtmp");
 }
 
@@ -173,7 +173,7 @@ llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm
             return builder->CreateSDiv(
                 left, right, "sdivtmp");  // return builder->CreateUDiv(left, right, "");
         case BinaryOperator::Pow: {
-            Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
+            llvm::Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
             return builder->CreateCall(powFunc, {left, right});
         }
         case BinaryOperator::LShift: return builder->CreateLShr(left, right, "addtmp");
@@ -193,7 +193,7 @@ llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm
         case BinaryOperator::Div: return builder->CreateFDiv(left, right, "divtmp");
         case BinaryOperator::Mod: return builder->CreateFRem(left, right);
         case BinaryOperator::Pow: {
-            Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
+            llvm::Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
             return builder->CreateCall(powFunc, {left, right});
         }
         case BinaryOperator::FloorDiv: {
@@ -218,8 +218,8 @@ llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm
 }
 
 ExprRet LLVMGen::binop(BinOp_t* n, int depth) {
-    Value* left  = exec(n->left, depth).value();
-    Value* right = exec(n->right, depth).value();
+    llvm::Value* left  = exec(n->left, depth).value();
+    llvm::Value* right = exec(n->right, depth).value();
 
     if (left == nullptr || right == nullptr) {
         kwerror("Could not generate binary operator");
@@ -230,13 +230,13 @@ ExprRet LLVMGen::binop(BinOp_t* n, int depth) {
 }
 ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) {
 
-    Array<Value*> values(n->values.size());
+    Array<llvm::Value*> values(n->values.size());
 
     for (int i = 0; i < n->values.size(); i++) {
         values[i] = exec(n->values[i], depth).value();
     }
 
-    auto fun = [this, n](Value* a, Value* b) -> Value* {
+    auto fun = [this, n](llvm::Value* a, llvm::Value* b) -> llvm::Value* {
         switch (n->op) {
         case BoolOperator::Or: return builder->CreateOr(a, b, "ortmp");
         case BoolOperator::And: return builder->CreateAnd(a, b, "andtmp");
@@ -249,7 +249,7 @@ ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) {
     while (values.size() >= 2) {
         int           count = values.size() / 2;
         int           extra = values.size() % 2;
-        Array<Value*> next(count + extra);
+        Array<llvm::Value*> next(count + extra);
 
         for (int i = 0; i < count; i++) {
             next[i] = fun(values[i * 2], values[i * 2 + 1]);
@@ -263,7 +263,7 @@ ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) {
 }
 
 ExprRet LLVMGen::unaryop(UnaryOp_t* n, int depth) {
-    Value* arg = exec(n->operand, depth).value();
+    llvm::Value* arg = exec(n->operand, depth).value();
 
     switch (n->op) {
     case UnaryOperator::Invert:
@@ -280,7 +280,7 @@ ExprRet LLVMGen::unaryop(UnaryOp_t* n, int depth) {
 }
 ExprRet LLVMGen::compare(Compare_t* n, int depth) {
 
-    auto fun = [this](CmpOperator op, Value* lhs, Value* rhs) -> Value* {
+    auto fun = [this](CmpOperator op, llvm::Value* lhs, llvm::Value* rhs) -> llvm::Value* {
         Type* type = lhs->getType();
 
         if (type->isIntegerTy()) {
@@ -324,16 +324,16 @@ ExprRet LLVMGen::compare(Compare_t* n, int depth) {
         return nullptr;
     };
 
-    Value*        left = exec(n->left, depth).value();
-    Array<Value*> comparisons;
+    llvm::Value*        left = exec(n->left, depth).value();
+    Array<llvm::Value*> comparisons;
 
     for (int i = 0; i < n->ops.size(); i++) {
-        Value* right = exec(n->comparators[i], depth).value();
+        llvm::Value* right = exec(n->comparators[i], depth).value();
         comparisons.push_back(fun(n->ops[i], left, right));
         left = right;
     }
 
-    Value* prev = comparisons[0];
+    llvm::Value* prev = comparisons[0];
     for (int i = 1; i < comparisons.size(); i++) {
         prev = builder->CreateAnd(prev, comparisons[i]);
     }
@@ -351,7 +351,7 @@ ExprRet LLVMGen::namedexpr(NamedExpr_t* n, int depth) {
 }
 ExprRet LLVMGen::exported(Exported* n, int depth) { return nullptr; }
 ExprRet LLVMGen::lambda(Lambda_t* n, int depth) {
-    Function* lambdaFunc = Function::Create(nullptr,  // lambdaFuncType,
+    llvm::Function* lambdaFunc = Function::Create(nullptr,  // lambdaFuncType,
                                             Function::ExternalLinkage,
                                             "",
                                             llmodule.get());
@@ -360,10 +360,10 @@ ExprRet LLVMGen::lambda(Lambda_t* n, int depth) {
 }
 
 llvm::Value* LLVMGen::make_condition(ExprNode* condition_expression, int depth, int i) {
-    Value* condition = exec(condition_expression, depth).value();
+    llvm::Value* condition = exec(condition_expression, depth).value();
     kwassert(condition != nullptr, "Condition cannot be empty");
 
-    Value*       condcmp = nullptr;
+    llvm::Value*       condcmp = nullptr;
     Type*        type    = condition->getType();
     StringStream ss;
     ss << "cond_" << i;
@@ -388,8 +388,8 @@ llvm::Value* LLVMGen::make_condition(ExprNode* condition_expression, int depth, 
 }
 
 ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
-    Value*    condcmp = make_condition(n->test, depth, 0);
-    Function* fundef  = builder->GetInsertBlock()->getParent();
+    llvm::Value*    condcmp = make_condition(n->test, depth, 0);
+    llvm::Function* fundef  = builder->GetInsertBlock()->getParent();
 
     BasicBlock* then   = BasicBlock::Create(*context, "then", fundef);
     BasicBlock* elxpr  = BasicBlock::Create(*context, "else");
@@ -399,7 +399,7 @@ ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
 
     // then
     builder->SetInsertPoint(then);
-    Value* then_value = exec(n->body, depth).value();
+    llvm::Value* then_value = exec(n->body, depth).value();
     builder->CreateBr(merged);
     // ----
 
@@ -410,7 +410,7 @@ ExprRet LLVMGen::ifexp(IfExp_t* n, int depth) {
 
     // orelse
     builder->SetInsertPoint(elxpr);
-    Value* else_value = exec(n->orelse, depth).value();
+    llvm::Value* else_value = exec(n->orelse, depth).value();
     builder->CreateBr(merged);
     // -----
 
@@ -441,47 +441,47 @@ ExprRet LLVMGen::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet
 ExprRet LLVMGen::placeholder(Placeholder_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 
-    ConstantValue const& val = n->value;
+    lython::Value& val = n->value;
     using Ty                 = double;
 
     // clang-format off
-    switch (n->value.get_kind()) {
+    switch (meta::ValueTypes(n->value.tag)) {
     #if 0
-    case ConstantValue::Ti8:  return ConstantFP::get(*context, APFloat((Ty)val.get<int8>   ()));
-    case ConstantValue::Ti16: return ConstantFP::get(*context, APFloat((Ty)val.get<int16>  ()));
-    case ConstantValue::Ti32: return ConstantFP::get(*context, APFloat((Ty)val.get<int32>  ()));
-    case ConstantValue::Ti64: return ConstantFP::get(*context, APFloat((Ty)val.get<int64>  ()));
-    case ConstantValue::Tu8:  return ConstantFP::get(*context, APFloat((Ty)val.get<uint8>  ()));
-    case ConstantValue::Tu16: return ConstantFP::get(*context, APFloat((Ty)val.get<uint16> ()));
-    case ConstantValue::Tu32: return ConstantFP::get(*context, APFloat((Ty)val.get<uint32> ()));
-    case ConstantValue::Tu64: return ConstantFP::get(*context, APFloat((Ty)val.get<uint64> ()));
-    case ConstantValue::Tf32: return ConstantFP::get(*context, APFloat((Ty)val.get<float32>()));
-    case ConstantValue::Tf64: return ConstantFP::get(*context, APFloat((Ty)val.get<float64>()));
-    case ConstantValue::TBool:return ConstantFP::get(*context, APFloat((Ty)val.get<int8>   ()));
+    case meta::ValueTypes::i8:  return ConstantFP::get(*context, APFloat((Ty)val.get<int8>   ()));
+    case meta::ValueTypes::i16: return ConstantFP::get(*context, APFloat((Ty)val.get<int16>  ()));
+    case meta::ValueTypes::i32: return ConstantFP::get(*context, APFloat((Ty)val.get<int32>  ()));
+    case meta::ValueTypes::i64: return ConstantFP::get(*context, APFloat((Ty)val.get<int64>  ()));
+    case meta::ValueTypes::u8:  return ConstantFP::get(*context, APFloat((Ty)val.get<uint8>  ()));
+    case meta::ValueTypes::u16: return ConstantFP::get(*context, APFloat((Ty)val.get<uint16> ()));
+    case meta::ValueTypes::u32: return ConstantFP::get(*context, APFloat((Ty)val.get<uint32> ()));
+    case meta::ValueTypes::u64: return ConstantFP::get(*context, APFloat((Ty)val.get<uint64> ()));
+    case meta::ValueTypes::f32: return ConstantFP::get(*context, APFloat((Ty)val.get<float32>()));
+    case meta::ValueTypes::f64: return ConstantFP::get(*context, APFloat((Ty)val.get<float64>()));
+    case meta::ValueTypes::Bool:return ConstantFP::get(*context, APFloat((Ty)val.get<int8>   ()));
     #elif 0
-    case ConstantValue::Ti8:  return ConstantInt::get(*context, APInt(8,  (int8)   val.get<int8>   (), true));
-    case ConstantValue::Ti16: return ConstantInt::get(*context, APInt(16, (int16)  val.get<int16>  (), true));
-    case ConstantValue::Ti32: return ConstantInt::get(*context, APInt(32, (int32)  val.get<int32>  (), true));
-    case ConstantValue::Ti64: return ConstantInt::get(*context, APInt(64, (int64)  val.get<int64>  (), true));
-    case ConstantValue::Tu8:  return ConstantInt::get(*context, APInt(8,  (uint8)  val.get<uint8>  ()));
-    case ConstantValue::Tu16: return ConstantInt::get(*context, APInt(16, (uint16) val.get<uint16> ()));
-    case ConstantValue::Tu32: return ConstantInt::get(*context, APInt(32, (uint32) val.get<uint32> ()));
-    case ConstantValue::Tu64: return ConstantInt::get(*context, APInt(64, (uint64) val.get<uint64> ()));
-    case ConstantValue::Tf32: return ConstantFP ::get(*context, APFloat(  (float32)val.get<float32>()));
-    case ConstantValue::Tf64: return ConstantFP ::get(*context, APFloat(  (float64)val.get<float64>()));
+    case meta::ValueTypes::i8:  return ConstantInt::get(*context, APInt(8,  (int8)   val.get<int8>   (), true));
+    case meta::ValueTypes::i16: return ConstantInt::get(*context, APInt(16, (int16)  val.get<int16>  (), true));
+    case meta::ValueTypes::i32: return ConstantInt::get(*context, APInt(32, (int32)  val.get<int32>  (), true));
+    case meta::ValueTypes::i64: return ConstantInt::get(*context, APInt(64, (int64)  val.get<int64>  (), true));
+    case meta::ValueTypes::u8:  return ConstantInt::get(*context, APInt(8,  (uint8)  val.get<uint8>  ()));
+    case meta::ValueTypes::u16: return ConstantInt::get(*context, APInt(16, (uint16) val.get<uint16> ()));
+    case meta::ValueTypes::u32: return ConstantInt::get(*context, APInt(32, (uint32) val.get<uint32> ()));
+    case meta::ValueTypes::u64: return ConstantInt::get(*context, APInt(64, (uint64) val.get<uint64> ()));
+    case meta::ValueTypes::f32: return ConstantFP ::get(*context, APFloat(  (float32)val.get<float32>()));
+    case meta::ValueTypes::f64: return ConstantFP ::get(*context, APFloat(  (float64)val.get<float64>()));
     #else
-    case ConstantValue::Ti8:  return ConstantInt::get(IntegerType::get(*context,  8), (int8)   val.get<int8>   (), true);
-    case ConstantValue::Ti16: return ConstantInt::get(IntegerType::get(*context, 16), (int16)  val.get<int16>  (), true);
-    case ConstantValue::Ti32: return ConstantInt::get(IntegerType::get(*context, 32), (int32)  val.get<int32>  (), true);
-    case ConstantValue::Ti64: return ConstantInt::get(IntegerType::get(*context, 64), (int64)  val.get<int64>  (), true);
-    case ConstantValue::Tu8:  return ConstantInt::get(IntegerType::get(*context,  8), (uint8)  val.get<uint8>  ());
-    case ConstantValue::Tu16: return ConstantInt::get(IntegerType::get(*context, 16), (uint16) val.get<uint16> ());
-    case ConstantValue::Tu32: return ConstantInt::get(IntegerType::get(*context, 32), (uint32) val.get<uint32> ());
-    case ConstantValue::Tu64: return ConstantInt::get(IntegerType::get(*context, 64), (uint64) val.get<uint64> ());
-    case ConstantValue::Tf32: return ConstantFP ::get(Type::getFloatTy(*context)    , (float32)val.get<float32>());
-    case ConstantValue::Tf64: return ConstantFP ::get(Type::getDoubleTy(*context)   , (float64)val.get<float64>());
-    case ConstantValue::TBool:return ConstantInt::get(Type::getInt1Ty(*context)     , (bool)   val.get<bool>());
-    case ConstantValue::TNone:return nullptr;
+    case meta::ValueTypes::i8:  return ConstantInt::get(IntegerType::get(*context,  8), (int8)   val.as<int8>   (), true);
+    case meta::ValueTypes::i16: return ConstantInt::get(IntegerType::get(*context, 16), (int16)  val.as<int16>  (), true);
+    case meta::ValueTypes::i32: return ConstantInt::get(IntegerType::get(*context, 32), (int32)  val.as<int32>  (), true);
+    case meta::ValueTypes::i64: return ConstantInt::get(IntegerType::get(*context, 64), (int64)  val.as<int64>  (), true);
+    case meta::ValueTypes::u8:  return ConstantInt::get(IntegerType::get(*context,  8), (uint8)  val.as<uint8>  ());
+    case meta::ValueTypes::u16: return ConstantInt::get(IntegerType::get(*context, 16), (uint16) val.as<uint16> ());
+    case meta::ValueTypes::u32: return ConstantInt::get(IntegerType::get(*context, 32), (uint32) val.as<uint32> ());
+    case meta::ValueTypes::u64: return ConstantInt::get(IntegerType::get(*context, 64), (uint64) val.as<uint64> ());
+    case meta::ValueTypes::f32: return ConstantFP ::get(Type::getFloatTy(*context)    , (float32)val.as<float32>());
+    case meta::ValueTypes::f64: return ConstantFP ::get(Type::getDoubleTy(*context)   , (float64)val.as<float64>());
+    case meta::ValueTypes::i1 : return ConstantInt::get(Type::getInt1Ty(*context)     , (bool)   val.as<bool>());
+    case meta::ValueTypes::none:return nullptr;
     #endif
     }
     // clang-format on
@@ -495,7 +495,7 @@ ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 }
 ExprRet LLVMGen::attribute(Attribute_t* n, int depth) {
     // struct lookup
-    Value* obj = exec(n->value, depth).value();
+    llvm::Value* obj = exec(n->value, depth).value();
 
     return builder->CreateStructGEP(
         dyn_cast<StructType>(obj->getType()), obj, n->attrid, str(n->attr).c_str());
@@ -550,7 +550,7 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
                 return variable;
             }
 
-            Function* fundef = insert_block->getParent();
+            llvm::Function* fundef = insert_block->getParent();
 
             IRBuilder<> allocabuilder(&fundef->getEntryBlock(), fundef->getEntryBlock().begin());
 
@@ -610,8 +610,8 @@ ExprRet LLVMGen::tupleexpr(TupleExpr_t* n, int depth) {
     AllocaInst* structInst = builder->CreateAlloca(clstype);
 
     for (int i = 0; i < n->elts.size(); i++) {
-        Value* member   = builder->CreateStructGEP(clstype, structInst, i);
-        Value* newvalue = exec(n->elts[i], depth).value();
+        llvm::Value* member   = builder->CreateStructGEP(clstype, structInst, i);
+        llvm::Value* newvalue = exec(n->elts[i], depth).value();
         builder->CreateStore(newvalue, member);
     }
     return structInst;
@@ -666,7 +666,7 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     //      available.
     // WeakODRLinkage: A weak symbol that can be overridden by a strong symbol of the same name from
     // a different translation unit.
-    Function* fundef = Function::Create(  //
+    llvm::Function* fundef = Function::Create(  //
         arrow,                            //
         Function::ExternalLinkage,        //
         tostr(n->name),                   //
@@ -849,7 +849,7 @@ StmtRet LLVMGen::invalidstmt(InvalidStatement_t* n, int depth) { return StmtRet(
 StmtRet LLVMGen::returnstmt(Return_t* n, int depth) {
 
     if (n->value.has_value()) {
-        Value* retvalue = exec(n->value.value(), depth).value();
+        llvm::Value* retvalue = exec(n->value.value(), depth).value();
 
         if (retvalue != nullptr) {
             builder->CreateRet(retvalue);
@@ -869,10 +869,10 @@ StmtRet LLVMGen::deletestmt(Delete_t* n, int depth) {
 StmtRet LLVMGen::assign(Assign_t* n, int depth) {
     // Unpacking ?
     // create the variable
-    Value* variable = exec(n->targets[0], depth).value();
+    llvm::Value* variable = exec(n->targets[0], depth).value();
 
     // Get the value
-    Value* val = exec(n->value, depth).value();
+    llvm::Value* val = exec(n->value, depth).value();
 
     // Store the result
     builder->CreateStore(val, variable);
@@ -881,10 +881,10 @@ StmtRet LLVMGen::assign(Assign_t* n, int depth) {
 
 StmtRet LLVMGen::augassign(AugAssign_t* n, int depth) {
     // AUG does both load and store
-    Value* variable = exec(n->target, depth).value();
-    Value* val      = exec(n->value, depth).value();
+    llvm::Value* variable = exec(n->target, depth).value();
+    llvm::Value* val      = exec(n->value, depth).value();
 
-    Value* original = builder->CreateLoad(val->getType(), variable);
+    llvm::Value* original = builder->CreateLoad(val->getType(), variable);
 
     // Call the binary operator here
     llvm::Value* newval = binary_operator(n->op, original, val);
@@ -894,9 +894,9 @@ StmtRet LLVMGen::augassign(AugAssign_t* n, int depth) {
 }
 StmtRet LLVMGen::annassign(AnnAssign_t* n, int depth) {
     // Special case: global variable
-    Value* variable = exec(n->target, depth).value();
+    llvm::Value* variable = exec(n->target, depth).value();
 
-    Value* val = nullptr;
+    llvm::Value* val = nullptr;
     if (n->value.has_value()) {
         val = exec(n->value.value(), depth).value();
     }
@@ -906,7 +906,7 @@ StmtRet LLVMGen::annassign(AnnAssign_t* n, int depth) {
 }
 
 StmtRet LLVMGen::forstmt(For_t* n, int depth) {
-    Function* fundef = builder->GetInsertBlock()->getParent();
+    llvm::Function* fundef = builder->GetInsertBlock()->getParent();
 
     BasicBlock* preheader = builder->GetInsertBlock();
     BasicBlock* body      = BasicBlock::Create(*context, "loop", fundef);
@@ -961,7 +961,7 @@ StmtRet LLVMGen::whilestmt(While_t* n, int depth) {
 }
 
 StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
-    Function* fundef = builder->GetInsertBlock()->getParent();
+    llvm::Function* fundef = builder->GetInsertBlock()->getParent();
 
     // First if
     BasicBlock* then_br = BasicBlock::Create(*context, "if_0", fundef);
@@ -1037,11 +1037,11 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
 StmtRet LLVMGen::with(With_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::raise(Raise_t* n, int depth) {
     BasicBlock* current_block = builder->GetInsertBlock();
-    Function*   fundef        = current_block->getParent();
+    llvm::Function*   fundef        = current_block->getParent();
 
-    Function* raisefun = nullptr;
-    // Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(), Intrinsic::eh_throw);
-    Value*    exception = nullptr;
+    llvm::Function* raisefun = nullptr;
+    // llvm::Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(), Intrinsic::eh_throw);
+    llvm::Value*    exception = nullptr;
     CallInst* raise     = builder->CreateCall(raisefun, {exception});
     raise->setDoesNotReturn();
 
@@ -1073,10 +1073,10 @@ StmtRet LLVMGen::trystmt(Try_t* n, int depth) {
 }
 StmtRet LLVMGen::assertstmt(Assert_t* n, int depth) {
     // raise an error
-    Value* test = exec(n->test, depth).value();
+    llvm::Value* test = exec(n->test, depth).value();
 
     // BasicBlock* merged = BasicBlock::Create(*context, "ifcont");
-    // Value* condcmp = builder->CreateFCmpONE(
+    // llvm::Value* condcmp = builder->CreateFCmpONE(
     //     test,
     //     ConstantFP::get(*context, APFloat(0.0)),
     //     "ifstmt_cond"
@@ -1170,7 +1170,7 @@ StmtRet LLVMGen::importfrom(ImportFrom_t* n, int depth) {
 
 StmtRet LLVMGen::match(Match_t* n, int depth) {
     //
-    Value* val = exec(n->subject, depth).value();
+    llvm::Value* val = exec(n->subject, depth).value();
 
     for (auto const& kase: n->cases) {
         // Generate the pattern matching conditions

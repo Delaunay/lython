@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "ast/values/native.h"
 #include "utilities/debug.h"
 #include "utilities/metadata.h"
 #include "utilities/metadata_method.h"

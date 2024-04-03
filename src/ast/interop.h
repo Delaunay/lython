@@ -3,7 +3,6 @@
 #include <functional>
 
 #include "ast/nodes.h"
-#include "ast/constant.h"
 
 namespace lython {
 

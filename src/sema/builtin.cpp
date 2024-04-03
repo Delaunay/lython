@@ -19,8 +19,8 @@ BUILTIN_TYPES(TYPE)
 #undef TYPE
 
 ExprNode* None() {
-    static Constant constant();
-    return &constant;
+    static Constant cst;
+    return &cst;
 }
 
 ExprNode* True() {

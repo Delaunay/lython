@@ -76,7 +76,7 @@ SET(ADD_HEADERS
 SET(ADD_SOURCE
     ast/nodes.cpp
     # ast/values/native.cpp
-    # ast/values/generator.cpp
+    ast/values/value.cpp
     ast/ops/context.cpp
     ast/ops/equality.cpp
     ast/ops/attribute.cpp
