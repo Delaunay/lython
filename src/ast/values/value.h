@@ -15,6 +15,7 @@ struct GetterError {
 template <typename T>
 struct Getter {
     static T get(Value& v, GetterError& err);
+    static T get(const Value& v, GetterError& err);
 };
 
 using ValueDeleter = std::function<void(Value)>;
@@ -68,9 +69,9 @@ using ValueDeleter = std::function<void(Value)>;
 //   -
 struct Value {
     union Holder {
-    #define ATTR(type, name) type name;
+#define ATTR(type, name) type name;
         KIWI_VALUE_TYPES(ATTR)
-    #undef ATTR
+#undef ATTR
 
         void* obj;
     };
@@ -93,6 +94,14 @@ struct Value {
     template <typename T>
     bool is_type() const {
         return is_type(type_id<T>());
+    }
+
+    template<typename T>
+    bool operator==(T const& val) const {
+        if (tag == meta::type_id<T>()) {
+            return as<T>() == val;
+        }
+        return false;
     }
 
     bool operator==(Value const& val) const {
@@ -136,14 +145,13 @@ struct Value {
     }
 };
 
-
 //
 // Getter
 //
 template <typename T>
 T Getter<T>::get(Value& v, GetterError& err) {
     using Underlying = std::remove_cv_t<std::remove_reference_t<std::remove_pointer_t<T>>>;
-    static T def = nullptr;
+    static T def     = nullptr;
 
     if (v.tag == meta::type_id<Underlying>()) {
         void* ptr = v.get_storage<Underlying>();
@@ -154,37 +162,28 @@ T Getter<T>::get(Value& v, GetterError& err) {
     return def;
 }
 
-#define GETTER(type, name)                              \
-template <>                                             \
-struct Getter<type> {                                   \
-    static type get(Value& v, GetterError& err) {                                               \
-        err.failed = v.tag != meta::type_id<type>();\
-        return v.value.name; \
-    }; \
-};
+#define GETTER(type, name)                               \
+    template <>                                          \
+    struct Getter<type> {                                \
+        static type get(Value& v, GetterError& err) {    \
+            err.failed = v.tag != meta::type_id<type>(); \
+            return v.value.name;                         \
+        };                                               \
+        static type get(Value const& v, GetterError& err) { \
+            err.failed = v.tag != meta::type_id<type>(); \
+            return v.value.name;                         \
+        };                                               \
+    };
 
 KIWI_VALUE_TYPES(GETTER)
 #undef GETTER
-
 
 //
 // ostream
 //
 
-std::ostream& operator<<(std::ostream& os, None const& v) { return os << "None"; }
 
-std::ostream& operator<<(std::ostream& os, Value const& v) {
-    switch (meta::ValueTypes(v.tag)) {
-    #define CASE(type, name) \
-    case meta::ValueTypes::name: return os << "Value(" << v.value.name << ": " #type << ")";
-        KIWI_VALUE_TYPES(CASE)
-    #undef CASE
-
-    case meta::ValueTypes::Max: break;
-    }
-
-    return os << "obj";
-}
+std::ostream& operator<<(std::ostream& os, Value const& v);
 
 //
 // Automatic Function Wrapper
@@ -356,28 +355,7 @@ Tuple<Value, std::function<void(Value)>> make_value(T* raw, void (*custom_free)(
     return std::make_tuple(Value(meta::type_id<T>(), raw), deleter);
 }
 
-void free_value(Value val, void (*deleter)(void*)) {
-    // we don't know the type here
-    // we have to tag the value to know no memory was allocated
-    // if (sizeof(T) <= sizeof(Value::Holder)) {
-    //     return;
-    // }
-
-    if (val.is_object()) {
-        if (deleter != nullptr) {
-            deleter(val.value.obj);
-        }
-
-        // NOTE: this only nullify current value so other copy of this value
-        // might still think the value is valid
-        // one thing we can do is allocate the memory using a pool.
-        // on free the memory returns to the pool and it is marked as invalid
-        // copied value will be able to check for the mark until the memory is reused
-        // then same issue would be still be possible
-        val.value.obj = nullptr;  // just in case
-    }
-}
-
+void free_value(Value val, void (*deleter)(void*));
 
 //
 // Invoke a script function with native values or script values
@@ -390,4 +368,14 @@ Value invoke(void* ctx, Value fun, Args... args) {
     return fun.as<Function>()(ctx, value_args);
 }
 
-}
+Value binary_invoke(void* ctx, Value fun, Value a, Value b);
+
+Value unary_invoke(void* ctx, Value fun, Value a);
+
+// template <Value... Args>
+// Value invoke(void* ctx, Value fun, Value... args) {
+//     Array<Value> value_args = {args...};
+//     return fun.as<Function>()(ctx, value_args);
+// }
+
+}  // namespace lython

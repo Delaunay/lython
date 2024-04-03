@@ -1,1 +1,9 @@
 Checks:    '-*,clang-diagnostic-*,-clang-diagnostic-unused-value,clang-analyzer-*,-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter'
+
+HeaderFilterRegex: '.*'
+
+ExtraArgs:
+  - -Irelative/build
+  - -Irelative/src
+  - -Irelative/dependencies/spdlog/include
+  - -Irelative/dependencies/catch2/src/catch2

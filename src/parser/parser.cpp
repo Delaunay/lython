@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "parser/parser.h"
 #include "ast/magic.h"
 #include "ast/ops.h"
 #include "utilities/guard.h"
@@ -818,7 +818,7 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
     case tok_string:
     case tok_float: {
         auto pat   = parent->new_object<MatchSingleton>();
-        pat->value = get_value(pat);
+        std::tie(pat->value, pat->deleter) = get_value(pat);
         next_token();
         return pat;
     }
@@ -1468,7 +1468,9 @@ bool Parser::is_valid_value() {
     return false;
 }
 
-lython::Value Parser::get_value(Node* parent) {
+Tuple<Value, ValueDeleter> Parser::get_value(Node* parent) {
+    ValueDeleter noop;
+
     if (!is_valid_value()) {
         ParsingError& error = parser_kwerror(  //
             LOC,                               //
@@ -1482,23 +1484,23 @@ lython::Value Parser::get_value(Node* parent) {
     switch (token().type()) {
 
     case tok_string: {
-        return Value(token().identifier());
+        return make_value<String>(token().identifier());
     }
     case tok_int: {
         // FIXME handle different sizes
-        return Value(int32(token().as_integer()));
+        return std::make_tuple(Value(int32(token().as_integer())), noop);
     }
     case tok_float: {
-        return Value(token().as_float());
+        return std::make_tuple(Value(token().as_float()), noop);
     }
-    case tok_none: return Value();
+    case tok_none: return std::make_tuple(Value(), noop);
 
-    case tok_true: return Value(true);
+    case tok_true: return std::make_tuple(Value(true), noop);
 
-    case tok_false: return Value(false);
+    case tok_false: return std::make_tuple(Value(false), noop);
     }
 
-    return Value();
+    return std::make_tuple(Value(), noop);
 }
 
 ExprNode* Parser::parse_constant(Node* parent, int depth) {
@@ -1522,7 +1524,7 @@ ExprNode* Parser::parse_constant(Node* parent, int depth) {
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
 
-    expr->value = get_value(expr);
+    std::tie(expr->value, expr->deleter) = get_value(expr);
 
     end_code_loc(expr, token());
     next_token();

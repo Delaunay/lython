@@ -1,6 +1,5 @@
 #include "sema/sema.h"
 #include "ast/magic.h"
-#include "ast/values/object.h"
 #include "builtin/operators.h"
 #include "dependencies/fmt.h"
 #include "parser/format_spec.h"
@@ -291,7 +290,7 @@ TypeExpr* SemanticAnalyser::unaryop(UnaryOp* n, int depth) {
 
     String signature = join("-", Array<String>{str(n->op), str(expr_t)});
 
-    UnaryOp::NativeUnaryOp handler = get_native_unary_operation(signature);
+    Function handler = get_native_unary_operation(signature);
     if (!handler) {
         SEMA_ERROR(n, UnsupportedOperand, str(n->op), expr_t, nullptr);
     }
@@ -742,7 +741,7 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
         Constant* cst = cast<Constant>(n->format_spec->values[0]);
 
         if (cst != nullptr) {
-            String          strspec = cst->value.get<String>();
+            String          strspec = *cst->value.as<String*>();
             FormatSpecifier spec    = FormatSpecifier::parse(strspec);
 
             // FIXME: this should a SEMA error
@@ -785,21 +784,22 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
 
 TypeExpr* SemanticAnalyser::placeholder(Placeholder* n, int depth) { return nullptr; }
 TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
-    switch (n->value.type()) {
-    case ConstantValue::Ti8: return make_ref(n, "i8", Type_t());
-    case ConstantValue::Ti16: return make_ref(n, "i16", Type_t());
-    case ConstantValue::Ti32: return make_ref(n, "i32", Type_t());
-    case ConstantValue::Ti64: return make_ref(n, "i64", Type_t());
+    switch (meta::ValueTypes(n->value.tag)) {
+    case meta::ValueTypes::i8 : return make_ref(n, "i8", Type_t());
+    case meta::ValueTypes::i16: return make_ref(n, "i16", Type_t());
+    case meta::ValueTypes::i32: return make_ref(n, "i32", Type_t());
+    case meta::ValueTypes::i64: return make_ref(n, "i64", Type_t());
 
-    case ConstantValue::Tu8: return make_ref(n, "u8", Type_t());
-    case ConstantValue::Tu16: return make_ref(n, "u16", Type_t());
-    case ConstantValue::Tu32: return make_ref(n, "u32", Type_t());
-    case ConstantValue::Tu64: return make_ref(n, "u64", Type_t());
+    case meta::ValueTypes::u8: return make_ref(n, "u8", Type_t());
+    case meta::ValueTypes::u16: return make_ref(n, "u16", Type_t());
+    case meta::ValueTypes::u32: return make_ref(n, "u32", Type_t());
+    case meta::ValueTypes::u64: return make_ref(n, "u64", Type_t());
 
-    case ConstantValue::Tf32: return make_ref(n, "f32", Type_t());
-    case ConstantValue::Tf64: return make_ref(n, "f64", Type_t());
-    case ConstantValue::TString: return make_ref(n, "str", Type_t());
-    case ConstantValue::TBool: return make_ref(n, "bool", Type_t());
+    case meta::ValueTypes::f32: return make_ref(n, "f32", Type_t());
+    case meta::ValueTypes::f64: return make_ref(n, "f64", Type_t());
+    case meta::ValueTypes::i1: return make_ref(n, "bool", Type_t());
+
+    // case meta::ValueTypes::i8: return make_ref(n, "str", Type_t());
     default: return nullptr;
     }
 

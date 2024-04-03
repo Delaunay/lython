@@ -98,8 +98,8 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
      ~TreeEvaluator() {}
 
     template <typename Exception, typename... Args>
-    ConstantValue raise(Args... args) {
-        return ConstantValue::none();
+    Value raise(Args... args) {
+        return Value();
     }
 
     StringRef get_name(ExprNode* expression);
@@ -243,7 +243,7 @@ public:
     PartialResult* cause               = nullptr;
     int            handling_exceptions = 0;
 
-    Array<struct lyException*> exceptions;
+    Array<struct _LyException*> exceptions;
     Array<StackTrace>          traces;
 };
 
