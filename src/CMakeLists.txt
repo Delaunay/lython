@@ -35,10 +35,11 @@ ENDIF(WITH_COZ)
 SET(ADD_HEADERS
     ast/nodes.h
     ast/ops.h
-    ast/values/native.h
-    ast/values/generator.h
+    # ast/values/native.h
+    # ast/values/generator.h
     ast/magic.h
-    ast/constant.h
+    # ast/values/constant.h
+    ast/values/value.h
     builtin/operators.h
     compatibility/compatibility.h
     codegen/cpp/cpp_gen.h
@@ -74,8 +75,8 @@ SET(ADD_HEADERS
 
 SET(ADD_SOURCE
     ast/nodes.cpp
-    ast/values/native.cpp
-    ast/values/generator.cpp
+    # ast/values/native.cpp
+    # ast/values/generator.cpp
     ast/ops/context.cpp
     ast/ops/equality.cpp
     ast/ops/attribute.cpp

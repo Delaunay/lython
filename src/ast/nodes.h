@@ -4,13 +4,13 @@
 #include <memory>
 
 #include "ast/nodekind.h"
-#include "constant.h"
 #include "dtypes.h"
 #include "lexer/token.h"
 #include "logging/logging.h"
 #include "utilities/names.h"
 #include "utilities/object.h"
 #include "utilities/optional.h"
+#include "values/value.h"
 
 namespace lython {
 
@@ -290,7 +290,7 @@ struct MatchValue: public Pattern {
 };
 
 struct MatchSingleton: public Pattern {
-    ConstantValue value;
+    Value value;
 
     MatchSingleton(): Pattern(NodeKind::MatchSingleton) {}
 };
@@ -362,15 +362,25 @@ struct Comment: public ExprNode {
 };
 
 struct Constant: public ExprNode {
-    ConstantValue    value;
+    Value        value;
+    ValueDeleter deleter;
     Optional<String> kind;
 
     template <typename T>
-    Constant(T const& v): ExprNode(NodeKind::Constant), value(v) {}
+    Constant(T const& v): ExprNode(NodeKind::Constant)
+    {
+        std::tie(value, deleter) = make_value<T>(v);
+    }
 
-    Constant(): Constant(ConstantValue::invalid_t()) {}
+    Constant(): ExprNode(NodeKind::Constant){}
 
-    bool is_leaf() {    return true; }
+    ~Constant() {
+        if (deleter) {
+            deleter(value);
+        }
+    }
+
+    bool is_leaf() { return true; }
 };
 
 // Dummy, expression representing a value to be pluged at runtime
@@ -379,7 +389,7 @@ struct Placeholder: public ExprNode {
 
     ExprNode* expr;
 
-    bool is_leaf() {    return true; }
+    bool is_leaf() { return true; }
 };
 
 /*
@@ -398,8 +408,6 @@ struct Placeholder: public ExprNode {
         type_ignores=[])
  */
 struct BoolOp: public ExprNode {
-    using NativeBoolyOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
-
     BoolOperator     op;
     Array<ExprNode*> values;
 
@@ -409,7 +417,7 @@ struct BoolOp: public ExprNode {
 
     // Function to apply, resolved by the sema
     StmtNode*     resolved_operator = nullptr;
-    NativeBoolyOp native_operator   = nullptr;
+    Function      native_operator   = nullptr;
     int           varid             = -1;
 
     BoolOp(): ExprNode(NodeKind::BoolOp) {}
@@ -433,15 +441,13 @@ struct BoolOp: public ExprNode {
 // need sequences for compare to distinguish between
 // x < 4 < 3 and (x < 4) < 3
 struct Compare: public ExprNode {
-    using NativeCompOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
-
     ExprNode*          left = nullptr;
     Array<CmpOperator> ops;
     Array<ExprNode*>   comparators;
 
     // Function to apply, resolved by the sema
-    Array<StmtNode*>    resolved_operator;
-    Array<NativeCompOp> native_operator;
+    Array<StmtNode*> resolved_operator;
+    Array<Function>  native_operator;
 
     bool safe_comparator_add(ExprNode* comp) {
         if (comp == this) {
@@ -471,29 +477,25 @@ struct NamedExpr: public ExprNode {
 };
 
 struct BinOp: public ExprNode {
-    using NativeBinaryOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
-
     ExprNode*      left = nullptr;
     BinaryOperator op;
     ExprNode*      right = nullptr;
 
     // Function to apply, resolved by the sema
     StmtNode*      resolved_operator = nullptr;
-    NativeBinaryOp native_operator   = nullptr;
+    Function       native_operator   = nullptr;
     int            varid             = -1;
 
     BinOp(): ExprNode(NodeKind::BinOp) {}
 };
 
 struct UnaryOp: public ExprNode {
-    using NativeUnaryOp = ConstantValue (*)(ConstantValue const&);
-
     UnaryOperator op;
     ExprNode*     operand;
 
     // Function to apply, resolved by the sema
-    StmtNode*     resolved_operator = nullptr;
-    NativeUnaryOp native_operator   = nullptr;
+    StmtNode* resolved_operator = nullptr;
+    Function  native_operator   = nullptr;
 
     UnaryOp(): ExprNode(NodeKind::UnaryOp) {}
 };
@@ -598,7 +600,6 @@ struct FormattedValue: public ExprNode {
     FormattedValue(): ExprNode(NodeKind::FormattedValue) {}
 };
 
-
 struct Subscript: public ExprNode {
     ExprNode*   value = nullptr;
     ExprNode*   slice = nullptr;
@@ -690,7 +691,6 @@ struct Expression: public ModNode {
     ExprNode* body = nullptr;
 
     Expression(): ModNode(NodeKind::Expression) {}
-
 };
 
 struct FunctionType: public ModNode {
@@ -757,7 +757,6 @@ struct FunctionDef: public StmtNode {
 
 struct AsyncFunctionDef: public FunctionDef {};
 
-
 // This is the AST declaration
 // To be able to instantiate an instance of the class we should generate
 // a TypeInfo/ClassMetadata
@@ -769,7 +768,7 @@ struct ClassDef: public StmtNode {
     Array<StmtNode*>    body;
     Array<Decorator>    decorator_list = {};
     Optional<Docstring> docstring;
-    int type_id = -1;
+    int                 type_id = -1;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
 
@@ -873,15 +872,12 @@ struct Attribute: public ExprNode {
     Attribute(): ExprNode(NodeKind::Attribute) {}
 };
 
-
 struct Exported: public ExprNode {
-    Exported():
-        ExprNode(NodeKind::Exported)
-    {}
+    Exported(): ExprNode(NodeKind::Exported) {}
 
     struct Bindings* source;
     struct Bindings* dest;
-    Node* node;
+    Node*            node;
 };
 
 struct Return: public StmtNode {
@@ -910,15 +906,13 @@ struct Assign: public StmtNode {
 };
 
 struct AugAssign: public StmtNode {
-    using NativeBinaryOp = ConstantValue (*)(ConstantValue const&, ConstantValue const&);
-
     ExprNode*      target = nullptr;
     BinaryOperator op;
     ExprNode*      value = nullptr;
 
     // Function to apply, resolved by the sema
     StmtNode*      resolved_operator = nullptr;
-    NativeBinaryOp native_operator   = nullptr;
+    Function       native_operator   = nullptr;
 
     AugAssign(): StmtNode(NodeKind::AugAssign) {}
 };
@@ -1047,7 +1041,6 @@ struct Expr: public StmtNode {
 
     Expr(): StmtNode(NodeKind::Expr) {}
 
-
     bool is_leaf() override { return value && value->is_leaf(); }
 };
 
@@ -1134,12 +1127,12 @@ struct TupleType: public ExprNode {
 
 struct BuiltinType: public ExprNode {
     // using NativeFunction = Constant* (*)(GCObject* root, Array<Constant*> const& args);
-    using NativeMacro    = ExprNode* (*)(GCObject* root, Array<Node*> const& args);
+    using NativeMacro = ExprNode* (*)(GCObject* root, Array<Node*> const& args);
 
     BuiltinType(): ExprNode(NodeKind::BuiltinType) {}
     StringRef name;
 
-    NativeMacro    native_macro;
+    NativeMacro native_macro;
 };
 
 /*
@@ -1219,8 +1212,9 @@ T const* cast(Node const* obj) {
 
 template <typename T>
 T* checked_cast(Node* obj) {
-    lyassert(obj->is_instance<T>(),
-           fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
+    lyassert(
+        obj->is_instance<T>(),
+        fmt::format("Cast type is not compatible {} != {}", str(obj->kind), str(nodekind<T>())));
     return cast<T>(obj);
 }
 

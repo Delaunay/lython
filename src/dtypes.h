@@ -15,9 +15,9 @@
 #include "utilities/allocator.h"
 
 #ifdef __linux__
-#    define KIWI_INLINE __attribute__((always_inline))
+#define KIWI_INLINE __attribute__((always_inline))
 #else
-#    define KIWI_INLINE __forceinline
+#define KIWI_INLINE __forceinline
 #endif
 
 // ---------------
@@ -63,6 +63,14 @@ using String = std::basic_string<char, std::char_traits<char>, AllocatorCPU<char
 using StringStream = std::basic_stringstream<char, std::char_traits<char>, AllocatorCPU<char>>;
 
 using StringView = std::string_view;
+
+struct Value;
+
+struct None {
+};
+
+using Function = Value(*)(void*, Array<Value>&);
+
 }  // namespace lython
 
 // ------------
@@ -111,7 +119,7 @@ using Set = std::unordered_set<V, std::hash<V>, std::equal_to<V>, AllocatorCPU<V
 
 class LythonException: public std::exception {};
 
-template<typename T>
+template <typename T>
 struct Point {
     T x;
     T y;

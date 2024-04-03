@@ -5,7 +5,6 @@
 #include "builtin/operators.h"
 #include "parser/parser.h"
 #include "sema/sema.h"
-#include "ast/values/native.h"
 #include "ast/values/object.h"
 
 #include "allocator.h"
@@ -424,7 +423,21 @@ TypeRegistry& TypeRegistry::instance() {
     return obj;
 }
 
-TypeRegistry::TypeRegistry() { is_type_registry_available() = true; }
+TypeRegistry::TypeRegistry() {
+
+    #define SET_FIXED_ID(type, name)                                \
+        {                                                           \
+            ClassMetadata& data = id_to_meta[int(ValueTypes::name)];\
+            data.type_id = int(ValueTypes::name);                   \
+            data.name = ##type;                                     \                 
+        }
+
+        KIWI_VALUE_TYPES(SET_FIXED_ID)
+
+    #undef SET_FIXED_ID
+
+    is_type_registry_available() = true; 
+}
 
 TypeRegistry::~TypeRegistry() {
     if (print_stats) {

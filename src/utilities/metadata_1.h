@@ -8,7 +8,32 @@
 #include <ostream>
 
 namespace lython {
+
 namespace meta {
+
+#define KIWI_VALUE_TYPES(X)     \
+    X(bool, i1)      \
+    X(uint64, u64)   \
+    X(int64, i64)    \
+    X(uint32, u32)   \
+    X(int32, i32)    \
+    X(uint16, u16)   \
+    X(int16, i16)    \
+    X(uint8, u8)     \
+    X(int8, i8)      \
+    X(float32, f32)  \
+    X(float64, f64)  \
+    X(Function, fun) \
+    X(None, none)
+
+enum class ValueTypes
+{
+#define ENUM(type, name) name,
+    KIWI_VALUE_TYPES(ENUM)
+#undef ENUM
+    Max
+};
+
 
 bool& is_type_registry_available();
 
@@ -56,7 +81,7 @@ struct ClassMetadata {
 struct TypeRegistry {
     bool                                   print_stats = false;
     std::unordered_map<int, ClassMetadata> id_to_meta;
-    int                                    type_counter = 0;
+    int                                    type_counter = int(ValueTypes::Max);
 
     static TypeRegistry& instance();
 
@@ -76,10 +101,18 @@ inline int _new_type() {
     return r;
 }
 
+
+template <typename T>
+struct _type_id {
+    static int id() {
+        static int _id = _new_type();
+        return _id;
+    }
+};
+
 template <typename T>
 int type_id() {
-    static int _id = _new_type();
-    return _id;
+    return _type_id<T>::id();
 }
 
 // Generate a unique ID for a given type

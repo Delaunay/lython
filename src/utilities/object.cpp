@@ -71,7 +71,7 @@ void GCObject::dump_recursive(std::ostream& out, Array<GCObject*>& visited, int 
         Constant* value = reinterpret_cast<Constant*>(this);
 
         std::stringstream ss;
-        value->value.debug_print(ss);
+        ss << value->value;
 
         out << String(depth * 2, ' ') << index << ". " 
             << meta::type_name(class_id) << warning << " " << ss.str()

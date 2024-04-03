@@ -208,7 +208,7 @@ class Parser {
     void end_code_loc(CommonAttributes* target, Token tok);
 
     bool          is_valid_value();
-    ConstantValue get_value(Node* parent);
+    lython::Value get_value(Node* parent);
 
     OpConfig const& get_operator_config(Token const& tok) const;
 

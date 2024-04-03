@@ -1468,7 +1468,7 @@ bool Parser::is_valid_value() {
     return false;
 }
 
-ConstantValue Parser::get_value(Node* parent) {
+lython::Value Parser::get_value(Node* parent) {
     if (!is_valid_value()) {
         ParsingError& error = parser_kwerror(  //
             LOC,                               //
@@ -1482,23 +1482,23 @@ ConstantValue Parser::get_value(Node* parent) {
     switch (token().type()) {
 
     case tok_string: {
-        return ConstantValue(token().identifier());
+        return Value(token().identifier());
     }
     case tok_int: {
         // FIXME handle different sizes
-        return ConstantValue(int32(token().as_integer()));
+        return Value(int32(token().as_integer()));
     }
     case tok_float: {
-        return ConstantValue(token().as_float());
+        return Value(token().as_float());
     }
-    case tok_none: return ConstantValue(ConstantValue::none_t());
+    case tok_none: return Value();
 
-    case tok_true: return ConstantValue(true);
+    case tok_true: return Value(true);
 
-    case tok_false: return ConstantValue(false);
+    case tok_false: return Value(false);
     }
 
-    return ConstantValue();
+    return Value();
 }
 
 ExprNode* Parser::parse_constant(Node* parent, int depth) {
@@ -1829,7 +1829,7 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
             // fixme this miss the call
             auto p = parser->parse_expression_1(parent, child, 0, depth);
             parser->expect_token(')', true, parent, LOC);
-            
+
             if (p)
                 return p;
 
@@ -1871,8 +1871,6 @@ ExprNode* Parser::parse_tuple_generator(Node* parent, int depth) {
     TRACE_START();
 
     // auto expr = parse_expression_primary(parent, depth + 1);
-
-    
 
     return parse_comprehension_or_literal<GeneratorExp, TupleExpr>(
         this, parent, tok_parens, ')', depth + 1);
@@ -2543,7 +2541,7 @@ ExprNode* Parser::parse_expression(Node* parent, int depth, bool comma) {
     ExprNode* expr = primary;
     while (expr != nullptr) {
         primary = expr;
-        expr = parse_expression_1(parent, primary, 0, depth, comma);
+        expr    = parse_expression_1(parent, primary, 0, depth, comma);
     }
 
     expression_depth -= 1;
@@ -2735,8 +2733,7 @@ ExprNode* Parser::parse_joined_string(Node* parent, int depth) {
 
         auto pushbuffer = [&]() {
             if (!buffer.empty()) {
-                Constant* cst = expr->new_object<Constant>();
-                cst->value    = ConstantValue(buffer);
+                Constant* cst = expr->new_object<Constant>(buffer);
                 expr->values.push_back(cst);
                 buffer.clear();
             }
@@ -2810,8 +2807,7 @@ JoinedStr* Parser::parse_format_spec(Node* parent, int depth) {
 
     auto pushbuffer = [&]() {
         if (!buffer.empty()) {
-            Constant* cst = expr->new_object<Constant>();
-            cst->value    = ConstantValue(buffer);
+            Constant* cst = expr->new_object<Constant>(buffer);
             expr->values.push_back(cst);
             buffer.clear();
         }

@@ -52,6 +52,7 @@ TEST_MACRO(utilities)
 TEST_MACRO(attribute)
 TEST_MACRO(vm)
 TEST_MACRO(meta)
+TEST_MACRO(value)
 
 if (WITH_LLVM)
   TEST_MACRO(llvm)
@@ -132,10 +133,12 @@ ADD_TEST(
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython tests -h
 )
 
+
+
 IF(UNIX AND WITH_COVERAGE)
   ADD_DEPENDENCIES(coverage lython)
 ENDIF()
 
 
 
-add_executable(new_value new_value.cpp)
+#  add_executable(new_value new_value.cpp)
