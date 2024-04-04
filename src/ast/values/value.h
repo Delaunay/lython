@@ -365,6 +365,7 @@ void free_value(Value val, void (*deleter)(void*) = nullptr);
 template <typename T>
 void destructor(void* ptr) {
     ((T*)(ptr))->~T();
+    free(ptr);
 }
 
 //
@@ -374,19 +375,9 @@ void destructor(void* ptr) {
 //  so this would  not work, and we would have to allocate 2 twice (once from
 //  the lib & another for us)
 //
+
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) {
-    using Underlying = std::remove_pointer_t<T>;
-
-#if KIWI_SVO
-    if (!Value::is_allocated<T>()) {
-        Value value;
-        new (&value.value) T(args...);
-        value.tag = _typeid;
-        return std::make_tuple(value, [](Value v) {} );
-    }
-#endif
-
+Tuple<Value, ValueDeleter> _new_object(int _typeid, Args... args) {
     // up to the user to free it correctly
     void* memory = malloc(sizeof(T));
     new (memory) T(args...);
@@ -395,9 +386,39 @@ Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) {
 }
 
 template <typename T, typename... Args>
+Tuple<Value, ValueDeleter> _new_value(int _typeid, Args... args) {
+    static_assert(Value::is_small<T>());
+    Value value;
+    new (&value.value) T(args...);
+    value.tag = _typeid;
+    return std::make_tuple(value, [](Value v) {} );
+}
+
+// This version allows users to specify a different type id
+// so some dynamic DS could be used multiple time with a different typeid
+template <typename T, typename... Args>
+Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) 
+{
+    if constexpr (Value::is_small<T>()) {
+        return _new_value<T>(_typeid, args...);
+    }
+    return _new_object<T>(_typeid, args...);
+}
+
+// Short cut
+template <typename T, typename... Args>
 Tuple<Value, std::function<void(Value)>> make_value(Args... args) {
     return _make_value<T>(meta::type_id<T>(), args...);
 }
+template <typename T, typename... Args>
+Tuple<Value, std::function<void(Value)>> new_value(Args... args) {
+    return _new_value<T>(meta::type_id<T>(), args...);
+}
+template <typename T, typename... Args>
+Tuple<Value, std::function<void(Value)>> new_object(Args... args) {
+    return _new_object<T>(meta::type_id<T>(), args...);
+}
+
 
 template <typename T, typename... Args>
 Tuple<Value, std::function<void(Value)>> make_value(T* raw, void (*custom_free)(void*)) {
