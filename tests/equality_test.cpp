@@ -1,5 +1,5 @@
 #include "cases.h"
-#include "samples.h"
+#include "cases_sample.h"
 
 #include "ast/magic.h"
 #include "ast/ops.h"

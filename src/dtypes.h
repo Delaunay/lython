@@ -8,11 +8,15 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
 #include <sstream>
+
+#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include "dependencies/xx_hash.h"
 #include "utilities/allocator.h"
+
+
 
 #ifdef __linux__
 #define KIWI_INLINE __attribute__((always_inline))
@@ -96,11 +100,11 @@ struct hash<lython::String> {
 // ---------------
 namespace lython {
 
-template <class _Ty, class _Dx = std::default_delete<_Ty>>
-using Unique = std::unique_ptr<_Ty, _Dx>;
+template <class Ty, class Dx = std::default_delete<Ty>>
+using Unique = std::unique_ptr<Ty, Dx>;
 
-template <class _Ty>
-using Shared = std::shared_ptr<_Ty>;
+template <class Ty>
+using Shared = std::shared_ptr<Ty>;
 
 template <typename... Args>
 using Tuple = std::tuple<Args...>;
@@ -122,6 +126,23 @@ struct Point {
     T y;
 };
 
+
+inline String vformat(AllocatorCPU<char> alloc, fmt::string_view format_str, fmt::format_args args) {
+    using custom_memory_buffer = fmt::basic_memory_buffer<char, fmt::inline_buffer_size, AllocatorCPU<char>>;
+
+    auto buf = custom_memory_buffer(alloc);
+    fmt::vformat_to(std::back_inserter(buf), format_str, args);
+    return String(buf.data(), buf.size(), alloc);
+}
+
+template <typename ...Args>
+inline String format(fmt::string_view format_str, const Args& ... args) {
+    AllocatorCPU<char> alloc;
+    return vformat(alloc, format_str, fmt::make_format_args(args...));
+}
+
 }  // namespace lython
+
+
 
 #endif

@@ -1,5 +1,5 @@
 #include "cases.h"
-#include "samples.h"
+#include "cases_sample.h"
 
 #include "lexer/lexer.h"
 #include "utilities/strings.h"

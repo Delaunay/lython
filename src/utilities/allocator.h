@@ -87,7 +87,6 @@ class Allocator {
     static void deallocate(pointer p, std::size_t n) {
         manual_free(meta::type_id<T>(), n);
         Device::free(static_cast<void*>(p), n * sizeof(T));
-        return;
     }
 
     static T* allocate(std::size_t n, const void* = nullptr) {

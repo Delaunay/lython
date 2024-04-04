@@ -14,6 +14,8 @@
 #include "sema/sema.h"
 #include "utilities/strings.h"
 
+#include "dependencies/formatter.h"
+
 // getenv(name)
 // setenv(name, value, override)
 // unsetenv(name)

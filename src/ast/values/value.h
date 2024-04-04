@@ -12,10 +12,15 @@ struct GetterError {
     bool failed = false;
 };
 
+template<typename T>
+struct Maybe {
+    T* value = nullptr;
+};
+
 template <typename T>
 struct Getter {
     static T get(Value& v, GetterError& err);
-    static T get(const Value& v, GetterError& err);
+    static const T get(const Value& v, GetterError& err);
 };
 
 using ValueDeleter = std::function<void(Value)>;
@@ -76,13 +81,19 @@ struct Value {
         void* obj;
     };
 
-    uint32 tag;
+    // The VM might not need the type tag
+    // once sema is passed we should be able to guarantee
+    // the oprations are ok
+    std::conditional_t<true, uint32, void> tag;
     Holder value;
 
-    Value(): tag(meta::type_id<None>()) {}
+    Value(): tag(meta::type_id<_None>()) {}
 
-#define CTOR(type, name) \
-    Value(type name): tag(meta::type_id<type>()) { value.name = name; }
+#define CTOR(type, name)                                        \
+    Value(type name): tag(meta::type_id<type>()) {              \
+        static_assert(std::is_trivially_copyable<type>::value); \
+        value.name = name;                                      \
+    }
 
     KIWI_VALUE_TYPES(CTOR)
 #undef CTOR
@@ -104,12 +115,15 @@ struct Value {
         return false;
     }
 
-    bool operator==(Value const& val) const {
-        if (tag == val.tag) {
-            // is there a risk that when the value is smaller some garbage remain ?
-            return value.u64 == val.value.u64;
-        }
-        return false;
+    template<typename T>
+    bool operator!=(T const& val) const {
+        return !((*this) == val);
+    }
+
+    bool operator==(Value const& val) const;
+
+    bool operator!=(Value const& val) const {
+        return !((*this) == val);
     }
 
     template <typename T>
@@ -124,24 +138,41 @@ struct Value {
         return Getter<T>::get(*this, err);
     }
 
-    bool is_object() const { return tag >= int(meta::ValueTypes::Max); }
+    bool is_object() const { return tag >= int(meta::ValueTypes::Max); } 
 
     template <typename T>
     static bool is_allocated() {
-        return !(sizeof(T) <= sizeof(Value::Holder) && std::is_trivially_copyable<T>::value);
+        return !is_small<T>();
     }
 
     template <typename T>
-    void* get_storage() {
-        if (is_object()) {
-            if (!is_allocated<T>()) {
-                void* mem = reinterpret_cast<uint8*>(this) + offsetof(Value, value);
-                return mem;
-            }
-            // object was too big and had to be allocated
-            return this->value.obj;
+    static constexpr bool is_small() {
+        return (sizeof(T) <= sizeof(Value::Holder) && std::is_trivially_copyable<T>::value);
+    }
+
+    // This return a pointer to the storage
+    // Type      
+    // int     =>  int*    
+    // int*    =>  int**   
+    // String  =>  String* 
+    template <typename T>
+    T* pointer() {
+        // The pointer to the data is stored inside itself
+        if constexpr (is_small<T>()) {
+            return reinterpret_cast<T*>(&value);
         }
-        return nullptr;
+        else {
+            // The data is stored in dynamically allocated memory
+            return reinterpret_cast<T*>(value.obj); 
+        }
+    }
+
+    template <typename T>
+    T const* pointer() const {
+        if (!Value::is_allocated<T>()) {
+            return reinterpret_cast<T const*>(&value);
+        }
+        return reinterpret_cast<T const*>(value.obj); 
     }
 };
 
@@ -150,17 +181,51 @@ struct Value {
 //
 template <typename T>
 T Getter<T>::get(Value& v, GetterError& err) {
-    using Underlying = std::remove_cv_t<std::remove_reference_t<std::remove_pointer_t<T>>>;
-    static T def     = nullptr;
+    using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;
+    using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
 
-    if (v.tag == meta::type_id<Underlying>()) {
-        void* ptr = v.get_storage<Underlying>();
-        return static_cast<T>(ptr);
+    if (v.tag == meta::type_id<NoConst>()) {
+        T* ptr = v.pointer<NoConst>();
+        return *ptr;
+    }
+    
+    if constexpr (std::is_pointer_v<NoConst>){
+        if (v.tag == meta::type_id<NoPointer>()) {
+            NoPointer* ptr = v.pointer<NoPointer>();
+            return ptr;
+        }
     }
 
     err.failed = true;
-    return def;
+    return T();
 }
+
+template <typename T>
+T const Getter<T>::get(Value const& v, GetterError& err) {
+    using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;
+    using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
+
+    // We want to fetch the value 
+    if (v.tag == meta::type_id<NoConst>()) {
+        NoConst const* ptr = v.pointer<NoConst>();
+        return *ptr;
+    }
+
+    if constexpr (std::is_pointer_v<NoConst>){
+        if (v.tag == meta::type_id<NoPointer>()) {
+            NoPointer const* ptr = v.pointer<NoPointer>();
+            return ptr;
+        }
+    }
+
+    err.failed = true;
+    return T();
+}
+
+//
+// This is mostly not necessary excpet from Function
+// which does not support the sizeof
+//
 
 #define GETTER(type, name)                               \
     template <>                                          \
@@ -313,38 +378,25 @@ template <typename T, typename... Args>
 Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) {
     using Underlying = std::remove_pointer_t<T>;
 
-//
-// When a struct can fit in the union, we put it in
-// Then the deleter becomes a noop
-//
 #if KIWI_SVO
-    if (!Value::is_allocated<Underlying>()) {
+    if (!Value::is_allocated<T>()) {
         Value value;
-        // C++ does not guarantee that there is no padding in FRONT but C does
-        // probably for vtables
-        void* mem = reinterpret_cast<uint8*>(&value) + offsetof(Value, value);
-        new (mem) Underlying(args...);
+        new (&value.value) T(args...);
         value.tag = _typeid;
-
-        // NOTE: trivially copyable means there is no specific destructor so we could have a noop
-        // here
-        return std::make_tuple(value, [](Value v) { destructor<T>(v.get_storage<T>()); });
+        return std::make_tuple(value, [](Value v) {} );
     }
 #endif
 
     // up to the user to free it correctly
-    void* memory = malloc(sizeof(Underlying));
-    new (memory) Underlying(args...);
+    void* memory = malloc(sizeof(T));
+    new (memory) T(args...);
     auto deleter = [](Value val) { free_value(val, destructor<T>); };
-
     return std::make_tuple(Value(_typeid, memory), deleter);
 }
 
 template <typename T, typename... Args>
 Tuple<Value, std::function<void(Value)>> make_value(Args... args) {
-    using Underlying = std::remove_pointer_t<T>;
-
-    return _make_value<T>(meta::type_id<Underlying>(), args...);
+    return _make_value<T>(meta::type_id<T>(), args...);
 }
 
 template <typename T, typename... Args>
@@ -354,8 +406,6 @@ Tuple<Value, std::function<void(Value)>> make_value(T* raw, void (*custom_free)(
 
     return std::make_tuple(Value(meta::type_id<T>(), raw), deleter);
 }
-
-void free_value(Value val, void (*deleter)(void*));
 
 //
 // Invoke a script function with native values or script values

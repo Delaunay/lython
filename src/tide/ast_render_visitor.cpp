@@ -10,15 +10,17 @@
 #include "ast/magic.h"
 #include "ast/nodes.h"
 #include "ast/ops.h"
-#include "ast/values/native.h"
-#include "ast/values/object.h"
+// #include "ast/values/native.h"
+// #include "ast/values/object.h"
 #include "ast/visitor.h"
-#include "dependencies/fmt.h"
 #include "lexer/unlex.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
 #include "utilities/allocator.h"
 #include "utilities/strings.h"
+
+#include "dependencies/fmt.h"
+#include "dependencies/formatter.h"
 
 namespace lython {
 bool safe_erase(String& str, int cursor) {
@@ -357,7 +359,7 @@ LY_ReturnType ASTRender::matchvalue(MatchValue* self, int depth) {
 
 LY_ReturnType ASTRender::matchsingleton(MatchSingleton* self, int depth) {
     StringStream ss;
-    self->value.print(ss);
+    ss << self->value;
     out() << ss.str();
     return false;
 }
@@ -623,7 +625,7 @@ LY_ReturnType ASTRender::call(Call* self, int depth) {
 
 LY_ReturnType ASTRender::constant(Constant* self, int depth) {
     StringStream ss;
-    self->value.print(ss);
+    ss << self->value;
 
     // bit more tricky here
     // we need to parse the value on change
@@ -1116,7 +1118,7 @@ LY_ReturnType ASTRender::joinedstr(JoinedStr* self, int depth) {
 
     for (auto* val: self->values) {
         if (Constant* cst = cast<Constant>(val)) {
-            out() << cst->value.get<String>();
+            out() << cst->value.as<String>();
         } else {
             run(val, depth);
         }
@@ -1133,7 +1135,7 @@ LY_ReturnType ASTRender::formattedvalue(FormattedValue* self, int depth) {
 
     for (auto* val: self->format_spec->values) {
         if (Constant* cst = cast<Constant>(val)) {
-            out() << cst->value.get<String>();
+            out() << cst->value.as<String>();
         } else {
             out() << "{";
             run(val, depth);

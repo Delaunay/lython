@@ -649,7 +649,7 @@ PartialResult* TreeEvaluator::name(Name_t* n, int depth) {
     }
 
     lyassert(bindings.bindings.size() > 0, "");
-    int last = bindings.bindings.size() - 1;
+    int last = int(bindings.bindings.size()) - 1;
 
     for (int i = last; i >= 0; i--) {
         BindingEntry const& entry = bindings.bindings[i];

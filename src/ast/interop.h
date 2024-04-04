@@ -4,6 +4,8 @@
 
 #include "ast/nodes.h"
 
+#if 0
+
 namespace lython {
 
 template<typename Sig> 
@@ -128,3 +130,4 @@ FunctionDef::WrappedNativeFunction wrap_native(R(*fun)(Args...)) {
 }
 
 }
+#endif

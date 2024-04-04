@@ -7,10 +7,8 @@
 
 #include "revision_data.h"
 
-#include <spdlog/fmt/bundled/core.h> 
+#include <fmt/core.h> 
 
-// This file should not include spdlog
-// spdlog file is compile time cancer so it is only included inside the .cpp
 
 namespace lython {
 

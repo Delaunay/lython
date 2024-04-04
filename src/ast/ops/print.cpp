@@ -8,6 +8,8 @@
 #include "utilities/allocator.h"
 #include "utilities/strings.h"
 
+#include "dependencies/formatter.h"
+
 namespace lython {
 
 struct PrintTrait {
@@ -1025,7 +1027,7 @@ ReturnType Printer::joinedstr(JoinedStr const* self, int depth, std::ostream& ou
 
     for (auto* val: self->values) {
         if (Constant* cst = cast<Constant>(val)) {
-            out << *cst->value.as<String*>();
+            out << cst->value.as<String>();
         } else {
             exec(val, depth, out, level);
         }
@@ -1043,7 +1045,7 @@ Printer::formattedvalue(FormattedValue const* self, int depth, std::ostream& out
 
     for (auto* val: self->format_spec->values) {
         if (Constant* cst = cast<Constant>(val)) {
-            out << *cst->value.as<String*>();
+            out << cst->value.as<String>();
         } else {
             out << "{";
             exec(val, depth, out, indent);

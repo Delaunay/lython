@@ -57,7 +57,7 @@ String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 
 void make_native_module() {
-
+#if 0
     ImportLib& imported = *ImportLib::instance();
     NativeModuleBuilder nativemodule("nmodule", imported);
 
@@ -80,6 +80,7 @@ void make_native_module() {
     imported.add_module("nmodule", nativemodule.module);
 
     meta::TypeRegistry::instance().dump(std::cout);
+    #endif
 }
 
 String eval_it(String const& code, String const& expr, Module*& mod) {

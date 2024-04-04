@@ -1,21 +1,14 @@
-#if WITH_LOG
-#    include <spdlog/sinks/ostream_sink.h>
-#    include <spdlog/sinks/stdout_color_sinks.h>
-#    include <spdlog/spdlog.h>
-#elif !(defined SPDLOG_COMPILED_LIB)
-#    define SPDLOG_COMPILED_LIB
-#    include <spdlog/fmt/bundled/format-inl.h>
-#    include <spdlog/fmt/fmt.h>
-#    include <spdlog/src/fmt.cpp>
-#endif
-
 #include "logging.h"
+
+#include <fmt/core.h> 
+#include <fmt/format-inl.h>
 
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <unordered_map>
+#include <iostream>
 
 // Linux signal handling & stack trace printing
 #ifdef __linux__
@@ -131,74 +124,11 @@ void show_backtrace() {}
 std::vector<std::string> get_backtrace(size_t size) { return std::vector<std::string>(); }
 #endif
 
-#if WITH_LOG
-using Logger = std::shared_ptr<spdlog::logger>;
+void show_log_backtrace() {}
 
-Logger new_logger(char const* name) {
-    // Static so only executed once
-    static int _ = register_signal_handler();
-
-    spdlog::enable_backtrace(32);
-
-    auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-
-    auto console = std::make_shared<spdlog::logger>(name, stdout_sink);
-
-    console->set_level(spdlog::level::level_enum::trace);
-    console->flush_on(spdlog::level::level_enum::trace);
-
-    spdlog::register_logger(console);
-    // %Y-%m-%d %H:%M:%S.%e
-    spdlog::set_pattern("[%L] [%t] %v");
-
-    return console;
+void spdlog_log(LogLevel level, std::string const& msg) {
+    std::cout << msg << std::endl;
 }
-
-Logger new_ostream_logger(char const* name, std::ostream& out) {
-    auto ossink  = std::make_shared<spdlog::sinks::ostream_sink_st>(out);
-    auto console = std::make_shared<spdlog::logger>(name, ossink);
-
-    console->set_level(spdlog::level::level_enum::trace);
-    console->flush_on(spdlog::level::level_enum::trace);
-
-    spdlog::register_logger(console);
-    // %Y-%m-%d %H:%M:%S.%e
-    spdlog::set_pattern("[%L] [%t] %v");
-    return console;
-}
-
-std::unordered_map<const char*, Logger>& logger_handles() {
-    static std::unordered_map<const char*, Logger> handles;
-    return handles;
-}
-
-LoggerHandle new_log(const char* name, std::ostream& out) {
-    Logger log             = new_ostream_logger(name, out);
-    logger_handles()[name] = log;
-    return (LoggerHandle)(log.get());
-}
-
-Logger root() {
-    static Logger log = new_logger("root");
-    return log;
-}
-
-static constexpr spdlog::level::level_enum log_level_spd[] = {spdlog::level::level_enum::trace,
-                                                              spdlog::level::level_enum::debug,
-                                                              spdlog::level::level_enum::info,
-                                                              spdlog::level::level_enum::warn,
-                                                              spdlog::level::level_enum::err,
-                                                              spdlog::level::level_enum::critical,
-                                                              spdlog::level::level_enum::off};
-
-void show_log_backkwtrace() { spdlog::dump_backtrace(); }
-
-void spdlog_log(LogLevel level, std::string const& msg) { root()->log(log_level_spd[level], msg); }
-
-#else
-void                     show_log_backtrace() {}
-void                     spdlog_log(LogLevel level, std::string const& msg) {}
-#endif
 
 const char* log_level_str[] = {
     "[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN", "[E] ERROR", "[!] FATAL", ""};

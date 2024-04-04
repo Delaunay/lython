@@ -247,8 +247,8 @@ ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) {
     // does this even matter ?
     // log2(op)
     while (values.size() >= 2) {
-        int           count = values.size() / 2;
-        int           extra = values.size() % 2;
+        int           count = int(values.size()) / 2;
+        int           extra = int(values.size()) % 2;
         Array<llvm::Value*> next(count + extra);
 
         for (int i = 0; i < count; i++) {
@@ -512,7 +512,7 @@ ExprRet LLVMGen::starred(Starred_t* n, int depth) {
 ExprRet LLVMGen::name(Name_t* n, int depth) {
 
     VariableEntry* found = nullptr;
-    for (int i = variables.size() - 1; i >= 0; --i) {
+    for (int i = int(variables.size()) - 1; i >= 0; --i) {
         VariableEntry& entry = variables[i];
 
         if (entry.name == n->id) {

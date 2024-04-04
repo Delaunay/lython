@@ -7,6 +7,8 @@
 #include "utilities/helpers.h"
 #include "utilities/strings.h"
 
+#include "dependencies/formatter.h"
+
 namespace lython {
 Arrow* get_arrow(
     SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls);
@@ -204,7 +206,7 @@ TypeExpr* SemanticAnalyser::resolve_variable(ExprNode* node) {
 
     if (name != nullptr) {
         lyassert(bindings.bindings.size() > 0, "");
-        int last = bindings.bindings.size() - 1;
+        int last = int(bindings.bindings.size()) - 1;
 
         for (int i = last; i >= 0; i--) {
             BindingEntry const& entry = bindings.bindings[i];
@@ -741,7 +743,7 @@ TypeExpr* SemanticAnalyser::formattedvalue(FormattedValue* n, int depth) {
         Constant* cst = cast<Constant>(n->format_spec->values[0]);
 
         if (cst != nullptr) {
-            String          strspec = *cst->value.as<String*>();
+            String          strspec = cst->value.as<String>();
             FormatSpecifier spec    = FormatSpecifier::parse(strspec);
 
             // FIXME: this should a SEMA error

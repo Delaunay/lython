@@ -1,6 +1,5 @@
 #include "lexer/lexer.h"
-// #include "parser/module.h"
-
+#include "ast/values/exception.h"
 #include "ast/nodes.h"
 #include "builtin/operators.h"
 #include "parser/parser.h"
@@ -81,11 +80,11 @@ bool _metadata_init_names() {
     meta::override_typename<lython::Node>("Node");
 
     // meta::override_typename<lython::NativeObject*>("NativeObject*");
-    // // meta::override_typename<lython::NativePointer<>*>("NativePointer*");
+    // meta::override_typename<lython::NativePointer<>*>("NativePointer*");
     // meta::override_typename<lython::lyException*>("Exception*");
     // meta::override_typename<lython::Object>("Object");
-    // meta::override_typename<lython::lyException>("Exception");
-    // meta::override_typename<lython::StackTrace>("StackTrace");
+    meta::override_typename<lython::_LyException>("Exception");
+    meta::override_typename<lython::StackTrace>("StackTrace");
 
     meta::override_typename<lython::String>("String");
     meta::override_typename<lython::StringRef>("StringRef");
@@ -95,8 +94,8 @@ bool _metadata_init_names() {
     meta::override_typename<lython::GCObject*>("GCObject*");
     meta::override_typename<lython::ExprNode*>("ExprNode*");
     meta::override_typename<lython::StmtNode*>("StmtNode*");
-    // meta::override_typename<lython::ConstantValue>("ConstantValue");
-    // meta::override_typename<lython::BinOp::NativeBinaryOp>("NativeBinaryOperation");
+    meta::override_typename<lython::Value>("Value");
+    meta::override_typename<lython::Function>("Function");
 
     meta::override_typename<UniquePtrInternal<lython::SemaException>>("SemaException");
     meta::override_typename<UniquePtrInternal<lython::ParsingException>>("ParsingException");
@@ -171,12 +170,8 @@ bool _metadata_init_names() {
         "Pair[String, ExprNode*]");
 
     meta::override_typename<
-        HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, true>>(
-        "Pair[String, NativeBinaryOp]");
-
-    meta::override_typename<
-        HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, true>>(
-        "Pair[String, NativeUnaryOp]");
+        HashNodeInternal<std::pair<const StringRef, Function>, true>>(
+        "Pair[String, Function]");
 
     // String Database
     meta::override_typename<Array<StringDatabase::StringEntry>*>("Array[StringEntry]*");
@@ -189,12 +184,8 @@ bool _metadata_init_names() {
         "Pair[StringRef, ExprNode*]");
 
     meta::override_typename<
-        HashNodeInternal<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
-        "Pair[StringRef, NativeBinaryOp]");
-
-    meta::override_typename<
-        HashNodeInternal<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
-        "Pair[StringRef, NativeUnaryOp]");
+        HashNodeInternal<std::pair<const StringRef, Function>, false>>(
+        "Pair[StringRef, Function]");
 
     meta::override_typename<HashNodeInternal<std::pair<const StringRef, bool>, false>>(
         "Pair[StringRef, bool]");
@@ -243,13 +234,9 @@ void _metadata_init_names_windows() {
     meta::override_typename<ListIterator<std::pair<const String, TokenType>, false>>(
         "Iterator[Pair[String, TokenType]]");
 
-    // meta::override_typename<
-    //     ListIterator<std::pair<const StringRef, lython::BinOp::NativeBinaryOp>, false>>(
-    //     "Iterator[Pair[StringRef, NativeBinaryOp]]");
-
-    // meta::override_typename<
-    //     ListIterator<std::pair<const StringRef, lython::UnaryOp::NativeUnaryOp>, false>>(
-    //     "Iterator[Pair[StringRef, NativeUnaryOp]]");
+    meta::override_typename<
+        ListIterator<std::pair<const StringRef, Function>, false>>(
+        "Iterator[Pair[StringRef, Function]]");
 
     meta::override_typename<ListIterator<std::pair<const StringRef, lython::ExprNode*>, false>>(
         "Iterator[Pair[StringRef, ExprNode*]]");
@@ -273,6 +260,8 @@ void _metadata_init_names_windows() {
         >
     >
     ("ListNode[Pair[StringView, uint64]]");
+
+   meta::override_typename<lython::Value>("Value");
 
 
    meta::override_typename<
@@ -321,27 +310,16 @@ void _metadata_init_names_windows() {
     >
     ("ListNode[Pair[int, String]]");
 
-    // meta::override_typename<
-    //     std::_List_node<
-    //         std::pair<
-    //             StringRef const,
-    //             ConstantValue (*)(ConstantValue const&, ConstantValue const&)
-    //         >,
-    //         void*
-    //     >
-    // >
-    // ("ListNode[Pair[StringRef, NativeBinaryFun]]");
-
-//   meta::override_typename<
-//         std::_List_node<
-//             std::pair<
-//                 StringRef const,
-//                 ConstantValue (*)(ConstantValue const&)
-//             >,
-//             void*
-//         >
-//     >
-//     ("ListNode[Pair[StringRef, NativeUnaryFun]]");
+    meta::override_typename<
+        std::_List_node<
+            std::pair<
+                StringRef const,
+                Function
+            >,
+            void*
+        >
+    >
+    ("ListNode[Pair[StringRef, Function]]");
 
    meta::override_typename<
         std::_List_node<
