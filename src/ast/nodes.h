@@ -856,7 +856,7 @@ struct ClassDef: public StmtNode {
 
         Attr& v = attributes[attrid];
 
-        if (!v.type && type) {
+        if (v.type == nullptr && type != nullptr) {
             v.type = type;
         }
 

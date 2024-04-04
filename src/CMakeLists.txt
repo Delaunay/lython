@@ -6,13 +6,13 @@
 # ========
 
 INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(../dependencies/spdlog/include)
+INCLUDE_DIRECTORIES(../dependencies/fmt/include)
 INCLUDE_DIRECTORIES(../dependencies)
 INCLUDE_DIRECTORIES(mimalloc)
 
 # Libraries
 # =========
-SET(LIBRARIES "")
+SET(LIBRARIES fmt::fmt-header-only)
 
 IF(WITH_VALGRIND)
     MESSAGE(STATUS "Disabling mimalloc")
@@ -22,7 +22,7 @@ ELSE()
 ENDIF(WITH_VALGRIND)
 
 IF(WITH_LOG)
-    LIST(APPEND LIBRARIES spdlog::spdlog)
+    # LIST(APPEND LIBRARIES spdlog::spdlog)
 ENDIF(WITH_LOG)
 
 IF(WITH_COZ)
@@ -34,7 +34,7 @@ ENDIF(WITH_COZ)
 # Source
 SET(ADD_HEADERS
     ast/nodes.h
-    ast/ops.h
+    ast/ops.h 
     # ast/values/native.h
     # ast/values/generator.h
     ast/magic.h
@@ -147,7 +147,8 @@ ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
 
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
-TARGET_LINK_LIBRARIES(liblogging ${LIBRARIES})
+TARGET_LINK_LIBRARIES(liblogging  ${LIBRARIES})
+
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})

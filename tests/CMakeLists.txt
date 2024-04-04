@@ -12,10 +12,9 @@ ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
 
 # Testing utility
 ADD_LIBRARY(liblythontest cases_errors.cpp cases.cpp cases_sample.cpp libtest.cpp cases_vm.cpp)
-TARGET_LINK_LIBRARIES(liblythontest spdlog::spdlog Catch2::Catch2 liblython liblogging)
+TARGET_LINK_LIBRARIES(liblythontest Catch2::Catch2 liblython liblogging)
 
 SET(TEST_LIBRARIES
-  spdlog::spdlog
   Catch2::Catch2
   liblython
   liblogging
@@ -62,7 +61,7 @@ endif()
  
 MACRO(STDLIB_TEST_MACRO NAME)
   ADD_EXECUTABLE(${NAME}_test standalone_main.cpp ${NAME}_test.cpp ${TEST_HEADERS})
-  TARGET_LINK_LIBRARIES(${NAME}_test spdlog::spdlog Catch2::Catch2 stblyb ${LIBRARIES})
+  TARGET_LINK_LIBRARIES(${NAME}_test Catch2::Catch2 stblyb ${LIBRARIES})
   ADD_DEPENDENCIES(${NAME}_test stblyb)
  
   IF(UNIX AND WITH_COVERAGE)

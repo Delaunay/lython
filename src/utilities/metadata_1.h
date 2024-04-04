@@ -9,6 +9,12 @@
 
 namespace lython {
 
+struct _None {
+    bool operator== (_None const& val) const {
+        return true;
+    }
+};
+
 namespace meta {
 
 #define KIWI_VALUE_TYPES(X)     \
@@ -24,7 +30,7 @@ namespace meta {
     X(float32, f32)  \
     X(float64, f64)  \
     X(Function, fun) \
-    X(None, none)
+    X(_None, none)
 
 enum class ValueTypes
 {

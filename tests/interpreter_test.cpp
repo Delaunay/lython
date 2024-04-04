@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-#include "samples.h"
+#include "cases_sample.h"
 
 #include "interpreter/interpreter.h"
 #include "lexer/buffer.h"

@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include <string>
 #include <tuple>
 #include <functional>
@@ -173,3 +174,5 @@ void new_method(std::string const& name, Rx Ty::*method) {
 
 }  // namespace meta
 }  // namespace lython
+
+#endif

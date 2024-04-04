@@ -8,6 +8,8 @@
 #include <string_view>
 #include <unordered_map>
 
+#include <fmt/core.h>
+
 #include "dtypes.h"
 #include "logging/exceptions.h"
 #include "logging/logging.h"
@@ -178,7 +180,9 @@ inline void show_string_stats_on_destroy(bool enabled) {
     StringDatabase::instance().print_stats = enabled;
 }
 
+
 }  // namespace lython
+
 
 template <>
 struct std::hash<lython::StringRef> {
@@ -186,5 +190,6 @@ struct std::hash<lython::StringRef> {
         return std::hash<std::size_t>{}(s.__id__());
     }
 };
+
 
 #endif

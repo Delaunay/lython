@@ -83,9 +83,31 @@
         "shared_mutex": "cpp",
         "future": "cpp",
         "any": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "*.inc": "cpp",
+        "bitset": "cpp",
+        "complex": "cpp",
+        "queue": "cpp",
+        "ranges": "cpp",
+        "source_location": "cpp",
+        "span": "cpp",
+        "stack": "cpp",
+        "typeindex": "cpp"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"
-    }
+    },
+    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+        "readability-identifier-length",
+        "bugprone-easily-swappable-parameters"
+    ],
+    "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true,
+    "C_Cpp.codeAnalysis.clangTidy.args": [
+        "-p",
+        "${workspaceFolder}/build"
+    ],
+    "cmake.generator": "Ninja",
+    "cmake.preferredGenerators": [
+        "Ninja"
+    ]
 }

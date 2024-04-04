@@ -247,6 +247,7 @@ using function_type_of = typename function_traits<std::decay_t<Func>>::function_
 
 }
 
+#if 0
 // This builds a module before sema
 // sema will go through it a build a Binding
 struct NativeModuleBuilder {
@@ -343,6 +344,6 @@ struct NativeModuleBuilder {
 
     struct Module* module;
 };
-
+#endif
 
 }

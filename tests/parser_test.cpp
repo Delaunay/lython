@@ -1,5 +1,5 @@
 #include "cases.h"
-#include "samples.h"
+#include "cases_sample.h"
 
 #include <catch2/catch_all.hpp>
 #include <sstream>

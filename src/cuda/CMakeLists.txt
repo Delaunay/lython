@@ -5,7 +5,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 PROJECT(cuda LANGUAGES CXX CUDA)
 
 ADD_EXECUTABLE(main main.cu)
-TARGET_LINK_LIBRARIES(main pthread spdlog::spdlog liblogging liblython)
+TARGET_LINK_LIBRARIES(main pthread liblogging liblython)
 
 
 ADD_EXECUTABLE(gemm
@@ -15,4 +15,4 @@ ADD_EXECUTABLE(gemm
     ../math/gemm.h
     ../math/gemm_cuda.cu
     ../math/gemm_cuda.h)
-TARGET_LINK_LIBRARIES(gemm spdlog::spdlog liblython liblogging)
+TARGET_LINK_LIBRARIES(gemm liblython liblogging)

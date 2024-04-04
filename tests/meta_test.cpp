@@ -21,6 +21,7 @@ float add(float a, float b) {
     return a + b;
 }
 
+#if 0
 template <>
 struct lython::meta::ReflectionTrait<NewPoint> {
     static int register_members() {
@@ -93,6 +94,7 @@ TEST_CASE("NATIVE Object") {
     lython::meta::print(ss2, *p);
     std::cout << ss2.str() << "\n";
 }
+#endif
 
 TEST_CASE("ArrowBuilder") {
 

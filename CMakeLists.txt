@@ -4,6 +4,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
 # project name + language used
 PROJECT(lython C CXX)
 
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # debug/release
 SET(CMAKE_RELEASE_POSTFIX "")
 SET(CMAKE_DEBUG_POSTFIX "-debug")
@@ -11,9 +14,8 @@ SET(CMAKE_DEBUG_POSTFIX "-debug")
 # Compiler-flag
 IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     MESSAGE(STATUS "Building Debug Version")
-    ADD_DEFINITIONS(-O0)
-
     IF(UNIX)
+        ADD_DEFINITIONS(-O0)
         ADD_LINK_OPTIONS(-rdynamic)
     ENDIF(UNIX)
 ELSE()
@@ -88,6 +90,7 @@ IF(UNIX)
 ELSEIF(WIN32)
     MESSAGE(" * Platform: Windows")
     SET(BUILD_WINDOWS 1)
+    add_compile_options(/EHsc)
 
     # /RTCcsu
     # /W4 /wd4146 /wd4245 /D_CRT_SECURE_NO_WARNINGS

@@ -2,6 +2,25 @@
 
 namespace lython {
 
+bool Value::operator==(Value const& val) const {
+    if (tag == val.tag) {
+        // is there a risk that when the value is smaller some garbage remain ?
+        switch (meta::ValueTypes(tag)) {
+
+#define CASE(type, name) \
+    case meta::ValueTypes::name: return value.name == val.value.name;
+            KIWI_VALUE_TYPES(CASE)
+#undef CASE
+        }
+
+        // To make it work  on arbitrary value we need to 
+        // fetch the comparison operator for a particular type id
+        // we could save the operator inside the type registry
+    }
+
+    return false;
+}
+
 Value binary_invoke(void* ctx, Value fun, Value a, Value b) {
     Array<Value> value_args = {a, b};
     return fun.as<Function>()(ctx, value_args);
@@ -34,18 +53,19 @@ void free_value(Value val, void (*deleter)(void*)) {
     }
 }
 
-std::ostream& operator<<(std::ostream& os, None const& v) { return os << "None"; }
+std::ostream& operator<<(std::ostream& os, _None const& v) { return os << "None"; }
 
 std::ostream& operator<<(std::ostream& os, Value const& v) {
     switch (meta::ValueTypes(v.tag)) {
 #define CASE(type, name) \
-    case meta::ValueTypes::name: return os << "Value(" << v.value.name << ": " #type << ")";
+    case meta::ValueTypes::name: return os << v.value.name;
         KIWI_VALUE_TYPES(CASE)
 #undef CASE
 
     case meta::ValueTypes::Max: break;
     }
 
+    // we could insert a function for a given typeid
     return os << "obj";
 }
 
