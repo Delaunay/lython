@@ -91,7 +91,8 @@ ELSEIF(WIN32)
     MESSAGE(" * Platform: Windows")
     SET(BUILD_WINDOWS 1)
     add_compile_options(/EHsc)
-
+    add_compile_options(/Z7)
+    
     # /RTCcsu
     # /W4 /wd4146 /wd4245 /D_CRT_SECURE_NO_WARNINGS
     # /Z7                                            <= Debug information embedded in binaries

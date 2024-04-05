@@ -31,6 +31,8 @@ Value unary_invoke(void* ctx, Value fun, Value a) {
     return fun.as<Function>()(ctx, value_args);
 }
 
+GetterError Value::global_err = GetterError{false};
+
 void free_value(Value val, void (*deleter)(void*)) {
     // we don't know the type here
     // we have to tag the value to know no memory was allocated
