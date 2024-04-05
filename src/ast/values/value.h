@@ -9,12 +9,9 @@ namespace lython {
 struct Value;
 
 struct GetterError {
-    bool failed = false;
-};
-
-template<typename T>
-struct Maybe {
-    T* value = nullptr;
+    int failed = 0;
+    int value_type_id = -1;
+    int requested_type_id = -1;
 };
 
 template <typename T>
@@ -23,7 +20,13 @@ struct Getter {
     static const T get(const Value& v, GetterError& err);
 };
 
-using ValueDeleter = std::function<void(Value)>;
+template <typename T>
+struct Query {
+    static bool get(const Value& v);
+};
+
+
+using ValueDeleter = void(*)(Value);
 
 //
 // Simple dynamic value that holds small value on the stack
@@ -72,6 +75,9 @@ using ValueDeleter = std::function<void(Value)>;
 // We have space for bit flags
 //   - int immutable:1;
 //   -
+//
+// We could have a version that removes the tag
+// for speeding up execution more (once SEMA is mature enough)
 struct Value {
     union Holder {
 #define ATTR(type, name) type name;
@@ -126,16 +132,41 @@ struct Value {
         return !((*this) == val);
     }
 
-    template <typename T>
-    T as() {
-        GetterError err;
-        return Getter<T>::get(*this, err);
+    template<typename T>
+    bool is_valid() const {
+        return Query<T>::get(*this);
+    }
+
+    static GetterError global_err;
+
+    static void reset_error() {
+        global_err.failed = 0;
+        global_err.requested_type_id = -1;
+        global_err.value_type_id = -1;
+    }
+
+    static bool has_error() {
+        return global_err.failed > 0;
     }
 
     template <typename T>
-    T as() const {
-        GetterError err;
-        return Getter<T>::get(*this, err);
+    T as(GetterError& error = global_err) {
+        return Getter<T>::get(*this, error);
+    }
+
+    template <typename T>
+    T as(GetterError& error = global_err) const {
+        return Getter<T>::get(*this, error);
+    }
+
+    template <typename T>
+    T& ref(GetterError& error = global_err) {
+        return *as<T*>(error);
+    }
+
+    template <typename T>
+    T const& ref(GetterError& error = global_err) const {
+        return *as<T*>(error);
     }
 
     bool is_object() const { return tag >= int(meta::ValueTypes::Max); } 
@@ -181,23 +212,39 @@ struct Value {
 //
 template <typename T>
 T Getter<T>::get(Value& v, GetterError& err) {
-    using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;
-    using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
+    // T const * const&
+    using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;      // T const& => T
+    using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;  // T const* => T
 
-    if (v.tag == meta::type_id<NoConst>()) {
-        T* ptr = v.pointer<NoConst>();
-        return *ptr;
+    if constexpr (std::is_reference<T>::value) {
+        return *v.as<NoConst*>(err);
     }
-    
-    if constexpr (std::is_pointer_v<NoConst>){
-        if (v.tag == meta::type_id<NoPointer>()) {
-            NoPointer* ptr = v.pointer<NoPointer>();
-            return ptr;
+    else {
+        // Storing int, we want int
+        if (v.tag == meta::type_id<NoConst>()) {
+            NoConst* ptr = v.pointer<NoConst>();
+            return *ptr;
         }
-    }
 
-    err.failed = true;
-    return T();
+        // Storing int*, we want int
+        if (v.tag == meta::type_id<NoConst*>()) {
+            NoConst** ptr = v.pointer<NoConst*>();
+            return **ptr;
+        }
+        
+        // Storing int, we want int*
+        if constexpr (std::is_pointer_v<NoConst>){
+            if (v.tag == meta::type_id<NoPointer>()) {
+                NoPointer* ptr = v.pointer<NoPointer>();
+                return ptr;
+            }
+        }
+
+        err.failed += 1;
+        err.value_type_id = v.tag;
+        err.requested_type_id = meta::type_id<T>();
+        return T();
+    }
 }
 
 template <typename T>
@@ -205,22 +252,61 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
     using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;
     using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
 
-    // We want to fetch the value 
-    if (v.tag == meta::type_id<NoConst>()) {
-        NoConst const* ptr = v.pointer<NoConst>();
-        return *ptr;
+    if constexpr (std::is_reference<T>::value) {
+        return *v.as<NoConst*>(err);
     }
-
-    if constexpr (std::is_pointer_v<NoConst>){
-        if (v.tag == meta::type_id<NoPointer>()) {
-            NoPointer const* ptr = v.pointer<NoPointer>();
-            return ptr;
+    else {
+        err.failed = false;
+        // Storing int, we want int
+        if (v.tag == meta::type_id<NoConst>()) {
+            NoConst const* ptr = v.pointer<NoConst>();
+            return *ptr;
         }
-    }
 
-    err.failed = true;
-    return T();
+        // Storing int*, we want int
+        if (v.tag == meta::type_id<NoConst*>()) {
+            NoConst const* const* ptr = v.pointer<NoConst const*>();
+            return **ptr;
+        }
+
+        // Storing int, we want int*
+        if constexpr (std::is_pointer_v<NoConst>){
+            if (v.tag == meta::type_id<NoPointer>()) {
+                NoPointer const* ptr = v.pointer<NoPointer>();
+                return ptr;
+            }
+        }
+
+        err.failed += 1;
+        err.value_type_id = v.tag;
+        err.requested_type_id = meta::type_id<T>();
+        return T();
+    }
 }
+
+
+template <typename T>
+bool Query<T>::get(Value const& v) {
+    using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;
+    using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
+
+    if constexpr (std::is_reference<T>::value) {
+        return Query<NoConst*>::get(v);
+    }
+    else {
+        if (v.tag == meta::type_id<NoConst>()) {
+            return true;
+        }
+        if (v.tag == meta::type_id<NoConst*>()) {
+            return true;
+        }
+        if constexpr (std::is_pointer_v<NoConst>){
+            return v.tag == meta::type_id<NoPointer>();
+        }
+        return false;
+    }
+}
+
 
 //
 // This is mostly not necessary excpet from Function
@@ -238,9 +324,17 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
             err.failed = v.tag != meta::type_id<type>(); \
             return v.value.name;                         \
         };                                               \
+    };                                                   \
+    template<>                                          \
+    struct Query<type> {                                \
+        static bool get(Value const& v) {               \
+            return  v.tag == meta::type_id<type>();     \
+        }                                               \
     };
 
-KIWI_VALUE_TYPES(GETTER)
+GETTER(Function, fun)
+
+//KIWI_VALUE_TYPES(GETTER)
 #undef GETTER
 
 //
@@ -362,11 +456,47 @@ struct Interop<R (O::*)(Args...) const> {
 // ---
 void free_value(Value val, void (*deleter)(void*) = nullptr);
 
-template <typename T>
-void destructor(void* ptr) {
-    ((T*)(ptr))->~T();
-    free(ptr);
-}
+// Specialization for C object that have a custom free
+using FreeFun = void(*)(void*);
+
+
+template <typename T, FreeFun free_fun = std::free>
+struct _destructor {
+    static void free(Value v) {
+        if (v.value.obj == nullptr) {
+            return;
+        }
+
+        // call the destructor
+        ((T*)(v.value.obj))->~T();
+        
+        free_fun(v.value.obj);
+
+        // NOTE: this only nullify current value so other copy of this value
+        // might still think the value is valid
+        // one thing we can do is allocate the memory using a pool.
+        // on free the memory returns to the pool and it is marked as invalid
+        // copied value will be able to check for the mark until the memory is reused
+        // then same issue would be still be possible
+        v.value.obj = nullptr;  // just in case
+    }
+};
+
+template <FreeFun free_fun>
+struct _custom_free {
+    static void free(Value v) {
+        free_fun(v.value.obj);
+
+        // NOTE: this only nullify current value so other copy of this value
+        // might still think the value is valid
+        // one thing we can do is allocate the memory using a pool.
+        // on free the memory returns to the pool and it is marked as invalid
+        // copied value will be able to check for the mark until the memory is reused
+        // then same issue would be still be possible
+        v.value.obj = nullptr;  // just in case
+    }
+};
+
 
 //
 // Custom object wrapper
@@ -381,17 +511,19 @@ Tuple<Value, ValueDeleter> _new_object(int _typeid, Args... args) {
     // up to the user to free it correctly
     void* memory = malloc(sizeof(T));
     new (memory) T(args...);
-    auto deleter = [](Value val) { free_value(val, destructor<T>); };
-    return std::make_tuple(Value(_typeid, memory), deleter);
+    return std::make_tuple(Value(_typeid, memory), _destructor<T>::free);
 }
+
+inline void noop_destructor(Value v) {}
 
 template <typename T, typename... Args>
 Tuple<Value, ValueDeleter> _new_value(int _typeid, Args... args) {
+    // The value cannot have a destructor here
     static_assert(Value::is_small<T>());
     Value value;
     new (&value.value) T(args...);
     value.tag = _typeid;
-    return std::make_tuple(value, [](Value v) {} );
+    return std::make_tuple(value, noop_destructor);
 }
 
 // This version allows users to specify a different type id
@@ -407,25 +539,24 @@ Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args)
 
 // Short cut
 template <typename T, typename... Args>
-Tuple<Value, std::function<void(Value)>> make_value(Args... args) {
+Tuple<Value, ValueDeleter> make_value(Args... args) {
     return _make_value<T>(meta::type_id<T>(), args...);
 }
 template <typename T, typename... Args>
-Tuple<Value, std::function<void(Value)>> new_value(Args... args) {
+Tuple<Value, ValueDeleter> new_value(Args... args) {
     return _new_value<T>(meta::type_id<T>(), args...);
 }
 template <typename T, typename... Args>
-Tuple<Value, std::function<void(Value)>> new_object(Args... args) {
+Tuple<Value, ValueDeleter> new_object(Args... args) {
     return _new_object<T>(meta::type_id<T>(), args...);
 }
 
-
-template <typename T, typename... Args>
-Tuple<Value, std::function<void(Value)>> make_value(T* raw, void (*custom_free)(void*)) {
-
-    auto deleter = [custom_free](Value val) { free_value(val, custom_free); };
-
-    return std::make_tuple(Value(meta::type_id<T>(), raw), deleter);
+template <typename T, FreeFun fun, typename... Args>
+Tuple<Value, ValueDeleter> from_pointer(T* raw) {
+    Value v;
+    v.tag = meta::type_id<T*>();
+    new (v.pointer<T*>()) T*(raw);
+    return std::make_tuple(v, _custom_free<fun>::free);
 }
 
 //
@@ -437,6 +568,11 @@ template <typename... Args>
 Value invoke(void* ctx, Value fun, Args... args) {
     Array<Value> value_args = {Value(args)...};
     return fun.as<Function>()(ctx, value_args);
+}
+
+template <typename... Args>
+Value call(Value fun, Args... values) {
+    return fun.as<Function>()(nullptr, Array<Value>{Values...});
 }
 
 Value binary_invoke(void* ctx, Value fun, Value a, Value b);
