@@ -17,6 +17,7 @@ TEST_CASE("Value_Base") {
     REQUIRE(b != 1);
     REQUIRE(a != b);
     REQUIRE(a == c);
+    REQUIRE(a != 1.0f);
 }
 
 // This struct is small enough and will be stored on the stack
@@ -40,6 +41,8 @@ TEST_CASE("Value_SVO_Function Wrapping") {
         Value a = args[0];
         return Value(a.pointer<Point2D>()->distance());
     });
+
+    auto _ = &Point2D::distance2;
     Value wrapped      = KIWI_WRAP(freefun_distance);
     Value method       = KIWI_WRAP(Point2D::distance2);
     Value const_method = KIWI_WRAP(Point2D::distance);
@@ -275,6 +278,7 @@ TEST_CASE("Value_C_Object") {
     REQUIRE(Value::has_error() == false);
 
     deleter(value);
+    deleter(value);
 }
 
 struct ScriptObjectTest {
@@ -307,7 +311,12 @@ TEST_CASE("Value_ErrorHandling")
 
     a.as<float>();
     REQUIRE(Value::has_error() == true);
-    REQUIRE(Value::global_err.requested_type_id == meta::type_id<float>());
+    Value::reset_error();
+
+    a.as<float const>();
+    REQUIRE(Value::has_error() == true);
+
+    REQUIRE(Value::global_err.requested_type_id == meta::type_id<float const>());
     REQUIRE(Value::global_err.value_type_id == meta::type_id<int>());
     Value::reset_error();
 }
