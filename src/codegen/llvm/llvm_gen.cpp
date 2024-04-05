@@ -351,8 +351,8 @@ ExprRet LLVMGen::namedexpr(NamedExpr_t* n, int depth) {
 }
 ExprRet LLVMGen::exported(Exported* n, int depth) { return nullptr; }
 ExprRet LLVMGen::lambda(Lambda_t* n, int depth) {
-    llvm::Function* lambdaFunc = Function::Create(nullptr,  // lambdaFuncType,
-                                            Function::ExternalLinkage,
+    llvm::Function* lambdaFunc = llvm::Function::Create(nullptr,  // lambdaFuncType,
+                                            llvm::Function::ExternalLinkage,
                                             "",
                                             llmodule.get());
 
@@ -666,9 +666,9 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     //      available.
     // WeakODRLinkage: A weak symbol that can be overridden by a strong symbol of the same name from
     // a different translation unit.
-    llvm::Function* fundef = Function::Create(  //
+    llvm::Function* fundef = llvm::Function::Create(  //
         arrow,                            //
-        Function::ExternalLinkage,        //
+        llvm::Function::ExternalLinkage,        //
         tostr(n->name),                   //
         llmodule.get()                    //
     );
