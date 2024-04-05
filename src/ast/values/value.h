@@ -26,7 +26,7 @@ struct Query {
 };
 
 
-using ValueDeleter = void(*)(Value);
+using ValueDeleter = void(*)(Value&);
 
 //
 // Simple dynamic value that holds small value on the stack
@@ -169,8 +169,6 @@ struct Value {
         return *as<T*>(error);
     }
 
-    bool is_object() const { return tag >= int(meta::ValueTypes::Max); } 
-
     template <typename T>
     static bool is_allocated() {
         return !is_small<T>();
@@ -257,7 +255,7 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
     using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
 
     if constexpr (std::is_reference<T>::value) {
-        return *v.as<NoConst*>(err);
+        return *v.as<NoConst const*>(err);
     }
     else {
         err.failed = false;
@@ -267,6 +265,7 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
             return *ptr;
         }
 
+        // is this possible ? we are returning a copy anyway
         // Storing int*, we want int
         if (v.tag == meta::type_id<NoConst*>()) {
             NoConst const* const* ptr = v.pointer<NoConst const*>();
@@ -276,7 +275,7 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
         // Storing int, we want int*
         if constexpr (std::is_pointer_v<NoConst>){
             if (v.tag == meta::type_id<NoPointer>()) {
-                NoPointer const* ptr = v.pointer<NoPointer>();
+                NoPointer const* ptr = v.pointer<NoPointer const>();
                 return ptr;
             }
         }
@@ -457,16 +456,13 @@ struct Interop<R (O::*)(Args...) const> {
 
 #define KIWI_WRAP(fun) Function(Interop<decltype((&fun))>::template wrapper<(&fun)>)
 
-// ---
-void free_value(Value val, void (*deleter)(void*) = nullptr);
-
 // Specialization for C object that have a custom free
 using FreeFun = void(*)(void*);
 
 
 template <typename T, FreeFun free_fun = std::free>
 struct _destructor {
-    static void free(Value v) {
+    static void free(Value& v) {
         if (v.value.obj == nullptr) {
             return;
         }
@@ -488,7 +484,7 @@ struct _destructor {
 
 template <FreeFun free_fun>
 struct _custom_free {
-    static void free(Value v) {
+    static void free(Value& v) {
         free_fun(v.value.obj);
 
         // NOTE: this only nullify current value so other copy of this value
@@ -518,7 +514,7 @@ Tuple<Value, ValueDeleter> _new_object(int _typeid, Args... args) {
     return std::make_tuple(Value(_typeid, memory), _destructor<T>::free);
 }
 
-inline void noop_destructor(Value v) {}
+inline void noop_destructor(Value& v) {}
 
 template <typename T, typename... Args>
 Tuple<Value, ValueDeleter> _new_value(int _typeid, Args... args) {
