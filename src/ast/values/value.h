@@ -110,7 +110,7 @@ struct Value {
 
     template <typename T>
     bool is_type() const {
-        return is_type(type_id<T>());
+        return is_type(meta::type_id<T>());
     }
 
     template<typename T>
@@ -570,10 +570,10 @@ Value invoke(void* ctx, Value fun, Args... args) {
     return fun.as<Function>()(ctx, value_args);
 }
 
-template <typename... Args>
-Value call(Value fun, Args... values) {
-    return fun.as<Function>()(nullptr, Array<Value>{Values...});
-}
+// template <typename... Args>
+// Value call(Value fun, Args... values) {
+//     return fun.as<Function>()(nullptr, Array<Value>{values...});
+// }
 
 Value binary_invoke(void* ctx, Value fun, Value a, Value b);
 
