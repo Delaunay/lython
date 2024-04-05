@@ -321,6 +321,104 @@ TEST_CASE("Value_ErrorHandling")
     Value::reset_error();
 }
 
+TEST_CASE("Value_ErrorHandling_2") 
+{
+
+    #define CASE(T, TT)                                                         \
+        {                                                                       \
+        std::cout << #T << " " << meta::type_id<T>() << "\n";                   \
+        REQUIRE(v.is_valid<T>() == false);                                      \
+        v.as<T>();                                                              \
+        REQUIRE(Value::has_error() == true);                                    \
+        REQUIRE(Value::global_err.requested_type_id == meta::type_id<TT>());    \
+        REQUIRE(Value::global_err.value_type_id == meta::type_id<Rectangle>()); \
+        Value::reset_error();                                                   \
+        }
+
+    {
+        #define TRY(X)                  \
+            X(int       , int)          \
+            X(int const , int const)    \
+            X(int const*, int const*)   
+
+            // X(int* const, int* const) 
+            // X(int const&, int*)         
+            // X(Rectangle*const*, Rectangle*const*)   \
+            // 
+            
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value const v = vv;
+        TRY(CASE)
+        deleter(vv);
+        #undef TRY
+    }
+    {
+        #define TRY(X)                  \
+            X(int       , int)          \
+            X(int*      , int*)         \
+            X(int&      , int*)         \
+            X(int const , int const)    \
+            X(int const*, int const*)   \
+            X(int const&, int*)         \
+            X(Rectangle*const*, Rectangle*const*)   \
+            X(int* const, int* const) 
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value v = vv;
+        TRY(CASE)
+        deleter(vv);
+        #undef TRY
+    }
+    #undef CASE
+
+    #define CASE(T, TT)                                          \
+        {                                                        \
+        std::cout << #T << " " << meta::type_id<T>() << "\n";    \
+        REQUIRE(v.is_valid<T>() == true);                        \
+        v.as<T>();                                               \
+        }
+
+    {
+        #define TRY(X)                  \
+            X(Rectangle       , int)    \
+            X(Rectangle const , int)    \
+            X(Rectangle const*, int)    \
+            X(Rectangle const&, int) 
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value const v = vv;
+        TRY(CASE)
+        deleter(vv);
+        #undef TRY
+    }
+    {
+        #define TRY(X)                  \
+            X(Rectangle       , int)    \
+            X(Rectangle*      , int)    \
+            X(Rectangle&      , int)    \
+            X(Rectangle const , int)    \
+            X(Rectangle const*, int)    \
+            X(Rectangle const&, int)    \
+            X(Rectangle*const , int) 
+
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value v = vv;
+        TRY(CASE)
+        deleter(vv);
+        #undef TRY
+    }
+
+    #undef CASE
+    #undef TRY
+}
+
+
+        // REQUIRE(Value::has_error() == false);                                    \
+        // REQUIRE(Value::global_err.requested_type_id == meta::type_id<TT>());     \
+        // REQUIRE(Value::global_err.value_type_id == meta::type_id<Rectangle>()); \
+        // Value::reset_error();                                                   \
+
 
 
 
@@ -386,5 +484,6 @@ TEST_CASE("Value_Array Wrapping") {
     REQUIRE(invoke(nullptr, wrapped_cpy, copy).as<float>() == 10.0);
     REQUIRE(Value::has_error() == false);
 
+    deleter(value);
     deleter(value);
 }
