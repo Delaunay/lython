@@ -200,10 +200,14 @@ struct Value {
 
     template <typename T>
     T const* pointer() const {
-        if (!Value::is_allocated<T>()) {
+        // The pointer to the data is stored inside itself
+        if constexpr (is_small<T>()) {
             return reinterpret_cast<T const*>(&value);
         }
-        return reinterpret_cast<T const*>(value.obj); 
+        else {
+            // The data is stored in dynamically allocated memory
+            return reinterpret_cast<T const*>(value.obj); 
+        }
     }
 };
 
@@ -451,7 +455,7 @@ struct Interop<R (O::*)(Args...) const> {
     };
 };
 
-#define KIWI_WRAP(fun) Function(Interop<decltype(&(fun))>::template wrapper<&(fun)>)
+#define KIWI_WRAP(fun) Function(Interop<decltype((&fun))>::template wrapper<(&fun)>)
 
 // ---
 void free_value(Value val, void (*deleter)(void*) = nullptr);

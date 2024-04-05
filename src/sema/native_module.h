@@ -185,22 +185,22 @@ void create_constructor(GCObject* root, Bindings& binding, StringRef name) {
     FunctionDef* ctor_fun = root->new_object<FunctionDef>();
     ctor_fun->type = ctor_t;
     ctor_fun->name = name;
-    ctor_fun->native = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
-        // that is a lot of back to back allocation
-        // we can could combine them in one
-        // or/and remove some intermediate, NativePointer is probably not that necessary
-        NativePointer<T>* obj = mem->new_object<NativePointer<T>>(); // Allocate
+    // ctor_fun->native = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
+    //     // that is a lot of back to back allocation
+    //     // we can could combine them in one
+    //     // or/and remove some intermediate, NativePointer is probably not that necessary
+    //     NativePointer<T>* obj = mem->new_object<NativePointer<T>>(); // Allocate
         
-        auto arguments = Interop<T(Args...)>::from_script(args);
+    //     auto arguments = Interop<T(Args...)>::from_script(args);
 
-        void* memory = malloc(sizeof(T) * 1);                        // Allocate
-        T* rawobj = helper::ctor<T>(memory, arguments);
+    //     void* memory = malloc(sizeof(T) * 1);                        // Allocate
+    //     T* rawobj = helper::ctor<T>(memory, arguments);
 
-        obj->set_pointer(rawobj);
-        Constant* val = mem->new_object<Constant>();
-        val->value = ConstantValue(obj);
-        return val;                      // Allocate
-    };
+    //     obj->set_pointer(rawobj);
+    //     Constant* val = mem->new_object<Constant>();
+    //     val->value = ConstantValue(obj);
+    //     return val;                      // Allocate
+    // };
 
     binding.add(
         name,
