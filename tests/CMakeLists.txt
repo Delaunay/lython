@@ -132,12 +132,9 @@ ADD_TEST(
   COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lython tests -h
 )
 
-
-
 IF(UNIX AND WITH_COVERAGE)
   ADD_DEPENDENCIES(coverage lython)
 ENDIF()
 
-
-
-#  add_executable(new_value new_value.cpp)
+# add_executable(scratch scratch_test.cpp)
+# TARGET_LINK_LIBRARIES(scratch stblyb ${TEST_LIBRARIES})

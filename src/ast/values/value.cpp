@@ -33,38 +33,50 @@ Value unary_invoke(void* ctx, Value fun, Value a) {
 
 GetterError Value::global_err = GetterError{false};
 
-void free_value(Value val, void (*deleter)(void*)) {
-    // we don't know the type here
-    // we have to tag the value to know no memory was allocated
-    // if (sizeof(T) <= sizeof(Value::Holder)) {
-    //     return;
-    // }
-
-    if (val.is_object()) {
-        if (deleter != nullptr) {
-            deleter(val.value.obj);
-        }
-
-        // NOTE: this only nullify current value so other copy of this value
-        // might still think the value is valid
-        // one thing we can do is allocate the memory using a pool.
-        // on free the memory returns to the pool and it is marked as invalid
-        // copied value will be able to check for the mark until the memory is reused
-        // then same issue would be still be possible
-        val.value.obj = nullptr;  // just in case
-    }
+std::ostream& ostream_op(std::ostream& os, bool const& v) { 
+    if (v) 
+        return os << "True"; 
+    return os << "False"; 
 }
+std::ostream& ostream_op(std::ostream& os, uint64 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, int64 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, uint32 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, int32 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, uint16 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, int16 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, uint8 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, int8 const& v) { return os << v; }
+std::ostream& ostream_op(std::ostream& os, float32 const& v) { 
+    if (v == static_cast<int>(v))
+        return os << fmt::format("{:.1f}", v); 
 
-std::ostream& operator<<(std::ostream& os, _None const& v) { return os << "None"; }
+    return os << v; 
+}
+std::ostream& ostream_op(std::ostream& os, float64 const& v) { 
+    if (v == static_cast<int>(v))
+        return os << fmt::format("{:.1f}", v); 
+
+    return os << v;  
+}
+std::ostream& ostream_op(std::ostream& os, Function const& v) { return os << "Function"; }
+std::ostream& ostream_op(std::ostream& os, _None const& v) { return os << "None"; }
 
 std::ostream& operator<<(std::ostream& os, Value const& v) {
     switch (meta::ValueTypes(v.tag)) {
-#define CASE(type, name) \
-    case meta::ValueTypes::name: return os << v.value.name;
+#define CASE(type, name)                            \
+    case meta::ValueTypes::name:                    \
+            return ostream_op(os, v.value.name);
+        
         KIWI_VALUE_TYPES(CASE)
 #undef CASE
 
     case meta::ValueTypes::Max: break;
+    }
+
+    static int strtid = meta::type_id<String>();
+
+    if (strtid == v.tag) {
+        return os << '"' << v.as<String const&>() << '"';
     }
 
     // we could insert a function for a given typeid

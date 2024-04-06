@@ -411,13 +411,17 @@ ReturnType Printer::matchstar(MatchStar const* self, int depth, std::ostream& ou
 }
 
 ReturnType Printer::matchas(MatchAs const* self, int depth, std::ostream& out, int level) {
+    
     if (self->pattern.has_value()) {
         exec(self->pattern.value(), depth, out, level);
+
+        if (self->name.has_value()) {
+            out << " as " << self->name.value();
+        }
+    } else if (self->name.has_value()) {
+        out << self->name.value();
     }
 
-    if (self->name.has_value()) {
-        out << " as " << self->name.value();
-    }
     return false;
 }
 

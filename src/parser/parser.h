@@ -105,8 +105,10 @@ class Parser {
     Pattern* parse_match_mapping(Node* parent, int depth);
 
     Pattern* parse_match_or(Node* parent, Pattern* primary, int depth);
+    Pattern* parse_match_as_or_class(Node* parent, int depth);
+    Pattern* parse_match_as(Node* parent, int depth);
     Pattern* parse_match_as(Node* parent, Pattern* primary, int depth);
-    Pattern* parse_match_class(Node* parent, ExprNode* cls, int depth);
+    Pattern* parse_match_class(Node* parent, int depth);
 
     // Pattern Dispatch
     Pattern* parse_pattern(Node* parent, int depth);

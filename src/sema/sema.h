@@ -184,6 +184,8 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
 
     Arrow* get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls);
 
+    Arrow* build_constructor_type(ExprNode* fun, ClassDef* cls, int depth);
+
     TypeExpr* oneof(Array<TypeExpr*> types) {
         if (types.size() > 0) {
             return types[0];
