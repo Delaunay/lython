@@ -26,25 +26,67 @@ String IE(String const& module, String const& name) {
 
 String MNFE(String const& module) { return String(ModuleNotFoundError::message(module)); }
 
+// class ClassName:
+//   __match_args__ = ("f", "g")
+
+//   def __init__(self):
+//     self.f = 1
+//     self.g = 2
+//     self.h = 3
+
+
+// def fun(a, k=0):
+//   match a:
+//     case [1, 3]:
+//       return 'case 1'
+//     case 1 | 2:
+//       return 'case 2'
+//     case ClassName(f, g, h=i):
+//       return 'case 3'
+//     case j if j > k:
+//       return 'case 4'
+//     case b as c if c == k:
+//       return 'case 5'
+//     case _:
+//       return 'case 6'
+
+
+// print(fun([1, 3]))
+// print(fun(1))
+// print(fun(ClassName()))
+// print(fun(5, k=1))
+// print(fun(5, 5))
+// print(fun(-1))
+
+
+
+#define MATCH_SAMPLE                  \
+    "match a:\n"                      \
+    "    case [1, 3]:\n"              \
+    "        return \"case 1\"\n"       \
+    "    case 1 | 2:\n"               \
+    "        return \"case 2\"\n"       \
+    "    case ClassName(f, g, h=i):\n"\
+    "        return 'case 3'\n"       \
+    "    case j if j > k:\n"          \
+    "        return \"case 4\"\n"       \
+    "    case b as c if c == k:\n"    \
+    "        return \"case 5\"\n"       \
+    "    case _:\n"                   \
+    "        return \"case 6\"\n"
+    
 Array<TestCase> const& Match_examples() {
     static Array<TestCase> example = {
         // TODO: check this test case on python
         // not sure about i
-        {"match a:\n"
-         "    case [1, 3]:\n"
-         "        pass\n"
-         "    case b as c:\n"
-         "        return c\n"
-         "    case d | e:\n"
-         "        return d\n"
-         "    case ClassName(f, g, h=i):\n"
-         "        return f + g + i\n"
-         "    case j if k:\n"
-         "        return j\n",
+        {MATCH_SAMPLE,
          {
              NE("a"),
              NE("ClassName"),
              NE("k"),
+             UO("Gt", "None", "None"),
+             NE("k"),
+             UO("Eq", "None", "None"),
          }},
 
         {"match lst:\n"

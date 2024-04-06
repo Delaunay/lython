@@ -39,11 +39,12 @@ bool SemanticAnalyser::typecheck(
     if (lhs_t != nullptr && rhs_t != nullptr) {
         lython::log(lython::LogLevel::Debug,
                     loc,
-                    "lhs_t: {} kind {} rhs_t: {} kind:{}",
+                    "lhs_t: `{}` kind `{}` rhs_t: `{}` kind:{}",
                     str(lhs_t),
-                    lhs_t->kind,
+                    int(lhs_t->kind),
                     str(rhs_t),
-                    rhs_t->kind);
+                    int(rhs_t->kind)
+                );
     }
 
     auto match = equal(lhs_t, rhs_t);
@@ -365,7 +366,7 @@ TypeExpr* SemanticAnalyser::setexpr(SetExpr* n, int depth) {
 TypeExpr* SemanticAnalyser::listcomp(ListComp* n, int depth) {
     Scope scope(bindings);
     for (auto& gen: n->generators) {
-        exec(gen.target, depth);
+        exec_with_ctx(ExprContext::Store, gen.target, depth);
         exec(gen.iter, depth);
 
         for (auto* if_: gen.ifs) {
@@ -382,7 +383,7 @@ TypeExpr* SemanticAnalyser::listcomp(ListComp* n, int depth) {
 TypeExpr* SemanticAnalyser::generateexpr(GeneratorExp* n, int depth) {
     Scope scope(bindings);
     for (auto& gen: n->generators) {
-        exec(gen.target, depth);
+        exec_with_ctx(ExprContext::Store, gen.target, depth);
         exec(gen.iter, depth);
 
         for (auto* if_: gen.ifs) {
@@ -398,7 +399,7 @@ TypeExpr* SemanticAnalyser::generateexpr(GeneratorExp* n, int depth) {
 TypeExpr* SemanticAnalyser::setcomp(SetComp* n, int depth) {
     Scope scope(bindings);
     for (auto& gen: n->generators) {
-        exec(gen.target, depth);
+        exec_with_ctx(ExprContext::Store, gen.target, depth);
         exec(gen.iter, depth);
 
         for (auto* if_: gen.ifs) {
@@ -416,7 +417,7 @@ TypeExpr* SemanticAnalyser::setcomp(SetComp* n, int depth) {
 TypeExpr* SemanticAnalyser::dictcomp(DictComp* n, int depth) {
     Scope scope(bindings);
     for (auto& gen: n->generators) {
-        exec(gen.target, depth);
+        exec_with_ctx(ExprContext::Store, gen.target, depth);
         exec(gen.iter, depth);
 
         for (auto* if_: gen.ifs) {
@@ -506,6 +507,71 @@ ClassDef* SemanticAnalyser::get_class(ExprNode* classref, int depth) {
     return cls;
 }
 
+Arrow* SemanticAnalyser::build_constructor_type(ExprNode* fun, ClassDef* cls, int depth) {
+    static StringRef __init_name("__init__");
+    static StringRef __new_name("__new__");
+
+    // Find __new__ and __init__
+    FunctionDef* __new = nullptr;
+    FunctionDef* __init = nullptr;
+
+    for(StmtNode* stmt: cls->body) {
+        if (FunctionDef* def = cast<FunctionDef>(stmt)) {
+            if (def->name == __init_name) {
+                __init = def;
+            }
+            if (def->name == __new_name) {
+                __new = def;
+                break;
+            }
+        }
+
+        if (__new && __init) {
+            break;
+        }
+    }
+
+    kwdebug("__init__ {} __new__ {}", (__init) != nullptr, __new != nullptr);
+
+    //
+    // Build the constructor type
+    //
+    int __new_arg_count  = __new ? int(__new->type->args.size()): 0;
+    int __init_arg_count = __init ? int(__init->type->args.size()): 0;
+
+    Arrow* ctor_t = fun->new_object<Arrow>();
+    ctor_t->returns = fun;
+
+    for(int i = 0; i < std::max(__new_arg_count, __init_arg_count); i++) {
+        TypeExpr* _narg_t = __new && i < __new_arg_count ? (__new->type->args[i]): nullptr;
+        TypeExpr* _iarg_t = __init && i < __init_arg_count ? (__init->type->args[i]): nullptr;
+
+        if (i == 0) {
+            if (_narg_t) {
+                // new takes a type as first argument
+                typecheck(nullptr, _narg_t, nullptr, Type_t(), LOC);
+            }
+            if (_iarg_t) {
+                // init takes an object as first argument
+                typecheck(nullptr, _iarg_t, nullptr, fun, LOC);     // fun should be a Name that points to the class
+            }
+            continue;
+        } else {
+            if (_iarg_t && _narg_t) {
+                // we expect __new__ and __init__ arg to match
+                typecheck(nullptr, _narg_t, nullptr, _iarg_t, LOC);
+            }
+
+            TypeExpr* arg_t = _iarg_t ? _iarg_t : _narg_t;
+            ctor_t->args.push_back(arg_t);
+        }
+    }
+
+    cls->ctor_t = ctor_t;
+    kwdebug("Built constructor type {}", str(ctor_t));
+    return ctor_t;
+}
+
 Arrow*
 SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls) {
 
@@ -532,70 +598,10 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
         }
         TypeExpr* arrow = nullptr;
 
-        // The methods were added to the context outside of the class itself
-        // here we need to resolve the method which is inside the context
-
-        // NOTE: we should call __new__ here implictly
-        //
-        Node*         ctor      = nullptr;
-        String        ctor_name = String(cls->name) + String(".__init__");
-        BindingEntry* entry     = bindings.find(StringRef(ctor_name));
-        if (entry != nullptr) {
-            ctor = entry->value;
-        }
-        if (ctor == nullptr) {
-            kwwarn("Could not resolve class constructor");
-            // SEMA_ERROR(n, UnsupportedOperand, str(op), prev_t, cmp_t)
-            static StringRef name("__init__");
-
-            for (StmtNode* stmt: cls->body) {
-                if (FunctionDef* def = cast<FunctionDef>(stmt)) {
-                    if (def->name == name) {
-                        ctor = def;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Now we can switch the function being called from being the class
-        // to being the constructor of the class
-        lyassert(fun->kind == NodeKind::Name, "Expect a reference to the class");
-
-        // --update the ref to point to the constructor if we found it--
-        // We should not do that, we need the class definition to know
-        // the size of the object
-        /*
-        Name* fun_ref = cast<Name>(fun);
-        if (fun_ref != nullptr && ctorvarid != -1) {
-            fun_ref->varid   = ctorvarid;
-            fun_ref->size    = int(bindings.bindings.size()) - fun_ref->varid;
-            fun_ref->dynamic = bindings.is_dynamic(fun_ref->varid);
+        if (cls->ctor_t != nullptr) {
+            return cls->ctor_t;
         } else {
-            kwwarn("Constructor was not found");
-        }
-        */
-
-        FunctionDef* init = cast<FunctionDef>(ctor);
-        // auto init = getattr(cls, "__init__", arrow);
-        offset = 1;
-
-        if (init == nullptr) {
-            kwdebug("Use default ctor");
-            auto*  cls_ref = make_ref(fun, cls->name, Type_t());
-            Arrow* arrow   = fun->new_object<Arrow>();
-            arrow->add_arg_type(cls_ref);
-            arrow->returns = cls_ref;
-            return arrow;
-        } else {
-            // ctor should already have been sema'ed
-            if (init->type != nullptr) {
-                return init->type;
-            }
-
-            // if not then we are doing it right now and this is a circle
-            SEMA_ERROR(fun, RecursiveDefinition, "", fun, cls);
-            return nullptr;
+            return build_constructor_type(fun, cls, depth);
         }
     }
     default: break;
@@ -631,10 +637,16 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
         got->args.reserve(arrow->arg_count());
     }
 
+    // kwdebug("n->func= {}: {}: arrow: {}", str(n->func), str(type), str(arrow));
+
+
+    // self.a()
     if (Attribute* attr = cast<Attribute>(n->func)) {
         auto cls_t = exec(attr->value, depth);
         got->add_arg_type(cls_t);
     }
+
+
 
     // Method, insert the self argument since it is implicit
     if (offset == 1 && cls) {
@@ -802,7 +814,13 @@ TypeExpr* SemanticAnalyser::constant(Constant* n, int depth) {
     case meta::ValueTypes::i1: return make_ref(n, "bool", Type_t());
 
     // case meta::ValueTypes::i8: return make_ref(n, "str", Type_t());
-    default: return nullptr;
+    default:
+    break;
+    }
+
+    static int strid = meta::type_id<String>();
+    if (n->value.tag == strid) {
+        return make_ref(n, "str", Type_t());
     }
 
     return nullptr;
@@ -909,6 +927,11 @@ TypeExpr* SemanticAnalyser::name(Name* n, int depth) {
     if (entry) {
         n->type = entry->type;
         return entry->type;
+    }
+
+    if (n->ctx == ExprContext::Store) {
+        add_name(n, nullptr, nullptr);
+        return nullptr; 
     }
 
     SEMA_ERROR(n, NameError, n, n->id);
@@ -1244,9 +1267,9 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
             if (str(fun->name) == "__init__") {
                 kwinfo("Found ctor");
                 ctor[0] = fun;
-            } else {
-                methods.push_back(stmt);
             }
+
+            methods.push_back(stmt);
             continue;
         }
         case NodeKind::Assign: {
@@ -1262,6 +1285,9 @@ void SemanticAnalyser::record_attributes(ClassDef*               n,
             target_t  = is_type(ann->annotation, depth, LOC) ? ann->annotation : nullptr;
             break;
         }
+        case NodeKind::Pass:
+            continue;
+            
         default: kwdebug("Unhandled statement {}", str(stmt->kind)); continue;
         }
 
@@ -1402,32 +1428,28 @@ TypeExpr* SemanticAnalyser::classdef(ClassDef* n, int depth) {
     record_attributes(n, n->body, methods, &ctor, depth);
     // -----------------------------
 
+
+    // __new__(cls) -> Object
+    // __init__(self: Object) -> None
+
+
     // get __init__ and do a pass to insert its attribute to the class
     if (ctor != nullptr) {
         // Traverse body to look for our attributes
         record_ctor_attributes(n, ctor, depth);
-
-        // add the constructor to the context
-        auto* ctor_t    = cast<Arrow>(exec(ctor, depth));
-        ctor_t->returns = class_t;
-
-        // Fix ctor type
-        if (ctor->native == nullptr) {
-            if (ctor_t != nullptr && ctor_t->arg_count() > 0) {
-                ctor_t->set_arg_type(0, class_t);
-            }
-        }
     }
     // -----------------------------
+    bool has_init = false;
+    bool has_new = false;
 
     // Process the remaining methods;
     for (auto& stmt: methods) {
 
-        // fun_t is the arrow that is saved in the context
-        // populate self type
+        // fun_t is the arrow that is saved in the context populate self type
         auto* fun   = cast<FunctionDef>(stmt);
         auto* fun_t = cast<Arrow>(exec(stmt, depth));
 
+        // For native, the type should be set by something else
         if (fun->native == nullptr) {
             if (fun_t != nullptr && fun_t->arg_count() > 0) {
                 fun_t->set_arg_type(0, class_t);
@@ -1506,7 +1528,9 @@ TypeExpr* SemanticAnalyser::assign(Assign* n, int depth) {
 }
 TypeExpr* SemanticAnalyser::augassign(AugAssign* n, int depth) 
 {
-    auto* expected_type = exec_with_ctx(ExprContext::Store, n->target, depth);
+    // Aug expects loading first then storing
+    // LLVM needs to know that so we can get a loadable and writable address
+    auto* expected_type = exec_with_ctx(ExprContext::LoadStore, n->target, depth);
     auto* type          = exec(n->value, depth);
 
     String signature = join("-", Array<String>{str(n->op), str(expected_type), str(type)});
@@ -1577,7 +1601,7 @@ TypeExpr* SemanticAnalyser::forstmt(For* n, int depth) {
     auto* iter_t = exec(n->iter, depth);
 
     // TODO: use iter_t to set target types
-    exec(n->target, depth);
+    exec_with_ctx(ExprContext::Store, n->target, depth);
 
     // TODO: check consistency of return types
     auto return_t1 = exec<TypeExpr*>(n->body, depth);

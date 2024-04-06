@@ -115,7 +115,9 @@ Array<String> split(char sep, String const& text) {
         }
     }
 
-    frags.push_back(buffer);
+    if (!buffer.empty()) {
+        frags.push_back(buffer);
+    }
     return frags;
 }
 

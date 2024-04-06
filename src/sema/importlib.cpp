@@ -13,7 +13,7 @@
 #include "parser/parser.h"
 #include "sema/sema.h"
 #include "utilities/strings.h"
-
+#include "dependencies/formatter.h"
 #include "sema/importlib.h"
 
 
@@ -199,15 +199,23 @@ ImportLib::ImportedLib* ImportLib::importfile(StringRef const& modulepath) {
 
             Dict<StringRef, ImportedLib>::iterator elem;
             bool ok = false;
-            std::tie(elem, ok) = imported.insert({modulepath, ImportedLib{mod, sema}});
 
-            if (ok) {
-                ImportedLib* val = &elem->second;
-                return val;
-            }
+            importedlib.mod = mod;
+            importedlib.sema = sema;
+
+            return &importedlib;
+            // std::tie(elem, ok) = imported.insert({modulepath, ImportedLib{mod, sema}});
+            // if (ok) {
+            //     ImportedLib* val = &elem->second;
+            //     return val;
+            // }
+            // kwwarn("Could not insert imported module to system");
         }
+
+        kwwarn("Could not load file {}", modulepath);
         return nullptr;;
     }
+
     return &importedlib;
 }
 
@@ -226,6 +234,11 @@ Module* ImportLib::internal_importfile(StringRef const& modulepath, Array<String
 
 
 void ImportLib::add_to_path(String const& path) {
+    for (auto& other: syspaths) {
+        if (path == other) {
+            return;
+        }
+    }
     syspaths.push_back(path);
 }
 

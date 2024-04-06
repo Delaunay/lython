@@ -661,14 +661,14 @@ Pattern* Parser::parse_match_star(Node* parent, int depth) {
 }
 
 // <expr>(<pattern>..., <identifier>=<pattern>)
-Pattern* Parser::parse_match_class(Node* parent, ExprNode* cls, int depth) {
+Pattern* Parser::parse_match_class(Node* parent, int depth) {
     TRACE_START();
 
     auto pat = parent->new_object<MatchClass>();
-    pat->cls = cls;
 
-    // TODO: This is the location of '(' not the full pattern
     start_code_loc(pat, token());
+    pat->cls = parse_expression_primary(pat, depth);
+
     expect_token(tok_parens, true, pat, LOC);
 
     bool keyword = false;
@@ -777,21 +777,44 @@ Pattern* Parser::parse_match_or(Node* parent, Pattern* child, int depth) {
     return pat;
 }
 
-// <pattern> as <identifier>
 Pattern* Parser::parse_match_as(Node* parent, Pattern* primary, int depth) {
-    TRACE_START();
-
-    auto pat     = parent->new_object<MatchAs>();
+    auto pat     = parent->new_object<MatchAs>();   
     pat->pattern = primary;
 
-    // TODO: this is the loc of 'as' not the start of the expression
     start_code_loc(pat, token());
-
-    expect_token(tok_as, true, pat, LOC);
+    expect_token(tok_as, true, pat, LOC);;
     pat->name = get_identifier();
 
     end_code_loc(pat, token());
     expect_token(tok_identifier, true, pat, LOC);
+    return pat;
+}
+
+// <Pattern> as <identifier>
+Pattern* Parser::parse_match_as(Node* parent, int depth){
+    // case a as b => MatchAs(pattern=MatchAs(a), name=c)
+    auto pat     = parent->new_object<MatchAs>();
+
+    // TODO: this is the loc of 'as' not the start of the expression
+    start_code_loc(pat, token());
+    pat->name = get_identifier();
+    next_token();
+
+    // case a as b
+    if (token().type() == tok_as) {
+        end_code_loc(pat, token());
+        expect_token(tok_as, true, pat, LOC);
+
+        auto toppat = parent->new_object<MatchAs>();
+        start_code_loc(toppat, token());
+
+        toppat->pattern = pat;
+        toppat->name = get_identifier();
+
+        end_code_loc(toppat, token());
+        expect_token(tok_identifier, true, toppat, LOC);
+        return toppat;
+    }
 
     return pat;
 }
@@ -803,6 +826,9 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
 
     // TODO: make sure those are correct
     case tok_curly: return parse_match_mapping(parent, depth);
+
+    // rest operator
+    // case '_': 
 
     case tok_operator:
     case tok_star:
@@ -823,30 +849,38 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
         return pat;
     }
 
-    // case tok_identifier: return parse_match_class(parent, depth);
+    case tok_identifier: {
+        // case name()
+        if (peek_token().type() == tok_parens) {
+            return parse_match_class(parent, depth);
+        }
+
+        // case name ...
+        return parse_match_as(parent, depth);
+    }
     // MatchClass is expecting a expression not an identifier
     // this is interesting does that mean if I call a function returning a type
     // it will match on that type ?
 
     // Value
-    default: {
-        // in this context we are storing components inside the pattern
-        //_context.push_back(ExprContext::Store);
-        auto value = parse_expression_primary(parent, depth + 1);
-        //_context.pop_back();
-        Pattern* pat = nullptr;
+    // default: {
+    //     // in this context we are storing components inside the pattern
+    //     //_context.push_back(ExprContext::Store);
+    //     auto value = parse_expression_primary(parent, depth + 1);
+    //     //_context.pop_back();
+    //     Pattern* pat = nullptr;
 
-        // <expr> if|:
-        if (token().type() != '(') {
-            pat                       = parent->new_object<MatchValue>();
-            ((MatchValue*)pat)->value = value;
-            set_context(value, ExprContext::Store);
-        } else {
-            pat = parse_match_class(parent, value, depth + 1);
-        }
-        value->move(pat);
-        return pat;
-    }
+    //     // <expr> if|:
+    //     if (token().type() != '(') {
+    //         pat                       = parent->new_object<MatchValue>();
+    //         ((MatchValue*)pat)->value = value;
+    //         set_context(value, ExprContext::Store);
+    //     } else {
+    //         pat = parse_match_class(parent, value, depth + 1);
+    //     }
+    //     value->move(pat);
+    //     return pat;
+    // }
     }
 }
 
@@ -856,13 +890,15 @@ Pattern* Parser::parse_pattern(Node* parent, int depth) {
     auto primary = parse_pattern_1(parent, depth);
 
     switch (token().type()) {
+
+    case tok_as: 
+        return parse_match_as(parent, primary, depth);
+
     case tok_operator:
     case '|':
         if (token().operator_name() == "|") {
             return parse_match_or(parent, primary, depth);
         }
-
-    case tok_as: return parse_match_as(parent, primary, depth);
     }
     // could be ":" or "if"
     // expect_token(':', false, primary, LOC);
@@ -1469,8 +1505,6 @@ bool Parser::is_valid_value() {
 }
 
 Tuple<Value, ValueDeleter> Parser::get_value(Node* parent) {
-    ValueDeleter noop;
-
     if (!is_valid_value()) {
         ParsingError& error = parser_kwerror(  //
             LOC,                               //
@@ -1488,19 +1522,20 @@ Tuple<Value, ValueDeleter> Parser::get_value(Node* parent) {
     }
     case tok_int: {
         // FIXME handle different sizes
-        return std::make_tuple(Value(int32(token().as_integer())), noop);
+        // SEMA should probably accept different size as well
+        return make_value<int32>(token().as_integer());
     }
     case tok_float: {
-        return std::make_tuple(Value(token().as_float()), noop);
+        return make_value<float64>(token().as_float());
     }
-    case tok_none: return std::make_tuple(Value(), noop);
+    case tok_none: return make_value<_None>();
 
-    case tok_true: return std::make_tuple(Value(true), noop);
+    case tok_true: return make_value<bool>(true);
 
-    case tok_false: return std::make_tuple(Value(false), noop);
+    case tok_false: return make_value<bool>(false);
     }
 
-    return std::make_tuple(Value(), noop);
+    return make_value<_None>();
 }
 
 ExprNode* Parser::parse_constant(Node* parent, int depth) {

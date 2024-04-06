@@ -452,9 +452,11 @@ struct Interop<R (O::*)(Args...) const> {
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
         return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
     };
+
 };
 
-#define KIWI_WRAP(fun) Function(Interop<decltype((&fun))>::template wrapper<(&fun)>)
+
+#define KIWI_WRAP(funfun) Function(Interop<decltype(&funfun)>::wrapper<(&funfun)>)
 
 // Specialization for C object that have a custom free
 using FreeFun = void(*)(void*);

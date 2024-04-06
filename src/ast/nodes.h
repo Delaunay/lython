@@ -204,6 +204,7 @@ enum class ExprContext : int8_t
 {
     Load,
     Store,
+    LoadStore,
     Del
 };
 void print(BoolOperator const&, std::ostream& out);
@@ -370,13 +371,14 @@ struct Comment: public ExprNode {
 
 struct Constant: public ExprNode {
     Value        value;
-    ValueDeleter deleter;
+    ValueDeleter deleter = nullptr;
     Optional<String> kind;
 
     template <typename T>
     Constant(T const& v): ExprNode(NodeKind::Constant)
     {
         std::tie(value, deleter) = make_value<T>(v);
+        kwassert(deleter != nullptr, "deleter needs to be valid");
     }
 
     Constant(): ExprNode(NodeKind::Constant){}
@@ -385,6 +387,7 @@ struct Constant: public ExprNode {
         if (deleter) {
             deleter(value);
         }
+        deleter = nullptr;
     }
 
     bool is_leaf() { return true; }
@@ -776,6 +779,8 @@ struct ClassDef: public StmtNode {
     Array<Decorator>    decorator_list = {};
     Optional<Docstring> docstring;
     int                 type_id = -1;
+
+    Arrow* ctor_t = nullptr;
 
     ClassDef(): StmtNode(NodeKind::ClassDef) {}
 

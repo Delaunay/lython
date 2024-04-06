@@ -294,17 +294,17 @@ struct ScriptObjectFixed {
 };
 
 TEST_CASE("Value_Script_Check") {
-    std::cout << sizeof(Value::Holder) << "\n";
-    std::cout << sizeof(ScriptObjectFixed<1>) << "\n";
-    std::cout << sizeof(ScriptObjectFixed<2>) << "\n";
-    std::cout << sizeof(ScriptObjectFixed<3>) << "\n";
-    std::cout << sizeof(ScriptObjectFixed<4>) << "\n";
-    std::cout << sizeof(ScriptObjectTest) << "\n";
+    std::cout << "Holder: " << sizeof(Value::Holder) << "\n";
+    std::cout << "Fixed1: "<< sizeof(ScriptObjectFixed<1>) << "\n";
+    std::cout << "Fixed2: " << sizeof(ScriptObjectFixed<2>) << "\n";
+    std::cout << "Fixed3: " << sizeof(ScriptObjectFixed<3>) << "\n";
+    std::cout << "Fixed4: " << sizeof(ScriptObjectFixed<4>) << "\n";
+    std::cout << "   Dyn: " << sizeof(ScriptObjectTest) << "\n";
 }
 
 TEST_CASE("Value_ErrorHandling") 
 {
-    Value a(1);
+    auto [a, deleter] = make_value<int>(1);
 
     REQUIRE(a.is_valid<float>() == false);
     REQUIRE(a.is_valid<int>() == true);
@@ -319,6 +319,8 @@ TEST_CASE("Value_ErrorHandling")
     REQUIRE(Value::global_err.requested_type_id == meta::type_id<float const>());
     REQUIRE(Value::global_err.value_type_id == meta::type_id<int>());
     Value::reset_error();
+
+    deleter(a);
 }
 
 TEST_CASE("Value_ErrorHandling_2") 

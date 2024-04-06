@@ -156,11 +156,14 @@ Array<AllowEntry> allow_list = {
     {"ImportFrom", 1, 14},  
     
     //
-    {"Match", 0, 15},       {"Match", 0, 16},      {"Match", 0, 17},
-    {"Match", 0, 25},       {"Match", 0, 26},      {"Match", 0, 27},      {"Match", 0, 28},
-    {"Match", 0, 36},       {"Match", 0, 37},      {"Match", 0, 38},      {"Match", 0, 39},
-    {"Match", 0, 54},       {"Match", 0, 55},      {"Match", 0, 57},      {"Match", 0, 59},
-    {"Match", 0, 60},       {"Match", 0, 61},      {"Match", 0, 69},      {"Match", 0, 70},
+    {"Match", 0, 15},
+    {"Match", 0, 16},       {"Match", 0, 17},      {"Match", 0, 18},      {"Match", 0, 26},
+    {"Match", 0, 27},       {"Match", 0, 28},      {"Match", 0, 29},      {"Match", 0, 44},
+
+    {"Match", 0, 45},       {"Match", 0, 46},      {"Match", 0, 47},      {"Match", 0, 57},
+    {"Match", 0, 58},       {"Match", 0, 60},      {"Match", 0, 72},      {"Match", 0, 73},
+    {"Match", 0, 74},       {"Match", 0, 75},      {"Match", 0, 81},      {"Match", 0, 82},
+
     {"Match", 1, 12},       {"Match", 1, 13},      {"Match", 1, 14},      
     
     //
@@ -326,8 +329,10 @@ void run_testcase(String const&                 name,
     int i = 0;
     for (auto& c: cases) {
         String const* fmt = get_exception(exceptions, FormatException{name, i});
-
+        kwinfo(">>>>>>>>>>>>>>>>>>>>>>>> Start");
         kwinfo("Testing {} - {}", name, i);
+        i += 1;
+
         String new_code = Transformer(c.code);
 
         String parsed   = strip(parse_it(new_code));
@@ -344,7 +349,6 @@ void run_testcase(String const&                 name,
 
         REQUIRE(parsed == original);
         kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
-        i += 1;
     }
 }
 

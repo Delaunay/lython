@@ -1,10 +1,10 @@
-
+#include "ast/values/value.h"
 #include "builtin/operators.inc"
 #include "ast/nodes.h"
 #include "dependencies/coz_wrap.h"
 #include "utilities/names.h"
 
-#define LAMBDA(op, type) KIWI_WRAP(op<type>::call);
+#define LAMBDA(op, type) KIWI_WRAP((op<type>::call));
 
 namespace lython {
 Dict<StringRef, Function> build_native_binary_operators() {

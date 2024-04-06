@@ -14,7 +14,10 @@ String lex_it(String code) {
 
     StringStream ss;
     lex.print(ss);
-    return ss.str();
+    auto str =  ss.str();;
+
+    std::cout << str << "\n";
+    return str;
 }
 
 #define TEST_LEXING(code) \
@@ -23,6 +26,15 @@ String lex_it(String code) {
 TEST_CASE("Lexer") {
     CODE_SAMPLES(TEST_LEXING)
     IMPORT_TEST(TEST_LEXING)
+}
+
+
+TEST_CASE("Lexer_integer") {
+    TEST_LEXING([](){ return "1"; })
+}
+
+TEST_CASE("Lexer_float") {
+    TEST_LEXING([](){ return "1.0"; })
 }
 
 /*
