@@ -1,6 +1,8 @@
 #include "ast/values/value.h"
-#include <iostream>
+#include "utilities/debug.h"
+
 #include <algorithm>
+#include <iostream>
 
 #include <catch2/catch_all.hpp>
 
@@ -42,7 +44,7 @@ TEST_CASE("Value_SVO_Function Wrapping") {
         return Value(a.pointer<Point2D>()->distance());
     });
 
-    auto _ = &Point2D::distance2;
+    auto  _            = &Point2D::distance2;
     Value wrapped      = KIWI_WRAP(freefun_distance);
     Value method       = KIWI_WRAP(Point2D::distance2);
     Value const_method = KIWI_WRAP(Point2D::distance);
@@ -121,12 +123,11 @@ struct Rectangle {
     float perimeter2() { return (s.x + s.y) * 2.0f; }
 };
 
-float freefun_perimeter_cst    (Rectangle const* p) { return (p->s.x + p->s.y) * 2.0f;  }
-float freefun_perimeter_cst_ref(Rectangle const& p) { return (p.s.x + p.s.y) * 2.0f;    }
-float freefun_perimeter        (Rectangle* p)       { return (p->s.x + p->s.y) * 2.0f;  }
-float freefun_perimeter_ref    (Rectangle& p)       { return (p.s.x + p.s.y) * 2.0f;    }
-float freefun_perimeter_cpy    (Rectangle p)        { return (p.s.x + p.s.y) * 2.0f;    }
-
+float freefun_perimeter_cst(Rectangle const* p) { return (p->s.x + p->s.y) * 2.0f; }
+float freefun_perimeter_cst_ref(Rectangle const& p) { return (p.s.x + p.s.y) * 2.0f; }
+float freefun_perimeter(Rectangle* p) { return (p->s.x + p->s.y) * 2.0f; }
+float freefun_perimeter_ref(Rectangle& p) { return (p.s.x + p.s.y) * 2.0f; }
+float freefun_perimeter_cpy(Rectangle p) { return (p.s.x + p.s.y) * 2.0f; }
 
 TEST_CASE("Value_NOSVO_Function Wrapping") {
     Value distance([](void*, Array<Value>& args) -> Value {
@@ -150,7 +151,7 @@ TEST_CASE("Value_NOSVO_Function Wrapping") {
     REQUIRE(copy.is_valid<Rectangle>() == true);
     REQUIRE(copy.pointer<Rectangle>() == value.pointer<Rectangle>());
     REQUIRE(Value::has_error() == false);
- 
+
     REQUIRE(copy.is_valid<Rectangle*>() == true);
     REQUIRE(copy.as<Rectangle*>() == value.pointer<Rectangle>());
     REQUIRE(Value::has_error() == false);
@@ -273,7 +274,7 @@ TEST_CASE("Value_C_Object") {
     REQUIRE(value.is_valid<cstruct*>() == true);
     REQUIRE(value.as<cstruct*>() == ptr);
     REQUIRE(Value::has_error() == false);
-    
+
     REQUIRE(value.as<cstruct*>()->a == 2.0f);
     REQUIRE(Value::has_error() == false);
 
@@ -295,15 +296,14 @@ struct ScriptObjectFixed {
 
 TEST_CASE("Value_Script_Check") {
     std::cout << "Holder: " << sizeof(Value::Holder) << "\n";
-    std::cout << "Fixed1: "<< sizeof(ScriptObjectFixed<1>) << "\n";
+    std::cout << "Fixed1: " << sizeof(ScriptObjectFixed<1>) << "\n";
     std::cout << "Fixed2: " << sizeof(ScriptObjectFixed<2>) << "\n";
     std::cout << "Fixed3: " << sizeof(ScriptObjectFixed<3>) << "\n";
     std::cout << "Fixed4: " << sizeof(ScriptObjectFixed<4>) << "\n";
     std::cout << "   Dyn: " << sizeof(ScriptObjectTest) << "\n";
 }
 
-TEST_CASE("Value_ErrorHandling") 
-{
+TEST_CASE("Value_ErrorHandling") {
     auto [a, deleter] = make_value<int>(1);
 
     REQUIRE(a.is_valid<float>() == false);
@@ -323,11 +323,10 @@ TEST_CASE("Value_ErrorHandling")
     deleter(a);
 }
 
-TEST_CASE("Value_ErrorHandling_2") 
-{
+TEST_CASE("Value_ErrorHandling_2") {
 
-    #define CASE(T, TT)                                                         \
-        {                                                                       \
+#define CASE(T, TT)                                                             \
+    {                                                                           \
         std::cout << #T << " " << meta::type_id<T>() << "\n";                   \
         REQUIRE(v.is_valid<T>() == false);                                      \
         v.as<T>();                                                              \
@@ -335,103 +334,98 @@ TEST_CASE("Value_ErrorHandling_2")
         REQUIRE(Value::global_err.requested_type_id == meta::type_id<TT>());    \
         REQUIRE(Value::global_err.value_type_id == meta::type_id<Rectangle>()); \
         Value::reset_error();                                                   \
-        }
-
-    {
-        #define TRY(X)                  \
-            X(int       , int)          \
-            X(int const , int const)    \
-            X(int const*, int const*)   
-
-            // X(int* const, int* const) 
-            // X(int const&, int*)         
-            // X(Rectangle*const*, Rectangle*const*)   \
-            // 
-            
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
-        Value const v = vv;
-        TRY(CASE)
-        deleter(vv);
-        #undef TRY
-    }
-    {
-        #define TRY(X)                  \
-            X(int       , int)          \
-            X(int*      , int*)         \
-            X(int&      , int*)         \
-            X(int const , int const)    \
-            X(int const*, int const*)   \
-            X(int const&, int*)         \
-            X(Rectangle*const*, Rectangle*const*)   \
-            X(int* const, int* const) 
-
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
-        Value v = vv;
-        TRY(CASE)
-        deleter(vv);
-        #undef TRY
-    }
-    #undef CASE
-
-    #define CASE(T, TT)                                          \
-        {                                                        \
-        std::cout << #T << " " << meta::type_id<T>() << "\n";    \
-        REQUIRE(v.is_valid<T>() == true);                        \
-        v.as<T>();                                               \
-        }
-
-    {
-        #define TRY(X)                  \
-            X(Rectangle       , int)    \
-            X(Rectangle const , int)    \
-            X(Rectangle const*, int)    \
-            X(Rectangle const&, int) 
-
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
-        Value const v = vv;
-        TRY(CASE)
-        deleter(vv);
-        #undef TRY
-    }
-    {
-        #define TRY(X)                  \
-            X(Rectangle       , int)    \
-            X(Rectangle*      , int)    \
-            X(Rectangle&      , int)    \
-            X(Rectangle const , int)    \
-            X(Rectangle const*, int)    \
-            X(Rectangle const&, int)    \
-            X(Rectangle*const , int) 
-
-
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
-        Value v = vv;
-        TRY(CASE)
-        deleter(vv);
-        #undef TRY
     }
 
-    #undef CASE
-    #undef TRY
+    {
+#define TRY(X)              \
+    X(int, int)             \
+    X(int const, int const) \
+    X(int const*, int const*)
+
+        // X(int* const, int* const)
+        // X(int const&, int*)
+        // X(Rectangle*const*, Rectangle*const*)   \
+            //
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value const v      = vv;
+        TRY(CASE)
+        deleter(vv);
+#undef TRY
+    }
+    {
+#define TRY(X)                              \
+    X(int, int)                             \
+    X(int*, int*)                           \
+    X(int&, int*)                           \
+    X(int const, int const)                 \
+    X(int const*, int const*)               \
+    X(int const&, int*)                     \
+    X(Rectangle* const*, Rectangle* const*) \
+    X(int* const, int* const)
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value v            = vv;
+        TRY(CASE)
+        deleter(vv);
+#undef TRY
+    }
+#undef CASE
+
+#define CASE(T, TT)                                           \
+    {                                                         \
+        std::cout << #T << " " << meta::type_id<T>() << "\n"; \
+        REQUIRE(v.is_valid<T>() == true);                     \
+        v.as<T>();                                            \
+    }
+
+    {
+#define TRY(X)               \
+    X(Rectangle, int)        \
+    X(Rectangle const, int)  \
+    X(Rectangle const*, int) \
+    X(Rectangle const&, int)
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value const v      = vv;
+        TRY(CASE)
+        deleter(vv);
+#undef TRY
+    }
+    {
+#define TRY(X)               \
+    X(Rectangle, int)        \
+    X(Rectangle*, int)       \
+    X(Rectangle&, int)       \
+    X(Rectangle const, int)  \
+    X(Rectangle const*, int) \
+    X(Rectangle const&, int) \
+    X(Rectangle* const, int)
+
+        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        Value v            = vv;
+        TRY(CASE)
+        deleter(vv);
+#undef TRY
+    }
+
+#undef CASE
+#undef TRY
 }
 
-
-        // REQUIRE(Value::has_error() == false);                                    \
+// REQUIRE(Value::has_error() == false);                                    \
         // REQUIRE(Value::global_err.requested_type_id == meta::type_id<TT>());     \
         // REQUIRE(Value::global_err.value_type_id == meta::type_id<Rectangle>()); \
         // Value::reset_error();                                                   \
 
 
-
-
 #define SUM(x) std::accumulate((x).begin(), (x).end(), 0.f)
 
-float sum_array_const_ptr(Array<float> const* p) { return SUM(*p);  }
-float sum_array_const_ref(Array<float> const& p) { return SUM(p);    }
-float sum_array_ptr      (Array<float>* p)       { return SUM(*p);  }
-float sum_array_ref      (Array<float>& p)       { return SUM(p);    }
-float sum_array_cpy      (Array<float> p)        { return SUM(p);    }
-
+float sum_array_const_ptr(Array<float> const* p) { return SUM(*p); }
+float sum_array_const_ref(Array<float> const& p) { return SUM(p); }
+float sum_array_ptr(Array<float>* p) { return SUM(*p); }
+float sum_array_ref(Array<float>& p) { return SUM(p); }
+float sum_array_cpy(Array<float> p) { return SUM(p); }
 
 TEST_CASE("Value_Array Wrapping") {
     Value wrapped_cst_ptr = KIWI_WRAP(sum_array_const_ptr);
@@ -440,12 +434,7 @@ TEST_CASE("Value_Array Wrapping") {
     Value wrapped_ref     = KIWI_WRAP(sum_array_ref);
     Value wrapped_cpy     = KIWI_WRAP(sum_array_cpy);
 
-    Array<float> v = {
-        1,
-        2,
-        3,
-        4
-    };
+    Array<float> v = {1, 2, 3, 4};
 
     auto [value, deleter] = make_value<Array<float>>(v);
     Value copy            = value;
@@ -453,7 +442,7 @@ TEST_CASE("Value_Array Wrapping") {
     REQUIRE(copy.is_valid<Array<float>>() == true);
     REQUIRE(copy.pointer<Array<float>>() == value.pointer<Array<float>>());
     REQUIRE(Value::has_error() == false);
- 
+
     REQUIRE(copy.is_valid<Array<float>*>() == true);
     REQUIRE(copy.as<Array<float>*>() == value.pointer<Array<float>>());
     REQUIRE(Value::has_error() == false);
@@ -488,4 +477,64 @@ TEST_CASE("Value_Array Wrapping") {
 
     deleter(value);
     deleter(value);
+}
+
+std::ostream& operator<<(std::ostream& out, Array<float> const& val) {
+    print(out, val);
+    return out;
+}
+
+TEST_CASE("Value_Array Copy") {
+    Value wrapped = KIWI_WRAP(sum_array_const_ptr);
+
+    Array<float> v = {1, 2, 3, 4};
+
+    auto [value, deleter] = make_value<Array<float>>(v);
+
+    Value shallow_copy = value;
+
+    Value deep_copy = _copy<Array<float>>::copy(value);
+
+    REQUIRE(invoke(nullptr, wrapped, value).as<float>() == 10.0);
+    REQUIRE(invoke(nullptr, wrapped, shallow_copy).as<float>() == 10.0);
+    REQUIRE(invoke(nullptr, wrapped, deep_copy).as<float>() == 10.0);
+
+    shallow_copy.as<Array<float>&>().push_back(10);
+
+    REQUIRE(invoke(nullptr, wrapped, value).as<float>() == 20.0);
+    REQUIRE(invoke(nullptr, wrapped, shallow_copy).as<float>() == 20.0);
+    REQUIRE(invoke(nullptr, wrapped, deep_copy).as<float>() == 10.0);
+
+    REQUIRE(shallow_copy.as<Array<float>&>().size() == value.as<Array<float>&>().size());
+    REQUIRE(shallow_copy.as<Array<float>&>().size() != deep_copy.as<Array<float>&>().size());
+
+    deep_copy.as<Array<float>&>().push_back(12);
+    REQUIRE(shallow_copy.as<Array<float>&>().size() == deep_copy.as<Array<float>&>().size());
+
+    std::cout << is_streamable<std::ostream, Array<float> const&>::value << std::endl;
+    std::cout << is_streamable<std::ostream, Array<float>>::value << std::endl;
+    std::cout << is_streamable<std::ostream, Array<float>&>::value << std::endl;
+
+    auto printer = [](std::ostream& out, Value const& v) {
+        print(out, v.as<Array<float> const&>());
+    };
+
+    register_value<Array<float>>(printer);
+
+    deep_copy.print(std::cout) << "\n";
+    deleter(value);
+    deleter(deep_copy);
+}
+
+TEST_CASE("Value_int ref") {
+
+    Value v(int(1));
+    Value ref = _ref<int>::ref(v);
+
+    REQUIRE(v.as<int>() == 1);
+    REQUIRE(ref.as<int>() == 1);
+
+    v.as<int&>() = 2;
+    REQUIRE(v.as<int>() == 2);
+    REQUIRE(ref.as<int>() == 2);
 }

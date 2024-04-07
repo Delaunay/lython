@@ -9,14 +9,14 @@ namespace lython {
 struct Value;
 
 struct GetterError {
-    int failed = 0;
-    int value_type_id = -1;
+    int failed            = 0;
+    int value_type_id     = -1;
     int requested_type_id = -1;
 };
 
 template <typename T>
 struct Getter {
-    static T get(Value& v, GetterError& err);
+    static T       get(Value& v, GetterError& err);
     static const T get(const Value& v, GetterError& err);
 };
 
@@ -24,9 +24,6 @@ template <typename T>
 struct Query {
     static bool get(const Value& v);
 };
-
-
-using ValueDeleter = void(*)(Value&);
 
 //
 // Simple dynamic value that holds small value on the stack
@@ -91,9 +88,16 @@ struct Value {
     // once sema is passed we should be able to guarantee
     // the oprations are ok
     std::conditional_t<true, uint32, void> tag;
-    Holder value;
+    Holder                                 value;
 
-    Value(): tag(meta::type_id<_None>()) {}
+    Value(): tag(meta::type_id<_Invalid>()) {}
+
+    // destroy the value using its tag to lookup the appropriate destructor
+    bool        destroy();
+    Value       copy() const;
+    // useful to make a reference to something that is usually copied (like an int)
+    Value       ref();
+    std::size_t hash() const;
 
 #define CTOR(type, name)                                        \
     Value(type name): tag(meta::type_id<type>()) {              \
@@ -113,7 +117,7 @@ struct Value {
         return is_type(meta::type_id<T>());
     }
 
-    template<typename T>
+    template <typename T>
     bool operator==(T const& val) const {
         if (tag == meta::type_id<T>()) {
             return as<T>() == val;
@@ -121,18 +125,16 @@ struct Value {
         return false;
     }
 
-    template<typename T>
+    template <typename T>
     bool operator!=(T const& val) const {
         return !((*this) == val);
     }
 
     bool operator==(Value const& val) const;
 
-    bool operator!=(Value const& val) const {
-        return !((*this) == val);
-    }
+    bool operator!=(Value const& val) const { return !((*this) == val); }
 
-    template<typename T>
+    template <typename T>
     bool is_valid() const {
         return Query<T>::get(*this);
     }
@@ -140,14 +142,12 @@ struct Value {
     static GetterError global_err;
 
     static void reset_error() {
-        global_err.failed = 0;
+        global_err.failed            = 0;
         global_err.requested_type_id = -1;
-        global_err.value_type_id = -1;
+        global_err.value_type_id     = -1;
     }
 
-    static bool has_error() {
-        return global_err.failed > 0;
-    }
+    static bool has_error() { return global_err.failed > 0; }
 
     template <typename T>
     T as(GetterError& error = global_err) {
@@ -180,19 +180,18 @@ struct Value {
     }
 
     // This return a pointer to the storage
-    // Type      
-    // int     =>  int*    
-    // int*    =>  int**   
-    // String  =>  String* 
+    // Type
+    // int     =>  int*
+    // int*    =>  int**
+    // String  =>  String*
     template <typename T>
     T* pointer() {
         // The pointer to the data is stored inside itself
         if constexpr (is_small<T>()) {
             return reinterpret_cast<T*>(&value);
-        }
-        else {
+        } else {
             // The data is stored in dynamically allocated memory
-            return reinterpret_cast<T*>(value.obj); 
+            return reinterpret_cast<T*>(value.obj);
         }
     }
 
@@ -201,12 +200,14 @@ struct Value {
         // The pointer to the data is stored inside itself
         if constexpr (is_small<T>()) {
             return reinterpret_cast<T const*>(&value);
-        }
-        else {
+        } else {
             // The data is stored in dynamically allocated memory
-            return reinterpret_cast<T const*>(value.obj); 
+            return reinterpret_cast<T const*>(value.obj);
         }
     }
+
+    std::ostream& print(std::ostream& out) const;
+    std::ostream& debug_print(std::ostream& os) const;
 };
 
 //
@@ -220,8 +221,7 @@ T Getter<T>::get(Value& v, GetterError& err) {
 
     if constexpr (std::is_reference<T>::value) {
         return *v.as<NoConst*>(err);
-    }
-    else {
+    } else {
         // Storing int, we want int
         if (v.tag == meta::type_id<NoConst>()) {
             NoConst* ptr = v.pointer<NoConst>();
@@ -233,9 +233,9 @@ T Getter<T>::get(Value& v, GetterError& err) {
             NoConst** ptr = v.pointer<NoConst*>();
             return **ptr;
         }
-        
+
         // Storing int, we want int*
-        if constexpr (std::is_pointer_v<NoConst>){
+        if constexpr (std::is_pointer_v<NoConst>) {
             if (v.tag == meta::type_id<NoPointer>()) {
                 NoPointer* ptr = v.pointer<NoPointer>();
                 return ptr;
@@ -243,7 +243,7 @@ T Getter<T>::get(Value& v, GetterError& err) {
         }
 
         err.failed += 1;
-        err.value_type_id = v.tag;
+        err.value_type_id     = v.tag;
         err.requested_type_id = meta::type_id<T>();
         return T();
     }
@@ -256,8 +256,7 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
 
     if constexpr (std::is_reference<T>::value) {
         return *v.as<NoConst const*>(err);
-    }
-    else {
+    } else {
         err.failed = false;
         // Storing int, we want int
         if (v.tag == meta::type_id<NoConst>()) {
@@ -273,7 +272,7 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
         }
 
         // Storing int, we want int*
-        if constexpr (std::is_pointer_v<NoConst>){
+        if constexpr (std::is_pointer_v<NoConst>) {
             if (v.tag == meta::type_id<NoPointer>()) {
                 NoPointer const* ptr = v.pointer<NoPointer const>();
                 return ptr;
@@ -281,12 +280,11 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
         }
 
         err.failed += 1;
-        err.value_type_id = v.tag;
+        err.value_type_id     = v.tag;
         err.requested_type_id = meta::type_id<T>();
         return T();
     }
 }
-
 
 template <typename T>
 bool Query<T>::get(Value const& v) {
@@ -295,55 +293,51 @@ bool Query<T>::get(Value const& v) {
 
     if constexpr (std::is_reference<T>::value) {
         return Query<NoConst*>::get(v);
-    }
-    else {
+    } else {
         if (v.tag == meta::type_id<NoConst>()) {
             return true;
         }
         if (v.tag == meta::type_id<NoConst*>()) {
             return true;
         }
-        if constexpr (std::is_pointer_v<NoConst>){
+        if constexpr (std::is_pointer_v<NoConst>) {
             return v.tag == meta::type_id<NoPointer>();
         }
         return false;
     }
 }
 
-
 //
 // This is mostly not necessary excpet from Function
 // which does not support the sizeof
 //
 
-#define GETTER(type, name)                               \
-    template <>                                          \
-    struct Getter<type> {                                \
-        static type get(Value& v, GetterError& err) {    \
-            err.failed = v.tag != meta::type_id<type>(); \
-            return v.value.name;                         \
-        };                                               \
-        static type get(Value const& v, GetterError& err) { \
-            err.failed = v.tag != meta::type_id<type>(); \
-            return v.value.name;                         \
-        };                                               \
-    };                                                   \
-    template<>                                          \
-    struct Query<type> {                                \
-        static bool get(Value const& v) {               \
-            return  v.tag == meta::type_id<type>();     \
-        }                                               \
+#define GETTER(type, name)                                                         \
+    template <>                                                                    \
+    struct Getter<type> {                                                          \
+        static type get(Value& v, GetterError& err) {                              \
+            err.failed = v.tag != meta::type_id<type>();                           \
+            return v.value.name;                                                   \
+        };                                                                         \
+        static type get(Value const& v, GetterError& err) {                        \
+            err.failed = v.tag != meta::type_id<type>();                           \
+            return v.value.name;                                                   \
+        };                                                                         \
+    };                                                                             \
+    template <>                                                                    \
+    struct Query<type> {                                                           \
+        static bool get(Value const& v) { return v.tag == meta::type_id<type>(); } \
     };
 
 GETTER(Function, fun)
+// GETTER(bool, i1)
 
-//KIWI_VALUE_TYPES(GETTER)
+// KIWI_VALUE_TYPES(GETTER)
 #undef GETTER
 
 //
 // ostream
 //
-
 
 std::ostream& operator<<(std::ostream& os, Value const& v);
 
@@ -452,15 +446,12 @@ struct Interop<R (O::*)(Args...) const> {
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
         return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
     };
-
 };
-
 
 #define KIWI_WRAP(funfun) Function(Interop<decltype(&funfun)>::wrapper<(&funfun)>)
 
 // Specialization for C object that have a custom free
-using FreeFun = void(*)(void*);
-
+using FreeFun = void (*)(void*);
 
 template <typename T, FreeFun free_fun = std::free>
 struct _destructor {
@@ -471,7 +462,7 @@ struct _destructor {
 
         // call the destructor
         ((T*)(v.value.obj))->~T();
-        
+
         free_fun(v.value.obj);
 
         // NOTE: this only nullify current value so other copy of this value
@@ -499,6 +490,31 @@ struct _custom_free {
     }
 };
 
+template <typename T>
+struct _copy {
+    static Value copy(Value const& v) {
+        auto [cpy, _] = make_value<T>(v.as<T const&>());
+        return cpy;
+    }
+};
+
+template <typename T>
+struct _ref {
+    static Value ref(Value& v) {
+        auto [ref, _] = make_value<T*>(v.as<T*>());
+        return ref;
+    }
+};
+
+template <typename T>
+struct _hash {
+    static std::size_t hash(Value const& v) { return std::hash<T>()(v.as<T const&>()); }
+};
+
+template <typename T>
+struct _printer {
+    static void print(std::ostream& out, Value const& v) { out << v.as<T const&>(); }
+};
 
 //
 // Custom object wrapper
@@ -531,13 +547,51 @@ Tuple<Value, ValueDeleter> _new_value(int _typeid, Args... args) {
 // This version allows users to specify a different type id
 // so some dynamic DS could be used multiple time with a different typeid
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) 
-{
+Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) {
     if constexpr (Value::is_small<T>()) {
         return _new_value<T>(_typeid, args...);
     }
     return _new_object<T>(_typeid, args...);
 }
+
+template <typename T, FreeFun fun = nullptr>
+ValueDeleter value_deleter() {
+    if constexpr (fun == nullptr) {
+        if constexpr (Value::is_small<T>()) {
+            return noop_destructor;
+        }
+        // C++ destructor + delete
+        return _destructor<T>::free;
+    }
+    // C free function (no destructor)
+    return _custom_free<fun>::free;
+}
+
+template <typename T>
+ValueCopier value_copier() {
+    // Call the C++ copy constructor
+    return _copy<T>::copy;
+}
+
+bool register_metadata(int          type_id,
+                       const char*  name,
+                       ValueDeleter deleter,
+                       ValueCopier  copier,
+                       ValuePrinter printer,
+                       ValueHash    hasher,
+                       ValueRef     refmaker);
+
+template <typename S, typename T>
+class is_streamable {
+    template <typename SS, typename TT>
+    static auto test(int) -> decltype(std::declval<SS&>() << std::declval<TT>(), std::true_type());
+
+    template <typename, typename>
+    static auto test(...) -> std::false_type;
+
+    public:
+    static const bool value = decltype(test<S, T>(0))::value;
+};
 
 // Short cut
 template <typename T, typename... Args>
@@ -581,10 +635,51 @@ Value binary_invoke(void* ctx, Value fun, Value a, Value b);
 
 Value unary_invoke(void* ctx, Value fun, Value a);
 
-// template <Value... Args>
-// Value invoke(void* ctx, Value fun, Value... args) {
-//     Array<Value> value_args = {args...};
-//     return fun.as<Function>()(ctx, value_args);
-// }
+//
+// Auto register STL operators if defined
+//
+template <typename T>
+bool _register_value(ValuePrinter printer = nullptr) {
+
+    ValueHash hasher = nullptr;
+    if constexpr (std::is_default_constructible<std::hash<T>>::value) {
+        hasher = _hash<T>::hash;
+    }
+
+    if constexpr (is_streamable<std::ostream, T>::value) {
+        if (printer == nullptr) {
+            printer = _printer<T>::print;
+        }
+    }
+
+    ValueCopier copy = nullptr;
+    if constexpr (std::is_copy_constructible_v<T>) {
+        copy = value_copier<T>();
+    }
+
+    ValueRef ref = nullptr;
+    if constexpr (std::is_trivially_copyable<T>::value) {
+        ref = _ref<T>::ref();
+    }
+
+    register_metadata(
+        meta::type_id<T>(), typeid(T).name(), value_deleter<T>(), copy, printer, hasher, ref);
+
+    return true;
+}
+
+template <typename T>
+void register_value(ValuePrinter printer = nullptr) {
+    static bool _ = _register_value<T>(printer);
+}
 
 }  // namespace lython
+
+namespace std {
+
+template <>
+struct hash<lython::Value> {
+    std::size_t operator()(lython::Value const& k) const noexcept { return k.hash(); }
+};
+
+}  // namespace std

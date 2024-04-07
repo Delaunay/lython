@@ -20,7 +20,7 @@ struct _LyException: public GCObject {
 
     // type of the exception
     // this is to help with exception matching
-    ExprNode* type;
+    ExprNode* type = nullptr;
 
     // Custom exception generated
     // this is what is created when raise AttributeError(...)
