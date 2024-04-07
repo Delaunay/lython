@@ -135,8 +135,9 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     REQUIRE(sema.has_errors() == false);
 
     kwinfo("{}", "Eval");
-    TreeEvaluator eval(sema.bindings);
-    auto          partial = str(eval.eval(stmt));
+    TreeEvaluator eval;
+    eval.module(mod, 0);
+    auto partial = str(eval.eval(stmt));
 
     std::cout << "Value Tree\n";
     eval.root.dump(std::cout);
@@ -169,12 +170,12 @@ TEST_CASE("VM_FunctionDef") {
 }
 
 TEST_CASE("VM_FunctionDef_with_temporaries") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    b = a + 1\n"
-                  "    if b == 0:\n"
-                  "        return 0\n"
-                  "    return fun(a - 1) + 1\n",
-                  "fun(10)",
+    run_test_case("def fun(a: i32, b: i32) -> i32:\n"
+                  "    b += 1\n"
+                  "    if a == 0:\n"
+                  "        return b\n"
+                  "    return fun(a - 1, b)\n",
+                  "fun(10, 0)",
                   "11");
 }
 

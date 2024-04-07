@@ -33,6 +33,7 @@ Value unary_invoke(void* ctx, Value fun, Value a) {
 
 GetterError Value::global_err = GetterError{false};
 
+
 std::ostream& ostream_op(std::ostream& os, bool const& v) { 
     if (v) 
         return os << "True"; 
@@ -60,6 +61,7 @@ std::ostream& ostream_op(std::ostream& os, float64 const& v) {
 }
 std::ostream& ostream_op(std::ostream& os, Function const& v) { return os << "Function"; }
 std::ostream& ostream_op(std::ostream& os, _None const& v) { return os << "None"; }
+std::ostream& ostream_op(std::ostream& os, _Invalid const& v) { return os << "Invalid"; }
 
 std::ostream& operator<<(std::ostream& os, Value const& v) {
     switch (meta::ValueTypes(v.tag)) {
@@ -79,8 +81,107 @@ std::ostream& operator<<(std::ostream& os, Value const& v) {
         return os << '"' << v.as<String const&>() << '"';
     }
 
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[v.tag];
+
+    if (meta.printer) {
+        meta.printer(os, v);
+        return os;
+    }
+
     // we could insert a function for a given typeid
     return os << "obj";
+}
+
+std::ostream& Value::print(std::ostream& os) const {
+    return os << (*this);
+}
+
+std::ostream& Value::debug_print(std::ostream& os) const {
+    switch (meta::ValueTypes(tag)) {
+#define CASE(type, name)                            \
+    case meta::ValueTypes::name:                    \
+            return os << value.name << ": " << #type;
+        
+        KIWI_VALUE_TYPES(CASE)
+#undef CASE
+
+    case meta::ValueTypes::Max: break;
+    }
+
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[tag];
+
+    if (meta.printer) {
+        meta.printer(os, *this);
+        return os << ": " << meta.name;
+    }
+
+    return os << "obj: " << meta.name;
+}
+
+
+bool Value::destroy() {
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[tag];
+    if (meta.deleter) {
+        meta.deleter(*this);
+        return true;
+    }
+    return false;
+}
+
+Value Value::copy() const {
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[tag];
+    if (meta.copier) {
+        return meta.copier(*this);
+    }
+    return Value();
+}
+
+Value Value::ref() {
+    // skip lookup for common types
+    switch (meta::ValueTypes(tag)) {
+#define CASE(type, name)                            \
+    case meta::ValueTypes::name:                    \
+            return _ref<type>::ref(*this);
+        KIWI_VALUE_TYPES(CASE)
+#undef CASE
+
+    case meta::ValueTypes::Max: break;
+    }
+
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[tag];
+    if (meta.ref) {
+        return meta.ref(*this);
+    }
+    
+    return *this;
+}
+
+std::size_t Value::hash() const {
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[tag];
+    if (meta.hasher) {
+        return meta.hasher(*this);
+    }
+    return 0;
+}
+
+bool register_metadata(int type_id, const char* name, ValueDeleter deleter, ValueCopier copier, ValuePrinter printer, ValueHash hasher, ValueRef     refmaker) {
+    auto& registry = meta::TypeRegistry::instance();
+    auto& meta = registry.id_to_meta[type_id];
+    meta.name    = name;
+
+    meta.deleter = deleter;
+    meta.copier  = copier;
+    meta.printer = printer;
+    meta.hasher  = hasher;
+    meta.ref     = refmaker;
+
+    return true;
 }
 
 }  // namespace lython

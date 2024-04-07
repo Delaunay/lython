@@ -12,13 +12,13 @@
 
 namespace lython {
 
-using PartialResult = Value;
+using PartialResult = Node;
 
 struct TreeEvaluatorTrait {
-    using StmtRet = PartialResult;
-    using ExprRet = PartialResult;
-    using ModRet  = PartialResult;
-    using PatRet  = PartialResult;
+    using StmtRet = PartialResult*;
+    using ExprRet = PartialResult*;
+    using ModRet  = PartialResult*;
+    using PatRet  = PartialResult*;
     using Trace   = std::true_type;
 
     enum
@@ -40,20 +40,6 @@ struct StackTrace {
 struct Values {
     String name;
     Value  value;
-};
-
-using Variables = Array<Tuple<StringRef, Value>>;
-
-struct VMScope {
-    VMScope(Variables& array): array(array), oldsize(array.size()) 
-    {}
-
-    ~VMScope() {
-        array.resize(oldsize);
-    }
-
-    Variables&   array;
-    std::size_t oldsize;
 };
 
 /* Tree evaluator is a very simple interpreter that is also very slow.
@@ -112,7 +98,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 
     int eval();
 
-    TreeEvaluator() { traces.push_back(StackTrace()); }
+    TreeEvaluator(Bindings& bindings): bindings(bindings) { traces.push_back(StackTrace()); }
 
      ~TreeEvaluator() {}
 
@@ -121,27 +107,9 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         return Value();
     }
 
-    Variables variables;
-
     StringRef get_name(ExprNode* expression);
 
-    Value* fetch_name(Name_t* name, int depth);
-
-    Value* fetch_attribute(Attribute_t* n, int depth);
-
-    Value* fetch_store_target(ExprNode* n, int depth);
-
-    Value* add_variable(StringRef name, Value val) {
-        return &std::get<1>(variables.emplace_back(name, val));
-    }
-
-    bool is_concrete(Value val) {
-        return true;
-    }
-
-    Value module(Module* stmt, int depth);
-
-#define FUNCTION_GEN(name, fun)  Value fun(name##_t* n, int depth);
+#define FUNCTION_GEN(name, fun)  PartialResult* fun(name##_t* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)
@@ -173,19 +141,18 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         TreeEvaluator* self;
     };
 
-    Value execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth);
+    PartialResult* execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth);
 
     // Helpers
-    Value get_next(Value iterator, int depth);
-    Value call_enter(Value ctx, int depth);
-    Value call_exit(Value ctx, int depth);
+    PartialResult* get_next(Node* iterator, int depth);
+    PartialResult* call_enter(Node* ctx, int depth);
+    PartialResult* call_exit(Node* ctx, int depth);
+    PartialResult* call_native(Call_t* call, FunctionDef_t* n, int depth);
+    PartialResult* call_script(Call_t* call, FunctionDef_t* n, int depth);
+    PartialResult* call_constructor(Call_t* call, ClassDef_t* cls, int depth);
+    PartialResult* make_generator(Call_t* call, FunctionDef_t* n, int depth);
 
-    Value call_native(Call_t* call, FunctionDef_t* n, int depth);
-    Value call_script(Call_t* call, FunctionDef_t* n, int depth);
-    Value call_constructor(Call_t* call, ClassDef_t* cls, int depth);
-    Value make_generator(Call_t* call, FunctionDef_t* n, int depth);
-
-    void raise_exception(Value exception, Value cause);
+    void raise_exception(PartialResult* exception, PartialResult* cause);
 
     // Only returns true when new exceptions pop up
     // we usually expect 0 exceptions,
@@ -193,18 +160,18 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
     // if new exceptions are raised during the previous exceptions handling
     bool has_exceptions() const { return int(exceptions.size()) > handling_exceptions; }
 
-    Value eval(StmtNode_t* stmt);
+    PartialResult* eval(StmtNode_t* stmt);
 
-    Value make(ClassDef* class_t, Array<Value> args, int depth);
+    Constant* make(ClassDef* class_t, Array<Constant*> args, int depth);
 
     private:
-    Value exec(StmtNode_t* stmt, int depth) {
+    PartialResult* exec(StmtNode_t* stmt, int depth) {
         StackTrace& trace = get_kwtrace();
         trace.stmt        = stmt;
         return Super::exec(stmt, depth);
     }
 
-    Value exec(ExprNode_t* expr, int depth) {
+    PartialResult* exec(ExprNode_t* expr, int depth) {
         StackTrace& trace = get_kwtrace();
         trace.expr        = expr;
         return Super::exec(expr, depth);
@@ -224,7 +191,7 @@ public:
     // private:
     // --------
     public:
-    void set_return_value(Value ret) {
+    void set_return_value(PartialResult* ret) {
         // I cant delete the return value here, it might be re-used in the context
         // It is hard to decide when to delete the return value
         // the problem lie when a value is returned, its scope ends
@@ -251,7 +218,10 @@ public:
     // every time we leave a scope we could do a quick small GC step on that scope
     // to remove free temporary variables and only keep the return value
     Expression root;
-    Value return_value;
+
+    Bindings&      bindings;
+    PartialResult* return_value = nullptr;
+
 
     bool is_partial() const {
         if (partial.empty())
@@ -267,18 +237,6 @@ public:
         partial[partial.size() -  1] = true;
     }
 
-    bool has_returned() {
-        return return_value.tag != meta::type_id<_Invalid>();
-    }
-
-    void reset() {
-        return_value = Value();
-    }
-
-    Value returned() {
-        return return_value;
-    }
-
     private:
     // `Registers`
 
@@ -287,7 +245,7 @@ public:
     bool       yielding      = false;
     Array<int> partial;
 
-    Value cause               = nullptr;
+    PartialResult* cause               = nullptr;
     int            handling_exceptions = 0;
 
     Array<struct _LyException*> exceptions;

@@ -9,10 +9,24 @@
 
 namespace lython {
 
+struct Value;
+
+using ValueDeleter = void(*)(Value&);
+using ValueCopier  = Value(*)(Value const&);
+using ValuePrinter = void(*)(std::ostream&, Value const&);
+using ValueHash    = std::size_t(*)(Value const&);
+using ValueRef      = Value(*)(Value&);
+
 struct _None {
     bool operator== (_None const& val) const {
         return true;
     }
+};
+
+struct _Invalid {
+   bool operator== (_Invalid const& val) const {
+        return true;
+    }  
 };
 
 namespace meta {
@@ -30,7 +44,8 @@ namespace meta {
     X(float32, f32)  \
     X(float64, f64)  \
     X(Function, fun) \
-    X(_None, none)
+    X(_None, none)   \
+    X(_Invalid, invalid)
 
 enum class ValueTypes
 {
@@ -80,8 +95,11 @@ struct ClassMetadata {
     int                 type_id = -1;
     AllocationStat      stat;
 
-    // ClassDef* type
-    std::function<void(std::ostream&, std::int8_t const*)> printer;
+    ValueDeleter deleter = nullptr;
+    ValueCopier  copier  = nullptr;
+    ValuePrinter printer = nullptr;
+    ValueHash    hasher  = nullptr;
+    ValueRef     ref     = nullptr;
 };
 
 struct TypeRegistry {

@@ -381,6 +381,10 @@ struct Constant: public ExprNode {
         kwassert(deleter != nullptr, "deleter needs to be valid");
     }
 
+    Constant(Value v): ExprNode(NodeKind::Constant), value(v)
+    {
+    }
+
     Constant(): ExprNode(NodeKind::Constant){}
 
     ~Constant() {

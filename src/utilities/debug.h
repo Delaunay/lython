@@ -17,8 +17,8 @@ auto counter() {
     };
 }
 
-template <typename Key, typename Value>
-void print(std::ostream& out, std::unordered_map<Key, Value> const& hashtable);
+template <typename Key, typename Value, typename... Others>
+void print(std::ostream& out, std::unordered_map<Key, Value, Others...> const& hashtable);
 
 
 template <typename T>
@@ -57,8 +57,8 @@ void print(std::ostream& out, const std::tuple<Ts...>& tuple) {
     out << ")";
 }
 
-template <typename T>
-void print(std::ostream& out, const std::vector<T>& vec) {
+template <typename T, typename... Others>
+void print(std::ostream& out, const std::vector<T, Others...>& vec) {
     out << "[";
     auto cnt = counter();
 
@@ -72,8 +72,8 @@ void print(std::ostream& out, const std::vector<T>& vec) {
     out << "]";
 }
 
-template <typename Key, typename Value>
-void print(std::ostream& out, std::unordered_map<Key, Value> const& hashtable) {
+template <typename Key, typename Value, typename... Others>
+void print(std::ostream& out, std::unordered_map<Key, Value, Others...> const& hashtable) {
     out << "{";
     auto cnt = counter();
 

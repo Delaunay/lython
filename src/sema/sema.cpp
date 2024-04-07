@@ -1790,13 +1790,13 @@ TypeExpr* SemanticAnalyser::matchor(MatchOr* n, int depth) {
     return nullptr;
 }
 
-TypeExpr* SemanticAnalyser::dicttype(DictType* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::arraytype(ArrayType* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::arrow(Arrow* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::builtintype(BuiltinType* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::tupletype(TupleType* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::settype(SetType* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::classtype(ClassType* n, int depth) { return Type_t(); }
+TypeExpr* SemanticAnalyser::dicttype(DictType* n, int depth)        { return Type_t(); }
+TypeExpr* SemanticAnalyser::arraytype(ArrayType* n, int depth)      { return Type_t(); }
+TypeExpr* SemanticAnalyser::arrow(Arrow* n, int depth)              { return Type_t(); }
+TypeExpr* SemanticAnalyser::builtintype(BuiltinType* n, int depth)  { return Type_t(); }
+TypeExpr* SemanticAnalyser::tupletype(TupleType* n, int depth)      { return Type_t(); }
+TypeExpr* SemanticAnalyser::settype(SetType* n, int depth)          { return Type_t(); }
+TypeExpr* SemanticAnalyser::classtype(ClassType* n, int depth)      { return Type_t(); }
 
 TypeExpr* SemanticAnalyser::module(Module* stmt, int depth) {
     // TODO: Add a forward pass that simply add functions & variables
@@ -1826,9 +1826,9 @@ TypeExpr* SemanticAnalyser::module(Module* stmt, int depth) {
     return nullptr;
 };
 
-TypeExpr* SemanticAnalyser::interactive(Interactive* n, int depth) { return nullptr; }
+TypeExpr* SemanticAnalyser::interactive(Interactive* n, int depth)   { return nullptr; }
 TypeExpr* SemanticAnalyser::functiontype(FunctionType* n, int depth) { return Type_t(); }
-TypeExpr* SemanticAnalyser::expression(Expression* n, int depth) { return exec(n->body, depth); }
+TypeExpr* SemanticAnalyser::expression(Expression* n, int depth)     { return exec(n->body, depth); }
 
 bool SemanticAnalyser::has_errors() const { return !errors.empty(); }
 void SemanticAnalyser::show_diagnostic(std::ostream& out, class AbstractLexer* lexer) {
