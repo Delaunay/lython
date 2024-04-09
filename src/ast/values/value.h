@@ -8,6 +8,36 @@ namespace lython {
 
 struct Value;
 
+struct Color {
+    uint8 r;
+    uint8 g;
+    uint8 b;
+    uint8 a;
+
+    bool operator== (Color const& val) const {
+        return *reinterpret_cast<uint32 const*>(this) == *reinterpret_cast<uint32 const*>(&val);
+    }  
+};
+
+struct Pointi {
+    int32 x;
+    int32 y;
+
+    bool operator== (Pointi const& val) const {
+        return *reinterpret_cast<uint64 const*>(this) == *reinterpret_cast<uint64 const*>(&val);
+    }  
+};
+
+struct Pointf {
+    float32 x;
+    float32 y;
+
+    bool operator== (Pointf const& val) const {
+        return (x == val.x) && (y == val.y);
+    }  
+};
+
+
 struct GetterError {
     int failed            = 0;
     int value_type_id     = -1;
@@ -93,8 +123,8 @@ struct Value {
     Value(): tag(meta::type_id<_Invalid>()) {}
 
     // destroy the value using its tag to lookup the appropriate destructor
-    bool        destroy();
-    Value       copy() const;
+    bool  destroy();
+    Value copy() const;
     // useful to make a reference to something that is usually copied (like an int)
     Value       ref();
     std::size_t hash() const;
@@ -271,8 +301,14 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
             return **ptr;
         }
 
-        // Storing int, we want int*
         if constexpr (std::is_pointer_v<NoConst>) {
+            // Storing int*, we want int const*
+            if (v.tag == meta::type_id<NoPointer*>()) {
+                NoPointer const* ptr = v.pointer<NoPointer const>();
+                return ptr;
+            }
+
+            // Storing int, we want int*
             if (v.tag == meta::type_id<NoPointer>()) {
                 NoPointer const* ptr = v.pointer<NoPointer const>();
                 return ptr;
@@ -658,9 +694,9 @@ bool _register_value(ValuePrinter printer = nullptr) {
     }
 
     ValueRef ref = nullptr;
-    if constexpr (std::is_trivially_copyable<T>::value) {
-        ref = _ref<T>::ref();
-    }
+    // if constexpr (std::is_trivially_copyable<T>::value) {
+    //     ref = _ref<T>::ref();
+    // }
 
     register_metadata(
         meta::type_id<T>(), typeid(T).name(), value_deleter<T>(), copy, printer, hasher, ref);

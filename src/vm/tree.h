@@ -121,6 +121,10 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         return Value();
     }
 
+    Value next(StmtNode* stmt) {
+        return exec(stmt, 0);
+    }
+
     Variables variables;
 
     StringRef get_name(ExprNode* expression);
@@ -197,7 +201,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 
     Value make(ClassDef* class_t, Array<Value> args, int depth);
 
-    private:
+
     Value exec(StmtNode_t* stmt, int depth) {
         StackTrace& trace = get_kwtrace();
         trace.stmt        = stmt;
@@ -211,6 +215,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
     }
 
     StackTrace& get_kwtrace() { return traces[traces.size() - 1]; }
+private:
 
 public:
     void check_depth(int depth) {

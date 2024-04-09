@@ -150,81 +150,119 @@ void Parser::expect_tokens(Array<int> const&   expected,
     PARSER_THROW(SyntaxError, error);
 }
 
+
+StmtNode* Parser::parse_one(Node* parent, int depth, bool interactive) {
+    TRACE_START();
+
+    Token tok = token();
+    while (in(tok.type(), tok_newline)) {
+        tok = next_token();
+    }
+
+    if (in(token().type(), tok_desindent)){
+        return nullptr;
+    }
+
+    // Found an unexpected token
+    // eat the full line to try to recover and emit an error
+    if (token().type() == tok_incorrect) {
+        ParsingError& error = parser_kwerror(  //
+            LOC,                               //
+            "SyntaxError",                     //
+            "Unexpected token"                 //
+        );
+        add_wip_expr(error, parent);
+        error_recovery(&error);
+
+        InvalidStatement* stmt = parent->new_object<InvalidStatement>();
+        stmt->tokens           = error.line;
+        return stmt;
+        // out.push_back(stmt);
+        // continue;
+    }
+
+    // Comment attach themselves to the next statement
+    // when comments are inserted at the beginning of a block
+    // they can be inserted to the previous block instead
+    if (token().type() == tok_comment) {
+        StmtNode* cmt = parse_comment_stmt(parent, depth);
+        _pending_comments.push_back(cmt);
+        return parse_one(parent, depth);
+
+        // _pending_comments.push_back(cmt);
+        // continue;
+    }
+
+    // we have read a bunch of comments and we are still in this block
+    if (_pending_comments.size() > 0) {
+        // for (auto* comment: _pending_comments) {
+        //     out.push_back(comment);
+        // }
+        // _pending_comments.clear();
+
+        auto element = _pending_comments.front();
+        _pending_comments.erase(_pending_comments.begin());
+        return element;
+    }
+
+    try {
+        auto stmt = parse_statement(parent, depth + 1);
+
+        if (interactive) {
+            return stmt;
+        }
+
+        // only one liner should have the comment attached
+        if (stmt->is_one_line() && token().type() == tok_comment) {
+            stmt->comment = parse_comment(stmt, depth);
+        }
+
+        if (!is_empty_line) {
+            // expects at least one newline to end the statement
+            // if not we do not know what this line is supposed to be
+            expect_tokens({tok_newline, tok_eof}, true, parent, LOC);
+        }
+
+        if (stmt == nullptr) {
+            // return token();
+            return nullptr;
+        }
+
+        // out.push_back(stmt);
+        return stmt;
+    } catch (ParsingException const&) {
+        //
+        ParsingError* error = &errors[current_error];
+        error_recovery(error);
+
+        InvalidStatement* stmt = parent->new_object<InvalidStatement>();
+        stmt->tokens           = error->line;
+        return stmt;
+        // out.push_back(stmt);
+    }
+
+    // look for the desindent token or next statement
+    while (token().type() == tok_newline) {
+        next_token();
+    }
+
+    // push comments here ??
+
+    TRACE_END();
+    return nullptr;
+}
+
 Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     TRACE_START();
 
     while (!in(token().type(), tok_desindent, tok_eof)) {
-        while (in(token().type(), tok_newline)) {
-            next_token();
-        }
-
-        // Found an unexpected token
-        // eat the full line to try to recover and emit an error
-        if (token().type() == tok_incorrect) {
-            ParsingError& error = parser_kwerror(  //
-                LOC,                               //
-                "SyntaxError",                     //
-                "Unexpected token"                 //
-            );
-            add_wip_expr(error, parent);
-            error_recovery(&error);
-
-            InvalidStatement* stmt = parent->new_object<InvalidStatement>();
-            stmt->tokens           = error.line;
+        std::cout << int(token().type()) << std::endl;
+        
+        if (StmtNode* stmt = parse_one(parent, depth)) {
             out.push_back(stmt);
             continue;
         }
-
-        // Comment attach themselves to the next statement
-        // when comments are inserted at the beginning of a block
-        // they can be inserted to the previous block instead
-        if (token().type() == tok_comment) {
-            StmtNode* cmt = parse_comment_stmt(parent, depth);
-            _pending_comments.push_back(cmt);
-            continue;
-        }
-
-        // we have read a bunch of comments and we are still in this block
-        {
-            for (auto* comment: _pending_comments) {
-                out.push_back(comment);
-            }
-            _pending_comments.clear();
-        }
-
-        try {
-            auto stmt = parse_statement(parent, depth + 1);
-
-            // only one liner should have the comment attached
-            if (stmt->is_one_line() && token().type() == tok_comment) {
-                stmt->comment = parse_comment(stmt, depth);
-            }
-
-            if (!is_empty_line) {
-                // expects at least one newline to end the statement
-                // if not we do not know what this line is supposed to be
-                expect_tokens({tok_newline, tok_eof}, true, parent, LOC);
-            }
-
-            if (stmt == nullptr) {
-                return token();
-            }
-
-            out.push_back(stmt);
-        } catch (ParsingException const&) {
-            //
-            ParsingError* error = &errors[current_error];
-            error_recovery(error);
-
-            InvalidStatement* stmt = parent->new_object<InvalidStatement>();
-            stmt->tokens           = error->line;
-            out.push_back(stmt);
-        }
-
-        // look for the desindent token or next statement
-        while (token().type() == tok_newline) {
-            next_token();
-        }
+        std::cout << "HERE" << std::endl;
     }
 
     if (out.size() <= 0) {
@@ -882,6 +920,8 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
     //     return pat;
     // }
     }
+    kwerror("unknown pattern for");
+    return nullptr;
 }
 
 Pattern* Parser::parse_pattern(Node* parent, int depth) {
@@ -2350,56 +2390,56 @@ StmtNode* Parser::parse_statement_primary(Node* parent, int depth) {
     //
 
     // clang-format on
-    case tok_comment: return parse_comment_stmt(parent, depth);
-    case tok_return: return parse_return(parent, depth);
-    case tok_import: return parse_import(parent, depth);
-    case tok_from: return parse_import_from(parent, depth);
-    case tok_raise: return parse_raise(parent, depth);
-    case tok_pass: return parse_pass(parent, depth);
-    case tok_del: return parse_del(parent, depth);
-    case tok_yield: return parse_yield_stmt(parent, depth);
-    case tok_assert: return parse_assert(parent, depth);
-    case tok_break: return parse_break(parent, depth);
-    case tok_continue: return parse_continue(parent, depth);
-    case tok_global: return parse_global(parent, depth);
-    case tok_nonlocal: return parse_nonlocal(parent, depth);
+    case tok_comment: return parse_comment_stmt(parent, depth + 1);
+    case tok_return: return parse_return(parent, depth + 1);
+    case tok_import: return parse_import(parent, depth + 1);
+    case tok_from: return parse_import_from(parent, depth + 1);
+    case tok_raise: return parse_raise(parent, depth + 1);
+    case tok_pass: return parse_pass(parent, depth + 1);
+    case tok_del: return parse_del(parent, depth + 1);
+    case tok_yield: return parse_yield_stmt(parent, depth + 1);
+    case tok_assert: return parse_assert(parent, depth + 1);
+    case tok_break: return parse_break(parent, depth + 1);
+    case tok_continue: return parse_continue(parent, depth + 1);
+    case tok_global: return parse_global(parent, depth + 1);
+    case tok_nonlocal: return parse_nonlocal(parent, depth + 1);
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     // Compound Statement
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // def <name>(...
-    case tok_def: return parse_function_def(parent, false, depth);
+    case tok_def: return parse_function_def(parent, false, depth + 1);
     // async def <name>(...
-    case tok_async: return parse_function_def(parent, true, depth);
-    case tok_if: return parse_if_alt(parent, depth);
-    case tok_class: return parse_class_def(parent, depth);
-    case tok_with: return parse_with(parent, depth);
+    case tok_async: return parse_function_def(parent, true, depth + 1);
+    case tok_if: return parse_if_alt(parent, depth + 1);
+    case tok_class: return parse_class_def(parent, depth + 1);
+    case tok_with: return parse_with(parent, depth + 1);
 
     // Async for: only valid inside async function
-    case tok_for: return parse_for(parent, depth);
-    case tok_try: return parse_try(parent, depth);
-    case tok_while: return parse_while(parent, depth);
-    case tok_match: return parse_match(parent, depth);
+    case tok_for: return parse_for(parent, depth + 1);
+    case tok_try: return parse_try(parent, depth + 1);
+    case tok_while: return parse_while(parent, depth + 1);
+    case tok_match: return parse_match(parent, depth + 1);
     }
 
-    auto expr = parse_expression(parent, depth);
+    auto expr = parse_expression(parent, depth + 1);
     TRACE_START();
 
     // allow unpacking
     // promote to a tuple expression
     if (token().type() == tok_comma) {
         next_token();
-        expr = parse_literal<TupleExpr>(this, parent, expr, 0, depth);
+        expr = parse_literal<TupleExpr>(this, parent, expr, 0, depth + 1);
     }
 
     switch (token().type()) {
     // <expr> = <>
-    case tok_assign: return parse_assign(parent, expr, depth);
+    case tok_assign: return parse_assign(parent, expr, depth + 1);
     // <expr> += <>
-    case tok_augassign: return parse_augassign(parent, expr, depth);
+    case tok_augassign: return parse_augassign(parent, expr, depth + 1);
     // <expr>: type = <>
     case ':':
-    case tok_annassign: return parse_annassign(parent, expr, depth);
+    case tok_annassign: return parse_annassign(parent, expr, depth + 1);
     }
 
     // fallback to standard expression

@@ -28,6 +28,9 @@ struct _Invalid {
         return true;
     }  
 };
+struct Color;
+struct Pointi;
+struct Pointf;
 
 namespace meta {
 
@@ -43,6 +46,9 @@ namespace meta {
     X(int8, i8)      \
     X(float32, f32)  \
     X(float64, f64)  \
+    X(Color, color)  \
+    X(Pointi, pi)    \
+    X(Pointf, pf)    \
     X(Function, fun) \
     X(_None, none)   \
     X(_Invalid, invalid)

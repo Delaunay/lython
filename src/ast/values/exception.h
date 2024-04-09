@@ -26,6 +26,8 @@ struct _LyException: public GCObject {
     // this is what is created when raise AttributeError(...)
     // is called
     Value custom;  
+
+    Value cause;
 };
 
 

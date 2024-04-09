@@ -168,7 +168,7 @@ class Lexer: public AbstractLexer {
     int get_mode() const override final;
     void set_mode(int mode) override final;
     Token const& format_tokenizer() ;
-    Token const& next_token() override final;
+    Token const& next_token() override;
     Token const& peek_token() override final {
         // we can only peek ahead once
         if (_buffer.size() > 0)
@@ -195,7 +195,7 @@ class Lexer: public AbstractLexer {
     const String& file_name() override { return _reader.file_name(); }
     char peekc() const override { return _reader.peek(); }
 
-    private:
+    protected:
     int             _count = 0;
     AbstractBuffer& _reader;
     Token           _token{dummy()};

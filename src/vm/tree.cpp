@@ -12,7 +12,7 @@
         exec(stmt, depth);          \
                                     \
         if (has_exceptions()) {     \
-            return None();          \
+            return Value();          \
         }                           \
                                     \
         if (has_returned()) {       \
@@ -33,7 +33,7 @@ Value TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, 
 
         // We cannot proceed, essentially found a compile time issue
         if (has_exceptions()) {
-            return None();
+            return Value();
         }
 
         // We have reached a value to return
@@ -44,21 +44,15 @@ Value TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, 
             return returned();
         }
     }
-    return None();
+    return Value();
 }
 void TreeEvaluator::raise_exception(Value exception, Value cause) {
     // Create the exception object
 
-    // Constant* cause_value = cast<Constant>(cause);
-    // // cause should be an exception
-    // NativeObject* cause_except = cause_value->value.get<NativeObject*>();
-
-    // if (cause != nullptr && cause_except) {
-    //     // TODO:
-    // }
-
     _LyException* except = root.new_object<_LyException>(traces);
-    // Constant*  except_value = root.new_object<Constant>(except);
+    except->custom = exception;
+    except->cause = cause;
+    except->traces = traces;
 
     exceptions.push_back(except);
 }
@@ -308,7 +302,7 @@ Value TreeEvaluator::lambda(Lambda_t* n, int depth) {
     // but we have to know which args were defined and which were not
     // we can check n->args vardid and fetch them from the context
     // if they are undefined we need to forward them
-    return None();
+    return Value();
 }
 
 Value TreeEvaluator::ifexp(IfExp_t* n, int depth) {
@@ -405,13 +399,21 @@ struct ScriptObject {
 Value object__new__(GCObject* parent, ClassDef* class_t) {
     // Move this to sema
     ValuePrinter printer = [](std::ostream& out, Value const& val) {
-        auto& obj = val.as<ScriptObject const&>();
-        int   n   = int(obj.attributes.size()) - 1;
-        out << "(";
-        for (int i = 0; i < obj.attributes.size(); i++) {
-            auto& attr = obj.attributes[i];
-            out << std::get<0>(attr) << "=" << std::get<1>(attr);
+        Array<int> attributes;
 
+        auto& obj = val.as<ScriptObject const&>();
+        for (int i = 0; i < obj.attributes.size(); i++) {
+            if (std::get<1>(obj.attributes[i]).is_valid<Node*>()) {
+                continue;
+            }
+            attributes.push_back(i);
+        }
+
+        int   n   = int(attributes.size()) - 1;
+        out << "(";
+        for (int i = 0; i < attributes.size(); i++) {
+            auto& attr = obj.attributes[attributes[i]];
+            out << std::get<0>(attr) << "=" << std::get<1>(attr);
             if (i < n) {
                 out << ", ";
             }
@@ -427,11 +429,16 @@ Value object__new__(GCObject* parent, ClassDef* class_t) {
 
     // Create a new runtime object of a specific type
     auto [val, deleter] = make_value<ScriptObject>(class_t->attributes.size());
+    ScriptObject& obj = val.as<ScriptObject&>();
 
     for (int i = 0; i < class_t->attributes.size(); i++) {
         auto attr = class_t->attributes[i];
-
-        val.as<ScriptObject&>().attributes.emplace_back(attr.name, Value());
+        Value value;
+        if (FunctionDef* def = cast<FunctionDef>(attr.stmt)) 
+        {
+            std::tie(value, std::ignore) = make_value<Node*>(def);
+        } 
+        obj.attributes.emplace_back(attr.name, value);
     }
 
     //
@@ -668,9 +675,11 @@ Value TreeEvaluator::name(Name_t* n, int depth) {
 
 Value TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
     // this should not be called
-    return_value = nullptr;
-    EXEC_BODY(n->body);
-    return return_value;
+    // return_value = nullptr;
+    // EXEC_BODY(n->body);
+    auto [v, _] = make_value<Node*>(n);
+    add_variable(n->name, v);
+    return v;
 }
 
 Value TreeEvaluator::invalidstmt(InvalidStatement_t* n, int depth) {
@@ -688,7 +697,7 @@ Value TreeEvaluator::returnstmt(Return_t* n, int depth) {
         return return_value;
     }
 
-    set_return_value(None());
+    set_return_value(Value());
     return return_value;
 }
 
@@ -736,6 +745,8 @@ Value TreeEvaluator::assign(Assign_t* n, int depth) {
 
         return Value();
     }
+
+    return Value();
 }
 
 Value* TreeEvaluator::fetch_store_target(ExprNode* n, int depth) {
@@ -773,7 +784,7 @@ Value TreeEvaluator::augassign(AugAssign_t* n, int depth) {
         } else {
             kwerror("Operator does not have implementation!");
         }
-        return None();
+        return Value();
     }
 
     // AugAssign* expr = root.new_object<AugAssign>();
@@ -787,7 +798,7 @@ Value TreeEvaluator::augassign(AugAssign_t* n, int depth) {
 }
 
 Value TreeEvaluator::annassign(AnnAssign_t* n, int depth) {
-    Value value = None();
+    Value value = Value();
     if (n->value.has_value()) {
         value = exec(n->value.value(), depth);
     }
@@ -798,7 +809,7 @@ Value TreeEvaluator::annassign(AnnAssign_t* n, int depth) {
     }
 
     add_variable(name, value);
-    return None();
+    return Value();
 }
 
 StringRef TreeEvaluator::get_name(ExprNode* expression) {
@@ -832,7 +843,7 @@ Value TreeEvaluator::forstmt(For_t* n, int depth) {
             exec(stmt, depth);
 
             if (has_exceptions()) {
-                return None();
+                return Value();
             }
 
             if (return_value != nullptr) {
@@ -858,7 +869,7 @@ Value TreeEvaluator::forstmt(For_t* n, int depth) {
     }
 
     EXEC_BODY(n->orelse);
-    return None();
+    return Value();
 }
 Value TreeEvaluator::whilestmt(While_t* n, int depth) {
 
@@ -878,7 +889,7 @@ Value TreeEvaluator::whilestmt(While_t* n, int depth) {
             exec(stmt, depth);
 
             if (has_exceptions()) {
-                return None();
+                return Value();
             }
 
             if (has_returned()) {
@@ -905,7 +916,7 @@ Value TreeEvaluator::whilestmt(While_t* n, int depth) {
     }
 
     EXEC_BODY(n->orelse);
-    return None();
+    return Value();
 }
 
 Value TreeEvaluator::ifstmt(If_t* n, int depth) {
@@ -925,7 +936,7 @@ Value TreeEvaluator::ifstmt(If_t* n, int depth) {
 
         EXEC_BODY(body);
 
-        return None();
+        return Value();
     }
 
     // Simple
@@ -937,7 +948,18 @@ Value TreeEvaluator::ifstmt(If_t* n, int depth) {
     }
 
     EXEC_BODY(body);
-    return None();
+    return Value();
+}
+
+Value assert_error(Value message) {
+    auto [v, _] = make_value<ScriptObject>(2);
+    ScriptObject& self = v.as<ScriptObject&>();
+
+    auto [t, __] =  make_value<String>("AssertionError");
+
+    self.attributes.emplace_back("type", t);
+    self.attributes.emplace_back("message", message);
+    return v;
 }
 
 Value TreeEvaluator::assertstmt(Assert_t* n, int depth) {
@@ -945,12 +967,16 @@ Value TreeEvaluator::assertstmt(Assert_t* n, int depth) {
 
     if (is_concrete(btest)) {
         if (!btest.as<bool>()) {
-            raise_exception(nullptr, nullptr);
-            return None();
+            Value msg;
+            if (n->msg.has_value()) {
+                msg = exec(n->msg.value(), depth);
+            }
+            raise_exception(assert_error(msg), Value());
+            return Value();
         }
 
         // All Good
-        return None();
+        return Value();
     }
 
     // Assert* expr = root.new_object<Assert>();
@@ -978,7 +1004,7 @@ Value TreeEvaluator::inlinestmt(Inline_t* n, int depth) {
 
     EXEC_BODY(n->body);
 
-    return None();
+    return Value();
 }
 
 Value TreeEvaluator::raise(Raise_t* n, int depth) {
@@ -1063,7 +1089,7 @@ Value TreeEvaluator::trystmt(Try_t* n, int depth) {
     // we are not handling exception anymore
     handling_exceptions = 0;
 
-    return None();
+    return Value();
 }
 
 /*
@@ -1159,7 +1185,7 @@ Value TreeEvaluator::yield(Yield_t* n, int depth) {
         return_value = value;
         return value;
     }
-    return None();
+    return Value();
 }
 Value TreeEvaluator::yieldfrom(YieldFrom_t* n, int depth) { return nullptr; }
 Value TreeEvaluator::joinedstr(JoinedStr_t* n, int depth) { return nullptr; }
@@ -1204,7 +1230,11 @@ Value TreeEvaluator::call_exit(Value ctx, int depth) {
 
 // Types
 // -----
-Value TreeEvaluator::classdef(ClassDef_t* n, int depth) { return nullptr; }
+Value TreeEvaluator::classdef(ClassDef_t* n, int depth) { 
+    auto [v, _] = make_value<Node*>(n);
+    add_variable(n->name, v);
+    return v;
+}
 
 Value TreeEvaluator::dicttype(DictType_t* n, int depth) { return nullptr; }
 Value TreeEvaluator::arraytype(ArrayType_t* n, int depth) { return nullptr; }
@@ -1241,7 +1271,7 @@ Value TreeEvaluator::nonlocal(Nonlocal_t* n, int depth) {
 
 #define PRINT(msg) std::cout << (msg) << "\n";
 
-void printkwtrace(StackTrace& trace) {
+void printkwtrace(std::ostream& out, StackTrace const& trace) {
     String file   = "<input>";
     int    line   = -1;
     String parent = "<module>";
@@ -1257,21 +1287,13 @@ void printkwtrace(StackTrace& trace) {
         expr   = shortprint(trace.stmt);
     }
 
-    fmt::print("  File \"{}\", line {}, in {}\n", file, line, parent);
-    fmt::print("    {}\n", expr);
+    fmt::print(out, "  File \"{}\", line {}, in {}\n", file, line, parent);
+    fmt::print(out, "    {}\n", expr);
 }
 
 Value TreeEvaluator::module(Module* stmt, int depth) {
     for (auto* stmt: stmt->body) {
-        if (FunctionDef* def = cast<FunctionDef>(stmt)) {
-            auto [val, _] = make_value<Node*>(def);
-            add_variable(def->name, val);
-        } else if (ClassDef* def = cast<ClassDef>(stmt)) {
-            auto [val, _] = make_value<Node*>(def);
-            add_variable(def->name, val);
-        } else {
-            exec(stmt, depth);
-        }
+        exec(stmt, depth);
     }
     return Value();
 }
@@ -1282,16 +1304,30 @@ Value TreeEvaluator::eval(StmtNode_t* stmt) {
     if (has_exceptions()) {
         _LyException* except = exceptions[exceptions.size() - 1];
 
-        lyassert(except != nullptr, "Exception is null");
+        ValuePrinter printer = [](std::ostream& out, Value const& error) {
+             _LyException const* except = error.as<_LyException const*>();
 
-        fmt::print("Traceback (most recent call last):\n");
-        // for (StackTrace& st: except->traces()) {
-        //     printkwtrace(st);
-        // }
+            lyassert(except != nullptr, "Exception is null");
+            fmt::print(out, "Traceback (most recent call last):\n");
+            for (StackTrace const& st: except->traces) {
+                printkwtrace(out, st);
+            }
 
-        String exception_type = str(except->type);
-        String exception_msg  = "";
-        fmt::print("{}: {}\n", exception_type, exception_msg);
+            String exception_type = str(except->type);
+            String exception_msg  = "";
+
+            if (except->custom.is_valid<ScriptObject const&>()) {
+                ScriptObject const& obj = except->custom.as<ScriptObject const&>();
+                exception_type = std::get<1>(obj.attributes[0]).as<String>();
+                exception_msg = std::get<1>(obj.attributes[1]).as<String>();
+            }
+
+            fmt::print(out, "{}: {}\n", exception_type, exception_msg);
+        };
+
+        register_value<_LyException*>(printer);
+        auto [v, _] = make_value<_LyException*>(except);
+        return v;
     }
     return result;
 }
