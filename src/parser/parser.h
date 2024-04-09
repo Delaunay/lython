@@ -84,6 +84,13 @@ class Parser {
         }
     }
 
+    // Stream API
+    StmtNode* next(Module* module) {
+        StmtNode* stmt = parse_one(module, 0);
+        module->body.push_back(stmt);
+        return stmt;
+    }
+
     Module* parse_module() {
         // lookup the module
         Module* module   = new Module();
@@ -113,6 +120,8 @@ class Parser {
     // Pattern Dispatch
     Pattern* parse_pattern(Node* parent, int depth);
     Pattern* parse_pattern_1(Node* parent, int depth);
+
+    StmtNode* parse_one(Node* parent, int depth, bool interactive = false);
 
     // Statement_1
     StmtNode* parse_function_def(Node* parent, bool async, int depth);
@@ -310,6 +319,10 @@ class Parser {
 
     public:
     int expression_depth = 0;
+
+    void clear_errors() {
+        errors.clear();
+    }
 
     private:
     Array<StmtNode*>      _pending_comments;

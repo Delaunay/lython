@@ -63,6 +63,10 @@ std::ostream& ostream_op(std::ostream& os, Function const& v) { return os << "Fu
 std::ostream& ostream_op(std::ostream& os, _None const& v) { return os << "None"; }
 std::ostream& ostream_op(std::ostream& os, _Invalid const& v) { return os << "Invalid"; }
 
+std::ostream& ostream_op(std::ostream& os, Pointf const& v) { return os << "Point(" << v.x << ", " << v.y << ")"; }
+std::ostream& ostream_op(std::ostream& os, Pointi const& v) { return os << "Point(" << v.x << ", " << v.y << ")"; }
+std::ostream& ostream_op(std::ostream& os, Color const& v) { return os << "Color("<< v.r << ", " << v.g << v.b << ", " << v.a << ")"; }
+
 std::ostream& operator<<(std::ostream& os, Value const& v) {
     switch (meta::ValueTypes(v.tag)) {
 #define CASE(type, name)                            \

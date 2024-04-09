@@ -55,9 +55,11 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     //
     std::cout << "\nExec\n";
     std::cout << "====\n";
-    TreeEvaluator eval(sema.bindings);
-    
-    return eval.eval();
+    TreeEvaluator eval;
+    eval.module(mod, 0);
+
+    Value val;
+    return val.tag != meta::type_id<_Invalid>();
 };  
 
 }

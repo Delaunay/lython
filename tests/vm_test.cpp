@@ -2,10 +2,10 @@
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "revision_data.h"
+#include "sema/native_module.h"
 #include "sema/sema.h"
 #include "utilities/strings.h"
 #include "vm/tree.h"
-#include "sema/native_module.h"
 
 #include <catch2/catch_all.hpp>
 #include <sstream>
@@ -19,21 +19,15 @@
 
 using namespace lython;
 
-double native_add(double a, double b) {
-    return a + b;
-}
+double native_add(double a, double b) { return a + b; }
 
-struct Pnt{
+struct Pnt {
     int x;
     int y;
 
-    Pnt(int x = 0, int y = 0):
-        x(x), y(y)
-    {}
+    Pnt(int x = 0, int y = 0): x(x), y(y) {}
 
-    Pnt add(Pnt* a) {
-        return Pnt(x + a->x, y + a->y);
-    }
+    Pnt add(Pnt* a) { return Pnt(x + a->x, y + a->y); }
 };
 
 template <>
@@ -48,13 +42,9 @@ struct lython::meta::ReflectionTrait<Pnt> {
     }
 };
 
-
-int get_x(Pnt* pnt) {
-    return pnt->x;
-}
+int get_x(Pnt* pnt) { return pnt->x; }
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
-
 
 void make_native_module() {
 #if 0
@@ -64,7 +54,7 @@ void make_native_module() {
     int(*fun)(int, int) = [](int a, int b) -> int { return a + b; };
     std::function<int(int, int)> fun2 = [](int a, int b) -> int { return a + b; };
     Pnt*(*stuff)(Pnt*, Pnt*) = [](Pnt* a, Pnt* b) -> Pnt* { return new Pnt(a->x + b->x, a->y + b->y); };
-    
+
     nativemodule
         .function("native_add", fun)
         // .function("add2", [](int a, int b) -> int { return a + b; })
@@ -80,7 +70,7 @@ void make_native_module() {
     imported.add_module("nmodule", nativemodule.module);
 
     meta::TypeRegistry::instance().dump(std::cout);
-    #endif
+#endif
 }
 
 String eval_it(String const& code, String const& expr, Module*& mod) {
@@ -100,7 +90,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
         REQUIRE(parser.has_errors() == false);
     }
     parser.show_diagnostics(std::cout);
-    
+
     kwinfo("{}", "Sema");
     make_native_module();
     SemanticAnalyser sema;
@@ -110,7 +100,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     // register_native_object<Pnt, int, int>(mod, sema.bindings, "Pnt");
     // register_native_function(mod, sema.bindings, "get_x", get_x);
 
-    //execute script
+    // execute script
     ImportLib::instance()->add_to_path(test_modules_path());
 
     sema.exec(mod, 0);
@@ -253,7 +243,12 @@ TEST_CASE("VM_assert_False") {
                   "    assert False, \"Very bad\"\n"
                   "    return 1\n",
                   "fun(0)",
-                  "None");
+                  "Traceback (most recent call last):\n"
+                  "  File \"<input>\", line -2, in <module>\n"
+                  "    fun(0)\n"
+                  "  File \"<input>\", line 2, in fun\n"
+                  "    assert False, \"Very bad\"\n"
+                  "AssertionError: Very bad\n");
 }
 
 TEST_CASE("VM_IfStmt_False") {
@@ -299,32 +294,44 @@ TEST_CASE("VM_inline_stmt") {
                   "1");
 }
 
-// Traceback (most recent call last):
-//   File "<input>", line -2, in fun(2)
-//     fun(2)
-//   File "<input>", line 4, in fun
-//     return fun(a - 1)
-//   File "<input>", line 4, in fun
-//     return fun(a - 1)
-//   File "<input>", line 3, in fun
-//     assert False, "Very bad"
-// AssertionError: Very bad
 TEST_CASE("VM_exception_stop_recursion") {
+    const char* result = 
+        "Traceback (most recent call last):\n"
+        "  File \"<input>\", line -2, in <module>\n"
+        "    fun(2)\n"
+        "  File \"<input>\", line 4, in fun\n"
+        "    return fun(a - 1)\n"
+        "  File \"<input>\", line 4, in fun\n"
+        "    return fun(a - 1)\n"
+        "  File \"<input>\", line 3, in fun\n"
+        "    assert False, \"Very bad\"\n"
+        "AssertionError: Very bad\n"
+    ;
+
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    if a == 0:\n"
                   "        assert False, \"Very bad\"\n"
                   "    return fun(a - 1)\n",
                   "fun(2)",
-                  "None");
+                  result);
 }
 
 TEST_CASE("VM_exception_stop_loop") {
+    const char* result = 
+        "Traceback (most recent call last):\n"
+        "  File \"<input>\", line -2, in <module>\n"
+        "    fun(2)\n"
+        "  File \"<input>\", line 3, in fun\n"
+        "    assert False, \"Very bad\"\n"
+        "AssertionError: Very bad\n";
+  
+
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    while True:\n"
                   "        assert False, \"Very bad\"\n"
                   "    return 1\n",
                   "fun(2)",
-                  "None");
+                  result);
 }
 
 TEST_CASE("VM_raise") {
@@ -430,7 +437,6 @@ TEST_CASE("VM_While_continue") {
                   "10");
 }
 
-
 TEST_CASE("VM_AnnAssign") {
     run_test_case("def fun(a: i32) -> i32:\n"
                   "    b: i32 = 3\n"
@@ -492,7 +498,7 @@ TEST_CASE("VM_ClassDef") {
                   "        self.y = y\n"
                   "\n",
                   "Point(1.0, 2.0)",
-                  "(1.0, 2.0)");  // Generates a tuple
+                  "(x=1.0, y=2.0)");  // Generates a tuple
 }
 
 TEST_CASE("VM_ClassDef_2") {
@@ -538,46 +544,24 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     }
 }
 
-TEST_CASE("VM_native_object") 
-{
-    run_test_case("",
-                  "get_x(name(1, 2))",
-                  "1");
+TEST_CASE("VM_native_object") { run_test_case("", "get_x(name(1, 2))", "1"); }
+
+TEST_CASE("VM_native_function") { run_test_case("", "add(1.0, 2.0)", "3.0"); }
+
+TEST_CASE("VM_native_module") {
+    run_test_case("from nmodule import native_add", "native_add(1, 2)", "3");
 }
 
-
-TEST_CASE("VM_native_function") 
-{
-    run_test_case("",
-                  "add(1.0, 2.0)",
-                  "3.0");
-}
-
-
-TEST_CASE("VM_native_module") 
-{
-    run_test_case("from nmodule import native_add",
-                  "native_add(1, 2)",
-                  "3");
-}
-
-TEST_CASE("VM_native_module_object") 
-{
-    run_test_case("from nmodule import Point",
-                  "Point(1, 2).y",
-                  "2");
+TEST_CASE("VM_native_module_object") {
+    run_test_case("from nmodule import Point", "Point(1, 2).y", "2");
 }
 
 #if 1
-TEST_CASE("VM_native_module_object_method") 
-{
+TEST_CASE("VM_native_module_object_method") {
 
-    run_test_case("from nmodule import Point",
-                  "Point(1, 2).add(Point(1, 2)).y",
-                  "4");
+    run_test_case("from nmodule import Point", "Point(1, 2).add(Point(1, 2)).y", "4");
 }
 #endif
-
 
 #if EXPERIMENTAL_TESTS
 #define GENTEST(name)                                                   \
