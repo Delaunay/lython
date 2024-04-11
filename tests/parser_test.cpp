@@ -256,11 +256,11 @@ void run_partial(String const& name, int j, TestCase const& test) {
 }
 
 void run_partials(String const& name, Array<TestCase> cases) {
-    kwinfo("Testing {}", name);
+    kwinfo(outlog(), "Testing {}", name);
     for (int i = 0; i < cases.size(); i++) {
         auto& c = cases[i];
         run_partial(name, i, c);
-        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }
 
@@ -329,8 +329,8 @@ void run_testcase(String const&                 name,
     int i = 0;
     for (auto& c: cases) {
         String const* fmt = get_exception(exceptions, FormatException{name, i});
-        kwinfo(">>>>>>>>>>>>>>>>>>>>>>>> Start");
-        kwinfo("Testing {} - {}", name, i);
+        kwinfo(outlog(), ">>>>>>>>>>>>>>>>>>>>>>>> Start");
+        kwinfo(outlog(), "Testing {} - {}", name, i);
         i += 1;
 
         String new_code = Transformer(c.code);
@@ -340,7 +340,7 @@ void run_testcase(String const&                 name,
         bool   equal    = parsed == original;
 
         if (!equal) {
-            kwerror("\n`{}`\n`{}`", parsed, original);
+            kwerror(outlog(), "\n`{}`\n`{}`", parsed, original);
         }
 
         if (fmt != nullptr) {
@@ -348,7 +348,7 @@ void run_testcase(String const&                 name,
         }
 
         REQUIRE(parsed == original);
-        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
     }
 }
 

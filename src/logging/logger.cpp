@@ -94,7 +94,7 @@ void Logger::disable(LogLevel level) {
 const char* log_level_str[] = {
     "[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN", "[E] ERROR", "[!] FATAL", ""};
 
-char const* log_short[6] = {
+std::string log_short[6] = {
     "[!]",
     "[E]",
     "[W]",
@@ -103,7 +103,7 @@ char const* log_short[6] = {
     "[T]"
 };
 
-fmt::string_view logshort(LogLevel level) {
+std::string const& logshort(LogLevel level) {
     assert(int(level) < 6);
     return log_short[int(level)];
 }

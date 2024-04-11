@@ -527,22 +527,6 @@ struct _custom_free {
 };
 
 template <typename T>
-struct _copy {
-    static Value copy(Value const& v) {
-        auto [cpy, _] = make_value<T>(v.as<T const&>());
-        return cpy;
-    }
-};
-
-template <typename T>
-struct _ref {
-    static Value ref(Value& v) {
-        auto [ref, _] = make_value<T*>(v.as<T*>());
-        return ref;
-    }
-};
-
-template <typename T>
 struct _hash {
     static std::size_t hash(Value const& v) { return std::hash<T>()(v.as<T const&>()); }
 };
@@ -601,12 +585,6 @@ ValueDeleter value_deleter() {
     }
     // C free function (no destructor)
     return _custom_free<fun>::free;
-}
-
-template <typename T>
-ValueCopier value_copier() {
-    // Call the C++ copy constructor
-    return _copy<T>::copy;
 }
 
 bool register_metadata(int          type_id,
@@ -670,6 +648,30 @@ Value invoke(void* ctx, Value fun, Args... args) {
 Value binary_invoke(void* ctx, Value fun, Value a, Value b);
 
 Value unary_invoke(void* ctx, Value fun, Value a);
+
+
+template <typename T>
+struct _copy {
+    static Value copy(Value const& v) {
+        auto [cpy, _] = make_value<T>(v.as<T const&>());
+        return cpy;
+    }
+};
+
+template <typename T>
+struct _ref {
+    static Value ref(Value& v) {
+        auto [ref, _] = make_value<T*>(v.as<T*>());
+        return ref;
+    }
+};
+
+template <typename T>
+ValueCopier value_copier() {
+    // Call the C++ copy constructor
+    return _copy<T>::copy;
+}
+
 
 //
 // Auto register STL operators if defined

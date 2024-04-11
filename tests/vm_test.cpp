@@ -80,9 +80,9 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     Lexer        lex(reader);
     Parser       parser(lex);
 
-    kwinfo("Code:\n{}", code.c_str());
-    kwinfo("Expr: {}", expr.c_str());
-    kwinfo("{}", "Parse");
+    kwinfo(outlog(), "Code:\n{}", code.c_str());
+    kwinfo(outlog(), "Expr: {}", expr.c_str());
+    kwinfo(outlog(), "{}", "Parse");
     mod = parser.parse_module();
 
     if (code != "") {
@@ -91,7 +91,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     }
     parser.show_diagnostics(std::cout);
 
-    kwinfo("{}", "Sema");
+    kwinfo(outlog(), "{}", "Sema");
     make_native_module();
     SemanticAnalyser sema;
 
@@ -124,7 +124,7 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     sema.show_diagnostic(std::cout);
     REQUIRE(sema.has_errors() == false);
 
-    kwinfo("{}", "Eval");
+    kwinfo(outlog(), "{}", "Eval");
     TreeEvaluator eval;
     eval.module(mod, 0);
     auto partial = str(eval.eval(stmt));
@@ -517,7 +517,7 @@ TEST_CASE("VM_ClassDef_2") {
 #endif
 
 void run_testcases(String const& name, Array<VMTestCase> const& cases) {
-    kwinfo("Testing {}", name);
+    kwinfo(outlog(), "Testing {}", name);
 
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
@@ -539,7 +539,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
         }
         delete mod;
 
-        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
         i += 1;
     }
 }
