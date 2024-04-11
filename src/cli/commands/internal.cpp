@@ -37,151 +37,7 @@ String strip2(String const& v) {
     return String(v.begin(), v.begin() + i + 1);
 }
 
-class InteractiveConsole: public ConsoleBuffer {
-public:
-    InteractiveConsole(std::function<void()> h): handler(h), ConsoleBuffer(false) {
-        init();
-    }
-
-    std::function<void()> handler;
-
-    void on_next_line() override {
-        if (handler) {
-            handler();
-        }
-    }
-};
-
-class InteractiveLexer: public Lexer {
-public:
-    using Super = Lexer;
-
-    int prev = 0;
-    int indent = 0;
-    int newline = 0;
-
-    InteractiveLexer(AbstractBuffer& reader):
-        Lexer(reader)
-    {}
-
-    Token const& next_token() {
-        
-        Token const& tok = Super::next_token();
-
-        if (tok.type() == tok_indent) {
-            indent += 1;
-        }
-
-        if (tok.type() == tok_newline && indent > 0) {
-            newline += 1;
-        } else {
-            newline = 0;
-        }
-
-        if (newline >= 2) {
-            newline = 0;
-            _oindent -= 1;
-            _cindent -= 1;
-            indent -= 1;
-            return make_token(tok_desindent);
-        }
-
-        return tok;
-    }
-};
-
-struct InteractiveContext {
-    InteractiveConsole *reader = nullptr;
-    InteractiveLexer   *lex = nullptr;
-    Parser             *parser = nullptr;
-    SemanticAnalyser   *sema = nullptr;
-    TreeEvaluator      *eval = nullptr;
-
-    int in_count = 0;
-    int count = 0;
-    int parser_finished = 0;
-
-    std::ostream& out() {
-        return std::cout;
-    }
-
-    void clear() {
-        count = 0;
-        parser->clear_errors();
-        sema->errors.clear();
-    }
-
-    void output(Value v) {
-        if (v.tag != meta::type_id<_Invalid>()) {
-            out() << " [Out] " << v << "\n";
-        }
-        clear();
-    }
-
-    void on_next_line() {
-        // parser_finished ?
-        // probably need to indent if last tokens were `:\n`
-        // if inside () we do not need 
-        if (count == 0) 
-        {
-            out() << "  [In] ";
-            in_count += 1;
-        } else {
-            out() << "   ..  ";
-        }
-        count += 1;
-    }
-};
-
-void repl() {
-    InteractiveContext ctx;
-
-    InteractiveConsole reader([&]() { ctx.on_next_line(); });
-    InteractiveLexer   lex(reader);
-    Parser             parser(lex);
-    SemanticAnalyser   sema;
-    TreeEvaluator      eval;
-
-    ctx.reader  = &reader;
-    ctx.lex     = &lex;
-    ctx.parser  = &parser;
-    ctx.sema    = &sema;
-    ctx.eval    = &eval;
-
-    Module mod;
-    while (true) {
-        while (lex.token().type() == tok_desindent) {
-            std::cout << "Eating dangling desindent\n";
-            lex.next_token();
-        }
-
-        ctx.parser_finished = false;
-        StmtNode* stmt = parser.parse_one(&mod, 0, true);
-
-        if (parser.has_errors()) {
-            parser.show_diagnostics(std::cout);
-            ctx.clear();
-            continue;
-        }
-
-        ctx.parser_finished = true;
-        sema.exec(stmt, 0);
-
-        if (sema.has_errors()) {
-            sema.show_diagnostic(std::cout);
-            ctx.clear();
-            continue;
-        }
-
-        ctx.output(eval.eval(stmt));
-    }
-}
-
 int InternalCmd::main(argparse::ArgumentParser const& args) {
-    //
-    repl();
-    return 0;
-
     std::string file = "";
     if (args.is_used("--file")) {
         file = args.get<std::string>("--file");
@@ -192,7 +48,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
     bool show_alloc_layout = true;
     bool show_parsing      = args.get<bool>("--parsing");
 
-    kwinfo("Enter");
+    kwinfo(outlog(), "Enter");
 
     std::unique_ptr<AbstractBuffer> reader;
     if (file != "") {
@@ -312,7 +168,7 @@ int InternalCmd::main(argparse::ArgumentParser const& args) {
             }
 
             if (has_circle(mod)) {
-                kwwarn("Circle will cause infinite recursion");
+                kwwarn(outlog(), "Circle will cause infinite recursion");
             }
 
             // Bindings Dump

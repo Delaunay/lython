@@ -1077,7 +1077,7 @@ ReturnType Printer::exported(Exported const* self, int depth, std::ostream& out,
 String Node::__str__() const {
     StringStream ss;
     if (kind <= NodeKind::Invalid) {
-        kwerror("Node is invalid");
+        kwerror(outlog(), "Node is invalid");
         return "<Invalid>";
     }
     Printer p;

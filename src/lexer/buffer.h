@@ -200,6 +200,11 @@ class ConsoleBuffer: public AbstractBuffer {
 
     void fetch_next_line();
 
+    // returns true if the ligne should be discarded
+    virtual bool filter(String const& str) {
+        return false;
+    }
+
     virtual void on_next_line() {}
 
     private:

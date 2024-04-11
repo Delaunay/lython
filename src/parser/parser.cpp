@@ -5,10 +5,10 @@
 #include "utilities/strings.h"
 
 #define TRACE_START2(tok) \
-    kwtrace_start(        \
+    kwtrace_start((this->parsinglog),         \
         depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
 
-#define TRACE_END2(tok) kwtrace_end(depth, "{}: {}", to_string(tok.type()).c_str(), tok.type())
+#define TRACE_END2(tok) kwtrace_end((this->parsinglog), depth, "{}: {}", to_string(tok.type()).c_str(), tok.type())
 
 #define TRACE_START() TRACE_START2(token())
 
@@ -21,7 +21,7 @@
 
 namespace lython {
 
-#define SHOW_TOK(tok) kwerror("{}", str(tok));
+#define SHOW_TOK(parser, tok) kwerror((parser->parsinglog), "{}", str(tok));
 
 // Reduce the number of dynamic alloc
 // but debug info is not kept for the nodes
@@ -793,7 +793,7 @@ Pattern* Parser::parse_match_or(Node* parent, Pattern* child, int depth) {
     start_code_loc(pat, token());
 
     if (token().operator_name() != "|") {
-        kwerror("Unexpected operator {}", token().operator_name());
+        kwerror((this->parsinglog), "Unexpected operator {}", token().operator_name());
     }
 
     next_token();
@@ -920,7 +920,7 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
     //     return pat;
     // }
     }
-    kwerror("unknown pattern for");
+    kwerror((this->parsinglog), "unknown pattern for");
     return nullptr;
 }
 
@@ -1805,7 +1805,7 @@ ExprNode* parse_dictcomprehension(
 
 template <typename Literal>
 ExprNode* parse_literal(Parser* parser, Node* parent, ExprNode* child, char kind, int depth) {
-    TRACE_START2(parser->token());
+    // TRACE_START2(parser->token());
 
     // This is a tuple
     auto expr = parent->new_object<Literal>();
@@ -1830,7 +1830,7 @@ ExprNode* parse_literal(Parser* parser, Node* parent, ExprNode* child, char kind
     }
 
     parser->end_code_loc(expr, parser->token());
-    TRACE_END2(parser->token());
+    // TRACE_END2(parser->token());
     return expr;
 }
 
@@ -1865,7 +1865,7 @@ ExprNode*
 parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind, int depth) {
     // Save the start token to set the code loc when we know if this is a tuple or a generator
     auto start_tok = parser->token();
-    SHOW_TOK(start_tok);
+    SHOW_TOK(parser, start_tok);
     parser->expect_token(tok, true, nullptr, LOC);  // eat (  [  {
 
     // Warning: the parent is wrong but we need to parse the expression right now
@@ -1889,7 +1889,7 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
             expr = parse_dictcomprehension(parser, parent, child, value, kind, depth);
         } else {
             expr = parse_comprehension<Comp>(parser, parent, child, kind, depth);
-            kwerror("Done {}", str(expr));
+            kwerror((parser->parsinglog), "Done {}", str(expr));
         }
     } else if (parser->token().type() == ',') {
         parser->next_token();
@@ -1913,7 +1913,7 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
             return child;
         }
 
-        kwerror("Unhandled list-comprehension case");
+        kwerror((parser->parsinglog), "Unhandled list-comprehension case");
     }
 
     if (expr == nullptr) {
@@ -1932,7 +1932,7 @@ parse_comprehension_or_literal(Parser* parser, Node* parent, int tok, char kind,
     child->move(expr);
     // ----------------------------------------------
 
-    SHOW_TOK(parser->token());
+    SHOW_TOK(parser, parser->token());
     return expr;
 }
 
@@ -2202,7 +2202,7 @@ void Parser::error_recovery(ParsingError* error) {
             error->received_token = end;
         }
     } else {
-        kwerror("Was not able to retrieve the tok line for an error");
+        kwerror((this->parsinglog), "Was not able to retrieve the tok line for an error");
     }
 }
 
@@ -2583,7 +2583,7 @@ ExprNode* Parser::parse_operators(Node* og_parent, ExprNode* lhs, int min_preced
             }
             lhs = boolop;
         } else {
-            kwerror("unknow operator {}", str(op_conf));
+            kwerror((this->parsinglog), "unknow operator {}", str(op_conf));
         }
     }
 

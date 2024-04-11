@@ -162,10 +162,11 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
     Unique<llvm::DIBuilder> dbuilder;
     DICompileUnit*          debug_compile_unit;
     Arrayr<DIScope*>        scopes;
-
     void emit_location(ExprNode* node);
 #    endif
 
+    Logger& llvmlog = outlog();
+    
     llvm::FunctionType* functiontype(Arrow_t* n, int depth);
 
     LLVMGen();

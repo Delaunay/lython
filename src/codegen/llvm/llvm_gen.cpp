@@ -103,11 +103,11 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     // llvm::Constant* myStructInstance = llvm::ConstantStruct::get(struct_type, values);
 
     llvm::Value*              callee   = exec(n->func, depth).value();
-    llvm::Function*                 function = dyn_cast_or_null<llvm::Function>(callee);
+    llvm::Function*           function = dyn_cast_or_null<llvm::Function>(callee);
     llvm::FunctionType const* ftype    = nullptr;
 
     if (function == nullptr) {
-        kwerror("Function is not callable");
+        kwerror(llvmlog, "Function is not callable");
         return nullptr;
     }
     ftype = function->getFunctionType();
@@ -118,7 +118,7 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
         args.push_back(argvalue);
 
         if (argvalue == nullptr) {
-            kwerror("Could not generate function call");
+            kwerror(llvmlog, "Could not generate function call");
             return nullptr;
         }
     }
@@ -129,7 +129,10 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
         auto* val_type = args[i]->getType();
 
         if (arg_type != val_type) {
-            kwerror("Type mistmatch expected {} got {}", llvmstr(arg_type), llvmstr(val_type));
+            kwerror(llvmlog,
+                    "Type mistmatch expected {} got {}",
+                    llvmstr(arg_type),
+                    llvmstr(val_type));
         }
     }
 
@@ -137,7 +140,8 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
     // return builder->CreateCall(callee, args, "calltmp");
 }
 
-using BuiltinBinaryOperators = Dict<String, std::function<llvm::Value*(IRBuilder<>*, llvm::Value*, llvm::Value*)>>;
+using BuiltinBinaryOperators =
+    Dict<String, std::function<llvm::Value*(IRBuilder<>*, llvm::Value*, llvm::Value*)>>;
 
 #define LLMV_OPERATORS(OP) \
     OP(FAdd)               \
@@ -173,7 +177,8 @@ llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm
             return builder->CreateSDiv(
                 left, right, "sdivtmp");  // return builder->CreateUDiv(left, right, "");
         case BinaryOperator::Pow: {
-            llvm::Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
+            llvm::Function* powFunc =
+                Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
             return builder->CreateCall(powFunc, {left, right});
         }
         case BinaryOperator::LShift: return builder->CreateLShr(left, right, "addtmp");
@@ -193,7 +198,8 @@ llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm
         case BinaryOperator::Div: return builder->CreateFDiv(left, right, "divtmp");
         case BinaryOperator::Mod: return builder->CreateFRem(left, right);
         case BinaryOperator::Pow: {
-            llvm::Function* powFunc = Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
+            llvm::Function* powFunc =
+                Intrinsic::getDeclaration(llmodule.get(), Intrinsic::pow, {type});
             return builder->CreateCall(powFunc, {left, right});
         }
         case BinaryOperator::FloorDiv: {
@@ -213,7 +219,7 @@ llvm::Value* LLVMGen::binary_operator(BinaryOperator op, llvm::Value* left, llvm
     }
     // clang-format: on
 
-    kwerror("binary operator not handled");
+    kwerror(llvmlog, "binary operator not handled");
     return nullptr;
 }
 
@@ -222,7 +228,7 @@ ExprRet LLVMGen::binop(BinOp_t* n, int depth) {
     llvm::Value* right = exec(n->right, depth).value();
 
     if (left == nullptr || right == nullptr) {
-        kwerror("Could not generate binary operator");
+        kwerror(llvmlog, "Could not generate binary operator");
         return nullptr;
     }
 
@@ -247,8 +253,8 @@ ExprRet LLVMGen::boolop(BoolOp_t* n, int depth) {
     // does this even matter ?
     // log2(op)
     while (values.size() >= 2) {
-        int           count = int(values.size()) / 2;
-        int           extra = int(values.size()) % 2;
+        int                 count = int(values.size()) / 2;
+        int                 extra = int(values.size()) % 2;
         Array<llvm::Value*> next(count + extra);
 
         for (int i = 0; i < count; i++) {
@@ -352,9 +358,9 @@ ExprRet LLVMGen::namedexpr(NamedExpr_t* n, int depth) {
 ExprRet LLVMGen::exported(Exported* n, int depth) { return nullptr; }
 ExprRet LLVMGen::lambda(Lambda_t* n, int depth) {
     llvm::Function* lambdaFunc = llvm::Function::Create(nullptr,  // lambdaFuncType,
-                                            llvm::Function::ExternalLinkage,
-                                            "",
-                                            llmodule.get());
+                                                        llvm::Function::ExternalLinkage,
+                                                        "",
+                                                        llmodule.get());
 
     return ExprRet();
 }
@@ -363,7 +369,7 @@ llvm::Value* LLVMGen::make_condition(ExprNode* condition_expression, int depth, 
     llvm::Value* condition = exec(condition_expression, depth).value();
     kwassert(condition != nullptr, "Condition cannot be empty");
 
-    llvm::Value*       condcmp = nullptr;
+    llvm::Value* condcmp = nullptr;
     Type*        type    = condition->getType();
     StringStream ss;
     ss << "cond_" << i;
@@ -442,7 +448,7 @@ ExprRet LLVMGen::placeholder(Placeholder_t* n, int depth) { return ExprRet(); }
 ExprRet LLVMGen::constant(Constant_t* n, int depth) {
 
     lython::Value& val = n->value;
-    using Ty                 = double;
+    using Ty           = double;
 
     // clang-format off
     switch (meta::ValueTypes(n->value.tag)) {
@@ -522,13 +528,13 @@ ExprRet LLVMGen::name(Name_t* n, int depth) {
 
     if (n->ctx == ExprContext::Store) {
         if (found != nullptr) {
-            kwdebug("Variable name found");
+            kwdebug(llvmlog, "Variable name found");
             return found->value;
         }
 
         // Variable does not exist and it is a store
         if (found == nullptr) {
-            kwdebug("Variable name not found, creating");
+            kwdebug(llvmlog, "Variable name not found, creating");
             auto* insert_block = builder->GetInsertBlock();
             auto* type         = retrieve_type(n->type, depth);
 
@@ -667,10 +673,10 @@ StmtRet LLVMGen::functiondef(FunctionDef_t* n, int depth) {
     // WeakODRLinkage: A weak symbol that can be overridden by a strong symbol of the same name from
     // a different translation unit.
     llvm::Function* fundef = llvm::Function::Create(  //
-        arrow,                            //
-        llvm::Function::ExternalLinkage,        //
-        tostr(n->name),                   //
-        llmodule.get()                    //
+        arrow,                                        //
+        llvm::Function::ExternalLinkage,              //
+        tostr(n->name),                               //
+        llmodule.get()                                //
     );
 
     variables.emplace_back(VariableEntry{n->name, fundef, arrow});
@@ -788,7 +794,7 @@ llvm::Type* LLVMGen::retrieve_type(ExprNode* type, int depth) {
     if (type == nullptr) {
         return llvm::Type::getVoidTy(*context);
     }
-    kwinfo("{} {}", str(type), str(type->kind));
+    kwinfo(llvmlog, "{} {}", str(type), str(type->kind));
 
     switch (type->kind) {
     case NodeKind::BuiltinType: {
@@ -823,7 +829,7 @@ StmtRet LLVMGen::classdef(ClassDef_t* n, int depth) {
     for (ClassDef::Attr const& attr: n->attributes) {
         llvm::Type* field_type = retrieve_type(attr.type, depth);
         if (field_type == nullptr) {
-            kwerror("Could not find type for {}", str(attr.type));
+            kwerror(llvmlog, "Could not find type for {}", str(attr.type));
         }
         fields.push_back(field_type);
     }
@@ -1036,13 +1042,14 @@ StmtRet LLVMGen::ifstmt(If_t* n, int depth) {
 }
 StmtRet LLVMGen::with(With_t* n, int depth) { return StmtRet(); }
 StmtRet LLVMGen::raise(Raise_t* n, int depth) {
-    BasicBlock* current_block = builder->GetInsertBlock();
-    llvm::Function*   fundef        = current_block->getParent();
+    BasicBlock*     current_block = builder->GetInsertBlock();
+    llvm::Function* fundef        = current_block->getParent();
 
     llvm::Function* raisefun = nullptr;
-    // llvm::Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(), Intrinsic::eh_throw);
-    llvm::Value*    exception = nullptr;
-    CallInst* raise     = builder->CreateCall(raisefun, {exception});
+    // llvm::Function* raisefun = Intrinsic::getDeclaration(fundef->getParent(),
+    // Intrinsic::eh_throw);
+    llvm::Value* exception = nullptr;
+    CallInst*    raise     = builder->CreateCall(raisefun, {exception});
     raise->setDoesNotReturn();
 
     // builder->GetInsertBlock()->getInstList().push_back(raise);

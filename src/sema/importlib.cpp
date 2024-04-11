@@ -64,14 +64,14 @@ Array<String> python_paths() {
 }
 
 String is_module(Array<String> const& module_frags, String path, bool& is_mod) {
-    kwdebug("looking in `{}`", path);
+    kwdebug(outlog(), "looking in `{}`", path);
 
     namespace fs = std::filesystem;
     is_mod = false;
 
     auto stat = fs::status(path);
     if (!fs::is_directory(stat)) {
-        kwdebug("Not a directory {}", path);
+        kwdebug(outlog(), "Not a directory {}", path);
         return path;
     }
 
@@ -102,11 +102,11 @@ String is_module(Array<String> const& module_frags, String path, bool& is_mod) {
 
     stat = fs::status(fspath);
     if (!fs::exists(stat)) {
-        kwdebug("not a file {}", fspath);
+        kwdebug(outlog(), "not a file {}", fspath);
         return path;
     }
 
-    kwdebug("Found file {}", fspath);
+    kwdebug(outlog(), "Found file {}", fspath);
     is_mod = true;
     return fspath;
 }
@@ -133,7 +133,7 @@ String ImportLib::lookup_module(StringRef const& module_path, Array<String> cons
 
     namespace fs = std::filesystem;
 
-    kwdebug("paths: {}", str(paths));
+    kwdebug(outlog(), "paths: {}", str(paths));
     auto module_frags = split('.', str(module_path));
 
      bool is_mod = false;
@@ -212,7 +212,7 @@ ImportLib::ImportedLib* ImportLib::importfile(StringRef const& modulepath) {
             // kwwarn("Could not insert imported module to system");
         }
 
-        kwwarn("Could not load file {}", modulepath);
+        kwwarn(outlog(), "Could not load file {}", modulepath);
         return nullptr;;
     }
 

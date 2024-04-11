@@ -126,45 +126,7 @@ std::vector<std::string> get_backtrace(size_t size) { return std::vector<std::st
 
 void show_log_backtrace() {}
 
-void spdlog_log(LogLevel level, std::string const& msg) {
-    std::cout << msg << std::endl;
-}
 
-const char* log_level_str[] = {
-    "[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN", "[E] ERROR", "[!] FATAL", ""};
 
-std::string format_code_loc(const char* file, const char* function, int line) {
-    return fmt::format("{} {}:{}", file, function, line);
-}
-
-std::string format_code_loc_kwtrace(const char*, const char* function, int line) {
-    return fmt::format("{:>25}:{:4}", function, line);
-}
-
-std::string format_function(std::string const& fun) {
-    auto start = fun.find_last_of(':');
-    if (start == std::string::npos) {
-        return fun;
-    }
-    return fun.substr(start + 1);
-}
-
-// instead of setting a single log level for the entire program allow to cherry pick
-// which level is enabled
-std::unordered_map<LogLevel, bool>& log_levels() {
-    static std::unordered_map<LogLevel, bool> levels{
-        {Info, true},
-        {Warn, true},
-        {Debug, true},
-        {Error, true},
-        {Fatal, true},
-        {Trace, true},
-    };
-    return levels;
-}
-
-void set_log_level(LogLevel level, bool enabled) { log_levels()[level] = enabled; }
-
-bool is_log_enabled(LogLevel level) { return log_levels()[level]; }
 
 }  // namespace lython

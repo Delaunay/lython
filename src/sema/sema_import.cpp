@@ -122,7 +122,7 @@ TypeExpr* SemanticAnalyser::importfrom(ImportFrom* n, int depth) {
         StmtNode* value = find(imported->mod->body, nm);
 
         if (value == nullptr) {
-            kwdebug("{} not found", nm);
+            kwdebug(outlog(), "{} not found", nm);
             continue;
         }
 

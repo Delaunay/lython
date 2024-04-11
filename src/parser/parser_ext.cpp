@@ -2,7 +2,7 @@
 #include "parser/parser.h"
 
 #define TRACE_START2(tok) \
-    kwtrace_start(depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
+    kwtrace_start(outlog(), depth, "{}: {} - `{}`", to_string(tok.type()).c_str(), tok.type(), tok.identifier())
 
 #define TRACE_START() TRACE_START2(token())
 
