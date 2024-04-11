@@ -218,10 +218,12 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 private:
 
 public:
+    Logger& treelog = outlog();
+
     void check_depth(int depth) {
         if (Trait::MaxRecursionDepth > 0 && depth > Trait::MaxRecursionDepth) {
             // throw std::runtime_error("");
-            kwerror("Stopping max recursion reached");
+            kwerror(treelog, "Stopping max recursion reached");
             raise_exception(nullptr, nullptr);
         }
     }
@@ -282,6 +284,10 @@ public:
 
     Value returned() {
         return return_value;
+    }
+
+    void clear_exceptions() {
+        exceptions.clear();
     }
 
     private:

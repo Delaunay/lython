@@ -90,7 +90,7 @@ Value TreeEvaluator::compare(Compare_t* n, int depth) {
                 lyassert(native, "Operator needs to be set");
                 
                 value = binary_invoke((void*)this, native, left, right);
-                kwdebug("{} = {} {} {}", str(value), str(left), str(n->ops[i]), str(right));
+                kwdebug(treelog, "{} = {} {} {}", str(value), str(left), str(n->ops[i]), str(right));
             }
 
             result = result && value.as<bool>();
@@ -219,7 +219,7 @@ Value TreeEvaluator::binop(BinOp_t* n, int depth) {
 
         else if (n->native_operator != nullptr) {
             auto r = binary_invoke((void*)this, n->native_operator, lhs, rhs);
-            kwdebug("{} = {} {} {}", str(r), str(lhs), str(n->op), str(rhs));
+            kwdebug(treelog, "{} = {} {} {}", str(r), str(lhs), str(n->op), str(rhs));
             return r;
         }
     }
@@ -660,7 +660,7 @@ Value* TreeEvaluator::fetch_name(Name_t* n, int depth) {
         }
     }
 
-    kwwarn("Could not find variable");
+    kwwarn(treelog, "Could not find variable");
     return nullptr;
 }
 
@@ -689,11 +689,11 @@ Value TreeEvaluator::invalidstmt(InvalidStatement_t* n, int depth) {
 }
 
 Value TreeEvaluator::returnstmt(Return_t* n, int depth) {
-    kwdebug("Compute return {}", str(n));
+    kwdebug(treelog, "Compute return {}", str(n));
 
     if (n->value.has_value()) {
         set_return_value(exec(n->value.value(), depth));
-        kwdebug("Returning {}", str(return_value));
+        kwdebug(treelog, "Returning {}", str(return_value));
         return return_value;
     }
 
@@ -758,7 +758,7 @@ Value* TreeEvaluator::fetch_store_target(ExprNode* n, int depth) {
         return fetch_name(name, depth);
     }
 
-    kwerror("{} is not a valid target", str(n));
+    kwerror(treelog, "{} is not a valid target", str(n));
     return nullptr;
 }
 
@@ -780,9 +780,9 @@ Value TreeEvaluator::augassign(AugAssign_t* n, int depth) {
             Value oldleft = (*left);
 
             (*left) = binary_invoke((void*)this, n->native_operator, (*left), right);
-            kwdebug("{} = {} {} {}", str(*left), str(oldleft), str(n->op), str(right));
+            kwdebug(treelog, "{} = {} {} {}", str(*left), str(oldleft), str(n->op), str(right));
         } else {
-            kwerror("Operator does not have implementation!");
+            kwerror(treelog, "Operator does not have implementation!");
         }
         return Value();
     }

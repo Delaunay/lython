@@ -3,6 +3,7 @@
 #include <exception>
 
 //
+#include "logging/logger.h"
 #include "compatibility/compatibility.h"
 #include "dependencies/fmt.h"
 
@@ -16,7 +17,7 @@ class Exception: public std::exception {
         message(fmtstr(fmt, name, args...)) {}
 
     const char* what() const LY_NOEXCEPT final {
-        spdlog_log(LogLevel::Error, fmt::format("Exception raised: {}", message));
+        outlog().err(LOC, "Exception raised: {}", message);
         show_backtrace();
         return message.c_str();
     }

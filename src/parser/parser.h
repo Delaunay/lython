@@ -54,6 +54,8 @@ class Parser {
     public:
     Parser(AbstractLexer& lexer): _lex(lexer) { metadata_init_names(); }
 
+    Logger& parsinglog = lython::outlog();
+
     ParsingError&
     parser_kwerror(lython::CodeLocation const& loc, String const& exception, String const& msg) {
         current_error += 1;
@@ -65,7 +67,7 @@ class Parser {
         details.loc            = loc;
         details.received_token = token();
 
-        lython::log(lython::LogLevel::Error, loc, "{}: {}", exception, msg);
+        parsinglog.log(lython::LogLevel::Error, loc, "{}: {}", exception, msg);
         return details;
     }
 

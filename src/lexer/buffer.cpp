@@ -83,6 +83,8 @@ char ConsoleBuffer::getc() {
 }
 
 void ConsoleBuffer::fetch_next_line() {
+    buffer.clear();
+    i = 0;
     buffer.reserve(128);
 
     int  k = 0;
@@ -93,6 +95,11 @@ void ConsoleBuffer::fetch_next_line() {
         k += 1;
     } while (c != '\n' && c != EOF);
     buffer.push_back('\n');
+
+    if (filter(buffer)) {
+        buffer.clear();
+        return;
+    }
 }
 
 String read_file(String const& name) {
@@ -125,7 +132,7 @@ String read_file(String const& name) {
         start += segment.size();
     }
 
-    kwdebug("read {}", aggregated);
+    kwdebug(outlog(), "read {}", aggregated);
     return aggregated;
 }
 

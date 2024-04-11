@@ -146,7 +146,7 @@ ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
 # ==================
 
 # Support library for utilities
-ADD_LIBRARY(liblogging logging/logging.cpp logging/logging.h)
+ADD_LIBRARY(liblogging logging/backtrace.cpp logging/logger.cpp)
 TARGET_LINK_LIBRARIES(liblogging  ${LIBRARIES})
 
 
@@ -168,6 +168,7 @@ SET(ADD_CLI_SOURCE
     cli/commands/doc.cpp
     cli/commands/install.cpp
     cli/commands/internal.cpp
+    cli/commands/repl.cpp
     cli/commands/linter.cpp
     cli/commands/profile.cpp
     cli/commands/tests.cpp

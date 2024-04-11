@@ -217,7 +217,7 @@ public:
 
     StmtRet exec(StmtNode_t* stmt, int depth, Args... args) {
         if (!stmt) {
-            kwdebug("Null statement");
+            kwdebug(outlog(), "Null statement");
             return StmtRet();
         }
 
@@ -249,10 +249,14 @@ public:
         return StmtRet();
     }
 
+    Logger& visitor_log() {
+        return outlog();
+    }
+
 #define FUNCTION_GEN(name, fun, rtype)                                          \
     LY_INLINE rtype fun(name##_t* node, int depth, Args... args) {              \
         if (Trace::value) {                                                     \
-            kwtrace(depth, #name);                                              \
+            kwtrace(visitor_log(), depth, #name);                               \
         }                                                                       \
         return static_cast<Implementation*>(this)->fun(node, depth, (args)...); \
     }

@@ -1,5 +1,4 @@
-#ifdef __linux__
-// --
+#    if WITH_LOG
 
 // clang-format off
 #include <catch2/catch_all.hpp>
@@ -7,14 +6,19 @@
 #include <iostream>
 #include <regex>
 
-#include <unistd.h>
-#include <sys/wait.h>
+
 
 #include "utilities/strings.h"
 #include "logging/logging.h"
 // clang-format on
 
 using namespace lython;
+
+#ifdef __linux__
+#include <unistd.h>
+#include <sys/wait.h>
+
+// --
 
 void fail(int signal) {
     kwinfo("handling signal {}", signal);
@@ -110,6 +114,25 @@ TEST_CASE("Cehck Signal Handlers") {
     CHECK(check_signal(SIGSEGV, fmt::format("Received signal {} >>>", SIGSEGV)));
     CHECK(check_signal(SIGTERM, fmt::format("Received signal {} >>>", SIGTERM)));
 #    endif
+}
+
+#endif
+
+TEST_CASE("Log API") {
+    Logger logger("name");
+    auto output = new_output<Stdout>();
+    logger.add_output(output);
+
+    for(int j = 0; j < int(LogLevel::All); j++) {
+        logger.log(LogLevel(j), LOC, "{} + {}", 2, 3);
+
+        for(int i = 0; i < 10; i++) {
+            logger.logtrace<true>(LogLevel(j), LOC, i, "{} + {}", 2, 3);
+        }
+        for(int i = 0; i < 10; i++) {
+            logger.logtrace<false>(LogLevel(j), LOC, 9 - i, "{} + {}", 2, 3);
+        }
+    }
 }
 
 #endif

@@ -108,6 +108,8 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
     bool                                  eager = false;
     ExprContext                           expr_context = ExprContext::Load;
 
+    Logger& semalog = lython::outlog();
+
     // Should I remove the types for the runtime info
     // the type can have their own query struct 
     // which might or might not be included in the final binary
@@ -152,7 +154,7 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
         exception->set_node(node);
 
         // use the LOC from parent function
-        lython::log(lython::LogLevel::Error, loc, "{}", exception->what());
+        lython::outlog().log(lython::LogLevel::Error, loc, "{}", exception->what());
     }
 
 #define SEMA_ERROR(expr, exception, ...) sema_error<exception>(expr, LOC, __VA_ARGS__)

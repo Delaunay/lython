@@ -18,7 +18,7 @@ struct Equality {
     bool exec(Exported const& a, Exported const& b) { return exec(a.node, b.node); }
 
     bool exec(MatchCase const& a, MatchCase const& b, int depth) {
-        kwtrace(depth, "MatchCase");
+        kwtrace(outlog(), depth, "MatchCase");
         return exec(a.pattern, b.pattern, depth) && exec(a.guard, b.guard, depth) &&
                exec(a.body, b.body, depth);
     }
@@ -106,7 +106,7 @@ struct Equality {
     }
 
     bool exec(ModNode* a, ModNode* b, int depth) {
-        kwtrace(depth, "{}", str(a->kind));
+        kwtrace(outlog(), depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
             return false;
@@ -139,7 +139,7 @@ struct Equality {
     }
 
     bool exec(Pattern* a, Pattern* b, int depth) {
-        kwtrace(depth, "{}", str(a->kind));
+        kwtrace(outlog(), depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
             return false;
@@ -177,7 +177,7 @@ struct Equality {
         if (a == nullptr || b == nullptr) {
             return false;
         }
-        kwtrace(depth, "{}", str(a->kind));
+        kwtrace(outlog(), depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
             return false;
@@ -209,7 +209,7 @@ struct Equality {
     }
 
     bool exec(StmtNode* a, StmtNode* b, int depth) {
-        kwtrace(depth, "{}", str(a->kind));
+        kwtrace(outlog(), depth, "{}", str(a->kind));
 
         if (a->kind != b->kind) {
             return false;
@@ -276,7 +276,7 @@ struct Equality {
     }
 
     bool builtintype(BuiltinType* a, BuiltinType* b, int depth) {
-        kwdebug("{} {} {}", a->name, b->name, exec(a->name, b->name, depth));
+        kwdebug(outlog(), "{} {} {}", a->name, b->name, exec(a->name, b->name, depth));
         return exec(a->name, b->name, depth);
     }
     bool functiondef(FunctionDef* a, FunctionDef* b, int depth) {

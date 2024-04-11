@@ -12,6 +12,7 @@
 #include "cli/commands/profile.h"
 #include "cli/commands/tests.h"
 #include "cli/commands/vm.h"
+#include "cli/commands/repl.h"
 
 #include "utilities/metadata.h"
 #include "utilities/names.h"
@@ -38,6 +39,7 @@ int main(int argc, const char* argv[]) {
     auto tests    = std::make_unique<TestsCmd>();
     auto internal = std::make_unique<InternalCmd>();
     auto vm       = std::make_unique<VMCmd>();
+    auto repl       = std::make_unique<ReplCmd>();
 
     // There is a problem when putting unique ptr inside the array :/
     Array<Command*> commands = {
@@ -51,6 +53,7 @@ int main(int argc, const char* argv[]) {
         tests.get(),
         internal.get(),
         vm.get(),
+        repl.get(),
     };
 
     // Main Parser

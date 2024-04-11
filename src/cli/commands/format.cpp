@@ -70,7 +70,7 @@ int FormatCmd::main(argparse::ArgumentParser const& args) {
         find_regular_files(path, extensions, regular_files);
     }
 
-    kwinfo("Found {} files", regular_files.size());
+    kwinfo(outlog(), "Found {} files", regular_files.size());
 
     bool ast = args.get<bool>("--ast");
     if (args.get<bool>("fuzz")) {
