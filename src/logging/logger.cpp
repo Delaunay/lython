@@ -94,7 +94,7 @@ void Logger::disable(LogLevel level) {
 const char* log_level_str[] = {
     "[T] TRACE", "[D] DEBUG", "[I]  INFO", "/!\\  WARN", "[E] ERROR", "[!] FATAL", ""};
 
-char const* log_short[6] = {
+std::string log_short[6] = {
     "[!]",
     "[E]",
     "[W]",
@@ -103,7 +103,7 @@ char const* log_short[6] = {
     "[T]"
 };
 
-fmt::string_view logshort(LogLevel level) {
+std::string const& logshort(LogLevel level) {
     assert(int(level) < 6);
     return log_short[int(level)];
 }
@@ -127,9 +127,7 @@ std::string format_function(std::string const& fun) {
 LogSystem::LogSystem() {
     outputs.push_back(std::make_unique<Stdout>());
     outputs.push_back(std::make_unique<Stderr>());
-
 }
-
 
 Logger& new_log(std::string const& name) {
     auto& loggers = LogSystem::system().loggers;
@@ -142,7 +140,6 @@ Logger& new_log(std::string const& name) {
     loggers.push_back(std::make_unique<Logger>(name));
     return new_log(name);
 }
-
 
 Logger& new_stdout_log(std::string const& name) {
     Logger& log = new_log(name);

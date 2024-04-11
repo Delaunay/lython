@@ -256,13 +256,11 @@ Token Parser::parse_body(Node* parent, Array<StmtNode*>& out, int depth) {
     TRACE_START();
 
     while (!in(token().type(), tok_desindent, tok_eof)) {
-        std::cout << int(token().type()) << std::endl;
         
         if (StmtNode* stmt = parse_one(parent, depth)) {
             out.push_back(stmt);
             continue;
         }
-        std::cout << "HERE" << std::endl;
     }
 
     if (out.size() <= 0) {

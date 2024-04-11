@@ -299,11 +299,11 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
     Lexer        lex(reader);
     Parser       parser(lex);
 
-    kwinfo("{}", "Parse");
+    kwinfo(outlog(), "{}", "Parse");
     mod = parser.parse_module();
     lyassert(mod->body.size() > 0, "Should parse more than one expression");
 
-    kwinfo("{}", "Sema");
+    kwinfo(outlog(), "{}", "Sema");
 
     ImportLib::instance()->add_to_path(test_modules_path());
 
@@ -321,7 +321,7 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
 }
 
 void run_testcase(String const& name, Array<TestCase> cases) {
-    kwinfo("Testing {}", name);
+    kwinfo(outlog(), "Testing {}", name);
 
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
@@ -344,7 +344,7 @@ void run_testcase(String const& name, Array<TestCase> cases) {
         }
         delete mod;
 
-        kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+        kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
         i += 1;
     }
 }

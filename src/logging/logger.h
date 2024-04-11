@@ -23,12 +23,14 @@ enum class LogLevel {
     All
 };
 
-fmt::string_view logshort(LogLevel level);
+std::string const& logshort(LogLevel level);
 
 // remove namespace info
 std::string format_function(std::string const&);
 
-using FormatBuffer = std::vector<char>;
+// using FormatBuffer = std::vector<char>;
+using FormatBuffer = fmt::memory_buffer;
+
 
 struct Output {
     virtual void write(FormatBuffer const& msg) = 0;
@@ -84,16 +86,15 @@ struct Logger {
         if (is_enabled(level)) {
             buffer.clear();
             buffer.reserve(fmt::formatted_size(fmtstr, args...));
-            fmt::vformat_to(
+            fmt::format_to(
                 std::back_inserter(buffer), 
                 fmt::format("{}{}", "{} {} {}:{} {} - ", fmtstr), 
-                fmt::make_format_args(
-                    logshort(level),
-                    name,
-                    loc.filename,
-                    loc.line,
-                    format_function(loc.function_name),
-                    args...)
+                logshort(level),
+                name,
+                loc.filename,
+                loc.line,
+                format_function(loc.function_name),
+                args...
             );
             push(buffer);
             buffer.clear();
@@ -115,16 +116,15 @@ struct Logger {
                 depthstr[i] = i % 2 ? '|' : ':';
             }
                         
-            fmt::vformat_to(
+            fmt::format_to(
                 std::back_inserter(buffer), 
                 fmt::format("{}{}", base, fmtstr), 
-                fmt::make_format_args(
-                    logshort(level),
-                    name,
-                    format_function(loc.function_name),
-                    loc.line,
-                    depthstr,
-                    args...)
+                logshort(level),
+                name,
+                format_function(loc.function_name),
+                loc.line,
+                depthstr,
+                args...
             );
             push(buffer);
             buffer.clear();

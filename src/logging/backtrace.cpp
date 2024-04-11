@@ -95,14 +95,14 @@ void show_backtrace() {
     int                      i       = 0;
     for (auto& sym: symbols) {
         i += 1;
-        spdlog_log(LogLevel::Error, fmt::format(" TB {:2} -> {}", i, sym));
+        outlog().err(CodeLocation::noloc(), " TB {:2} -> {}", i, sym);
     }
 }
 
 [[noreturn]] void signal_handler(int sig) {
-    spdlog_log(LogLevel::Fatal, fmt::format("Received signal {} >>>", sig));
+    outlog().fatal(CodeLocation::noloc(), "Received signal {} >>>", sig);
     show_backtrace();
-    spdlog_log(LogLevel::Fatal, "<<< Exiting");
+    outlog().fatal(CodeLocation::noloc(), "<<< Exiting");
     exit(1);
 }
 

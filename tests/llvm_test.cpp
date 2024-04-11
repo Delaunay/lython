@@ -35,9 +35,9 @@ llvm_codegen_it(llvm::raw_fd_ostream& out, String const& code, String const& exp
 
     std::cout << code << std::endl;
 
-    kwdebug("Code:\n{}", code.c_str());
-    kwdebug("Expr: {}", expr.c_str());
-    kwdebug("{}", "Parse");
+    kwdebug(outlog(), "Code:\n{}", code.c_str());
+    kwdebug(outlog(), "Expr: {}", expr.c_str());
+    kwdebug(outlog(), "{}", "Parse");
 
     mod = parser.parse_module();
     lyassert(mod->body.size() > 0, "Should parse more than one expression");
@@ -46,7 +46,7 @@ llvm_codegen_it(llvm::raw_fd_ostream& out, String const& code, String const& exp
         return "bad_parse";
     }
 
-    kwinfo("{}", "Sema");
+    kwinfo(outlog(), "{}", "Sema");
     ImportLib::instance()->add_to_path(test_modules_path());
     SemanticAnalyser sema;
     // sema.paths.push_back(test_modules_path());
@@ -81,7 +81,7 @@ llvm_codegen_it(llvm::raw_fd_ostream& out, String const& code, String const& exp
     if (sema.has_errors()) {
         return "bad_sema";
     }
-    kwinfo("{}", "Eval");
+    kwinfo(outlog(), "{}", "Eval");
 
     LLVMGen generator;
     generator.exec(mod, 0);
@@ -107,7 +107,7 @@ llvm_codegen_it(llvm::raw_fd_ostream& out, String const& code, String const& exp
 }
 
 void run_testcases(String const& name, Array<VMTestCase> const& cases) {
-    kwinfo("Testing {}", name);
+    kwinfo(outlog(), "Testing {}", name);
 
     if (cases.size() <= 0) {
         return;
@@ -162,7 +162,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
 
             // FIXME: check for correctness
             delete mod;
-            kwinfo("<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+            kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
             i += 1;
         }
     }

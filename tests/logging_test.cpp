@@ -21,7 +21,7 @@ using namespace lython;
 // --
 
 void fail(int signal) {
-    kwinfo("handling signal {}", signal);
+    kwinfo(outlog(), "handling signal {}", signal);
     raise(signal);
 }
 
@@ -103,7 +103,7 @@ bool check_signal(int signal, std::string const& value) {
 
     auto output = CHECK_ABORT(fail, signal);
 
-    kwinfo("{}", output);
+    kwinfo(outlog(), "{}", output);
 
     return std::regex_search(output, regex);
 }
