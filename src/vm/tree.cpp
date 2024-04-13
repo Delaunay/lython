@@ -7,24 +7,51 @@
 
 #include "vm/tree.h"
 
-#define EXEC_BODY(body)             \
-    for (StmtNode * stmt: (body)) { \
-        exec(stmt, depth);          \
-                                    \
-        if (has_exceptions()) {     \
-            return Value();          \
-        }                           \
-                                    \
-        if (has_returned()) {       \
-            return returned();      \
-        }                           \
+
+
+
+#define EXEC_BODY(body, start)                      \
+    ExecBlock& _block = blockstacks.emplace_back();  \
+    _block.block = (body);                           \
+    AutoPop _auto_ ## __LINE__ (blockstacks);        \
+    for (int i = start; i < body.size(); i++) {     \
+        _block.i = i;                                \
+        StmtNode* stmt  = body[i];                  \
+        exec(stmt, depth);              \
+                                        \
+        if (has_exceptions()) {         \
+            return Value();             \
+        }                               \
+                                        \
+        if (has_returned()) {           \
+            return returned();          \
+        }                               \
     }
 
 struct EvaluationResult {};
 
 namespace lython {
+
+struct AutoPop {
+AutoPop(Array<ExecBlock>& blocks):
+    blocks(blocks)
+    {}
+
+    ~AutoPop() {
+        blocks.pop_back();
+    }
+
+Array<ExecBlock>& blocks;
+};
+
 Value TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth) {
-    for (StmtNode* stmt: body) {
+    ExecBlock& block = blockstacks.emplace_back();
+    block.block = newbod;
+    AutoPop _(blockstacks);
+
+    for (int i = 0; i < body.size(); i++) {
+        block.i = i;
+        StmtNode* stmt  = body[i];
         Value result = exec(stmt, depth);
 
         // if (result->family() == NodeFamily::Statement) {
@@ -374,7 +401,7 @@ Value TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function, int dept
     }
 
     partial.push_back(partial_call);
-    EXEC_BODY(function->body);
+    EXEC_BODY(function->body, 0);
     partial.pop_back();
     return returned();
 }
@@ -573,19 +600,24 @@ Value TreeEvaluator::make(ClassDef* class_t, Array<Value> args, int depth) {
 }
 
 Value TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
-    // Generator* gen = root.new_object<Generator>();
-    // gen->scope     = bindings;
+    Generator* gen = root.new_object<Generator>();
+    gens.push_back(gen);
+    
 
-    // for (int i = 0; i < call->args.size(); i++) {
-    //     Value arg = exec(call->args[i], depth);
-    //     gen->scope.add(StringRef(), arg, nullptr);
-    // }
+    // insert arguments to the context
+    for (int i = 0; i < call->args.size(); i++) {
+        Value arg = exec(call->args[i], depth);
 
-    // Constant* val = root.new_object<Constant>();
-    // val->value    = ConstantValue(gen);
+        StringRef arg_name = n->args.args[i].arg;
+        add_variable(arg_name, arg);
+    }
 
-    // return val;
-    return nullptr;
+    // execute the body
+    EXEC_BODY(n->body, 0);
+
+    gens.pop_back();
+    auto [v, _] = make_value<Generator*>(gen);
+    return v;
 }
 
 Value TreeEvaluator::call(Call_t* n, int depth) {
@@ -676,7 +708,7 @@ Value TreeEvaluator::name(Name_t* n, int depth) {
 Value TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
     // this should not be called
     // return_value = nullptr;
-    // EXEC_BODY(n->body);
+    // EXEC_BODY(n->body, 0);
     auto [v, _] = make_value<Node*>(n);
     add_variable(n->name, v);
     return v;
@@ -868,7 +900,7 @@ Value TreeEvaluator::forstmt(For_t* n, int depth) {
         }
     }
 
-    EXEC_BODY(n->orelse);
+    EXEC_BODY(n->orelse, 0);
     return Value();
 }
 Value TreeEvaluator::whilestmt(While_t* n, int depth) {
@@ -915,7 +947,7 @@ Value TreeEvaluator::whilestmt(While_t* n, int depth) {
         }
     }
 
-    EXEC_BODY(n->orelse);
+    EXEC_BODY(n->orelse, 0);
     return Value();
 }
 
@@ -934,7 +966,7 @@ Value TreeEvaluator::ifstmt(If_t* n, int depth) {
             }
         }
 
-        EXEC_BODY(body);
+        EXEC_BODY(body, 0);
 
         return Value();
     }
@@ -947,7 +979,7 @@ Value TreeEvaluator::ifstmt(If_t* n, int depth) {
         body = n->body;
     }
 
-    EXEC_BODY(body);
+    EXEC_BODY(body, 0);
     return Value();
 }
 
@@ -1002,7 +1034,7 @@ Value TreeEvaluator::continuestmt(Continue_t* n, int depth) {
 
 Value TreeEvaluator::inlinestmt(Inline_t* n, int depth) {
 
-    EXEC_BODY(n->body);
+    EXEC_BODY(n->body, 0);
 
     return Value();
 }
@@ -1028,8 +1060,9 @@ Value TreeEvaluator::raise(Raise_t* n, int depth) {
 
 Value TreeEvaluator::trystmt(Try_t* n, int depth) {
 
-    EXEC_BODY(n->body);
-
+{
+    EXEC_BODY(n->body, 0);
+}
     if (has_exceptions()) {
         // start handling all the exceptions we received
         auto _ = HandleException(this);
@@ -1069,7 +1102,7 @@ Value TreeEvaluator::trystmt(Try_t* n, int depth) {
                 add_variable(matched->name.value(), &exception);
             }
 
-            EXEC_BODY(matched->body);
+            EXEC_BODY(matched->body, 0);
 
             // Exception was handled!
             exceptions.pop_back();
@@ -1079,13 +1112,14 @@ Value TreeEvaluator::trystmt(Try_t* n, int depth) {
         // leave the exception as is so we continue moving back
 
     } else {
-        EXEC_BODY(n->orelse);
+        EXEC_BODY(n->orelse, 0);
     }
 
     auto _ = HandleException(this);
 
-    EXEC_BODY(n->finalbody);
-
+{
+    EXEC_BODY(n->finalbody, 0);
+}
     // we are not handling exception anymore
     handling_exceptions = 0;
 
@@ -1131,7 +1165,7 @@ Value TreeEvaluator::with(With_t* n, int depth) {
         add_variable(name, result);
     }
 
-    EXEC_BODY(n->body);
+    EXEC_BODY(n->body, 0);
 
     // Call exit regardless of exception status
     auto _ = HandleException(this);
@@ -1180,6 +1214,11 @@ Value TreeEvaluator::dictcomp(DictComp_t* n, int depth) { return nullptr; }
 Value TreeEvaluator::yield(Yield_t* n, int depth) {
     if (n->value.has_value()) {
         auto value = exec(n->value.value(), depth);
+
+        Generator* gen = (*gens.rbegin());
+        gen->blocks = blockstacks;
+        gen->environment = variables;
+
         // Get the top level functions and create a lambda
         yielding     = true;
         return_value = value;
@@ -1360,6 +1399,29 @@ int TreeEvaluator::eval() {
     // }
     // }
     return 0;
+}
+
+Value TreeEvaluator::resume(Generator* n, int depth) { 
+    Array<ExecBlock>& blocks = n->blocks;
+    int k = int(blocks.size()) - 1;
+    gens.emplace_back(n);
+
+    std::swap(variables, n->environment);
+
+    auto fun = [&]() {
+        for(; k >= 0; k--) {
+            ExecBlock& block = blocks[k];
+
+            EXEC_BODY(block.block, block.i);
+        }
+        return Value();
+    };
+
+    Value v = fun();
+    n->blocks.erase(n->blocks.begin() + k, n->blocks.end());
+    gens.pop_back();
+    std::swap(variables, n->environment);
+    return v; 
 }
 
 }  // namespace lython
