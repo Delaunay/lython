@@ -92,6 +92,26 @@ String strip(String const& v) {
     return result;
 }
 
+
+String strip_repeating(char c, String const& s) 
+{    
+    String cleaned;
+    cleaned.reserve(s.size());
+    int repeating = 0;
+    for(auto elem: s) {
+        if (elem == c) {
+            repeating += 1;
+        } else {
+            repeating = 0;
+        }
+        if (repeating <= 1) {
+            cleaned.push_back(elem);
+        }
+    }
+    return cleaned;
+}
+
+
 Array<String> split(char sep, String const& text) {
     int count = 1;
     for (auto c: text) {

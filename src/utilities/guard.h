@@ -3,19 +3,39 @@
 
 namespace lython {
 // Execute function upon destruction
-template <typename Exit>
+template <typename Exit, typename... Args>
 struct Guard {
-    Guard(Exit fun): on_exit(fun) {}
+    Guard(Exit fun, Args... args): fun_args(std::make_tuple(args...)), on_exit(fun) {}
 
-    ~Guard() { on_exit(); }
+    ~Guard() { 
+        std::apply(on_exit, fun_args);
+    } 
 
+    Tuple<Args...> fun_args;
     Exit on_exit;
 };
 
-template <typename Exit>
-Guard<Exit> guard(Exit fun) {
-    return Guard(fun);
+template <typename Exit, typename... Args>
+Guard<Exit, Args...> guard(Exit fun, Args... args) {
+    return Guard<Exit, Args...>(fun, args...);
 }
+
+#define KW_STR_(x, y) x ## y
+#define KW_STR(x, y) KW_STR_(x, y)
+#define KW_IDT(name) KW_STR(name, __LINE__)
+
+#define KW_DEFERRED(fun, ...) \
+    auto KW_IDT(_) = guard(fun, __VA_ARGS__);
+
+template<typename T>
+struct ElementProxy {
+    int i;
+    Array<T>* holder;
+
+    T& operator->() {
+        return (*holder)[i];
+    }
+};
 
 template <typename T, typename U>
 struct PopGuard {

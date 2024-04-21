@@ -328,23 +328,26 @@ void run_testcase(String const& name, Array<TestCase> cases) {
 
     int i = 0;
     for (auto& c: cases) {
-        Module* mod;
-
         StringStream ss;
-        ss << "_" << i;
+        ss << name << "_" << i;
+        String filename = ss.str();
+        write_fuzz_file(ss.str(), c.code);
 
-        write_fuzz_file(name + ss.str(), c.code);
+        SECTION(filename.c_str()) {
+            Module* mod;
 
-        std::tie(deduced_type, errors) = sema_it(c.code, mod);
+            std::tie(deduced_type, errors) = sema_it(c.code, mod);
 
-        REQUIRE(errors == c.errors);
+            REQUIRE(errors == c.errors);
 
-        if (c.expected_type != "") {
-            REQUIRE(c.expected_type == str(deduced_type));
+            if (c.expected_type != "") {
+                REQUIRE(c.expected_type == str(deduced_type));
+            }
+            delete mod;
+
+            kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+            
         }
-        delete mod;
-
-        kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
         i += 1;
     }
 }

@@ -1601,10 +1601,18 @@ TypeExpr* SemanticAnalyser::annassign(AnnAssign* n, int depth) {
     return constraint;
 }
 TypeExpr* SemanticAnalyser::forstmt(For* n, int depth) {
-    auto* iter_t = exec(n->iter, depth);
+    // This assume a function call
+    // type could be an object with a __iter__ + __next__
+    auto* iter_return_t = exec(n->iter, depth);
 
-    // TODO: use iter_t to set target types
-    exec_with_ctx(ExprContext::Store, n->target, depth);
+    // exec_with_ctx(ExprContext::Store, n->target, depth);
+
+    // Handle unpacking here
+    if (Name* name = cast<Name>(n->target)) {
+        add_name(name, nullptr, iter_return_t);
+    }
+
+    // kwdebug(semalog, "iter type: {}: {}", str(n->iter), str(iter_t));
 
     // TODO: check consistency of return types
     auto return_t1 = exec<TypeExpr*>(n->body, depth);

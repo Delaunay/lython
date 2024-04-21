@@ -19,7 +19,6 @@ struct fmt::formatter<lython::StringRef>: formatter<string_view> {
     }
 };
 
-
 template <>
 struct fmt::formatter<lython::NodeKind>: formatter<string_view> {
     auto format(lython::NodeKind c, format_context& ctx) const {

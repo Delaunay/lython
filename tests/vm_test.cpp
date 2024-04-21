@@ -15,6 +15,7 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 
+#include "libtest.h"
 #include "cases_vm.h"
 
 using namespace lython;
@@ -141,432 +142,148 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     return partial;
 }
 
-void run_test_case(String const& code, String const& expr, String const& expected) {
+
+
+void run_test_case(VMTestCase const& testcase) {
     Module* mod = nullptr;
 
-    auto result = eval_it(code, expr, mod);
+    auto result = eval_it(testcase.code, testcase.call, mod);
 
     delete mod;
-    REQUIRE(result == expected);
+    REQUIRE(result == testcase.expected_type);
+}
+
+
+void run_test_case(String const& code, String const& expr, String const& expected) {
+    VMTestCase original(code, expr, expected);
+    run_test_case(original);
+}
+
+void run_vm_testcases(String const& name, Array<VMTestCase> const& cases) {
+    kwinfo(outlog(), "Testing {}", name);
+
+    transition("vm", name, cases);
+
+    int i = 0;
+    for (auto& c: cases) {
+        SECTION(c.name.c_str()) {
+            Module* mod;
+
+            String result = eval_it(c.code, c.call, mod);
+
+            REQUIRE(result == c.expected_type);
+
+            delete mod;
+
+            kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
+            i += 1;
+        }
+    }
 }
 
 #ifndef EXPERIMENT
 
+
 TEST_CASE("VM_FunctionDef") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return a\n",
-                  "fun(1)",
-                  "1");
+    run_vm_testcases("VM_FunctionDef", get_test_cases("vm", "VM_FunctionDef"));
 }
 
-TEST_CASE("VM_FunctionDef_with_temporaries") {
-    run_test_case("def fun(a: i32, b: i32) -> i32:\n"
-                  "    b += 1\n"
-                  "    if a == 0:\n"
-                  "        return b\n"
-                  "    return fun(a - 1, b)\n",
-                  "fun(10, 0)",
-                  "11");
+TEST_CASE("VM_BinOp") {
+    run_vm_testcases("VM_BinOp", get_test_cases("vm", "VM_BinOp"));
 }
 
-TEST_CASE("VM_FunctionDef_recursive") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    if a == 0:\n"
-                  "        return 0\n"
-                  "    return fun(a - 1) + 1\n",
-                  "fun(10)",
-                  "10");
+TEST_CASE("VM_Bool") {
+    run_vm_testcases("VM_Bool", get_test_cases("vm", "VM_Bool"));
 }
 
-TEST_CASE("VM_BinOp_Add_i32") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return a + 1\n",
-                  "fun(1)",
-                  "2");
+TEST_CASE("VM_Compare") {
+    run_vm_testcases("VM_Compare", get_test_cases("vm", "VM_Compare"));
 }
 
-TEST_CASE("VM_BoolAnd_True") {
-    run_test_case("def fun() -> bool:\n"
-                  "    return (1 < 2) and (2 < 3)\n",
-                  "fun()",
-                  "True");
+TEST_CASE("VM_IfStmt") {
+    run_vm_testcases("VM_IfStmt", get_test_cases("vm", "VM_IfStmt"));
 }
 
-TEST_CASE("VM_BoolAnd_False") {
-    run_test_case("def fun() -> bool:\n"
-                  "    return (1 > 2) and (2 > 3)\n",
-                  "fun()",
-                  "False");
+TEST_CASE("VM_assert") {
+    run_vm_testcases("VM_assert", get_test_cases("vm", "VM_assert"));
 }
 
-TEST_CASE("VM_Compare_True") {
-    run_test_case("def fun() -> bool:\n"
-                  "    return 1 < 2 < 3 < 4 < 5\n",
-                  "fun()",
-                  "True");
-}
-
-TEST_CASE("VM_Compare_False") {
-    run_test_case("def fun() -> bool:\n"
-                  "    return 1 > 2 > 3 > 4 > 5\n",
-                  "fun()",
-                  "False");
-}
-
-TEST_CASE("VM_IfStmt_True") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    if a > 0:\n"
-                  "        return 1\n"
-                  "    else:\n"
-                  "        return 2\n",
-                  "fun(1)",
-                  "1");
-}
-
-TEST_CASE("VM_assert_True") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    assert True, \"all good\"\n"
-                  "    return 1\n",
-                  "fun(0)",
-                  "1");
-}
-
-// FIXME: tree should raise exception
-// Traceback (most recent call last):
-//   File "main.py", line 7, in <module>
-//     fun(0)
-//   File "main.py", line 5, in fun
-//     assert False, "false"
-// AssertionError: false
-TEST_CASE("VM_assert_False") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    assert False, \"Very bad\"\n"
-                  "    return 1\n",
-                  "fun(0)",
-                  "Traceback (most recent call last):\n"
-                  "  File \"<input>\", line -2, in <module>\n"
-                  "    fun(0)\n"
-                  "  File \"<input>\", line 2, in fun\n"
-                  "    assert False, \"Very bad\"\n"
-                  "AssertionError: Very bad\n");
-}
-
-TEST_CASE("VM_IfStmt_False") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    if a > 0:\n"
-                  "        return 1\n"
-                  "    else:\n"
-                  "        return 2\n",
-                  "fun(0)",
-                  "2");
-}
-
-TEST_CASE("VM_UnaryOp_USub_i32") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return - a\n",
-                  "fun(-1)",
-                  "1");
+TEST_CASE("VM_UnaryOp") {
+    run_vm_testcases("VM_UnaryOp", get_test_cases("vm", "VM_UnaryOp"));
 }
 
 TEST_CASE("VM_assign") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    b = 3\n"
-                  "    b = a * b\n"
-                  "    return b\n"
-                  "",
-                  "fun(2)",
-                  "6");
+    run_vm_testcases("VM_assign", get_test_cases("vm", "VM_assign"));
 }
 
 TEST_CASE("VM_pass") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    while False:\n"
-                  "        pass\n"
-                  "    return 0\n",
-                  "fun(0)",
-                  "0");
+    run_vm_testcases("VM_pass", get_test_cases("vm", "VM_pass"));
 }
 
 TEST_CASE("VM_inline_stmt") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    a += 1; return a\n",
-                  "fun(0)",
-                  "1");
+    run_vm_testcases("VM_inline_stmt", get_test_cases("vm", "VM_inline_stmt"));
 }
 
-TEST_CASE("VM_exception_stop_recursion") {
-    const char* result = 
-        "Traceback (most recent call last):\n"
-        "  File \"<input>\", line -2, in <module>\n"
-        "    fun(2)\n"
-        "  File \"<input>\", line 4, in fun\n"
-        "    return fun(a - 1)\n"
-        "  File \"<input>\", line 4, in fun\n"
-        "    return fun(a - 1)\n"
-        "  File \"<input>\", line 3, in fun\n"
-        "    assert False, \"Very bad\"\n"
-        "AssertionError: Very bad\n"
-    ;
-
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    if a == 0:\n"
-                  "        assert False, \"Very bad\"\n"
-                  "    return fun(a - 1)\n",
-                  "fun(2)",
-                  result);
+TEST_CASE("VM_exception") {
+    run_vm_testcases("VM_exception", get_test_cases("vm", "VM_exception"));
 }
 
-TEST_CASE("VM_exception_stop_loop") {
-    const char* result = 
-        "Traceback (most recent call last):\n"
-        "  File \"<input>\", line -2, in <module>\n"
-        "    fun(2)\n"
-        "  File \"<input>\", line 3, in fun\n"
-        "    assert False, \"Very bad\"\n"
-        "AssertionError: Very bad\n";
-  
-
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    while True:\n"
-                  "        assert False, \"Very bad\"\n"
-                  "    return 1\n",
-                  "fun(2)",
-                  result);
-}
-
-TEST_CASE("VM_raise") {
-    // This fails because of SEMA, we need a real exception
-    // run_test_case(
-    //     "def fun(a: i32) -> i32:\n"
-    //     "    raise 'Ohoh'\n"
-    //     "    return a\n",
-    //     "fun(-1)",
-    //     "1"
-    // );
-}
-
-TEST_CASE("VM_Try_AllGood") {
-    // Increase once in try
-    // another inside the else (no exception)
-    // and final one inside the finally
-    /*
-    run_test_case(
-        "def fun(a: i32) -> i32:\n"
-        "    try:\n"
-        "        a += 1\n"
-        "    except:\n"
-        "        a += 1\n"
-        "    else:\n"
-        "        a += 1\n"
-        "    finally:\n"
-        "        a += 1\n",
-        "    return a\n"
-        "fun(0)",
-        "3"
-    );
-    //*/
-}
-
-TEST_CASE("VM_Aug_Add_i32") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    a += 1\n"
-                  "    return a\n",
-                  "fun(0)",
-                  "1");
+TEST_CASE("VM_AugAssign") {
+    run_vm_testcases("VM_AugAssign", get_test_cases("vm", "VM_AugAssign"));
 }
 
 TEST_CASE("VM_While") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    b = 0\n"
-                  "    while a > 0:\n"
-                  "        a -= 1\n"
-                  "        b += 2\n"
-                  "    return b\n"
-                  "",
-
-                  "fun(2)",
-                  "4");
-}
-
-// TEST_CASE("VM_yield_for_generator") {
-//     run_test_case("def range(a: i32) -> i32:\n"
-//                   "    b = 0\n"
-//                   "    while b < a:\n"
-//                   "        yield b\n"
-//                   "        b += 1\n"
-//                   "    \n"
-//                   "\n"
-//                   "def fun(a: i32) -> i32:\n"
-//                   "    s = 0\n"
-//                   "    for i in range(a):\n"
-//                   "        s += i\n"
-//                   "    return s\n"
-//                   "",
-
-//                   "fun(2)",
-//                   "3");
-// }
-
-TEST_CASE("VM_While_break") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    b = 0\n"
-                  "    while a > 0:\n"
-                  "        a -= 1\n"
-                  "        b += 1\n"
-                  "        break\n"
-                  "        b += 1\n"
-                  "    return b\n"
-                  "",
-
-                  "fun(10)",
-                  "1");
-}
-
-TEST_CASE("VM_While_continue") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    b = 0\n"
-                  "    while a > 0:\n"
-                  "        a -= 1\n"
-                  "        b += 1\n"
-                  "        continue\n"
-                  "        b += 1\n"
-                  "    return b\n"
-                  "",
-
-                  "fun(10)",
-                  "10");
+    run_vm_testcases("VM_While", get_test_cases("vm", "VM_While"));
 }
 
 TEST_CASE("VM_AnnAssign") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    b: i32 = 3\n"
-                  "    b: i32 = a * b\n"
-                  "    return b\n"
-                  "",
-                  "fun(2)",
-                  "6");
+    run_vm_testcases("VM_AnnAssign", get_test_cases("vm", "VM_AnnAssign"));
 }
 
-TEST_CASE("VM_ifexp_True") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return 1 if a > 0 else 0\n"
-                  "",
-                  "fun(2)",
-                  "1");
+TEST_CASE("VM_ifexp") {
+    run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp"));
 }
-
-TEST_CASE("VM_ifexp_False") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    return 1 if a > 0 else 0\n"
-                  "",
-                  "fun(-2)",
-                  "0");
-}
-
-// TEST_CASE("VM_ifexp_ext_True") {
-//     // FIXME: wrong syntax
-//     run_test_case("def fun(a: i32) -> i32:\n"
-//                   "    return if a > 0: 1 else 0\n"
-//                   "",
-//                   "fun(2)",
-//                   "1");
-// }
-
-// TEST_CASE("VM_ifexp_ext_False") {
-//     // FIXME: wrong syntax
-//     run_test_case("def fun(a: i32) -> i32:\n"
-//                   "    return if a > 0: 1 else 0\n"
-//                   "",
-//                   "fun(-2)",
-//                   "0");
-// }
 
 TEST_CASE("VM_NamedExpr") {
-    run_test_case("def fun(a: i32) -> i32:\n"
-                  "    if (b := a + 1) > 0:\n"
-                  "        return b\n"
-                  "    return 0\n"
-                  "",
-                  "fun(0)",
-                  "1");
+    run_vm_testcases("VM_NamedExpr", get_test_cases("vm", "VM_NamedExpr"));
 }
 
 TEST_CASE("VM_ClassDef") {
-    run_test_case("class Point:\n"
-                  "    def __init__(self, x: f64, y: f64):\n"
-                  "        self.x = x\n"
-                  "        self.y = y\n"
-                  "\n",
-                  "Point(1.0, 2.0)",
-                  "(x=1.0, y=2.0)");  // Generates a tuple
+    run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef"));
 }
 
-TEST_CASE("VM_ClassDef_2") {
-    run_test_case("class Point:\n"
-                  "    def __init__(self, x: f64, y: f64):\n"
-                  "        self.x = x\n"
-                  "        self.y = y\n"
-                  "\n"
-                  "def fun(p: Point) -> f64:\n"
-                  "    return p.x + p.y\n"
-                  "",
-                  "fun(Point(1.0, 2.0))",
-                  "3.0");
+TEST_CASE("VM_Generator") {
+    run_vm_testcases("VM_Generator", get_test_cases("vm", "VM_Generator"));
 }
 
 #endif
 
-void run_testcases(String const& name, Array<VMTestCase> const& cases) {
-    kwinfo(outlog(), "Testing {}", name);
 
-    Array<String> errors;
-    TypeExpr*     deduced_type = nullptr;
+// TEST_CASE("VM_native_object") { run_test_case("", "get_x(name(1, 2))", "1"); }
 
-    int i = 0;
-    for (auto& c: cases) {
-        Module* mod;
+// TEST_CASE("VM_native_function") { run_test_case("", "add(1.0, 2.0)", "3.0"); }
 
-        StringStream ss;
-        ss << "_" << i;
+// TEST_CASE("VM_native_module") {
+//     run_test_case("from nmodule import native_add", "native_add(1, 2)", "3");
+// }
 
-        // write_fuzz_file(name + ss.str(), c.code);
-        String result = eval_it(c.code, c.call, mod);
+// TEST_CASE("VM_native_module_object") {
+//     run_test_case("from nmodule import Point", "Point(1, 2).y", "2");
+// }
 
-        // REQUIRE(errors == c.errors);
+// #if 1
+// TEST_CASE("VM_native_module_object_method") {
 
-        if (c.expected_type != "") {
-            REQUIRE(c.expected_type == str(deduced_type));
-        }
-        delete mod;
+//     run_test_case("from nmodule import Point", "Point(1, 2).add(Point(1, 2)).y", "4");
+// }
+// #endif
 
-        kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
-        i += 1;
-    }
-}
 
-TEST_CASE("VM_native_object") { run_test_case("", "get_x(name(1, 2))", "1"); }
-
-TEST_CASE("VM_native_function") { run_test_case("", "add(1.0, 2.0)", "3.0"); }
-
-TEST_CASE("VM_native_module") {
-    run_test_case("from nmodule import native_add", "native_add(1, 2)", "3");
-}
-
-TEST_CASE("VM_native_module_object") {
-    run_test_case("from nmodule import Point", "Point(1, 2).y", "2");
-}
-
-#if 1
-TEST_CASE("VM_native_module_object_method") {
-
-    run_test_case("from nmodule import Point", "Point(1, 2).add(Point(1, 2)).y", "4");
-}
-#endif
 
 #if EXPERIMENTAL_TESTS
 #define GENTEST(name)                                                   \
     TEMPLATE_TEST_CASE("VM_" #name, #name, name) {                      \
-        run_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
+        run_vm_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
     }
 
 #define X(name, _)
