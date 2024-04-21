@@ -5,19 +5,12 @@
 #include "dtypes.h"
 #include "parser/parsing_error.h"
 
+#include "libtest.h"
+
 #include <catch2/catch_all.hpp>
 #include <sstream>
 
 using namespace lython;
-
-struct TestCase {
-    TestCase(String const &c, Array<String> const &u = Array<String>(), String const &t = ""):
-        code(c), errors(u), expected_type(t) {}
-
-    String        code;
-    Array<String> errors;
-    String        expected_type;
-};
 
 #define GENCASES(name) Array<TestCase> const &name##_examples();
 
@@ -39,18 +32,25 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 
 #undef GENTEST
 
+// Name Error
 String NE(String const &name);
 
+// Not Callable
 String NC(std::string const &name);
 
+// Type Error
 String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String const &rhs_t);
 
+// Attribute Error
 String AE(String const &name, String const &attr);
 
+// UnsipportedOperand
 String UO(String const &op, String const &lhs, String const &rhs);
 
+// Import Error
 String IE(String const &import, String const &name);
 
+// ModuleNotFoundError
 String MNFE(String const &module);
 
 #endif

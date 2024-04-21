@@ -80,32 +80,32 @@ Array<TestCase> const& Match_examples() {
         // TODO: check this test case on python
         // not sure about i
         {MATCH_SAMPLE,
-         {
+         TestErrors({
              NE("a"),
              NE("ClassName"),
              NE("k"),
              UO("Gt", "None", "None"),
              NE("k"),
              UO("Eq", "None", "None"),
-         }},
+         })},
 
         {"match lst:\n"
          "    case []:\n"
          "        pass\n"
          "    case [head, *tail]:\n"
          "        pass\n",
-         {
+         TestErrors({
              NE("lst"),
-         }},
+         })},
 
         {"match dct:\n"
          "    case {}:\n"
          "        pass\n"
          "    case {1: value, **remainder}:\n"
          "        pass\n",
-         {
+         TestErrors({
              NE("dct"),
-         }},
+         })},
     };
     return example;
 }
@@ -139,9 +139,9 @@ Array<TestCase> const& StmtNode_examples() {
 Array<TestCase> const& Nonlocal_examples() {
     static Array<TestCase> example = {
         {"nonlocal a",
-         {
+         TestErrors({
              NE("a"),
-         }},
+         })},
     };
     return example;
 }
@@ -149,9 +149,9 @@ Array<TestCase> const& Nonlocal_examples() {
 Array<TestCase> const& Global_examples() {
     static Array<TestCase> example = {
         {"global a",
-         {
+         TestErrors({
              NE("a"),
-         }},
+         })},
     };
     return example;
 }
@@ -167,7 +167,7 @@ Array<TestCase> const& ImportFrom_examples() {
         {
             // import_test should be inside the path
             "from import_test import cls as Klass, fun as Fun, ann as Ann, var as Var",
-            {},
+            TestErrors({}),
         }};
     return example;
 }
@@ -185,7 +185,7 @@ Array<TestCase> const& Import_examples() {
         {
             // import_test should be inside the path
             "import import_test as imp_test",
-            {},
+            TestErrors({}),
         },
     };
     return example;
@@ -194,13 +194,13 @@ Array<TestCase> const& Import_examples() {
 Array<TestCase> const& Assert_examples() {
     static Array<TestCase> example = {
         {"assert a",
-         {
+         TestErrors({
              NE("a"),
-         }},
+         })},
         {"assert a, \"b\"",
-         {
+         TestErrors({
              NE("a"),
-         }},
+         })},
     };
     return example;
 }
@@ -231,9 +231,9 @@ Array<TestCase> const& Raise_examples() {
              NE("b"),
          }},
         {"raise a",
-         {
+         TestErrors({
              NE("a"),
-         }},
+         })},
     };
     return example;
 }
@@ -311,26 +311,35 @@ Array<TestCase> const& For_examples() {
 
 Array<TestCase> const& AnnAssign_examples() {
     static Array<TestCase> example = {
-        {"a: bool = True", {}},
+        {
+            "a: bool = True", 
+            TestErrors({})
+        },
         // TODO: those a lexer tests!
         // make sure "int" is not read as "in t"
         {
             "a: int = 1",
-            {
+            TestErrors({
                 NE("int"),
                 TE("int", "", "", "Type"),
                 TE("a", "int", "1", "i32"),
-            },
+            }),
         },
         // make sure "isnt" is not read as "is nt"
-        {"a: isnt = 1",
-         {
-             NE("isnt"),
-             TE("isnt", "", "", "Type"),
-             TE("a", "isnt", "1", "i32"),
-         },
-         ""},
-        {"a: f32 = 2.0", {TE("a", "f32", "2.0", "f64")}, ""},
+        {
+            "a: isnt = 1",
+            TestErrors({
+                NE("isnt"),
+                TE("isnt", "", "", "Type"),
+                TE("a", "isnt", "1", "i32"),
+            }),
+        },
+        {
+            "a: f32 = 2.0", 
+            TestErrors({
+                TE("a", "f32", "2.0", "f64")
+            })
+        },
     };
     return example;
 }
@@ -338,11 +347,12 @@ Array<TestCase> const& AnnAssign_examples() {
 Array<TestCase> const& AugAssign_examples() {
     static Array<TestCase> example = {
         {"a += b",
-         {
+         TestErrors({
              NE("a"),
              NE("b"),
              UO("Add", "None", "None"),
-         }},
+         })
+         },
         {"a -= b",
          {
              NE("a"),
@@ -366,23 +376,23 @@ Array<TestCase> const& Assign_examples() {
          }},
 
         // Type deduction check
-        {"a = 1", {}, "i32"},
-        {"a = 1.0", {}, "f64"},
-        {"a = \"str\"", {}, "str"},
+        {"a = 1", TestErrors({}), "i32"},
+        {"a = 1.0", TestErrors({}), "f64"},
+        {"a = \"str\"", TestErrors({}), "str"},
 
-        {"a = [1, 2]", {}, "Array[i32]"},
-        {"a = [1.0, 2.0]", {}, "Array[f64]"},
-        {"a = [\"1\", \"2\"]", {}, "Array[str]"},
+        {"a = [1, 2]", TestErrors({}), "Array[i32]"},
+        {"a = [1.0, 2.0]", TestErrors({}), "Array[f64]"},
+        {"a = [\"1\", \"2\"]", TestErrors({}), "Array[str]"},
 
-        {"a = {1, 2}", {}, "Set[i32]"},
-        {"a = {1.0, 2.0}", {}, "Set[f64]"},
-        {"a = {\"1\", \"2\"}", {}, "Set[str]"},
+        {"a = {1, 2}", TestErrors({}), "Set[i32]"},
+        {"a = {1.0, 2.0}", TestErrors({}), "Set[f64]"},
+        {"a = {\"1\", \"2\"}", TestErrors({}), "Set[str]"},
 
-        {"a = {1: 1, 2: 2}", {}, "Dict[i32, i32]"},
-        {"a = {1: 1.0, 2: 2.0}", {}, "Dict[i32, f64]"},
-        {"a = {\"1\": 1, \"2\": 2}", {}, "Dict[str, i32]"},
+        {"a = {1: 1, 2: 2}", TestErrors({}), "Dict[i32, i32]"},
+        {"a = {1: 1.0, 2: 2.0}", TestErrors({}), "Dict[i32, f64]"},
+        {"a = {\"1\": 1, \"2\": 2}", TestErrors({}), "Dict[str, i32]"},
 
-        {"a = 1, 2.0, \"str\"", {}, "Tuple[i32, f64, str]"},
+        {"a = 1, 2.0, \"str\"", TestErrors({}), "Tuple[i32, f64, str]"},
     };
     return example;
 }
@@ -408,7 +418,7 @@ Array<TestCase> const& Return_examples() {
         },
         {
             "return 1, 2",
-            {},
+            TestErrors({}),
         },
         {
             "return a + b",
@@ -638,13 +648,13 @@ Array<TestCase> const& Attribute_examples() {
 
 Array<TestCase> const& Constant_examples() {
     static Array<TestCase> example = {
-        {"1", {}},
-        {"2.1", {}},
+        {"1", TestErrors({})},
+        {"2.1",TestErrors({})},
         // "'str'",
-        {"\"str\"", {}},
+        {"\"str\"", TestErrors({})},
         {"None"},
-        {"True", {}},
-        {"False", {}},
+        {"True", TestErrors({})},
+        {"False", TestErrors({})},
     };
     return example;
 }

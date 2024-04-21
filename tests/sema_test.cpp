@@ -18,7 +18,7 @@ String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 using namespace lython;
 
-void run_testcase(String const& name, Array<TestCase> cases);
+void run_testcase(String const& folder, String const& name, Array<TestCase> cases);
 
 TEST_CASE("SEMA_FunctionDef_Typing") {
     static Array<TestCase> ex = {
@@ -74,13 +74,13 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
             "def fun(a: i32, b: f64 = 1.1) -> i32:\n"
             "    return a\n"
             "x: i32 = fun()\n",  // missing argument
-            {
+            TestErrors({
                 // TE("Argument a is not defined");
-            },
+            }),
         },
     };
 
-    run_testcase("FunctionDef", ex);
+    run_testcase("sema", "FunctionDef", ex);
 }
 
 TEST_CASE("SEMA_Match_Details") {}
@@ -118,7 +118,7 @@ TEST_CASE("SEMA_ClassDef_Attribute") {
         },
     };
 
-    run_testcase("ClassDef", ex);
+    run_testcase("sema", "ClassDef", ex);
 }
 
 TEST_CASE("SEMA_IfStmt") {
@@ -145,7 +145,7 @@ TEST_CASE("SEMA_IfStmt") {
         },
     };
 
-    run_testcase("Conditional_Assign", ex);
+    run_testcase("sema", "Conditional_Assign", ex);
 }
 
 TEST_CASE("SEMA_Unpacking") {
@@ -167,7 +167,7 @@ TEST_CASE("SEMA_Unpacking") {
         },
     };
 
-    run_testcase("Unpacking", ex);
+    run_testcase("sema", "Unpacking", ex);
 }
 
 TEST_CASE("SEMA_ClassDef_Static_Attribute") {
@@ -182,7 +182,7 @@ TEST_CASE("SEMA_ClassDef_Static_Attribute") {
         },
     };
 
-    run_testcase("ClassDef", ex);
+    run_testcase("sema", "ClassDef", ex);
 }
 
 TEST_CASE("SEMA_ClassDef_Magic_BoolOperator") {
@@ -207,7 +207,7 @@ TEST_CASE("SEMA_ClassDef_Magic_BoolOperator") {
         },
     };
 
-    run_testcase("ClassDef", ex);
+    run_testcase("sema", "ClassDef", ex);
 }
 
 // TypeError
@@ -320,11 +320,13 @@ inline Tuple<TypeExpr*, Array<String>> sema_it(String code, Module*& mod) {
     return std::make_tuple(entry.type, errors);
 }
 
-void run_testcase(String const& name, Array<TestCase> cases) {
+void run_testcase(String const& folder, String const& name, Array<TestCase> cases) {
     kwinfo(outlog(), "Testing {}", name);
 
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
+
+    cases = get_test_cases(folder, name, cases);
 
     int i = 0;
     for (auto& c: cases) {
@@ -354,12 +356,12 @@ void run_testcase(String const& name, Array<TestCase> cases) {
 
 TEST_CASE("Class_Attribute_Lookup") {
     // Futures tests cases
-    run_testcase("ClassDef", sema_cases());
+    run_testcase("sema", "ClassDef", sema_cases());
 }
 
 #define GENTEST(name)                                               \
     TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {                \
-        run_testcase(str(nodekind<TestType>()), name##_examples()); \
+        run_testcase("parser", str(nodekind<TestType>()), name##_examples()); \
     }
 
 #define X(name, _)

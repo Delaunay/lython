@@ -20,15 +20,30 @@ void write_case(std::ostream& out, int i, VMTestCase const& testcase) {
     out << "# >>> code\n";
     out << testcase.code;
     out << "# <<<\n";
-    out << "\n\n";
-    out << "# >>> call\n";
-    out << testcase.call;
-    out << "# <<<\n";
-    out << "\n\n";
-    out << "# >>> expected\n";
-    out << testcase.expected_type;
-    out << "# <<<\n";
-    out << "\n\n";
+    out << "\n";
+
+    if (!testcase.call.empty()) {
+        out << "# >>> call\n";
+        out << testcase.call;
+        out << "# <<<\n";
+        out << "\n";
+    }
+
+    if (!testcase.expected_type.empty()) {
+        out << "# >>> expected\n";
+        out << testcase.expected_type;
+        out << "# <<<\n";
+        out << "\n\n";
+    }
+
+    if (!testcase.errors.empty()) {
+        for(auto& error: testcase.errors) {
+            out << "# >>> error\n";
+            out << error;
+            out << "# <<<\n";
+        }
+        out << "\n";
+    }
 }
 
 enum class CaseSection
@@ -37,7 +52,8 @@ enum class CaseSection
     Case,
     Code,
     Call,
-    Expected
+    Expected,
+    Error
 };
 
 Array<VMTestCase> load_cases(std::istream& in) {
@@ -45,6 +61,7 @@ Array<VMTestCase> load_cases(std::istream& in) {
     std::regex code_regex("# >>> code");
     std::regex call_regex("# >>> call");
     std::regex expe_regex("# >>> expected");
+    std::regex error_regex("# >>> error");
 
     std::regex content_regex("(.*)# <<<", std::regex::extended);
 
@@ -54,7 +71,7 @@ Array<VMTestCase> load_cases(std::istream& in) {
 
     int         i = 0;
     VMTestCase  currentcase{"", ""};
-    CaseSection section;
+    CaseSection section = CaseSection::None;
     String line;
 
     auto add_case = [&]() {
@@ -74,18 +91,27 @@ Array<VMTestCase> load_cases(std::istream& in) {
                 switch (section) {
                 case CaseSection::Case: {
                     add_case();
+                    return;
                 }
                 case CaseSection::Code: {
                     currentcase.code = str;
                     i += 1;
+                    return;
                 }
                 case CaseSection::Call: {
                     currentcase.call = str;
                     i += 1;
+                    return;
+                }
+                case CaseSection::Error: {
+                    currentcase.errors.push_back(str);
+                    i += 1;
+                    return;
                 }
                 case CaseSection::Expected: {
                     currentcase.expected_type = str;
                     i += 1;
+                    return;
                 }
                 case CaseSection::None: {
                     return;
@@ -118,6 +144,11 @@ Array<VMTestCase> load_cases(std::istream& in) {
             section = CaseSection::Expected;
             continue;
         }
+        if (std::regex_search(line, error_regex)) {
+            push();
+            section = CaseSection::Error;
+            continue;
+        }
 
         if (std::regex_match(line, match, content_regex)) {
             buffer.push_back(String(match[1].str().c_str()));
@@ -140,27 +171,9 @@ Array<VMTestCase> load_cases(std::istream& in) {
 
 String reg_modules_path() { return String(_SOURCE_DIRECTORY) + "/tests/cases"; }
 
-Array<VMTestCase> get_test_cases(String const& name, Array<VMTestCase> const& maybe_cases) {
-#if 0
-    String testfile = [&]() {
-        StringStream sspath;
-        sspath << reg_modules_path() << "/" << name << ".py";
-        return sspath.str();
-    }();
+Array<VMTestCase> get_test_cases(String const& folder, String const& name, Array<VMTestCase> const& maybe_cases) {
+    transition(folder, name, maybe_cases);
 
-    std::ofstream testwriter(testfile.c_str());
-    int i = 0;
-
-    for (auto& c: maybe_cases) {
-        write_case(testwriter, i, c);
-    }
-#endif
-
-#if 0
-    std::ifstream testfile_fp(testfile.c_str());
-    Array<VMTestCase> cases = load_cases(testfile_fp);
-    return cases;
-#endif
     return maybe_cases;
 }
 
@@ -210,7 +223,15 @@ void transition(String const& folder, String const& name, Array<VMTestCase> cons
         for(int i = 0; i < cases.size(); i++) {
             VMTestCase const& original = cases[i];
             VMTestCase const& loaded = loaded_cases[i];
-            REQUIRE(original == loaded);
+
+            REQUIRE(original.code == loaded.code);
+            REQUIRE(original.call == loaded.call);
+            REQUIRE(original.expected_type == loaded.expected_type);
+            REQUIRE(original.errors == loaded.errors);
+
+            if (!original.name.empty()) {
+                REQUIRE(original.name == loaded.name);
+            }
         }
     }
 }
