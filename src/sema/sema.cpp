@@ -715,9 +715,9 @@ TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) {
 }
 
 
-TypeExpr* SemanticAnalyser::condjump(CondJump_t* n, int depth) {
-    return nullptr;
-}
+// TypeExpr* SemanticAnalyser::condjump(CondJump_t* n, int depth) {
+//     return nullptr;
+// }
 
 TypeExpr* SemanticAnalyser::exported(Exported* n, int depth) {
     TypeExpr* return_type = nullptr;

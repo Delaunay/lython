@@ -129,8 +129,9 @@ bool _metadata_init_names() {
 #define STMT(name, _)  REGISTER_TYPE(name)
 #define MOD(name, _)   REGISTER_TYPE(name)
 #define MATCH(name, _) REGISTER_TYPE(name)
+#define VM(name, _)    REGISTER_TYPE(name)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SECTION
@@ -138,6 +139,7 @@ bool _metadata_init_names() {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 // __linux__ || (!BUILD_WEBASSEMBLY && !__clang__)
 #if (defined __clang__)

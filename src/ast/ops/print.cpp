@@ -156,8 +156,9 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, ReturnType)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, ReturnType)
+#define VM(name, fun)    FUNCTION_GEN(name, fun, ReturnType)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SECTION
@@ -165,6 +166,7 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 };

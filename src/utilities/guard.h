@@ -20,12 +20,24 @@ Guard<Exit, Args...> guard(Exit fun, Args... args) {
     return Guard<Exit, Args...>(fun, args...);
 }
 
+
+#define KW_PP_THIRD_ARG(a,b,c,...) c
+#define KW_VA_OPT_SUPPORTED_I(...) KW_PP_THIRD_ARG(__VA_OPT__(,),true,false,)
+#define KW_VA_OPT_SUPPORTED KW_VA_OPT_SUPPORTED_I(?)
+
+
+
 #define KW_STR_(x, y) x ## y
 #define KW_STR(x, y) KW_STR_(x, y)
 #define KW_IDT(name) KW_STR(name, __LINE__)
 
+#if KW_VA_OPT_SUPPORTED
 #define KW_DEFERRED(fun, ...) \
     auto KW_IDT(_) = guard(fun __VA_OPT__(,) __VA_ARGS__);
+#else
+#define KW_DEFERRED(fun, ...) \
+    auto KW_IDT(_) = guard(fun, ##__VA_ARGS__);
+#endif
 
 template<typename T>
 struct ElementProxy {

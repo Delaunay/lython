@@ -111,9 +111,9 @@ StmtRet VMGen::nonlocal(Nonlocal_t* n, int depth) {
 }
 
 
-StmtRet VMGen::condjump(CondJump_t* n, int depth) {
-    return StmtRet(); 
-}
+// StmtRet VMGen::condjump(CondJump_t* n, int depth) {
+//     return StmtRet(); 
+// }
 
 StmtRet VMGen::import(Import_t* n, int depth) {
     return StmtRet(); 

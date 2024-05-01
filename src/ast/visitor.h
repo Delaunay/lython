@@ -65,8 +65,9 @@ struct BaseVisitor {
 #define STMT(name, fun)  TYPE_GEN(name)
 #define MOD(name, fun)   TYPE_GEN(name)
 #define MATCH(name, fun) TYPE_GEN(name)
+#define VM(name, fun)    TYPE_GEN(name)
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION
@@ -74,6 +75,7 @@ struct BaseVisitor {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 #undef TYPE_GEN
     bool log_trace = false;
 
@@ -125,7 +127,7 @@ struct BaseVisitor {
                     return fun(m, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, PASS, PASS, MOD, PASS)
+            NODEKIND_ENUM(X, SSECTION, PASS, PASS, MOD, PASS, PASS)
 
             #undef X
             #undef PASS
@@ -160,7 +162,7 @@ struct BaseVisitor {
                     return fun(p, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, PASS, PASS, PASS, MATCH)
+            NODEKIND_ENUM(X, SSECTION, PASS, PASS, PASS, MATCH, PASS)
 
             #undef X
             #undef PASS
@@ -194,7 +196,7 @@ struct BaseVisitor {
                     return fun(node, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, EXPR, PASS, PASS, PASS)
+            NODEKIND_ENUM(X, SSECTION, EXPR, PASS, PASS, PASS, PASS)
 
             #undef X
             #undef PASS
@@ -235,7 +237,7 @@ public:
                     return this->fun(n, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, PASS, STMT, PASS, PASS)
+            NODEKIND_ENUM(X, SSECTION, PASS, STMT, PASS, PASS, PASS)
 
             #undef X
             #undef PASS
@@ -267,8 +269,9 @@ public:
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
+#define VM(name, fun) 
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION

@@ -182,8 +182,10 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 #    define STMT(name, fun)  TYPE_GEN(name)
 #    define MOD(name, fun)   TYPE_GEN(name)
 #    define MATCH(name, fun) TYPE_GEN(name)
+#    define VM(name, fun) 
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #    undef X
 #    undef SSECTION
@@ -191,6 +193,7 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 #    undef STMT
 #    undef MOD
 #    undef MATCH
+#    undef VM
 #    undef TYPE_GEN
 
 #    define FUNCTION_GEN(name, fun, ret) ret fun(name##_t* n, int depth);
@@ -201,8 +204,9 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 #    define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
 #    define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
 #    define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
+#    define VM(name, fun) 
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #    undef X
 #    undef SSECTION
@@ -210,6 +214,7 @@ struct LLVMGen: BaseVisitor<LLVMGen, false, LLVMGenVisitorTrait> {
 #    undef STMT
 #    undef MOD
 #    undef MATCH
+#    undef VM
 
 #    undef FUNCTION_GEN
 };

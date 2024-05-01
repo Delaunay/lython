@@ -123,7 +123,7 @@ struct Equality {
                     return fun(aa, bb, depth + 1);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, PASS, PASS, MOD, PASS)
+            NODEKIND_ENUM(X, SECTION, PASS, PASS, MOD, PASS, PASS)
 
             #undef X
             #undef PASS
@@ -156,7 +156,7 @@ struct Equality {
                     return fun(aa, bb, depth + 1);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, PASS, PASS, PASS, MATCH)
+            NODEKIND_ENUM(X, SECTION, PASS, PASS, PASS, MATCH, PASS)
 
             #undef X
             #undef PASS
@@ -194,7 +194,7 @@ struct Equality {
                     return fun(aa, bb, depth + 1);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, EXPR, PASS, PASS, PASS)
+            NODEKIND_ENUM(X, SECTION, EXPR, PASS, PASS, PASS, PASS)
 
             #undef X
             #undef PASS
@@ -226,7 +226,7 @@ struct Equality {
                     return this->fun(aa, bb, depth + 1);\
                 }
 
-            NODEKIND_ENUM(X, SECTION, PASS, STMT, PASS, PASS)
+            NODEKIND_ENUM(X, SECTION, PASS, STMT, PASS, PASS, PASS)
 
             #undef X
             #undef PASS

@@ -22,9 +22,10 @@ String str(NodeKind k) {
 #define STMT(name, _)  CASEGEN(name)
 #define MOD(name, _)   CASEGEN(name)
 #define MATCH(name, _) CASEGEN(name)
+#define VM(name, _) CASEGEN(name)
 
     switch (k) {
-        NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+        NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
 
     default: break;
     }
@@ -35,6 +36,7 @@ String str(NodeKind k) {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
     return "<invalid>";
 }
 

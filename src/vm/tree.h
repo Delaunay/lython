@@ -195,8 +195,9 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
 #define STMT(name, fun)  FUNCTION_GEN(name, fun)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun)
+#define VM(name, fun)
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION
@@ -204,6 +205,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 

@@ -12,7 +12,7 @@ enum class NodeKind : int8_t
 // clang-format off
 // Check X-MACRO trick
 // this is used to code gen a bunch of functions/types
-#define NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)\
+#define NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)\
     X(Invalid, invalid)             \
     SECTION(EXPR_START)             \
     EXPR(Exported, exported)        \
@@ -85,7 +85,6 @@ enum class NodeKind : int8_t
     STMT(Continue, continuestmt)        \
     STMT(Match, match)                  \
     STMT(Inline, inlinestmt)            \
-    STMT(CondJump, condjump)            \
     SECTION(STMT_END)                   \
     SECTION(PAT_START)                  \
     MATCH(MatchValue, matchvalue)       \
@@ -96,7 +95,9 @@ enum class NodeKind : int8_t
     MATCH(MatchStar, matchstar)             \
     MATCH(MatchAs, matchas)                 \
     MATCH(MatchOr, matchor)                 \
-    SECTION(PAT_END)
+    SECTION(PAT_END)                        \
+    SECTION(VM_START)                       \
+    VM(CondJump, condjump)                  
 
     #define X(name, _) name,
     #define SSECTION(name) name,
@@ -104,8 +105,9 @@ enum class NodeKind : int8_t
     #define STMT(name, _) name,
     #define MOD(name, _) name,
     #define MATCH(name, _) name,
+    #define VM(name, _) name,
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
     #undef X
     #undef SSECTION
@@ -113,6 +115,7 @@ enum class NodeKind : int8_t
     #undef STMT
     #undef MOD
     #undef MATCH
+    #undef VM
 
     Size
 };

@@ -223,8 +223,9 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
 #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
 #define STMT(name, fun)  FUNCTION_GEN(name, fun)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun)
+#define VM(name, fun)
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION
@@ -232,6 +233,7 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 };

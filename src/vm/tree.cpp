@@ -82,9 +82,9 @@ namespace flag {
     }
 }
 
-Value TreeEvaluator::condjump(CondJump_t* n, int depth) {
-    return Value(); 
-}
+// Value TreeEvaluator::condjump(CondJump_t* n, int depth) {
+//     return Value(); 
+// }
 
 
 Value TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth) {

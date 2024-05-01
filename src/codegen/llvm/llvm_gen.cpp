@@ -821,9 +821,9 @@ llvm::Type* LLVMGen::retrieve_type(ExprNode* type, int depth) {
     return nullptr;
 }
 
-StmtRet LLVMGen::condjump(CondJump_t* n, int depth) {
-    return StmtRet(); 
-}
+// StmtRet LLVMGen::condjump(CondJump_t* n, int depth) {
+//     return StmtRet(); 
+// }
 
 StmtRet LLVMGen::classdef(ClassDef_t* n, int depth) {
     // Create the type definition

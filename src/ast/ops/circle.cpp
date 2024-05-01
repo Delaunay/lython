@@ -136,8 +136,9 @@ struct Circle: BaseVisitor<Circle, true, CircleTrait> {
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, ReturnType)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, ReturnType)
+#define VM(name, fun) 
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SECTION
@@ -745,9 +746,9 @@ bool Circle::arguments(Arguments const& self, int depth) {
     return false;
 }
 
-ReturnType Circle::condjump(CondJump_t* n, int depth) {
-    return false; 
-}
+// ReturnType Circle::condjump(CondJump_t* n, int depth) {
+//     return false; 
+// }
 
 bool has_circle(ExprNode const* obj) { return Circle().exec(obj, 0); }
 bool has_circle(Pattern const* obj) { return Circle().exec(obj, 0); }

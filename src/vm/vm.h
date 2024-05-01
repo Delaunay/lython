@@ -73,8 +73,9 @@ struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait>
     #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
     #define STMT(name, fun)  FUNCTION_GEN(name, fun)
     #define MATCH(name, fun) FUNCTION_GEN(name, fun)
+    #define VM(name, fun)
 
-        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
     #undef X
     #undef SSECTION
@@ -82,6 +83,7 @@ struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait>
     #undef STMT
     #undef MOD
     #undef MATCH
+    #undef VM
 
     #undef FUNCTION_GEN
 
@@ -123,8 +125,9 @@ struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait>
     #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
     #define STMT(name, fun)  FUNCTION_GEN(name, fun)
     #define MATCH(name, fun) FUNCTION_GEN(name, fun)
+    #define VM(name, fun) FUNCTION_GEN(name, fun)
 
-        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
     #undef X
     #undef SSECTION
@@ -132,6 +135,7 @@ struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait>
     #undef STMT
     #undef MOD
     #undef MATCH
+    #undef VM
 
     #undef FUNCTION_GEN
 
