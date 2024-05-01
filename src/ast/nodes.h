@@ -24,6 +24,7 @@ enum class NodeFamily : int8_t
     Statement,
     Expression,
     Pattern,
+    VM,
 };
 
 // col_offset is the byte offset in the utf8 string the parser uses
@@ -1076,14 +1077,6 @@ struct Continue: public StmtNode {
     Continue(): StmtNode(NodeKind::Continue) {}
 };
 
-struct CondJump: public StmtNode {
-    CondJump(): StmtNode(NodeKind::CondJump) {}
-
-    ExprNode* condition = nullptr;
-    int then_jmp = -1;
-    int else_jmp = -1;
-};
-
 struct Match: public StmtNode {
     ExprNode*        subject;
     Array<MatchCase> cases;
@@ -1158,6 +1151,33 @@ struct BuiltinType: public ExprNode {
     StringRef name;
 
     NativeMacro native_macro;
+};
+
+
+
+struct VMNode: public Node {
+    VMNode(NodeKind kind):
+        Node(kind)
+    {}
+
+    bool is_leaf() override {
+        return false;
+    }
+
+    NodeFamily family() const override { return NodeFamily::VM; }
+};
+
+struct VMStmt: public VMNode {
+    VMStmt(): VMNode(NodeKind::VMStmt) {}
+    StmtNode* stmt = nullptr;
+};
+
+struct CondJump: public VMNode {
+    CondJump(): VMNode(NodeKind::CondJump) {}
+
+    ExprNode* condition = nullptr;
+    int then_jmp = -1;
+    int else_jmp = -1;
 };
 
 /*

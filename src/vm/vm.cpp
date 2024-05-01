@@ -384,6 +384,10 @@ StmtRet VMExec::condjump(CondJump_t* n, int depth) {
     return StmtRet(); 
 }
 
+StmtRet VMExec::vmstmt(VMStmt* n, int depth) {
+    return exec(n->stmt, depth);
+}
+
 StmtRet VMExec::import(Import_t* n, int depth) {
     return StmtRet(); 
 }

@@ -28,7 +28,7 @@ struct Instruction {
 
     // OpCode op;
 
-    StmtNode* stmt = nullptr;
+    VMNode* stmt = nullptr;
 };
 
 
@@ -95,8 +95,13 @@ struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait>
         return int(program.size());
     }
 
-    void add_instruction(StmtNode* stmt) {
+    void add_instruction(VMNode* stmt) {
         program.push_back({stmt});
+    }
+    void add_instruction(StmtNode* stmt) {
+        VMStmt* node = stmt->new_object<VMStmt>();
+        node->stmt = stmt;
+        program.push_back({node});
     }
 
     void add_body(String const& name, StmtNode* node, Array<StmtNode*> const& body, int depth) {

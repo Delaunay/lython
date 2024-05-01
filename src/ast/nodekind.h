@@ -97,7 +97,8 @@ enum class NodeKind : int8_t
     MATCH(MatchOr, matchor)                 \
     SECTION(PAT_END)                        \
     SECTION(VM_START)                       \
-    VM(CondJump, condjump)                  
+    VM(CondJump, condjump)                  \
+    VM(VMStmt, vmstmt)                  
 
     #define X(name, _) name,
     #define SSECTION(name) name,
@@ -121,6 +122,16 @@ enum class NodeKind : int8_t
 };
 // clang-format off
 
+
+#define KW_PASS(name, fun)
+#define KW_SECTION_PASS(name)
+
+#define KW_FOREACH_EXPR(EXPR) NODEKIND_ENUM(KW_PASS, KW_SECTION_PASS, EXPR, KW_PASS, KW_PASS, KW_PASS, KW_PASS)
+#define KW_FOREACH_STMT(STMT) NODEKIND_ENUM(KW_PASS, KW_SECTION_PASS, KW_PASS, STMT, KW_PASS, KW_PASS, KW_PASS)
+#define KW_FOREACH_MOD(MOD)   NODEKIND_ENUM(KW_PASS, KW_SECTION_PASS, KW_PASS, KW_PASS, MOD, KW_PASS, KW_PASS)
+#define KW_FOREACH_PAT(MATCH) NODEKIND_ENUM(KW_PASS, KW_SECTION_PASS, KW_PASS, KW_PASS, KW_PASS, MATCH, KW_PASS)
+#define KW_FOREACH_VM(VM)     NODEKIND_ENUM(KW_PASS, KW_SECTION_PASS, KW_PASS, KW_PASS, KW_PASS, KW_PASS, VM)
+#define KW_FOREACH_ALL(ALL)   NODEKIND_ENUM(KW_PASS, KW_SECTION_PASS, ALL, ALL, ALL, ALL, ALL)
 
 }
 

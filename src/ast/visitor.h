@@ -53,29 +53,15 @@ struct BaseVisitor {
     using Pattern_t  = SELECT_TYPE(Pattern);
     using ExprNode_t = SELECT_TYPE(ExprNode);
     using StmtNode_t = SELECT_TYPE(StmtNode);
+    using VMNode_t   = SELECT_TYPE(VMNode);
 
 #undef SELECT_TYPE
 
-#define TYPE_GEN(rtype) \
+#define TYPE_GEN(rtype, _) \
     using rtype##_t = typename std::conditional<isConst, rtype const, rtype>::type;
 
-#define X(name, _)
-#define SSECTION(name)
-#define EXPR(name, fun)  TYPE_GEN(name)
-#define STMT(name, fun)  TYPE_GEN(name)
-#define MOD(name, fun)   TYPE_GEN(name)
-#define MATCH(name, fun) TYPE_GEN(name)
-#define VM(name, fun)    TYPE_GEN(name)
+    KW_FOREACH_ALL(TYPE_GEN)
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
-
-#undef X
-#undef SSECTION
-#undef EXPR
-#undef STMT
-#undef MOD
-#undef MATCH
-#undef VM
 #undef TYPE_GEN
     bool log_trace = false;
 
@@ -117,23 +103,15 @@ struct BaseVisitor {
         (*static_cast<Implementation*>(this)).check_depth(depth);
 
         switch (mod->kind) {
-
-            #define X(name, _)
-            #define PASS(a, b)
-            #define SSECTION(_)
             #define MOD(name, fun)\
                 case NodeKind::name: {\
                     name##_t* m = reinterpret_cast<name##_t*>(mod);\
                     return fun(m, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, PASS, PASS, MOD, PASS, PASS)
+            KW_FOREACH_MOD(MOD)
 
-            #undef X
-            #undef PASS
-            #undef SSECTION
             #undef MOD
-
             default:
                 return ModRet();
 
@@ -152,21 +130,13 @@ struct BaseVisitor {
         // kwtrace(depth, "{}", pat->kind);
         // clang-format off
         switch (pat->kind) {
-
-            #define X(name, _)
-            #define PASS(a, b)
-            #define SSECTION(_)
             #define MATCH(name, fun)\
                 case NodeKind::name: {\
                     name##_t* p = reinterpret_cast<name##_t*>(pat);\
                     return fun(p, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, PASS, PASS, PASS, MATCH, PASS)
-
-            #undef X
-            #undef PASS
-            #undef SSECTION
+            KW_FOREACH_PAT(MATCH)
             #undef MATCH
 
             default:
@@ -186,21 +156,13 @@ struct BaseVisitor {
         // kwtrace(depth, "{}", expr->kind);
         // clang-format off
         switch (expr->kind) {
-
-            #define X(name, _)
-            #define PASS(a, b)
-            #define SSECTION(_)
             #define EXPR(name, fun)\
                 case NodeKind::name: {\
                     name##_t* node = reinterpret_cast<name##_t*>(expr);\
                     return fun(node, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, EXPR, PASS, PASS, PASS, PASS)
-
-            #undef X
-            #undef PASS
-            #undef SSECTION
+            KW_FOREACH_EXPR(EXPR)
             #undef EXPR
 
             default:
@@ -217,6 +179,33 @@ public:
         }
     }
 
+
+    StmtRet exec(VMNode_t* stmt, int depth, Args... args) {
+        if (!stmt) {
+            kwdebug(outlog(), "Null statement");
+            return StmtRet();
+        }
+
+        (*static_cast<Implementation*>(this)).check_depth(depth);
+
+        // clang-format off
+        switch (stmt->kind) {
+            #define VM(name, fun)\
+                case NodeKind::name: {\
+                    name##_t* n = reinterpret_cast<name##_t*>(stmt);\
+                    return this->fun(n, depth + 1, (args)...);\
+                }
+
+            KW_FOREACH_VM(VM)
+            #undef VM
+
+            default:
+                return StmtRet();
+        }
+        // clang-format on
+        return StmtRet();
+    }
+
     StmtRet exec(StmtNode_t* stmt, int depth, Args... args) {
         if (!stmt) {
             kwdebug(outlog(), "Null statement");
@@ -227,21 +216,13 @@ public:
 
         // clang-format off
         switch (stmt->kind) {
-
-            #define X(name, _)
-            #define PASS(a, b)
-            #define SSECTION(_)
             #define STMT(name, fun)\
                 case NodeKind::name: {\
                     name##_t* n = reinterpret_cast<name##_t*>(stmt);\
                     return this->fun(n, depth + 1, (args)...);\
                 }
 
-            NODEKIND_ENUM(X, SSECTION, PASS, STMT, PASS, PASS, PASS)
-
-            #undef X
-            #undef PASS
-            #undef SSECTION
+            KW_FOREACH_STMT(STMT)
             #undef STMT
 
             default:
@@ -269,7 +250,7 @@ public:
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
-#define VM(name, fun) 
+#define VM(name, fun)    FUNCTION_GEN(name, fun, StmtRet)
 
     NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
@@ -279,6 +260,7 @@ public:
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 
