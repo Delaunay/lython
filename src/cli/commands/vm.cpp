@@ -89,6 +89,9 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     }
 
 
+    VMExec exec;
+    exec.execute(gen.program, 0);
+
     //
     // std::cout << "\nExec\n";
     // std::cout << "====\n";

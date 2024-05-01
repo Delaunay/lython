@@ -1395,4 +1395,9 @@ void ASTRender::arguments(Arguments& self, int depth) {
     }
 }
 
+LY_ReturnType ASTRender::condjump(CondJump_t* n, int depth) {
+    return false;
+}
+
+
 }  // namespace lython

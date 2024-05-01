@@ -33,6 +33,11 @@ String str(T const& obj) {
     return ss.str();
 }
 
+inline
+String str(std::string const& s) {
+    return String(s.c_str());
+}
+
 template <typename T>
 String str(T* const& obj) {
     if (obj == nullptr) {

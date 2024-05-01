@@ -1029,4 +1029,11 @@ Array<VMTestCase> const& Exported_vm_examples() {
     static Array<VMTestCase> examples = {};
     return examples;
 }
+
+Array<VMTestCase> const& CondJump_vm_examples() {
+    static Array<TestCase> example = {};
+    return example;
+}
+
+
 }  // namespace lython

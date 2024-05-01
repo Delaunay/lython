@@ -238,6 +238,11 @@ Array<TestCase> const& Raise_examples() {
     return example;
 }
 
+Array<TestCase> const& CondJump_examples() {
+    static Array<TestCase> example = {};
+    return example;
+}
+
 Array<TestCase> const& With_examples() {
     static Array<TestCase> example = {
         {"with a as b, c as d:\n"

@@ -272,4 +272,182 @@ ModRet VMGen::interactive(Interactive_t* n, int depth) { return ModRet(); }
 ModRet VMGen::functiontype(FunctionType_t* n, int depth) { return ModRet(); }
 ModRet VMGen::expression(Expression_t* n, int depth) { return ModRet(); }
 
+
+//
+
+Value VMExec::execute(Array<Instruction> const& program, int entry) {
+    ic = entry;
+
+    while (true) {
+        if (ic >= program.size() || ic < 0) {
+            return Value();
+        }
+
+        Instruction const& inst = program[ic];
+        exec(inst.stmt, 0);
+        ic += 1;
+    }
+}
+
+
+ExprRet VMExec::boolop(BoolOp_t* n, int depth)       { return ExprRet(); }
+ExprRet VMExec::namedexpr(NamedExpr_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::compare(Compare_t* n, int depth)     { return ExprRet(); }
+ExprRet VMExec::binop(BinOp_t* n, int depth)         { return ExprRet(); }
+ExprRet VMExec::unaryop(UnaryOp_t* n, int depth)     { return ExprRet(); }
+ExprRet VMExec::lambda(Lambda_t* n, int depth)       { return ExprRet(); }
+ExprRet VMExec::ifexp(IfExp_t* n, int depth)         { return ExprRet(); }
+ExprRet VMExec::dictexpr(DictExpr_t* n, int depth)   { return ExprRet(); }
+ExprRet VMExec::setexpr(SetExpr_t* n, int depth)     { return ExprRet(); }
+ExprRet VMExec::listcomp(ListComp_t* n, int depth)   { return ExprRet(); }
+ExprRet VMExec::generateexpr(GeneratorExp_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::setcomp(SetComp_t* n, int depth)     { return ExprRet(); }
+ExprRet VMExec::dictcomp(DictComp_t* n, int depth)   { return ExprRet(); }
+ExprRet VMExec::await(Await_t* n, int depth)         { return ExprRet(); }
+ExprRet VMExec::yield(Yield_t* n, int depth)         { return ExprRet(); }
+ExprRet VMExec::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::call(Call_t* n, int depth)           { return ExprRet(); }
+ExprRet VMExec::joinedstr(JoinedStr_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::constant(Constant_t* n, int depth)   { return ExprRet(); }
+ExprRet VMExec::attribute(Attribute_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::subscript(Subscript_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::starred(Starred_t* n, int depth)     { return ExprRet(); }
+ExprRet VMExec::name(Name_t* n, int depth)           { return ExprRet(); }
+ExprRet VMExec::listexpr(ListExpr_t* n, int depth)   { return ExprRet(); }
+ExprRet VMExec::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::slice(Slice_t* n, int depth)         { return ExprRet(); }
+ExprRet VMExec::dicttype(DictType_t* n, int depth)   { return ExprRet(); }
+ExprRet VMExec::arraytype(ArrayType_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::arrow(Arrow_t* n, int depth)         { return ExprRet(); }
+ExprRet VMExec::builtintype(BuiltinType_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::tupletype(TupleType_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::settype(SetType_t* n, int depth)     { return ExprRet(); }
+ExprRet VMExec::classtype(ClassType_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::comment(Comment_t* n, int depth)     { return ExprRet(); }
+
+// Leaves
+StmtRet VMExec::invalidstmt(InvalidStatement_t* n, int depth) { 
+    kwerror(outlog(), "Invalid statement");
+    return StmtRet(); 
+}
+StmtRet VMExec::returnstmt(Return_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::deletestmt(Delete_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::assign(Assign_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::augassign(AugAssign_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::annassign(AnnAssign_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::exprstmt(Expr_t* n, int depth) { 
+    //
+    return StmtRet(); 
+}
+StmtRet VMExec::pass(Pass_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::breakstmt(Break_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::continuestmt(Continue_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::assertstmt(Assert_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::raise(Raise_t* n, int depth) {
+    // this is an implicit jump out to an unknown location
+    // 
+    
+    return StmtRet(); 
+}
+StmtRet VMExec::global(Global_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::nonlocal(Nonlocal_t* n, int depth) { 
+    return StmtRet(); 
+}
+
+StmtRet VMExec::condjump(CondJump_t* n, int depth) {
+    Value val = exec(n->condition, depth);
+    ic = n->then_jmp - 1;
+    if (val.as<bool>()) {
+        ic = n->else_jmp - 1;
+    }
+    return StmtRet(); 
+}
+
+StmtRet VMExec::import(Import_t* n, int depth) {
+    return StmtRet(); 
+}
+StmtRet VMExec::importfrom(ImportFrom_t* n, int depth) {
+    return StmtRet(); 
+}
+
+StmtRet VMExec::inlinestmt(Inline_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::functiondef(FunctionDef_t* n, int depth) {
+    return StmtRet(); 
+}
+StmtRet VMExec::classdef(ClassDef_t* n, int depth) { 
+    return StmtRet(); 
+}
+
+StmtRet VMExec::forstmt(For_t* n, int depth) { 
+    return StmtRet(); 
+}
+
+StmtRet VMExec::whilestmt(While_t* n, int depth) {    
+    return StmtRet(); 
+}
+
+StmtRet VMExec::ifstmt(If_t* n, int depth) {
+    return StmtRet(); 
+}
+
+StmtRet VMExec::with(With_t* n, int depth) { 
+    return StmtRet(); 
+}
+StmtRet VMExec::trystmt(Try_t* n, int depth) { 
+    return StmtRet(); 
+}
+
+StmtRet VMExec::exported(Exported_t* n, int depth) { 
+    return StmtRet(); 
+}
+
+StmtRet VMExec::placeholder(Placeholder_t* n, int depth) { 
+    return StmtRet(); 
+}
+
+StmtRet VMExec::match(Match_t* n, int depth) { return StmtRet(); }
+
+PatRet VMExec::matchvalue(MatchValue_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchsingleton(MatchSingleton_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchsequence(MatchSequence_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchmapping(MatchMapping_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchclass(MatchClass_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchstar(MatchStar_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchas(MatchAs_t* n, int depth) { return PatRet(); }
+PatRet VMExec::matchor(MatchOr_t* n, int depth) { return PatRet(); }
+
+ModRet VMExec::module(Module_t* n, int depth) { 
+    for(auto* stmt: n->body) {
+        exec(stmt, depth);
+    }
+    return ModRet(); 
+};
+ModRet VMExec::interactive(Interactive_t* n, int depth) { return ModRet(); }
+ModRet VMExec::functiontype(FunctionType_t* n, int depth) { return ModRet(); }
+ModRet VMExec::expression(Expression_t* n, int depth) { return ModRet(); }
+
+
 }  // namespace lython

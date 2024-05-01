@@ -25,7 +25,7 @@ Guard<Exit, Args...> guard(Exit fun, Args... args) {
 #define KW_IDT(name) KW_STR(name, __LINE__)
 
 #define KW_DEFERRED(fun, ...) \
-    auto KW_IDT(_) = guard(fun, __VA_ARGS__);
+    auto KW_IDT(_) = guard(fun __VA_OPT__(,) __VA_ARGS__);
 
 template<typename T>
 struct ElementProxy {

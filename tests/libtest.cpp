@@ -1,5 +1,6 @@
 #include "libtest.h"
 #include "utilities/strings.h"
+#include "ast/magic.h"
 
 #include <regex>
 #include <iostream>
@@ -72,7 +73,7 @@ Array<VMTestCase> load_cases(std::istream& in) {
     int         i = 0;
     VMTestCase  currentcase{"", ""};
     CaseSection section = CaseSection::None;
-    String line;
+    std::string line;
 
     auto add_case = [&]() {
         if (i > 0) {
@@ -151,13 +152,13 @@ Array<VMTestCase> load_cases(std::istream& in) {
         }
 
         if (std::regex_match(line, match, content_regex)) {
-            buffer.push_back(String(match[1].str().c_str()));
+            buffer.push_back(str(match[1].str()));
             push();
             section = CaseSection::None;
             continue;
         }
 
-        buffer.push_back(line);
+        buffer.push_back(str(line));
     }
     push();
     add_case();

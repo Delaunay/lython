@@ -106,13 +106,35 @@ struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait>
 };
 
 
-struct VMExec
+struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait> 
 {
-    Value execute(Array<Instruction> const& program);
+    int ic = 0;
+    Value execute(Array<Instruction> const& program, int entry);
 
     Array<Value>      variable;
     Array<Value>      registers;
     Array<lython::StackTrace> stacktrace;
+
+    #define FUNCTION_GEN(name, fun)  Value fun(name##_t* n, int depth);
+
+    #define X(name, _)
+    #define SSECTION(name)
+    #define MOD(name, fun)   FUNCTION_GEN(name, fun)
+    #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
+    #define STMT(name, fun)  FUNCTION_GEN(name, fun)
+    #define MATCH(name, fun) FUNCTION_GEN(name, fun)
+
+        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+
+    #undef X
+    #undef SSECTION
+    #undef EXPR
+    #undef STMT
+    #undef MOD
+    #undef MATCH
+
+    #undef FUNCTION_GEN
+
 };
 
 // Assemble programs together ?
@@ -132,7 +154,7 @@ inline Array<Instruction> compile(Module* mod) {
 
 inline Value eval(Array<Instruction> program) {
     VMExec eval;
-    return eval.execute(program);
+    return eval.execute(program, 0);
 }
 
 }

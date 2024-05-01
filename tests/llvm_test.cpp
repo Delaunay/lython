@@ -187,7 +187,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
 
 #define GENTEST(name)                                                                   \
     TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                                    \
-        auto cases = get_test_cases(str(nodekind<TestType>()), name##_vm_examples());   \
+        auto cases = get_test_cases("LLVM", str(nodekind<TestType>()), name##_vm_examples());   \
         run_testcases(str(nodekind<TestType>()), cases);                                \
     }
 
