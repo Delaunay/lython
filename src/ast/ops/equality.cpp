@@ -335,6 +335,8 @@ struct Equality {
 
     bool exported(Exported* a, Exported* b, int depth) { return exec(a->node, b->node, depth); }
 
+    bool condjump(CondJump* a, CondJump* b, int depth) { return exec(a->condition, b->condition, depth); }
+
     bool boolop(BoolOp* a, BoolOp* b, int depth) {
         return a->op == b->op && exec(a->values, b->values, depth);
     }

@@ -85,6 +85,7 @@ enum class NodeKind : int8_t
     STMT(Continue, continuestmt)        \
     STMT(Match, match)                  \
     STMT(Inline, inlinestmt)            \
+    STMT(CondJump, condjump)            \
     SECTION(STMT_END)                   \
     SECTION(PAT_START)                  \
     MATCH(MatchValue, matchvalue)       \

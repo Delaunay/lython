@@ -9,6 +9,7 @@
 #include "parser/parser.h"
 #include "sema/sema.h"
 #include "vm/tree.h"
+#include "vm/vm.h"
 
 namespace lython {
 
@@ -52,11 +53,47 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     sema.exec(mod, 0);
     sema.show_diagnostic(std::cout, &lex);
 
-    //
-    std::cout << "\nExec\n";
+
+    VMGen gen;
+    gen.exec(mod, 0);
+
+    std::cout << "\nVM\n";
     std::cout << "====\n";
-    TreeEvaluator eval;
-    eval.module(mod, 0);
+
+
+    Label* label = nullptr;
+    int count = 0;
+
+    for(int i = 0; i < gen.program.size(); i++) {
+        Instruction& inst = gen.program[i];
+        
+        count += 1;
+        for(Label& l: gen.labels) {
+            if (l.index == i) {
+                label = &l;
+                count = 0;
+                break;
+            }
+        }
+
+        int idt = 2;
+        if (label)  {
+            idt *= label->depth;
+
+            if (count == 0) {
+                std::cout << fmt::format("{:4d}", i)  << "|" << String(idt, ' ') << "." << label->name << "\n";
+            }
+        }
+
+        std::cout << "    |" << String(idt + 2, ' ') << str(inst.stmt) << "\n"; 
+    }
+
+
+    //
+    // std::cout << "\nExec\n";
+    // std::cout << "====\n";
+    // TreeEvaluator eval;
+    // eval.module(mod, 0);
 
     Value val;
     return val.tag != meta::type_id<_Invalid>();

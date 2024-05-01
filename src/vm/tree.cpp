@@ -26,13 +26,15 @@ void pop(Array<T>& array, CodeLocation const& loc) {
     }, variables.size())               
 
 
-#define EXEC_BODY(body, start, dbname)                                              \
+#define KW_EXEC_BLOCK_BODY(body, start, dbname, tryhandler, withhandler)            \
     {                                                                               \
         auto* blocks = get_blocks();                                                \
         ExecBlock& _block = blocks->emplace_back();                                 \
         kwdebug(outlog(), "Insert block {} {}", (void*)blocks, blocks->size());     \
         _block.block      = (body);                                                 \
         _block.name       = (dbname);                                               \
+        _block.exception_handler = tryhandler;                                      \
+        _block.resources         = withhandler;                                     \
         _block.i = start;                                                           \
         for (int i = start; i < body.size(); i++) {                                 \
             StmtNode* stmt = body[i];                                               \
@@ -53,6 +55,9 @@ void pop(Array<T>& array, CodeLocation const& loc) {
         }                                                                           \
         pop(*get_blocks(), LOC);  \
     }
+
+
+#define EXEC_BODY(body, start, dbname) KW_EXEC_BLOCK_BODY(body, start, dbname, nullptr, {})
 
 struct EvaluationResult {};
 
@@ -76,6 +81,11 @@ namespace flag {
         return quickval<_paused>();
     }
 }
+
+Value TreeEvaluator::condjump(CondJump_t* n, int depth) {
+    return Value(); 
+}
+
 
 Value TreeEvaluator::execbody(Array<StmtNode*>& body, Array<StmtNode*>& newbod, int depth) {
     ExecBlock& block = get_blocks()->emplace_back();
@@ -1155,11 +1165,7 @@ Value TreeEvaluator::raise(Raise_t* n, int depth) {
     return nullptr;
 }
 
-Value TreeEvaluator::trystmt(Try_t* n, int depth) {
-    // FIXME: how do I pause/resume exception handling ?
-    // the block needs to be aware of the exceptions
-
-    { EXEC_BODY(n->body, 0, MAKE_NAME("trystmt ", "body")); }
+Value TreeEvaluator::except(Try_t* n, int depth) {
     if (has_exceptions()) {
         // start handling all the exceptions we received
         auto _ = HandleException(this);
@@ -1214,9 +1220,27 @@ Value TreeEvaluator::trystmt(Try_t* n, int depth) {
 
     auto _ = HandleException(this);
 
-    { EXEC_BODY(n->finalbody, 0, MAKE_NAME("match ", "finalbody")); }
+    {   //
+        EXEC_BODY(n->finalbody, 0, MAKE_NAME("match ", "finalbody")); 
+        //
+    }
     // we are not handling exception anymore
     handling_exceptions = 0;
+    return flag::done();
+}
+
+Value TreeEvaluator::trystmt(Try_t* n, int depth) {
+    // FIXME: how do I pause/resume exception handling ?
+    // the block needs to be aware of the exceptions
+
+    {   //
+        KW_EXEC_BLOCK_BODY(n->body, 0, MAKE_NAME("trystmt ", "body"), n, {}); 
+        //    
+    }
+
+    if (!yielding) {
+        except(n, depth);
+    }
 
     return Value();
 }
@@ -1242,6 +1266,16 @@ finally:
         exit(manager, None, None, None)
 
 */
+Value TreeEvaluator::with_exit(With_t* n, Array<Value>& contexts, int depth) {
+    // Call exit regardless of exception status
+    auto _ = HandleException(this);
+
+    for (Value& val: contexts) {
+        call_exit(val, depth);
+    }
+    return flag::done();
+}
+
 Value TreeEvaluator::with(With_t* n, int depth) {
     // Call enter
     Array<Value> contexts;
@@ -1260,15 +1294,11 @@ Value TreeEvaluator::with(With_t* n, int depth) {
         add_variable(name, result);
     }
 
-    EXEC_BODY(n->body, 0, MAKE_NAME("with ", "body"));
+    KW_EXEC_BLOCK_BODY(n->body, 0, MAKE_NAME("with ", "body"), nullptr, contexts);
 
-    // Call exit regardless of exception status
-    auto _ = HandleException(this);
-
-    for (Value& val: contexts) {
-        call_exit(val, depth);
+    if (!yielding) {
+        with_exit(n, contexts, depth);
     }
-
     return flag::done();
 }
 
@@ -1532,31 +1562,45 @@ Value TreeEvaluator::resume(Generator* n, int depth) {
 
                 kwdebug(treelog, "Resume {} at {}", block.name, block.i);
 
-                for (int i = block.i; i < body.size(); i++) {
-                    StmtNode* stmt = body[i];
-                    Value flag = exec(stmt, depth);
+                if (!has_exceptions()) {
+                    for (int i = block.i; i < body.size(); i++) {
+                        StmtNode* stmt = body[i];
+                        Value flag = exec(stmt, depth);
 
-                    // We cannot always increase like this
-                    // if stmt is a while loop, the while might not be done
-                    block.i = i + int(flag.tag != meta::type_id<_paused>());
+                        // We cannot always increase like this
+                        // if stmt is a while loop, the while might not be done
+                        block.i = i + int(flag.tag != meta::type_id<_paused>());
 
-                    if (has_exceptions()) {
-                        return Value();
+                        if (has_exceptions()) {
+                            // we should probably break here and
+                            // go through all the blocks looking for an exception handler
+                            // and/or resources to free
+                            break;
+                        }
+                        if (has_returned()) {
+                            // n->environment = variables;
+                            n->blocks      = *get_blocks();
+                            
+                            //
+                            // So yield does it for us
+                            // BUT when yield save the blocks it has not advanced past the yield
+                            // so when resuming it should jump past it
+                            //
+                            // So this does not work because it does not handle nested blocks
+                            // n->blocks[int(n->blocks.size()) -  1].i += 1;
+                            return returned();
+                        }
                     }
-                    if (has_returned()) {
-                        // n->environment = variables;
+                }
 
-                        // Cant do this here because blocks got pop'ed
-                        n->blocks      = *get_blocks();
-                        //
-                        // So yield does it for us
-                        // BUT when yield save the blocks it has not advanced past the yield
-                        // so when resuming it should jump past it
-                        //
-                        // So this does not work because it does not handle nested blocks
-                        // n->blocks[int(n->blocks.size()) -  1].i += 1;
-                        return returned();
-                    }
+                // try block
+                if (block.exception_handler != nullptr) {
+                    except(block.exception_handler, depth);
+                }
+
+                // with block
+                if (!block.resources.empty()) {
+                    with_exit(nullptr, block.resources, depth);
                 }
                 pop(blocks, LOC);
             }
@@ -1587,5 +1631,6 @@ Value TreeEvaluator::resume(Generator* n, int depth) {
     std::swap(variables, previous);
     return result;
 }
+
 
 }  // namespace lython

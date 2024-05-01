@@ -1071,6 +1071,18 @@ ReturnType Printer::exported(Exported const* self, int depth, std::ostream& out,
     return false;
 }
 
+ReturnType Printer::condjump(CondJump_t* n, int depth, std::ostream& out, int level) {
+    out << "condjump(";
+    exec(n->condition, depth, out, level);
+    out << ", ";
+    out << n->then_jmp;
+    out << ", ";
+    out << n->else_jmp;
+    out << ")";
+
+    return false; 
+}
+
 // Helper
 // ==================================================
 

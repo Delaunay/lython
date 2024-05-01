@@ -104,6 +104,7 @@ struct Traverse: public BaseVisitor<Traverse, false, TraverseTrait> {
     virtual void_t comment(Comment* n, int depth) { return void_t(); }
     virtual void_t invalidstmt(InvalidStatement* n, int depth) { return void_t(); }
     virtual void_t expression(Expression* n, int depth) { return void_t(); }
+    virtual void_t condjump(CondJump_t* n, int depth) { return void_t(); }
 };
 
 struct SetContext: public Traverse {

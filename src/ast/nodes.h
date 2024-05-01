@@ -1065,6 +1065,7 @@ struct Pass: public StmtNode {
     Pass(): StmtNode(NodeKind::Pass) {}
 };
 
+
 struct Break: public StmtNode {
 
     Break(): StmtNode(NodeKind::Break) {}
@@ -1073,6 +1074,14 @@ struct Break: public StmtNode {
 struct Continue: public StmtNode {
 
     Continue(): StmtNode(NodeKind::Continue) {}
+};
+
+struct CondJump: public StmtNode {
+    CondJump(): StmtNode(NodeKind::CondJump) {}
+
+    ExprNode* condition = nullptr;
+    int then_jmp = -1;
+    int else_jmp = -1;
 };
 
 struct Match: public StmtNode {

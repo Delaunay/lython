@@ -93,14 +93,14 @@ struct InteractiveContext {
             self->out() << "\n";
             self->out() << format("      {:>20} | {:>20} | {}\n", "name", "value", "type");
             self->out() << format("      {:>20} | {:>20} | {}\n", String(20, '-'), String(20, '-'), String(20, '-'));
-            for(auto& var: self->eval->variables) {
-                Value val = std::get<1>(var);
+            for(ValuePair& var: self->eval->variables) {
+                Value val = var.value;
                 String strval = str(val);
 
                 auto& registry = meta::TypeRegistry::instance();
                 auto& meta = registry.id_to_meta[val.tag];
 
-                self->out() << format("      {:>20} | {:>20} | {}\n", std::get<0>(var), strval, meta.name);
+                self->out() << format("      {:>20} | {:>20} | {}\n", var.name, strval, meta.name);
             }
             self->out() << "\n";
         }},

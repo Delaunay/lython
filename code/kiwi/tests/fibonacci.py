@@ -1,6 +1,6 @@
 
 
-def fibo_naive(n: Int) -> Int:
+def fibo_naive(n: i32) -> i32:
     if n == 0:
         return 0
 
@@ -10,7 +10,7 @@ def fibo_naive(n: Int) -> Int:
     return fibo_naive(n - 1) + fibo_naive(n - 2)
 
 
-def fibo_loop(n: Int) -> Int:
+def fibo_loop(n: i32) -> i32:
     prev = 0
     current = 1
 
@@ -23,7 +23,7 @@ def fibo_loop(n: Int) -> Int:
     return current
 
 
-def fibo_tail(n: Int, current: Int = 1, prev: Int = 0) -> Int:
+def fibo_tail(n: i32, current: i32 = 1, prev: i32 = 0) -> i32:
     if n == 0:
         return current
 
@@ -31,15 +31,18 @@ def fibo_tail(n: Int, current: Int = 1, prev: Int = 0) -> Int:
 
 
 
-fibo_values: Dict[Int, Int] = {
+fibo_values: Dict[i32, i32] = {
     0: 0,
     1: 1,
 }
 
 
-def fibo_memoize(n: Int) -> Int:
+def fibo_memoize(n: i32) -> i32:
     if not n in fibo_values:
         fibo_values[n] = fibo_memoize(n - 1) + fibo_memoize(n - 2)
         
     return fibo_values[n]    
 
+
+
+fibo_naive(10)

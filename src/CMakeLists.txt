@@ -57,6 +57,7 @@ SET(ADD_HEADERS
     sema/sema.h
     sema/importlib.h
     vm/tree.h
+    vm/vm.h
     vm/garbage_collector.h
     utilities/names.h
     utilities/object.h
@@ -106,6 +107,7 @@ SET(ADD_SOURCE
     sema/builtin.cpp
     sema/importlib.cpp
     vm/tree.cpp
+    vm/vm.cpp
     vm/garbage_collector.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp

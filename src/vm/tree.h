@@ -35,9 +35,8 @@ struct ExecBlock {
     Array<StmtNode*> block; // List of instructions
     String           name;  // Name of the block for debugging
 
-    // TODO
-    // Exit block handler or control flow redirect (exceptions)
-    // __exit__
+    Try* exception_handler = nullptr;
+    Array<Value> resources;
 };
 
 struct StackTrace {
@@ -231,6 +230,11 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
     Value call_script(Call_t* call, FunctionDef_t* n, int depth);
     Value call_constructor(Call_t* call, ClassDef_t* cls, int depth);
     Value make_generator(Call_t* call, FunctionDef_t* n, int depth);
+
+    // Exception handling that comes after `try`
+    Value except(Try_t* n, int depth);
+    // Resource closing
+    Value with_exit(With_t* n, Array<Value>& contexts, int depth) ;
 
     void raise_exception(Value exception, Value cause);
 

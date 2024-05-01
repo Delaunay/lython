@@ -745,6 +745,10 @@ bool Circle::arguments(Arguments const& self, int depth) {
     return false;
 }
 
+ReturnType Circle::condjump(CondJump_t* n, int depth) {
+    return false; 
+}
+
 bool has_circle(ExprNode const* obj) { return Circle().exec(obj, 0); }
 bool has_circle(Pattern const* obj) { return Circle().exec(obj, 0); }
 bool has_circle(StmtNode const* obj) { return Circle().exec(obj, 0); }
