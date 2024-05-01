@@ -7,10 +7,10 @@
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
-#include "utilities/strings.h"
 #include "utilities/guard.h"
-#include "vm/vm.h"
+#include "utilities/strings.h"
 #include "vm/tree.h"
+#include "vm/vm.h"
 
 namespace lython {
 
@@ -31,7 +31,6 @@ struct Instruction {
     VMNode* stmt = nullptr;
 };
 
-
 struct VMGenTrait {
     using StmtRet = Value;
     using ExprRet = Value;
@@ -39,111 +38,83 @@ struct VMGenTrait {
     using PatRet  = Value;
     using Trace   = std::true_type;
 
-    enum { 
-        MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH 
-    };
+    enum
+    { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
 
 struct Label {
     StmtNode* stmt = nullptr;
-    String name;
-    int index = -1;
-    int depth;
+    String    name;
+    int       index = -1;
+    int       depth;
 };
-
 
 /**
  * The goal of this is to flatten the control flow into simple jumps
  * The code is flatten into a "tape" of instructions.
  * control flow change the instruction pointer
- * 
- * This simplify resumption
+ *
+ * This simplify resumption, while keeping the rest as high level as possible
  */
-struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait> 
-{
-    struct GenContext {
+struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait> {
+    struct GenContext {};
 
-    };
+#define FUNCTION_GEN(name, fun) Value fun(name##_t* n, int depth);
 
-    #define FUNCTION_GEN(name, fun)  Value fun(name##_t* n, int depth);
+    KW_FOREACH_AST(FUNCTION_GEN)
 
-    #define X(name, _)
-    #define SSECTION(name)
-    #define MOD(name, fun)   FUNCTION_GEN(name, fun)
-    #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
-    #define STMT(name, fun)  FUNCTION_GEN(name, fun)
-    #define MATCH(name, fun) FUNCTION_GEN(name, fun)
-    #define VM(name, fun)
-
-        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
-
-    #undef X
-    #undef SSECTION
-    #undef EXPR
-    #undef STMT
-    #undef MOD
-    #undef MATCH
-    #undef VM
-
-    #undef FUNCTION_GEN
+#undef FUNCTION_GEN
 
     Array<GenContext>  contexts;
     Array<Instruction> program;
     Array<Label>       labels;
 
-    int instruction_counter() {
-        return int(program.size());
-    }
+    int instruction_counter() { return int(program.size()); }
 
-    void add_instruction(VMNode* stmt) {
-        program.push_back({stmt});
-    }
+    void add_instruction(VMNode* stmt) { program.push_back({stmt}); }
     void add_instruction(StmtNode* stmt) {
         VMStmt* node = stmt->new_object<VMStmt>();
-        node->stmt = stmt;
+        node->stmt   = stmt;
         program.push_back({node});
     }
 
     void add_body(String const& name, StmtNode* node, Array<StmtNode*> const& body, int depth) {
         labels.push_back({node, name, int(program.size()), depth});
-        for(auto* stmt: body) {
+        for (auto* stmt: body) {
             exec(stmt, depth);
         }
     }
 };
 
-
-struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait> 
-{
-    int ic = 0;
+struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait> {
+    int   ic = 0;
     Value execute(Array<Instruction> const& program, int entry);
 
-    Array<Value>      variable;
-    Array<Value>      registers;
+    Array<Value>              variable;
+    Array<Value>              registers;
     Array<lython::StackTrace> stacktrace;
 
-    #define FUNCTION_GEN(name, fun)  Value fun(name##_t* n, int depth);
+#define FUNCTION_GEN(name, fun) Value fun(name##_t* n, int depth);
 
-    #define X(name, _)
-    #define SSECTION(name)
-    #define MOD(name, fun)   FUNCTION_GEN(name, fun)
-    #define EXPR(name, fun)  FUNCTION_GEN(name, fun)
-    #define STMT(name, fun)  FUNCTION_GEN(name, fun)
-    #define MATCH(name, fun) FUNCTION_GEN(name, fun)
-    #define VM(name, fun) FUNCTION_GEN(name, fun)
+#define X(name, _)
+#define SSECTION(name)
+#define MOD(name, fun)   FUNCTION_GEN(name, fun)
+#define EXPR(name, fun)  FUNCTION_GEN(name, fun)
+#define STMT(name, fun)  FUNCTION_GEN(name, fun)
+#define MATCH(name, fun) FUNCTION_GEN(name, fun)
+#define VM(name, fun)    FUNCTION_GEN(name, fun)
 
-        NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
-    #undef X
-    #undef SSECTION
-    #undef EXPR
-    #undef STMT
-    #undef MOD
-    #undef MATCH
-    #undef VM
+#undef X
+#undef SSECTION
+#undef EXPR
+#undef STMT
+#undef MOD
+#undef MATCH
+#undef VM
 
-    #undef FUNCTION_GEN
-
+#undef FUNCTION_GEN
 };
 
 // Assemble programs together ?
@@ -166,6 +137,6 @@ inline Value eval(Array<Instruction> program) {
     return eval.execute(program, 0);
 }
 
-}
+}  // namespace lython
 
 #endif

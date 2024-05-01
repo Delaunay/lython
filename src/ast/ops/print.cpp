@@ -147,26 +147,10 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
             exec(self.annotation.value(), depth, out, level);
         }
     }
-#define FUNCTION_GEN(name, fun, rtype) \
-    rtype fun(const name* node, int depth, std::ostream& out, int level);
+#define FUNCTION_GEN(name, fun) \
+    ReturnType fun(const name* node, int depth, std::ostream& out, int level);
 
-#define X(name, _)
-#define SECTION(name)
-#define EXPR(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
-#define STMT(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
-#define MOD(name, fun)   FUNCTION_GEN(name, fun, ReturnType)
-#define MATCH(name, fun) FUNCTION_GEN(name, fun, ReturnType)
-#define VM(name, fun)    FUNCTION_GEN(name, fun, ReturnType)
-
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
-
-#undef X
-#undef SECTION
-#undef EXPR
-#undef STMT
-#undef MOD
-#undef MATCH
-#undef VM
+    KW_FOREACH_ALL(FUNCTION_GEN)
 
 #undef FUNCTION_GEN
 };
