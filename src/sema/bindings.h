@@ -10,10 +10,10 @@ struct BindingEntry {
     BindingEntry(StringRef a       = StringRef(),
                  Node*     b       = nullptr,
                  TypeExpr* c       = nullptr,
-                 bool      dynamic = false,
-                 int       type_id = -1):
+                 int       type_id = -1,
+                 int       store_id = -1):
         name(a),
-        value(b), type(c), dynamic(dynamic), type_id(type_id) 
+        value(b), type(c), type_id(type_id), store_id(store_id)
     {}
 
     bool operator==(BindingEntry const& b) const {
@@ -23,9 +23,9 @@ struct BindingEntry {
     StringRef name;
     Node*     value   = nullptr;
     TypeExpr* type    = nullptr;
-    bool      dynamic = false;  // used to specify that this entry is dynamic
-                                // and its address can change at runtime
-    int       type_id;
+    int       type_id = -1;
+    int       store_id = 0;
+    int       load_id  = 0;
 };
 
 std::ostream& print(std::ostream& out, BindingEntry const& entry);

@@ -1,12 +1,12 @@
 #ifndef LYTHON_LINTER_HEADER
 #define LYTHON_LINTER_HEADER
 
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 #define LINTER_ERROR(exception)      \

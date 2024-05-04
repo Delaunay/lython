@@ -1,6 +1,6 @@
 #include "sema/bindings.h"
-#include "ast/magic.h"
 #include "ast/ops.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -56,7 +56,6 @@ inline std::ostream& print(std::ostream& out, int i, BindingEntry const& entry) 
     return out;
 }
 
-
 // returns the varid it was inserted as
 int Bindings::add(StringRef const& name, Node* value, TypeExpr* type, int type_id) {
     COZ_BEGIN("T::Bindings::add");
@@ -66,7 +65,7 @@ int Bindings::add(StringRef const& name, Node* value, TypeExpr* type, int type_i
     auto size = int(bindings.size());
 
     bool dynamic = !nested;
-    bindings.push_back({name, value, type, dynamic, type_id});
+    bindings.push_back({name, value, type, type_id, size});
 
     if (!nested) {
         global_index += 1;
@@ -79,8 +78,8 @@ int Bindings::add(StringRef const& name, Node* value, TypeExpr* type, int type_i
 
 struct Name* Bindings::make_reference(Node* parent, StringRef const& name, ExprNode* type) {
     Name* ref = parent->new_object<Name>();
-    ref->id  = name;
-    ref->ctx = ExprContext::Load;
+    ref->id   = name;
+    ref->ctx  = ExprContext::Load;
     ref->type = type;
     return ref;
 }

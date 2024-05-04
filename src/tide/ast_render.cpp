@@ -6,7 +6,7 @@
 #include "tide/ast_input.h"
 #include "tide/ast_render.h"
 
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "ast/nodes.h"
 #include "ast/ops.h"
 // #include "ast/values/native.h"
@@ -55,10 +55,10 @@ void Drawing::draw() {
             color_1 = ImColor(25, 25, 25);
         }
         drawlist->AddText(
-            style->font, 
-            style->font_size + hovered, 
-            rectangle.GetTL(), 
-            color_1, 
+            style->font,
+            style->font_size + hovered,
+            rectangle.GetTL(),
+            color_1,
             str
         );
     }
@@ -181,7 +181,7 @@ ASTRender& ASTRender::operator<<(special::BeforeComment const& name) {
     return *this;
 }
 
-ASTRender& ASTRender::operator<<(special::Editable const& name) 
+ASTRender& ASTRender::operator<<(special::Editable const& name)
 {
     DrawingRef drawing = text(name.name.c_str(), style->color);
 

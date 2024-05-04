@@ -1,4 +1,4 @@
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "revision_data.h"
@@ -348,7 +348,7 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
             delete mod;
 
             kwinfo(outlog(), "<<<<<<<<<<<<<<<<<<<<<<<< DONE");
-            
+
         }
         i += 1;
     }

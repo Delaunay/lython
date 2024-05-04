@@ -208,10 +208,11 @@ enum class ExprContext : int8_t
     LoadStore,
     Del
 };
-void print(BoolOperator const&, std::ostream& out);
-void print(BinaryOperator const&, std::ostream& out);
-void print(CmpOperator const&, std::ostream& out);
-void print(UnaryOperator const&, std::ostream& out);
+
+std::ostream& operator<<(std::ostream& out, UnaryOperator const& v) ;
+std::ostream& operator<<(std::ostream& out, BinaryOperator const& v) ;
+std::ostream& operator<<(std::ostream& out, BoolOperator const& v) ;
+std::ostream& operator<<(std::ostream& out, CmpOperator const& v) ;
 
 // stp
 StringRef operator_magic_name(BoolOperator const& v, bool reverse = false);
@@ -637,21 +638,8 @@ struct Name: public ExprNode {
     // A bit redundant when it comes to AnnAssign
     ExprNode* type = nullptr;
 
-    // Variable id, resolved by SEMA
-    int  varid   = -1;
-    int  size    = -1;     // size of the context when it was defined
-    int  offset  = -1;     // reverse offset to use for lookup
-    bool dynamic = false;  // if true we will do a reverse lookup to take into account that
-                           // recursive call make the binding table offset
-
-    // bool given = false;
-    // std::function<StringRef()> name_giver;
-
-    // StringRef name() {
-    //     if (given)
-    //         return name_giver();
-    //     return id;
-    // }
+    int store_id = -1;
+    int load_id  = -1;
 
     Name(): ExprNode(NodeKind::Name) {}
 
@@ -763,9 +751,7 @@ struct FunctionDef: public StmtNode {
     bool          generator : 1;
     struct Arrow* type = nullptr;
 
-    using WrappedNativeFunction = std::function<Constant*(GCObject*, Array<Constant*> const&)>;
-
-    WrappedNativeFunction native;
+    Function native = nullptr;
 
     FunctionDef(): StmtNode(NodeKind::FunctionDef), async(false), generator(false) {}
 };
@@ -1178,6 +1164,18 @@ struct CondJump: public VMNode {
     ExprNode* condition = nullptr;
     int then_jmp = -1;
     int else_jmp = -1;
+};
+
+struct Jump: public VMNode {
+    Jump(): VMNode(NodeKind::Jump) {}
+
+    int destination = -1;
+};
+
+struct VMNativeFunction: public VMNode {
+    VMNativeFunction(): VMNode(NodeKind::VMNativeFunction) {}
+
+    Function fun;
 };
 
 /*

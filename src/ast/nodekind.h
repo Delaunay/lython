@@ -98,7 +98,9 @@ enum class NodeKind : int8_t
     SECTION(PAT_END)                        \
     SECTION(VM_START)                       \
     VM(CondJump, condjump)                  \
-    VM(VMStmt, vmstmt)                  
+    VM(Jump, jump)                          \
+    VM(VMStmt, vmstmt)                      \
+    VM(VMNativeFunction, nativefunction)
 
     #define X(name, _) name,
     #define SSECTION(name) name,

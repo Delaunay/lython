@@ -1,8 +1,8 @@
-#include "ast/magic.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "revision_data.h"
 #include "sema/sema.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 #include "codegen/llvm/llvm_gen.h"
@@ -13,8 +13,8 @@
 #include "logging/logging.h"
 
 #include <catch2/catch_all.hpp>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "cases_vm.h"
 
@@ -116,7 +116,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
 
-    String current = [&](){
+    String current = [&]() {
         StringStream sspath;
         sspath << reg_modules_path() << "/current/" << name << ".ll";
         return sspath.str();
@@ -131,8 +131,8 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     {
         std::error_code      EC;
         llvm::raw_fd_ostream out(current.c_str(), EC);
- 
-        auto write_example = [&](llvm::raw_fd_ostream& out, int i, String const& code){
+
+        auto write_example = [&](llvm::raw_fd_ostream& out, int i, String const& code) {
             std::istringstream iss(code.c_str());
             std::string        line;
             out << ">>>>>>>\n";
@@ -185,10 +185,10 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
     }
 }
 
-#define GENTEST(name)                                                                   \
-    TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                                    \
-        auto cases = get_test_cases("LLVM", str(nodekind<TestType>()), name##_vm_examples());   \
-        run_testcases(str(nodekind<TestType>()), cases);                                \
+#define GENTEST(name)                                                                         \
+    TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                                          \
+        auto cases = get_test_cases("LLVM", str(nodekind<TestType>()), name##_vm_examples()); \
+        run_testcases(str(nodekind<TestType>()), cases);                                      \
     }
 
 #define X(name, _)

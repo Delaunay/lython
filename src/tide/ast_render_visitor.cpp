@@ -7,9 +7,9 @@
 #include "tide/ast_input.h"
 #include "tide/ast_render.h"
 
-#include "ast/magic.h"
 #include "ast/nodes.h"
 #include "ast/ops.h"
+#include "utilities/printing.h"
 // #include "ast/values/native.h"
 // #include "ast/values/object.h"
 #include "ast/visitor.h"
@@ -1395,9 +1395,6 @@ void ASTRender::arguments(Arguments& self, int depth) {
     }
 }
 
-LY_ReturnType ASTRender::condjump(CondJump_t* n, int depth) {
-    return false;
-}
-
+LY_ReturnType ASTRender::condjump(CondJump_t* n, int depth) { return false; }
 
 }  // namespace lython

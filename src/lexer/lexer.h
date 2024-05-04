@@ -31,14 +31,6 @@ struct OpConfig {
     BoolOperator   boolkind         = BoolOperator::None;
     CmpOperator    cmpkind          = CmpOperator::None;
 
-    void print(std::ostream& out) const {
-        out << to_string(type) << "(pred: " << precedence << ") "
-            << "(binary: " << int(binarykind) << ") "
-            << "(unary: " << int(unarykind) << ") "
-            << "(bool: " << int(boolkind) << ") "
-            << "(cmp: " << int(cmpkind) << ") ";
-    }
-
     operator bool() {
         return binarykind != BinaryOperator::None ||
         unarykind != UnaryOperator::None ||
@@ -47,6 +39,9 @@ struct OpConfig {
         ;
     }
 };
+
+std::ostream& operator<<(std::ostream& out, OpConfig const& op);
+
 
 Dict<String, OpConfig> const& default_precedence();
 Array<OpConfig> const& all_operators();

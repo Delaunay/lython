@@ -3,7 +3,7 @@
 
 #if WITH_CLANG_CODEGEN
 
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
 #include "sema/bindings.h"

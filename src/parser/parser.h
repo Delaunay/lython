@@ -1,13 +1,13 @@
 ﻿#ifndef LYTHON_PARSER_H
 #define LYTHON_PARSER_H
 
-#include "ast/magic.h"
 #include "ast/nodes.h"
 #include "dependencies/coz_wrap.h"
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
 #include "utilities/metadata.h"
+#include "utilities/printing.h"
 
 #include <iostream>
 #include <numeric>
@@ -169,10 +169,10 @@ class Parser {
     ExprNode* parse_lambda(Node* parent, int depth);
     ExprNode* parse_constant(Node* parent, int depth);
     ExprNode* parse_ifexp_ext(Node* parent, int depth);
-    
-    ExprNode* parse_special_string(Node* parent, int depth);
-    ExprNode* parse_joined_string(Node* parent, int depth);
-    ExprNode* parse_formatted_value_string(Node* parent, int depth);
+
+    ExprNode*  parse_special_string(Node* parent, int depth);
+    ExprNode*  parse_joined_string(Node* parent, int depth);
+    ExprNode*  parse_formatted_value_string(Node* parent, int depth);
     JoinedStr* parse_format_spec(Node* parent, int depth);
 
     ExprNode* parse_starred(Node* parent, int depth);
@@ -220,7 +220,7 @@ class Parser {
 
     void end_code_loc(CommonAttributes* target, Token tok);
 
-    bool          is_valid_value();
+    bool                       is_valid_value();
     Tuple<Value, ValueDeleter> get_value(Node* parent);
 
     OpConfig const& get_operator_config(Token const& tok) const;
@@ -322,9 +322,7 @@ class Parser {
     public:
     int expression_depth = 0;
 
-    void clear_errors() {
-        errors.clear();
-    }
+    void clear_errors() { errors.clear(); }
 
     private:
     Array<StmtNode*>      _pending_comments;

@@ -1,9 +1,9 @@
-#include "ast/magic.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "revision_data.h"
 #include "sema/native_module.h"
 #include "sema/sema.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 #include "vm/tree.h"
 
@@ -15,8 +15,8 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 
-#include "libtest.h"
 #include "cases_vm.h"
+#include "libtest.h"
 
 using namespace lython;
 
@@ -142,8 +142,6 @@ String eval_it(String const& code, String const& expr, Module*& mod) {
     return partial;
 }
 
-
-
 void run_test_case(VMTestCase const& testcase) {
     Module* mod = nullptr;
 
@@ -152,7 +150,6 @@ void run_test_case(VMTestCase const& testcase) {
     delete mod;
     REQUIRE(result == testcase.expected_type);
 }
-
 
 void run_test_case(String const& code, String const& expr, String const& expected) {
     VMTestCase original(code, expr, expected);
@@ -183,42 +180,25 @@ void run_vm_testcases(String const& name, Array<VMTestCase> const& cases) {
 
 #ifndef EXPERIMENT
 
-
 TEST_CASE("VM_FunctionDef") {
     run_vm_testcases("VM_FunctionDef", get_test_cases("vm", "VM_FunctionDef"));
 }
 
-TEST_CASE("VM_BinOp") {
-    run_vm_testcases("VM_BinOp", get_test_cases("vm", "VM_BinOp"));
-}
+TEST_CASE("VM_BinOp") { run_vm_testcases("VM_BinOp", get_test_cases("vm", "VM_BinOp")); }
 
-TEST_CASE("VM_Bool") {
-    run_vm_testcases("VM_Bool", get_test_cases("vm", "VM_Bool"));
-}
+TEST_CASE("VM_Bool") { run_vm_testcases("VM_Bool", get_test_cases("vm", "VM_Bool")); }
 
-TEST_CASE("VM_Compare") {
-    run_vm_testcases("VM_Compare", get_test_cases("vm", "VM_Compare"));
-}
+TEST_CASE("VM_Compare") { run_vm_testcases("VM_Compare", get_test_cases("vm", "VM_Compare")); }
 
-TEST_CASE("VM_IfStmt") {
-    run_vm_testcases("VM_IfStmt", get_test_cases("vm", "VM_IfStmt"));
-}
+TEST_CASE("VM_IfStmt") { run_vm_testcases("VM_IfStmt", get_test_cases("vm", "VM_IfStmt")); }
 
-TEST_CASE("VM_assert") {
-    run_vm_testcases("VM_assert", get_test_cases("vm", "VM_assert"));
-}
+TEST_CASE("VM_assert") { run_vm_testcases("VM_assert", get_test_cases("vm", "VM_assert")); }
 
-TEST_CASE("VM_UnaryOp") {
-    run_vm_testcases("VM_UnaryOp", get_test_cases("vm", "VM_UnaryOp"));
-}
+TEST_CASE("VM_UnaryOp") { run_vm_testcases("VM_UnaryOp", get_test_cases("vm", "VM_UnaryOp")); }
 
-TEST_CASE("VM_assign") {
-    run_vm_testcases("VM_assign", get_test_cases("vm", "VM_assign"));
-}
+TEST_CASE("VM_assign") { run_vm_testcases("VM_assign", get_test_cases("vm", "VM_assign")); }
 
-TEST_CASE("VM_pass") {
-    run_vm_testcases("VM_pass", get_test_cases("vm", "VM_pass"));
-}
+TEST_CASE("VM_pass") { run_vm_testcases("VM_pass", get_test_cases("vm", "VM_pass")); }
 
 TEST_CASE("VM_inline_stmt") {
     run_vm_testcases("VM_inline_stmt", get_test_cases("vm", "VM_inline_stmt"));
@@ -232,32 +212,25 @@ TEST_CASE("VM_AugAssign") {
     run_vm_testcases("VM_AugAssign", get_test_cases("vm", "VM_AugAssign"));
 }
 
-TEST_CASE("VM_While") {
-    run_vm_testcases("VM_While", get_test_cases("vm", "VM_While"));
-}
+TEST_CASE("VM_While") { run_vm_testcases("VM_While", get_test_cases("vm", "VM_While")); }
 
 TEST_CASE("VM_AnnAssign") {
     run_vm_testcases("VM_AnnAssign", get_test_cases("vm", "VM_AnnAssign"));
 }
 
-TEST_CASE("VM_ifexp") {
-    run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp"));
-}
+TEST_CASE("VM_ifexp") { run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp")); }
 
 TEST_CASE("VM_NamedExpr") {
     run_vm_testcases("VM_NamedExpr", get_test_cases("vm", "VM_NamedExpr"));
 }
 
-TEST_CASE("VM_ClassDef") {
-    run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef"));
-}
+TEST_CASE("VM_ClassDef") { run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef")); }
 
 TEST_CASE("VM_Generator") {
     run_vm_testcases("VM_Generator", get_test_cases("vm", "VM_Generator"));
 }
 
 #endif
-
 
 // TEST_CASE("VM_native_object") { run_test_case("", "get_x(name(1, 2))", "1"); }
 
@@ -278,11 +251,9 @@ TEST_CASE("VM_Generator") {
 // }
 // #endif
 
-
-
 #if EXPERIMENTAL_TESTS
-#define GENTEST(name)                                                   \
-    TEMPLATE_TEST_CASE("VM_" #name, #name, name) {                      \
+#define GENTEST(name)                                                      \
+    TEMPLATE_TEST_CASE("VM_" #name, #name, name) {                         \
         run_vm_testcases(str(nodekind<TestType>()), name##_vm_examples()); \
     }
 

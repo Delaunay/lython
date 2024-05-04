@@ -1,5 +1,5 @@
 #include "codegen/cpp/cpp_gen.h"
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "builtin/operators.h"
 #include "utilities/guard.h"
 #include "utilities/strings.h"

@@ -1,12 +1,17 @@
 #include "nodes.h"
-#include "magic.h"
-#include "ops.h"
+#include "utilities/printing.h"
+
 
 namespace lython {
 
 ExprNode* None();
 ExprNode* True();
 ExprNode* False();
+
+std::ostream& operator<<(std::ostream& out, UnaryOperator const& v) ;
+std::ostream& operator<<(std::ostream& out, BinaryOperator const& v) ;
+std::ostream& operator<<(std::ostream& out, BoolOperator const& v) ;
+std::ostream& operator<<(std::ostream& out, CmpOperator const& v) ;
 
 // --------------------------------------------------------------------
 // to-string
@@ -40,58 +45,62 @@ String str(NodeKind k) {
     return "<invalid>";
 }
 
-void print(BoolOperator const& v, std::ostream& out) {
+std::ostream& operator<<(std::ostream& out, BoolOperator const& v) {
     switch (v) {
 #define OP(name, kw, _)        \
     case BoolOperator::name: { \
         out << #kw;            \
-        return;                \
+        return out;                \
     }
         BOOL_OPERATORS(OP)
 
     default: break;
 #undef OP
     }
+    return out;
 }
 
-void print(BinaryOperator const& v, std::ostream& out) {
+std::ostream& operator<<(std::ostream& out, BinaryOperator const& v) {
     switch (v) {
 #define OP(name, kw, _)          \
     case BinaryOperator::name: { \
         out << #name;            \
-        return;                  \
+        return out;                  \
     }
         BINARY_OPERATORS(OP)
 
     default: break;
 #undef OP
     }
+    return out;
 }
 
-void print(UnaryOperator const& v, std::ostream& out) {
+std::ostream& operator<<(std::ostream& out, UnaryOperator const& v) {
     switch (v) {
 #define OP(name, kw, _)         \
     case UnaryOperator::name: { \
         out << #name;           \
-        return;                 \
+        return out;                 \
     }
         UNARY_OPERATORS(OP)
 
 #undef OP
     }
+    return out;
 }
 
-void print(CmpOperator const& v, std::ostream& out) {
+std::ostream& operator<<(std::ostream& out, CmpOperator const& v) {
     switch (v) {
 #define OP(name, kw, _)       \
     case CmpOperator::name: { \
         out << #name;         \
-        return;               \
+        return out;               \
     }
         COMP_OPERATORS(OP)
 
 #undef OP
     }
+    return out;
 }
 
 void ClassDef::Attr::dump(std::ostream& out) {

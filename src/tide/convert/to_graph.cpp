@@ -1,7 +1,7 @@
 #include "tide/convert/to_graph.h"
-#include "ast/magic.h"
 #include "builtin/operators.h"
 #include "utilities/guard.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 namespace lython {
@@ -11,13 +11,8 @@ using ExprRet = ToGraph::ExprRet;
 using ModRet  = ToGraph::ModRet;
 using PatRet  = ToGraph::PatRet;
 
-
-ExprRet ToGraph::exported(Exported_t* n, int depth) {
-    return nullptr;
-}
-ExprRet ToGraph::condjump(CondJump_t* n, int depth) {
-    return nullptr;
-}
+ExprRet ToGraph::exported(Exported_t* n, int depth) { return nullptr; }
+ExprRet ToGraph::condjump(CondJump_t* n, int depth) { return nullptr; }
 
 ExprRet ToGraph::boolop(BoolOp_t* n, int depth) {
     GraphNodeBase* graph = new_object<GraphNode>(n);

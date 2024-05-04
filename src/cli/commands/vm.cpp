@@ -54,8 +54,7 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     sema.show_diagnostic(std::cout, &lex);
 
 
-    VMGen gen;
-    gen.exec(mod, 0);
+    Program p = compile(mod);
 
     std::cout << "\nVM\n";
     std::cout << "====\n";
@@ -64,11 +63,11 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     Label* label = nullptr;
     int count = 0;
 
-    for(int i = 0; i < gen.program.size(); i++) {
-        Instruction& inst = gen.program[i];
+    for(int i = 0; i < p.instructions.size(); i++) {
+        Instruction& inst = p.instructions[i];
         
         count += 1;
-        for(Label& l: gen.labels) {
+        for(Label& l: p.labels) {
             if (l.index == i) {
                 label = &l;
                 count = 0;
@@ -89,17 +88,14 @@ int VMCmd::main(argparse::ArgumentParser const& args)
     }
 
 
-    VMExec exec;
-    exec.execute(gen.program, 0);
+    Value result = eval(p);
 
     //
     // std::cout << "\nExec\n";
     // std::cout << "====\n";
     // TreeEvaluator eval;
     // eval.module(mod, 0);
-
-    Value val;
-    return val.tag != meta::type_id<_Invalid>();
+    return result.tag != meta::type_id<_Invalid>();
 };  
 
 }

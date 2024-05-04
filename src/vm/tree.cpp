@@ -424,7 +424,7 @@ Value TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int dept
 
     if (compile_time) {
         // ConstantValue result = function->native_function(&root, value_args);
-        ret_result = function->native(&root, trace.args);
+        // ret_result = function->native(&root, trace.args);
         // ret_result           = root.new_object<Constant>(result);
     } else {
         // FIXME: we probably need the context here
@@ -696,8 +696,6 @@ Value TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
 
 
 Value TreeEvaluator::call(Call_t* n, int depth) {
-    using TraceGuard = PopGuard<Array<StackTrace>, StackTrace>;
-
     // Populate current stack with the expression that will branch out
     get_trace().expr = n;
 

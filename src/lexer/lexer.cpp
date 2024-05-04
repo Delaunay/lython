@@ -63,6 +63,14 @@ Array<OpConfig> const& all_operators() {
     return ops;
 }
 
+std::ostream& operator<<(std::ostream& out, OpConfig const& op) {
+        return out << to_string(op.type) << "(pred: " << op.precedence << ") "
+            << "(binary: " << int(op.binarykind) << ") "
+            << "(unary: " << int(op.unarykind) << ") "
+            << "(bool: " << int(op.boolkind) << ") "
+            << "(cmp: " << int(op.cmpkind) << ") ";
+    }
+
 Dict<String, OpConfig> _make_op_dict() {
     Dict<String, OpConfig> ops;
     for(auto const& op: all_operators()) {

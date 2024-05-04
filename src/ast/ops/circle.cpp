@@ -1,4 +1,4 @@
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "ast/nodes.h"
 #include "ast/visitor.h"
 #include "compatibility/compatibility.h"

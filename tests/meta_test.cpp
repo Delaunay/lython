@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "utilities/debug.h"
+#include "utilities/printing.h"
 #include "utilities/metadata.h"
 #include "utilities/metadata_method.h"
 #include "sema/native_module.h"

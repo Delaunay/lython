@@ -1,9 +1,9 @@
 #include "cases.h"
 #include "cases_sample.h"
 
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "parser/parser.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 #include <catch2/catch_all.hpp>

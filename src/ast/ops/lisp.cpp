@@ -1,5 +1,5 @@
 #include "ast/lisp.h"
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "ast/nodes.h"
 #include "ast/visitor.h"
 #include "logging/logging.h"

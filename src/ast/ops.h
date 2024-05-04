@@ -16,14 +16,16 @@ bool equal(Pattern* a, Pattern* b);
 bool equal(StmtNode* a, StmtNode* b);
 bool equal(ModNode* a, ModNode* b);
 
-void print(Node const*& obj, std::ostream& out);
-void print(ExprNode const*& obj, std::ostream& out);
-void print(Pattern const*& obj, std::ostream& out);
-void print(StmtNode const*& obj, std::ostream& out);
-void print(ModNode const*& obj, std::ostream& out);
+std::ostream& operator<<(std::ostream& out, Node const*& obj);
+std::ostream& operator<<(std::ostream& out, ExprNode const*& obj);
+std::ostream& operator<<(std::ostream& out, Pattern const*& obj);
+std::ostream& operator<<(std::ostream& out, StmtNode const*& obj);
+std::ostream& operator<<(std::ostream& out, ModNode const*& obj);
 
-String str(ExprNode const* obj);
-String str(Node const* obj);
+
+// should not need those
+// String str(ExprNode const* obj);
+// String str(Node const* obj);
 
 bool has_circle(ExprNode const* obj);
 bool has_circle(Pattern const* obj);

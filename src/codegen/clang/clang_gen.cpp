@@ -5,7 +5,7 @@
 #if WITH_CLANG_CODEGEN
 
 // Kiwi
-#include "ast/magic.h"
+#include "utilities/printing.h"
 #include "builtin/operators.h"
 #include "utilities/guard.h"
 #include "utilities/strings.h"

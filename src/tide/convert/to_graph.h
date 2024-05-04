@@ -1,18 +1,18 @@
 #pragma once
 
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
-#include "utilities/strings.h"
 #include "tide/convert/graph.h"
+#include "utilities/printing.h"
+#include "utilities/strings.h"
 
 namespace lython {
 
 struct ToGraphVisitorTrait {
-    using StmtRet = GraphNodePinBase*;   
+    using StmtRet = GraphNodePinBase*;
     using ExprRet = GraphNodePinBase*;  // Expression returns a single output pin
     using ModRet  = void;
     using PatRet  = void;
@@ -22,7 +22,6 @@ struct ToGraphVisitorTrait {
     enum
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 };
-
 
 struct Arena {
     GCObject root;
@@ -49,27 +48,27 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     Arena arena;
 
     GraphNodePinBase* new_input(GraphNodeBase* Node, ExprNode* expr, int depth) {
-        GraphNodePinBase* in = new_object<GraphNodePin>(); 
-        in->direction() = PinDirection::Input;
-        in->kind() = PinKind::Circle;
+        GraphNodePinBase* in = new_object<GraphNodePin>();
+        in->direction()      = PinDirection::Input;
+        in->kind()           = PinKind::Circle;
         in->pins().push_back(exec(expr, depth));
         Node->pins().push_back(in);
         return in;
     }
 
     GraphNodePinBase* new_output(GraphNodeBase* Node, int depth) {
-        GraphNodePinBase* out = new_object<GraphNodePin>(); 
-        out->direction() = PinDirection::Output;
-        out->kind() = PinKind::Circle;
+        GraphNodePinBase* out = new_object<GraphNodePin>();
+        out->direction()      = PinDirection::Output;
+        out->kind()           = PinKind::Circle;
         Node->pins().push_back(out);
         // current_exec_pin = out;
         return out;
     }
 
     GraphNodePinBase* new_exec_input(GraphNodeBase* Node, int depth) {
-        GraphNodePinBase* in = new_object<GraphNodePin>(); 
-        in->direction() = PinDirection::Input;
-        in->kind() = PinKind::Flow;
+        GraphNodePinBase* in = new_object<GraphNodePin>();
+        in->direction()      = PinDirection::Input;
+        in->kind()           = PinKind::Flow;
         Node->pins().push_back(in);
 
         if (current_exec_pin) {
@@ -80,9 +79,9 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
     }
 
     GraphNodePinBase* new_exec_output(GraphNodeBase* Node, int depth) {
-        GraphNodePinBase* out = new_object<GraphNodePin>(); 
-        out->direction() = PinDirection::Output;
-        out->kind() = PinKind::Flow;
+        GraphNodePinBase* out = new_object<GraphNodePin>();
+        out->direction()      = PinDirection::Output;
+        out->kind()           = PinKind::Flow;
         Node->pins().push_back(out);
         return out;
     }

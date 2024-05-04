@@ -3,9 +3,9 @@
 
 #if WITH_LLVM && WITH_LLVM_CODEGEN
 // Kiwi
-#include "ast/magic.h"
-#include "builtin/operators.h"
 #include "utilities/guard.h"
+#include "utilities/printing.h" ators.h "
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 // STL
@@ -129,10 +129,8 @@ ExprRet LLVMGen::call(Call_t* n, int depth) {
         auto* val_type = args[i]->getType();
 
         if (arg_type != val_type) {
-            kwerror(llvmlog,
-                    "Type mistmatch expected {} got {}",
-                    llvmstr(arg_type),
-                    llvmstr(val_type));
+            kwerror(
+                llvmlog, "Type mistmatch expected {} got {}", llvmstr(arg_type), llvmstr(val_type));
         }
     }
 
@@ -822,7 +820,7 @@ llvm::Type* LLVMGen::retrieve_type(ExprNode* type, int depth) {
 }
 
 // StmtRet LLVMGen::condjump(CondJump_t* n, int depth) {
-//     return StmtRet(); 
+//     return StmtRet();
 // }
 
 StmtRet LLVMGen::classdef(ClassDef_t* n, int depth) {

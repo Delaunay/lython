@@ -1,6 +1,5 @@
 #include "parser/parser.h"
-#include "ast/magic.h"
-#include "ast/ops.h"
+#include "utilities/printing.h"
 #include "utilities/guard.h"
 #include "utilities/strings.h"
 
@@ -1561,7 +1560,7 @@ Tuple<Value, ValueDeleter> Parser::get_value(Node* parent) {
     case tok_int: {
         // FIXME handle different sizes
         // SEMA should probably accept different size as well
-        return make_value<int32>(token().as_integer());
+        return make_value<int32>(int32(token().as_integer()));
     }
     case tok_float: {
         return make_value<float64>(token().as_float());

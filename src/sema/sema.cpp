@@ -1,25 +1,34 @@
 #include "sema/sema.h"
-#include "ast/magic.h"
 #include "builtin/operators.h"
 #include "dependencies/fmt.h"
 #include "parser/format_spec.h"
 #include "utilities/guard.h"
 #include "utilities/helpers.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 #include "dependencies/formatter.h"
+
+#define KW_SANITY_CHECK 1
 
 namespace lython {
 Arrow* get_arrow(
     SemanticAnalyser* self, ExprNode* fun, ExprNode* type, int depth, int& offset, ClassDef*& cls);
 
+
+
+bool SemanticAnalyser::add_name(StringRef name, ExprNode* value, ExprNode* type) {
+    bindings.add(name, value, type);
+    return true;
+}
+
 bool SemanticAnalyser::add_name(ExprNode* expr, ExprNode* value, ExprNode* type) {
     auto* name = cast<Name>(expr);
 
     if (name != nullptr) {
-        name->ctx  = ExprContext::Store;
-        name->type = type;
-        bindings.add(name->id, value, type);
+        name->ctx      = ExprContext::Store;
+        name->type     = type;
+        add_name(name->id, value, type);
         return true;
     }
 
@@ -463,7 +472,30 @@ BindingEntry const* SemanticAnalyser::lookup(Name_t* n) {
         return nullptr;
     }
 
-    return bindings.find(n->id);
+    if (auto* found = bindings.find(n->id)) {
+        //
+        // n->ctx = ExprContext::Load;
+        n->store_id = found->store_id;
+        n->load_id  = len(bindings.bindings);
+
+
+#if KW_SANITY_CHECK
+        int idx = int (bindings.bindings.size()) - (n->load_id - n->store_id);
+        if (idx < 0 || idx >= bindings.bindings.size()) {
+            kwerror(outlog(), "Bad index got {} = (size: {}) - 1 - (load: {} store: {})", 
+                idx, bindings.bindings.size(), n->load_id, n->store_id
+            );
+        }
+        else {
+            BindingEntry const* bndng = &bindings.bindings[idx];
+            if (bndng != found) {
+                kwerror(outlog(), "Expected to find {} but found {}", found->name, bndng->name);
+            }
+        }
+#endif
+        return found;
+    }
+    return nullptr;
 }
 
 Node* SemanticAnalyser::load_name(Name_t* n) {
@@ -714,7 +746,6 @@ TypeExpr* SemanticAnalyser::joinedstr(JoinedStr* n, int depth) {
     return make_ref(n, "str", Type_t());
 }
 
-
 // TypeExpr* SemanticAnalyser::condjump(CondJump_t* n, int depth) {
 //     return nullptr;
 // }
@@ -861,10 +892,10 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
             int i = 0;
             for (BindingEntry& bind: bindings.bindings) {
                 if (bind.type_id == tid) {
-                    Name* name  = n->new_object<Name>();
-                    name->id    = bind.name;
-                    name->varid = i;
-                    name->type  = bind.type;
+                    Name* name = n->new_object<Name>();
+                    name->id   = bind.name;
+                    // name->varid = i;
+                    name->type = bind.type;
                     return name;
                 }
                 i += 1;
@@ -1107,7 +1138,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
 
         // we could populate the default value here
         // but we would not want sema to think this is a constant
-        bindings.add(arg.arg, nullptr, type);
+        add_name(arg.arg, nullptr, type);
 
         if (arrow != nullptr) {
             arrow->names.push_back(arg.arg);
@@ -1651,7 +1682,7 @@ TypeExpr* SemanticAnalyser::with(With* n, int depth) {
             if (expr->kind == NodeKind::Name) {
                 auto* name = cast<Name>(expr);
                 if (name != nullptr) {
-                    name->varid = bindings.add(name->id, expr, type);
+                    // name->varid = bindings.add(name->id, expr, type);
                 }
             } else {
                 // FIXME: is this even possible ?

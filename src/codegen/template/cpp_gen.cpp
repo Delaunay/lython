@@ -1,7 +1,7 @@
 #include "codegen/cpp/cpp_gen.h"
-#include "ast/magic.h"
 #include "builtin/operators.h"
 #include "utilities/guard.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 namespace lython {

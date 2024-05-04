@@ -1,9 +1,9 @@
 #include "sema/errors.h"
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "lexer/lexer.h"
 #include "parser/parsing_error.h"
 #include "utilities/names.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 namespace lython {

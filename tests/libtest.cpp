@@ -1,21 +1,19 @@
 #include "libtest.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
-#include "ast/magic.h"
 
-#include <regex>
-#include <iostream>
-#include <fstream>
 #include <catch2/catch_all.hpp>
+#include <fstream>
+#include <iostream>
+#include <regex>
 
 namespace lython {
 
 void write_case(std::ostream& out, int i, VMTestCase const& testcase) {
 
-
     if (testcase.name.empty()) {
         out << "# >>> case: " << i << "\n";
-    }
-    else {
+    } else {
         out << "# >>> case: " << testcase.name << "\n";
     }
     out << "# >>> code\n";
@@ -38,7 +36,7 @@ void write_case(std::ostream& out, int i, VMTestCase const& testcase) {
     }
 
     if (!testcase.errors.empty()) {
-        for(auto& error: testcase.errors) {
+        for (auto& error: testcase.errors) {
             out << "# >>> error\n";
             out << error;
             out << "# <<<\n";
@@ -83,43 +81,42 @@ Array<VMTestCase> load_cases(std::istream& in) {
         }
     };
 
-    auto push =
-        [&]() {
-            if (buffer.size() > 0) {
-                String str = join("\n", buffer);
-                buffer.resize(0);
+    auto push = [&]() {
+        if (buffer.size() > 0) {
+            String str = join("\n", buffer);
+            buffer.resize(0);
 
-                switch (section) {
-                case CaseSection::Case: {
-                    add_case();
-                    return;
-                }
-                case CaseSection::Code: {
-                    currentcase.code = str;
-                    i += 1;
-                    return;
-                }
-                case CaseSection::Call: {
-                    currentcase.call = str;
-                    i += 1;
-                    return;
-                }
-                case CaseSection::Error: {
-                    currentcase.errors.push_back(str);
-                    i += 1;
-                    return;
-                }
-                case CaseSection::Expected: {
-                    currentcase.expected_type = str;
-                    i += 1;
-                    return;
-                }
-                case CaseSection::None: {
-                    return;
-                }
-                }
+            switch (section) {
+            case CaseSection::Case: {
+                add_case();
+                return;
             }
-        };
+            case CaseSection::Code: {
+                currentcase.code = str;
+                i += 1;
+                return;
+            }
+            case CaseSection::Call: {
+                currentcase.call = str;
+                i += 1;
+                return;
+            }
+            case CaseSection::Error: {
+                currentcase.errors.push_back(str);
+                i += 1;
+                return;
+            }
+            case CaseSection::Expected: {
+                currentcase.expected_type = str;
+                i += 1;
+                return;
+            }
+            case CaseSection::None: {
+                return;
+            }
+            }
+        }
+    };
 
     while (std::getline(in, line)) {
         std::smatch match;
@@ -127,7 +124,7 @@ Array<VMTestCase> load_cases(std::istream& in) {
             push();
             add_case();
             currentcase.name = match[1].str();
-            section = CaseSection::Case;
+            section          = CaseSection::Case;
             continue;
         }
         if (std::regex_search(line, code_regex)) {
@@ -168,47 +165,31 @@ Array<VMTestCase> load_cases(std::istream& in) {
     return cases;
 }
 
-
-
 String reg_modules_path() { return String(_SOURCE_DIRECTORY) + "/tests/cases"; }
 
-Array<VMTestCase> get_test_cases(String const& folder, String const& name, Array<VMTestCase> const& maybe_cases) {
+Array<VMTestCase>
+get_test_cases(String const& folder, String const& name, Array<VMTestCase> const& maybe_cases) {
     transition(folder, name, maybe_cases);
 
     return maybe_cases;
 }
 
-Array<VMTestCase> get_test_cases(String const& folder, String const& name) 
-{
-    String path = (
-        reg_modules_path() + 
-        String("/") + 
-        folder + 
-        String("/") + 
-        name + 
-        String(".py")
-    );
+Array<VMTestCase> get_test_cases(String const& folder, String const& name) {
+    String path = (reg_modules_path() + String("/") + folder + String("/") + name + String(".py"));
 
-    std::ifstream testfile_fp(path.c_str());
+    std::ifstream     testfile_fp(path.c_str());
     Array<VMTestCase> cases = load_cases(testfile_fp);
     return cases;
 }
 
 void transition(String const& folder, String const& name, Array<VMTestCase> const& cases) {
-    String path = (
-        reg_modules_path() + 
-        String("/") + 
-        folder + 
-        String("/") + 
-        name + 
-        String(".py")
-    );
+    String path = (reg_modules_path() + String("/") + folder + String("/") + name + String(".py"));
 
     {
         {
             std::ofstream fout(path.c_str());
-            int i = 0;
-            for(auto& c: cases) {
+            int           i = 0;
+            for (auto& c: cases) {
                 write_case(fout, i, c);
                 i += 1;
             }
@@ -221,9 +202,9 @@ void transition(String const& folder, String const& name, Array<VMTestCase> cons
         }
 
         REQUIRE(loaded_cases.size() == cases.size());
-        for(int i = 0; i < cases.size(); i++) {
+        for (int i = 0; i < cases.size(); i++) {
             VMTestCase const& original = cases[i];
-            VMTestCase const& loaded = loaded_cases[i];
+            VMTestCase const& loaded   = loaded_cases[i];
 
             REQUIRE(original.code == loaded.code);
             REQUIRE(original.call == loaded.call);
@@ -237,4 +218,4 @@ void transition(String const& folder, String const& name, Array<VMTestCase> cons
     }
 }
 
-}
+}  // namespace lython

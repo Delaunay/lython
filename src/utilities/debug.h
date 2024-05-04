@@ -1,8 +1,11 @@
+#pragma once
+
 #include <iostream>
 #include <tuple>
 #include <vector>
 #include <unordered_map>
 
+namespace lython {
 template<typename T>
 struct ToPointer {
     using type = T*;
@@ -18,19 +21,7 @@ auto counter() {
 }
 
 template <typename Key, typename Value, typename... Others>
-void print(std::ostream& out, std::unordered_map<Key, Value, Others...> const& hashtable);
-
-
-template <typename T>
-void print(std::ostream& out, T& val) {
-    out << val;
-}
-
-template <typename T>
-void print(std::ostream& out, T const& val) {
-    out << val;
-}
-
+std::ostream& operator<<(std::ostream& out,  std::unordered_map<Key, Value, Others...> const& hashtable);
 
 template <typename T>
 void println(std::ostream& out, T const& val) {
@@ -44,21 +35,20 @@ void printTuple(std::ostream& out, const std::tuple<Ts...>& tuple) {
         if (I > 0) {
             out << ", ";
         }
-
-        print(out, std::get<I>(tuple));
+        out << std::get<I>(tuple);
         printTuple<I + 1>(out, tuple);    // Recursively call for the next element
     }
 }
 
 template <typename... Ts>
-void print(std::ostream& out, const std::tuple<Ts...>& tuple) {
+std::ostream& operator<<(std::ostream& out, const std::tuple<Ts...>& tuple) {
     out << "(";
     printTuple<0>(out, tuple);
-    out << ")";
+    return out << ")";
 }
 
 template <typename T, typename... Others>
-void print(std::ostream& out, const std::vector<T, Others...>& vec) {
+std::ostream& operator<<(std::ostream& out, const std::vector<T, Others...>& vec) {
     out << "[";
     auto cnt = counter();
 
@@ -66,14 +56,13 @@ void print(std::ostream& out, const std::vector<T, Others...>& vec) {
         if (cnt() > 0) {
             out << ", ";
         }
-
-        print(out, element);
+        out << element;
     }
-    out << "]";
+    return out << "]";
 }
 
 template <typename Key, typename Value, typename... Others>
-void print(std::ostream& out, std::unordered_map<Key, Value, Others...> const& hashtable) {
+std::ostream& operator<<(std::ostream& out, std::unordered_map<Key, Value, Others...> const& hashtable) {
     out << "{";
     auto cnt = counter();
 
@@ -81,23 +70,25 @@ void print(std::ostream& out, std::unordered_map<Key, Value, Others...> const& h
         if (cnt() > 0) {
             out << ", ";
         }
-        print(out, pair.first);
+        out << pair.first;
         out << ": ";
-        print(out, pair.second);
+        out << pair.second;
     }
-    out << "}";
+    return out << "}";
 }
 
 
 template <typename T>
 void showvar(std::ostream& out, int line, const char* name, T const& val) {
     out << "L";
-    print(out, line);
+    (out << line);
     out << " ";
-    print(out, name);
+    (out << name);
     out << ": ";
-    print(out, val);
+    (out << val);
     out << "\n";
 }
 
 #define LYT_SHOW(out, x) showvar(out, __LINE__, #x, x)
+
+}

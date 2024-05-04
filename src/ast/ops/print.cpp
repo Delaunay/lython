@@ -1,4 +1,5 @@
-#include "ast/magic.h"
+#include "utilities/printing.h"
+
 #include "ast/nodes.h"
 #include "ast/visitor.h"
 #include "dependencies/fmt.h"
@@ -24,6 +25,9 @@ struct PrintTrait {
 };
 
 int  get_precedence(Node const* node);
+
+std::ostream& operator<<(std::ostream& out, Comprehension const& self);
+
 void print_op(std::ostream& out, UnaryOperator op);
 void print_op(std::ostream& out, CmpOperator op);
 void print_op(std::ostream& out, BinaryOperator op, bool aug);
@@ -157,9 +161,10 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
 
 void comprehension(Printer& p, Comprehension const& self, int depth, std::ostream& out, int level);
 
-void print(Comprehension const& self, std::ostream& out) {
+std::ostream& operator<<(std::ostream& out, Comprehension const& self) {
     Printer p;
     comprehension(p, self, 0, out, 0);
+    return out;
 }
 
 ReturnType Printer::attribute(Attribute const* self, int depth, std::ostream& out, int level) {
@@ -992,6 +997,10 @@ ReturnType Printer::settype(SetType const* self, int depth, std::ostream& out, i
 
 ReturnType Printer::name(Name const* self, int depth, std::ostream& out, int level) {
     out << self->id;
+    // if (self->load_id >= 0) { 
+    //     int debruijn_idx = self->load_id - self->store_id;
+    //     out << "[" << debruijn_idx << "]";
+    // }
     return false;
 }
 
@@ -1301,6 +1310,27 @@ int get_precedence(Node const* node) {
     }
     return 1000;
 }
+
+std::ostream& operator<<(std::ostream& out, Node const*& obj) { 
+    Printer p;
+    p.exec<bool>(obj, 0, out, 0); 
+    return out;}
+std::ostream& operator<<(std::ostream& out, ExprNode const*& obj){ 
+        Printer p;
+    p.exec(obj, 0, out, 0);
+    return out;}
+std::ostream& operator<<(std::ostream& out, Pattern const*& obj){ 
+    Printer p;
+    p.exec(obj, 0, out, 0);
+    return out;}
+std::ostream& operator<<(std::ostream& out, StmtNode const*& obj){ 
+        Printer p;
+    p.exec(obj, 0, out, 0);
+    return out;}
+std::ostream& operator<<(std::ostream& out, ModNode const*& obj){
+        Printer p;
+    p.exec(obj, 0, out, 0);
+     return out;}
 
 void print(Node const* obj, std::ostream& out) {
     Printer p;

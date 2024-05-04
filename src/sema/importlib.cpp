@@ -7,6 +7,7 @@
 #include <cstdlib>
 
 #include <filesystem>
+#include "utilities/printing.h"
 
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"

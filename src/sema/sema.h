@@ -1,22 +1,20 @@
 #ifndef LYTHON_SEMA_HEADER
 #define LYTHON_SEMA_HEADER
 
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
 #include "sema/importlib.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
-
 
 // #define SEMA_ERROR(exception)      \
 //     kwerror("{}", exception.what()); \
 //     errors.push_back(std::unique_ptr<SemaException>(new exception));
 
 namespace lython {
-
 
 struct SemaVisitorTrait {
     using StmtRet = TypeExpr*;
@@ -97,25 +95,23 @@ struct SemaContext {
  *
  */
 struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitorTrait> {
-    Bindings                              bindings;             // This should be outside of sema so it can live on after sema
-    bool                                  forwardpass = false;
+    Bindings bindings;  // This should be outside of sema so it can live on after sema
+    bool     forwardpass = false;
     Array<std::unique_ptr<SemaException>> errors;
     Array<StmtNode*>                      nested;
     Array<String>                         namespaces;
     Dict<StringRef, bool>                 flags;
     ImportLib*                            importsys = nullptr;
     Array<Exported*>                      exported_stack;
-    bool                                  eager = false;
+    bool                                  eager        = false;
     ExprContext                           expr_context = ExprContext::Load;
 
     Logger& semalog = lython::outlog();
 
     // Should I remove the types for the runtime info
-    // the type can have their own query struct 
+    // the type can have their own query struct
     // which might or might not be included in the final binary
-    SemanticAnalyser(ImportLib* import = ImportLib::instance()):
-        importsys(import)
-    {}
+    SemanticAnalyser(ImportLib* import = ImportLib::instance()): importsys(import) {}
 
     // maybe conbine the semacontext with samespace
     Array<SemaContext> semactx;
@@ -132,12 +128,12 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
         return semactx[semactx.size() - 1];
     }
 
-    template<typename ...Args>
+    template <typename... Args>
     TypeExpr* exec_with_ctx(ExprContext ctx, Args... args) {
         ExprContext old = expr_context;
-        expr_context = ctx;
-        TypeExpr* r = exec(args...);
-        expr_context = old;
+        expr_context    = ctx;
+        TypeExpr* r     = exec(args...);
+        expr_context    = old;
         return r;
     }
 
@@ -175,6 +171,7 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
     bool typecheck(
         ExprNode* lhs, TypeExpr* lhs_t, ExprNode* rhs, TypeExpr* rhs_t, CodeLocation const& loc);
 
+    bool add_name(StringRef name, ExprNode* value, ExprNode* type);
     bool add_name(ExprNode* expr, ExprNode* value, ExprNode* type);
 
     String operator_function(TypeExpr* expr_t, StringRef op);

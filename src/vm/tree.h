@@ -2,14 +2,14 @@
 #ifndef LYTHON_TREE_EVAL_HEADER
 #define LYTHON_TREE_EVAL_HEADER
 
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
-#include "utilities/strings.h"
 #include "utilities/guard.h"
+#include "utilities/printing.h"
+#include "utilities/strings.h"
 
 namespace lython {
 
@@ -25,25 +25,24 @@ struct TreeEvaluatorTrait {
     enum
     { MaxRecursionDepth = LY_MAX_VISITOR_RECURSION_DEPTH };
 
-
-    //enum
+    // enum
     //{ MaxRecursionDepth = 15 };
 };
 
 struct ExecBlock {
-    int              i = 0; // Instruction pointer
-    Array<StmtNode*> block; // List of instructions
-    String           name;  // Name of the block for debugging
+    int              i = 0;  // Instruction pointer
+    Array<StmtNode*> block;  // List of instructions
+    String           name;   // Name of the block for debugging
 
-    Try* exception_handler = nullptr;
+    Try*         exception_handler = nullptr;
     Array<Value> resources;
 };
 
 struct StackTrace {
     // The statement point to the line
     // while the expression points to a specific location in the line
-    StmtNode const* stmt;
-    ExprNode const* expr;
+    StmtNode const*  stmt;
+    ExprNode const*  expr;
     Array<Constant*> args;
 
     // Execution blocks for resume
@@ -68,7 +67,6 @@ struct Generator: public GCObject {
 struct VariableAddress {
     int i;
 };
-
 
 // Only expression should return a value
 // Statement should return flag that says if the the statement
@@ -121,9 +119,9 @@ struct VariableAddress {
  *
  * 2. Create a different context for evaluation only
  *      With the new context we do not need values to be AST nodes
- *      and we can use the value struct directly which can avoid 
+ *      and we can use the value struct directly which can avoid
  *      memory allocation for trivial types
- * 
+ *
  */
 struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrait> {
 
@@ -134,26 +132,19 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 
     TreeEvaluator() { traces.push_back(StackTrace()); }
 
-     ~TreeEvaluator() {}
+    ~TreeEvaluator() {}
 
     template <typename Exception, typename... Args>
     Value raise(Args... args) {
         return Value();
     }
 
-    Value next(StmtNode* stmt) {
-        return exec(stmt, 0);
-    }
+    Value next(StmtNode* stmt) { return exec(stmt, 0); }
 
     Variables variables;
 
     auto new_scope() {
-        return guard(
-            [&] (std::size_t size){ 
-                variables.resize(size);         
-            }, 
-            variables.size()
-        );
+        return guard([&](std::size_t size) { variables.resize(size); }, variables.size());
     }
 
     void show_variables(std::ostream& out, Variables& variables);
@@ -173,21 +164,15 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         return &variables[i].value;
     }
 
-    bool is_concrete(Value val) {
-        return true;
-    }
+    bool is_concrete(Value val) { return true; }
 
-    void set_value(VariableAddress addr, Value v) {
-        variables[addr.i].value = v;
-    }
+    void set_value(VariableAddress addr, Value v) { variables[addr.i].value = v; }
 
-    Value get_value(VariableAddress addr) {
-        return variables[addr.i].value;
-    }
+    Value get_value(VariableAddress addr) { return variables[addr.i].value; }
 
     Value module(Module* stmt, int depth);
 
-#define FUNCTION_GEN(name, fun)  Value fun(name##_t* n, int depth);
+#define FUNCTION_GEN(name, fun) Value fun(name##_t* n, int depth);
 
 #define X(name, _)
 #define SSECTION(name)
@@ -236,7 +221,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
     // Exception handling that comes after `try`
     Value except(Try_t* n, int depth);
     // Resource closing
-    Value with_exit(With_t* n, Array<Value>& contexts, int depth) ;
+    Value with_exit(With_t* n, Array<Value>& contexts, int depth);
 
     void raise_exception(Value exception, Value cause);
 
@@ -257,7 +242,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         return Super::exec(stmt, depth);
     }
 
-    template<typename T>
+    template <typename T>
     bool is(Value v) {
         return v.tag == meta::type_id<T>();
     }
@@ -268,23 +253,20 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
         return Super::exec(expr, depth);
     }
 
-    StackTrace& get_trace() { 
+    StackTrace& get_trace() {
         kwassert(traces.size() > 0, "Should have at least one call");
-        return traces[traces.size() - 1]; 
+        return traces[traces.size() - 1];
     }
 
-    Array<ExecBlock>* get_blocks() {
-        return &get_trace().blocks;
-    }
+    Array<ExecBlock>* get_blocks() { return &get_trace().blocks; }
 
     int& ic() {
         auto* blk = get_blocks();
         return (*blk)[blk->size() - 1].i;
     }
 
-private:
-
-public:
+    private:
+    public:
     Logger& treelog = outlog();
 
     void check_depth(int depth) {
@@ -325,37 +307,29 @@ public:
     // every time we leave a scope we could do a quick small GC step on that scope
     // to remove free temporary variables and only keep the return value
     Expression root;
-    Value return_value;
+    Value      return_value;
 
     bool is_partial() const {
         if (partial.empty())
             return false;
-        
-        return partial[partial.size() -  1];
+
+        return partial[partial.size() - 1];
     }
 
     void set_partial() {
         if (partial.empty())
             return;
 
-        partial[partial.size() -  1] = true;
+        partial[partial.size() - 1] = true;
     }
 
-    bool has_returned() {
-        return return_value.tag != meta::type_id<_Invalid>();
-    }
+    bool has_returned() { return return_value.tag != meta::type_id<_Invalid>(); }
 
-    void reset() {
-        return_value = Value();
-    }
+    void reset() { return_value = Value(); }
 
-    Value returned() {
-        return return_value;
-    }
+    Value returned() { return return_value; }
 
-    void clear_exceptions() {
-        exceptions.clear();
-    }
+    void clear_exceptions() { exceptions.clear(); }
 
     private:
     // `Registers`
@@ -366,7 +340,7 @@ public:
     Array<int> partial;
 
     Value cause               = nullptr;
-    int            handling_exceptions = 0;
+    int   handling_exceptions = 0;
 
     Array<Generator*>           gens;
     Array<struct _LyException*> exceptions;

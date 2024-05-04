@@ -1,12 +1,12 @@
 #ifndef LYTHON_CPP_GEN_HEADER
 #define LYTHON_CPP_GEN_HEADER
 
-#include "ast/magic.h"
 #include "ast/ops.h"
 #include "ast/visitor.h"
 #include "sema/bindings.h"
 #include "sema/builtin.h"
 #include "sema/errors.h"
+#include "utilities/printing.h"
 #include "utilities/strings.h"
 
 namespace lython {

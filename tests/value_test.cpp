@@ -1,5 +1,5 @@
 #include "ast/values/value.h"
-#include "utilities/debug.h"
+#include "utilities/printing.h"
 
 #include <algorithm>
 #include <iostream>
