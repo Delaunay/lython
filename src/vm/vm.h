@@ -75,6 +75,10 @@ struct VariableIndex {
     Name* name;
 };
 
+struct LazyCallResolve {
+    Call* call = nullptr;
+};
+
 /**
  * The goal of this is to flatten the control flow into simple jumps
  * The code is flatten into a "tape" of instructions.
@@ -95,17 +99,22 @@ struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait> {
 
 #undef FUNCTION_GEN
 
-    Array<GenContext>  contexts;
-    Array<Instruction> program;
-    Array<Label>       labels;
-    Array<LoopContext> loop_ctx;
+    Array<GenContext>       contexts;
+    Array<Instruction>      program;
+    Array<Label>            labels;
+    Array<LoopContext>      loop_ctx;
+    Array<LazyCallResolve>  calls_to_be_resolved;
 
     int instruction_counter() { return int(program.size()); }
 
-    void add_instruction(VMNode* stmt) { program.push_back({stmt}); }
+    void add_instruction(VMNode* stmt) { 
+        kwassert(stmt != nullptr, "Null instruction");
+        program.push_back({stmt}); 
+    }
     void add_instruction(StmtNode* stmt) {
         VMStmt* node = stmt->new_object<VMStmt>();
         node->stmt   = stmt;
+        kwassert(node != nullptr, "Null instruction");
         program.push_back({node});
     }
 
@@ -157,9 +166,20 @@ struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait> {
     }
 
     int add_value(Value val) {
-        int idx = variables.size();
+        int idx = len(variables);
         variables.push_back(val);
         return idx;
+    }
+
+    int compute_jump_call_address(Call_t* n, int depth); 
+
+    void set_ic(int entry) {
+        ic = entry;
+        kwdebug(outlog(), "IC: {}", ic);
+    }
+    void inc_ic() {
+        ic += 1;
+        kwdebug(outlog(), "IC: {}", ic);
     }
 
     Array<Value>              variables;

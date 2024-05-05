@@ -1077,20 +1077,34 @@ ReturnType Printer::condjump(CondJump_t* n, int depth, std::ostream& out, int le
 
     return false; 
 }
+ReturnType Printer::jump(Jump_t* n, int depth, std::ostream& out, int level) {
+    out << "jump(";
+    out << n->destination;
+    out << ")";
+    return false; 
+}
+ReturnType Printer::vmstmt(VMStmt_t* n, int depth, std::ostream& out, int level) {
+    return exec(n->stmt, depth, out, level); 
+}
+ReturnType Printer::nativefunction(VMNativeFunction_t* n, int depth, std::ostream& out, int level) {
+    out << "nativefunction";
+
+    return false; 
+}
 
 // Helper
 // ==================================================
 
-String Node::__str__() const {
-    StringStream ss;
-    if (kind <= NodeKind::Invalid) {
-        kwerror(outlog(), "Node is invalid");
-        return "<Invalid>";
-    }
-    Printer p;
-    p.Super::exec<bool>(this, 0, ss, 0);
-    return ss.str();
-}
+// String Node::__str__() const {
+//     StringStream ss;
+//     if (kind <= NodeKind::Invalid) {
+//         kwerror(outlog(), "Node is invalid");
+//         return "<Invalid>";
+//     }
+//     Printer p;
+//     p.Super::exec<bool>(this, 0, ss, 0);
+//     return ss.str();
+// }
 
 // void Node::print(std::ostream &out, int indent) const {
 //     out << "<not-implemented:";
@@ -1311,25 +1325,31 @@ int get_precedence(Node const* node) {
     return 1000;
 }
 
-std::ostream& operator<<(std::ostream& out, Node const*& obj) { 
+std::ostream& operator<<(std::ostream& out, VMNode const& obj) {
     Printer p;
-    p.exec<bool>(obj, 0, out, 0); 
-    return out;}
-std::ostream& operator<<(std::ostream& out, ExprNode const*& obj){ 
-        Printer p;
-    p.exec(obj, 0, out, 0);
-    return out;}
-std::ostream& operator<<(std::ostream& out, Pattern const*& obj){ 
+    p.exec(&obj, 0, out, 0); 
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, Node const& obj) { 
     Printer p;
-    p.exec(obj, 0, out, 0);
+    p.exec<bool>(&obj, 0, out, 0); 
     return out;}
-std::ostream& operator<<(std::ostream& out, StmtNode const*& obj){ 
+std::ostream& operator<<(std::ostream& out, ExprNode const& obj){ 
         Printer p;
-    p.exec(obj, 0, out, 0);
+    p.exec(&obj, 0, out, 0);
     return out;}
-std::ostream& operator<<(std::ostream& out, ModNode const*& obj){
+std::ostream& operator<<(std::ostream& out, Pattern const& obj){ 
+    Printer p;
+    p.exec(&obj, 0, out, 0);
+    return out;}
+std::ostream& operator<<(std::ostream& out, StmtNode const& obj){ 
         Printer p;
-    p.exec(obj, 0, out, 0);
+    p.exec(&obj, 0, out, 0);
+    return out;}
+std::ostream& operator<<(std::ostream& out, ModNode const& obj){
+        Printer p;
+    p.exec(&obj, 0, out, 0);
      return out;}
 
 void print(Node const* obj, std::ostream& out) {

@@ -83,7 +83,6 @@ int VMCmd::main(argparse::ArgumentParser const& args)
                 std::cout << fmt::format("{:4d}", i)  << "|" << String(idt, ' ') << "." << label->name << "\n";
             }
         }
-
         std::cout << "    |" << String(idt + 2, ' ') << str(inst.stmt) << "\n"; 
     }
 

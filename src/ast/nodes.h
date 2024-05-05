@@ -47,7 +47,7 @@ NodeKind nodekind() {
 }
 
 struct Node: public GCObject {
-    String __str__() const;
+    // String __str__() const;
 
     Node(NodeKind _kind): kind(_kind) {}
 
@@ -597,6 +597,8 @@ struct Call: public ExprNode {
     ExprNode*        func = nullptr;
     Array<ExprNode*> args;
     Array<Keyword>   keywords;
+
+    int jump_id = -1;
 
     Call(): ExprNode(NodeKind::Call) {}
 };

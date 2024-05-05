@@ -3,6 +3,7 @@
 #include "utilities/guard.h"
 #include "utilities/printing.h"
 #include "utilities/strings.h"
+#include "utilities/helpers.h"
 
 namespace lython {
 
@@ -11,32 +12,66 @@ using ExprRet = VMGen::ExprRet;
 using ModRet  = VMGen::ModRet;
 using PatRet  = VMGen::PatRet;
 
-ExprRet VMGen::boolop(BoolOp_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::namedexpr(NamedExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::compare(Compare_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::binop(BinOp_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::unaryop(UnaryOp_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::lambda(Lambda_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::ifexp(IfExp_t* n, int depth) { return ExprRet(); }
+
+ExprRet VMGen::namedexpr(NamedExpr_t* n, int depth) { 
+    exec(n->target, depth);
+    exec(n->value, depth);
+    return ExprRet(); 
+}
+ExprRet VMGen::boolop(BoolOp_t* n, int depth) { 
+    for(auto* expr: n->values) {
+        exec(expr, depth);
+    }
+    return ExprRet(); }
+ExprRet VMGen::compare(Compare_t* n, int depth) { 
+    exec(n->left, depth);
+    for(auto* expr: n->comparators) {
+        exec(expr, depth);
+    }
+    return ExprRet(); 
+}
+ExprRet VMGen::binop(BinOp_t* n, int depth) { 
+    exec(n->left, depth);
+    exec(n->right, depth);
+    return ExprRet(); 
+}
+ExprRet VMGen::unaryop(UnaryOp_t* n, int depth) {
+    exec(n->operand, depth);
+    return ExprRet(); 
+}
+ExprRet VMGen::lambda(Lambda_t* n, int depth) { 
+    exec(n->body, depth);
+    return ExprRet(); 
+}
+ExprRet VMGen::ifexp(IfExp_t* n, int depth) { 
+    exec(n->test, depth);
+    exec(n->body, depth);
+    exec(n->orelse, depth);
+    return ExprRet(); 
+}
 ExprRet VMGen::dictexpr(DictExpr_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::setexpr(SetExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::listcomp(ListComp_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::generateexpr(GeneratorExp_t* n, int depth) { return ExprRet(); }
+ExprRet VMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
+ExprRet VMGen::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
+
+ExprRet VMGen::listcomp(ListComp_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::setcomp(SetComp_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::dictcomp(DictComp_t* n, int depth) { return ExprRet(); }
+
 ExprRet VMGen::await(Await_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::yield(Yield_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::call(Call_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::joinedstr(JoinedStr_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::constant(Constant_t* n, int depth) { return ExprRet(); }
+ExprRet VMGen::constant(Constant_t* n, int depth) { 
+    return ExprRet();
+}
 ExprRet VMGen::attribute(Attribute_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::subscript(Subscript_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::starred(Starred_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMGen::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::slice(Slice_t* n, int depth) { return ExprRet(); }
+
 ExprRet VMGen::dicttype(DictType_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::arraytype(ArrayType_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::arrow(Arrow_t* n, int depth) { return ExprRet(); }
@@ -47,6 +82,14 @@ ExprRet VMGen::classtype(ClassType_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::comment(Comment_t* n, int depth) { return ExprRet(); }
 ExprRet VMGen::name(Name_t* n, int depth) { return ExprRet(); }
 
+// JUMP
+ExprRet VMGen::call(Call_t* n, int depth) { 
+    calls_to_be_resolved.push_back({
+        n,
+    });
+    return ExprRet(); 
+}
+
 // Leaves
 StmtRet VMGen::invalidstmt(InvalidStatement_t* n, int depth) {
     kwerror(outlog(), "Invalid statement");
@@ -54,22 +97,33 @@ StmtRet VMGen::invalidstmt(InvalidStatement_t* n, int depth) {
 }
 StmtRet VMGen::returnstmt(Return_t* n, int depth) {
     add_instruction(n);
+    if (n->value.has_value()) {
+        exec(n->value.value(), depth);
+    }
     return StmtRet();
 }
 StmtRet VMGen::deletestmt(Delete_t* n, int depth) {
     add_instruction(n);
+    for(auto* target : n->targets) {
+        exec(target, depth);
+    }
     return StmtRet();
 }
 StmtRet VMGen::assign(Assign_t* n, int depth) {
     add_instruction(n);
+    exec(n->value, depth);
     return StmtRet();
 }
 StmtRet VMGen::augassign(AugAssign_t* n, int depth) {
     add_instruction(n);
+    exec(n->value, depth);
     return StmtRet();
 }
 StmtRet VMGen::annassign(AnnAssign_t* n, int depth) {
     add_instruction(n);
+    if (n->value.has_value()) {
+        exec(n->value.value(), depth);
+    }
     return StmtRet();
 }
 StmtRet VMGen::exprstmt(Expr_t* n, int depth) {
@@ -77,6 +131,7 @@ StmtRet VMGen::exprstmt(Expr_t* n, int depth) {
         return StmtRet();
     }
     add_instruction(n);
+    exec(n->value, depth);
     return StmtRet();
 }
 StmtRet VMGen::pass(Pass_t* n, int depth) { return StmtRet(); }
@@ -109,6 +164,7 @@ StmtRet VMGen::assertstmt(Assert_t* n, int depth) {
     int raise_idx = instruction_counter();
     add_instruction(raise);
 
+    exec(n->test, depth);
     jmp->condition = n->test;
     jmp->then_jmp  = raise_idx + 1;
     jmp->else_jmp  = raise_idx;
@@ -184,7 +240,7 @@ StmtRet VMGen::forstmt(For_t* n, int depth) {
 
     // Get next, if stop iteration jump to
     // we need a break tag and a continue tag
-    n->iter;
+    exec(n->iter, depth);
 
     add_instruction(jmp);
 
@@ -214,6 +270,7 @@ StmtRet VMGen::whilestmt(While_t* n, int depth) {
 
     int       start = instruction_counter();
     CondJump* jmp   = n->new_object<CondJump>();
+    exec(n->test, depth);
     jmp->condition  = n->test;
     add_instruction(jmp);
 
@@ -239,6 +296,7 @@ StmtRet VMGen::whilestmt(While_t* n, int depth) {
 StmtRet VMGen::ifstmt(If_t* n, int depth) {
     CondJump* jmp  = n->new_object<CondJump>();
     jmp->condition = n->test;
+    exec(n->test, depth);
     add_instruction(jmp);
 
     jmp->then_jmp = instruction_counter();
@@ -307,14 +365,58 @@ PatRet VMGen::matchas(MatchAs_t* n, int depth) { return PatRet(); }
 PatRet VMGen::matchor(MatchOr_t* n, int depth) { return PatRet(); }
 
 ModRet VMGen::module(Module_t* n, int depth) {
+    Array<StmtNode*> entry_point;
+    Array<StmtNode*> others;
+
     for (auto* stmt: n->body) {
+        if (!in(stmt->kind, NodeKind::FunctionDef, NodeKind::ClassDef)) {
+            entry_point.push_back(stmt);
+        } else {
+            others.push_back(stmt);
+        }
+    }
+
+    for (auto* stmt: entry_point) {
         Super::exec(stmt, depth);
     }
+
+    // generate a (return None) as the last instruction of the entry point
+    Return* stop = n->new_object<Return>();
+    add_instruction(stop);
+
+     for (auto* stmt: others) {
+        Super::exec(stmt, depth);
+    }
+
+    // Resolve Call
+    /*
+    for(LazyCallResolve& pending: calls_to_be_resolved) {
+        ExprNode* fun = pending.call->func;
+        switch (fun->kind) {
+            case NodeKind::Name: {
+                Name* name = cast<Name>(fun);
+                for(auto& label: labels) {
+                    if (str(name->id) == label.name) {
+                        pending.call->jump_id = label.index;
+                    }
+                }
+                continue;
+            }
+            default: {
+                kwerror(outlog(), "unsupported call to {}", str(fun->kind));
+                continue;
+            }
+        }
+    }
+    */
     return ModRet();
 };
 ModRet VMGen::interactive(Interactive_t* n, int depth) { return ModRet(); }
 ModRet VMGen::functiontype(FunctionType_t* n, int depth) { return ModRet(); }
 ModRet VMGen::expression(Expression_t* n, int depth) { return ModRet(); }
+
+ModRet VMGen::exported(Exported_t* n, int depth) { return ModRet(); }
+ModRet VMGen::placeholder(Placeholder_t* n, int depth) { return ModRet(); }
 
 void exec(int ic, int depth);
 //
@@ -326,7 +428,9 @@ Value VMExec::execute(Program const& prog, int entry) {
 }
 
 Value VMExec::execute(int entry) {
-    ic = entry;
+    set_ic(entry);
+
+
     while (true) {
         if (ic >= program->instructions.size() || ic < 0) {
             return getreg(Registers::ReturnValue);
@@ -334,7 +438,12 @@ Value VMExec::execute(int entry) {
 
         Instruction const& inst = program->instructions[ic];
         Super::exec(inst.stmt, 0);
-        ic += 1;
+
+        if (ic < 0) {
+            return getreg(Registers::ReturnValue);
+        }
+
+        inc_ic();
     }
 }
 
@@ -356,7 +465,9 @@ ExprRet VMExec::yield(Yield_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::joinedstr(JoinedStr_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::constant(Constant_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::constant(Constant_t* n, int depth) { 
+    return n->value; 
+}
 ExprRet VMExec::attribute(Attribute_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::subscript(Subscript_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::starred(Starred_t* n, int depth) { return ExprRet(); }
@@ -374,8 +485,45 @@ ExprRet VMExec::comment(Comment_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::name(Name_t* n, int depth) {
     int idx = (n->load_id - n->store_id);
     int size = int(variables.size());
-    return variables[size - idx];
+
+    Value val = variables[size - idx];
+
+    kwerror(outlog(), "loading {}", str(val));
+    return val;
 }
+
+int VMExec::compute_jump_call_address(Call_t* n, int depth) {
+    //
+    // def oldfun(...)
+    //     pass
+    //
+    // newfun = oldfun
+    //
+    //
+    // or returning of function ?
+    // sema will tell us the expression is callable
+    // constant folding might simplify a lot here
+
+    auto find_label = [&](String name) -> int {
+        for(auto& label: program->labels) {
+            if (label.name == name) {
+                return label.index;
+            }
+        }
+        return -1;
+    };
+
+    switch (n->func->kind) {
+        case NodeKind::Name: {
+            Name* name = cast<Name>(n->func);
+            return find_label(str(name->id));
+        }
+    }
+
+    kwerror(outlog(), "Unsupported expression {}", str(n->func->kind));
+    return -1;
+}
+
 ExprRet VMExec::call(Call_t* n, int depth) {
     StackTrace& trace = stacktrace.emplace_back();
 
@@ -389,7 +537,7 @@ ExprRet VMExec::call(Call_t* n, int depth) {
         variables.size());
 
     // fetch the label to jump to
-    int fun_idx = Super::exec(n->func, depth).as<int>();
+    int fun_idx = compute_jump_call_address(n, depth);
 
     // is call native instruction
     Instruction const& inst = program->instructions[fun_idx];
@@ -406,6 +554,7 @@ ExprRet VMExec::call(Call_t* n, int depth) {
         // check for native call then we can just call it here
         for (auto& arg: n->args) {
             Value arg_val = Super::exec(arg, depth);
+            kwdebug(outlog(), "adding value: {}", str(arg_val));
             add_value(arg_val);
         }
 
@@ -423,8 +572,10 @@ ExprRet VMExec::call(Call_t* n, int depth) {
 
         execute(fun_idx);
 
-        ic = old;
-        return getreg(Registers::ReturnValue);
+        set_ic(old);
+        Value v = getreg(Registers::ReturnValue);
+        std::cout << str(v) << std::endl;
+        return v;
     }
     return Value();
 }
@@ -437,13 +588,13 @@ StmtRet VMExec::returnstmt(Return_t* n, int depth) {
     if (n->value.has_value()) {
         Value ret_val = Super::exec(n->value.value(), depth);
         setreg(Registers::ReturnValue, ret_val);
-
-        // ic of -1 would stop the program
-        // in the case of a call that is what we want
-        ic = getreg(Registers::ReturnAddress).as<int>();
     } else {
         setreg(Registers::ReturnValue, Value(_None()));
     }
+
+    // ic of -1 would stop the program
+    // in the case of a call that is what we want
+    set_ic(getreg(Registers::ReturnAddress).as<int>());
     return StmtRet();
 }
 StmtRet VMExec::deletestmt(Delete_t* n, int depth) {
@@ -634,9 +785,7 @@ PatRet VMExec::matchas(MatchAs_t* n, int depth) { return PatRet(); }
 PatRet VMExec::matchor(MatchOr_t* n, int depth) { return PatRet(); }
 
 ModRet VMExec::module(Module_t* n, int depth) {
-    for (auto* stmt: n->body) {
-        Super::exec(stmt, depth);
-    }
+    kwerror(outlog(), "No more module");
     return ModRet();
 };
 ModRet VMExec::interactive(Interactive_t* n, int depth) { return ModRet(); }
