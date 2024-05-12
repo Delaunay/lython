@@ -879,7 +879,7 @@ Pattern* Parser::parse_pattern_1(Node* parent, int depth) {
     case tok_string:
     case tok_float: {
         auto pat   = parent->new_object<MatchSingleton>();
-        std::tie(pat->value, pat->deleter) = get_value(pat);
+        pat->value= get_value(pat);
         next_token();
         return pat;
     }
@@ -1541,7 +1541,7 @@ bool Parser::is_valid_value() {
     return false;
 }
 
-Tuple<Value, ValueDeleter> Parser::get_value(Node* parent) {
+Value Parser::get_value(Node* parent) {
     if (!is_valid_value()) {
         ParsingError& error = parser_kwerror(  //
             LOC,                               //
@@ -1596,7 +1596,7 @@ ExprNode* Parser::parse_constant(Node* parent, int depth) {
     auto expr = parent->new_object<Constant>();
     start_code_loc(expr, token());
 
-    std::tie(expr->value, expr->deleter) = get_value(expr);
+    expr->value = get_value(expr);
 
     end_code_loc(expr, token());
     next_token();

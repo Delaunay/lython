@@ -418,6 +418,9 @@ ModRet VMGen::expression(Expression_t* n, int depth) { return ModRet(); }
 ModRet VMGen::exported(Exported_t* n, int depth) { return ModRet(); }
 ModRet VMGen::placeholder(Placeholder_t* n, int depth) { return ModRet(); }
 
+//
+// Execute
+// =======
 void exec(int ic, int depth);
 //
 
@@ -447,41 +450,269 @@ Value VMExec::execute(int entry) {
     }
 }
 
-ExprRet VMExec::boolop(BoolOp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::namedexpr(NamedExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::compare(Compare_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::binop(BinOp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::unaryop(UnaryOp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::lambda(Lambda_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::ifexp(IfExp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::dictexpr(DictExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::setexpr(SetExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::listcomp(ListComp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::generateexpr(GeneratorExp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::setcomp(SetComp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::dictcomp(DictComp_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::await(Await_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::yield(Yield_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::boolop(BoolOp_t* n, int depth) { 
+    StackTrace& trace = stacktrace.emplace_back();
+    KW_DEFERRED(
+    [&](std::size_t old_size) {
+        stacktrace.pop_back();
+        variables.resize(old_size);
+    },
+    variables.size());
+
+    using ExecFun = Value(*)(VMExec*, BoolOp_t*, Value, Value);
+
+    ExecFun exec_native = [](VMExec* self, BoolOp_t* n, Value acc, Value val) -> Value {
+        return n->native_operator(self, self->makeargs(acc, val));
+    };
+    ExecFun exec_script = [](VMExec* self, BoolOp_t* n, Value acc, Value val) -> Value {
+        self->add_value(acc);
+        self->add_value(val);
+        // TODO
+        // jump to the right function
+
+        self->variables.resize(len(self->variables) - 2);
+        return self->getreg(Registers::ReturnValue);
+    };
+
+    ExecFun impl = n->native_operator ? exec_native: exec_script;
+    
+    Value result = Super::exec(n->values[0], depth);
+
+    for(int i = 1; i < len(n->values); i++) {
+        // shortcut
+        // if true and OR
+        if (result.as<bool>() && n->op == BoolOperator::Or) {
+            return Value(true);
+        }
+        // if false and AND
+        if (!result.as<bool>() && n->op == BoolOperator::And) {
+            return Value(false);
+        }
+
+        Value val = Super::exec(n->values[i], depth);
+
+        result = impl(this, n, result, n->values[i]);
+    }
+
+    return Value();
+}
+ExprRet VMExec::namedexpr(NamedExpr_t* n, int depth) {
+    Value val = Super::exec(n->value, depth);
+    add_value(val);
+    return val; 
+}
+ExprRet VMExec::compare(Compare_t* n, int depth) {
+    StackTrace& trace = stacktrace.emplace_back();
+    KW_DEFERRED(
+    [&](std::size_t old_size) {
+        stacktrace.pop_back();
+        variables.resize(old_size);
+    },
+    variables.size());
+
+    auto exec_native = [](VMExec* self, Function fun, Value prev, Value next) -> Value {
+        return fun(self, self->makeargs(prev, next));
+    };
+
+    auto exec_script = [](VMExec* self, int jump, Value prev, Value next) -> Value {
+        self->add_value(prev);
+        self->add_value(next);
+        // TODO
+        // jump to the right function
+
+        self->variables.resize(len(self->variables) - 2);
+        return self->getreg(Registers::ReturnValue);
+    };
+
+    Value prev = Super::exec(n->left, depth);
+    for(int i = 0; i < len(n->comparators); i++) {
+        Value next = Super::exec(n->comparators[i], depth);
+
+        // TODO
+        // get function implementation index
+        // n->varid
+        Function impl = n->native_operator[i];
+
+        Value result = impl ? exec_native(this, impl, prev, next) : exec_script(this, 0, prev, next);
+
+        if (!result.as<bool>()){
+            return Value(false);
+        }
+        prev = next;
+    }   
+
+    return Value(true);
+}
+ExprRet VMExec::binop(BinOp_t* n, int depth) 
+{ 
+    StackTrace& trace = stacktrace.emplace_back();
+    KW_DEFERRED(
+    [&](std::size_t old_size) {
+        stacktrace.pop_back();
+        variables.resize(old_size);
+    },
+    variables.size());
+
+    Value left = Super::exec(n->left, depth);
+    Value right = Super::exec(n->right, depth);
+
+    if (n->native_operator) {
+        return n->native_operator(this, makeargs(left, right));
+    }
+
+    add_value(left);
+    add_value(right);
+    
+    // TODO
+    // get function implementation index
+    // n->varid
+    return Value();
+}
+ExprRet VMExec::unaryop(UnaryOp_t* n, int depth) { 
+    
+    StackTrace& trace = stacktrace.emplace_back();
+    KW_DEFERRED(
+    [&](std::size_t old_size) {
+        stacktrace.pop_back();
+        variables.resize(old_size);
+    },
+    variables.size());
+
+    Value operand = Super::exec(n->operand, depth);
+    if (n->native_operator) {
+        return n->native_operator(this, makeargs(operand));
+    }
+
+    add_value(operand);
+    // TODO
+    // get function implementation index
+    // n->varid
+    return Value();
+}
+ExprRet VMExec::ifexp(IfExp_t* n, int depth) { 
+    Value cond = Super::exec(n->test, depth);
+    if (cond.as<bool>()) {
+        return Super::exec(n->body, depth);
+    }
+    return Super::exec(n->orelse, depth); 
+}
+
+
 ExprRet VMExec::joinedstr(JoinedStr_t* n, int depth) { return ExprRet(); }
 ExprRet VMExec::formattedvalue(FormattedValue_t* n, int depth) { return ExprRet(); }
+
+ExprRet VMExec::yield(Yield_t* n, int depth) { 
+    // save the current excution state and return to main execution thread
+    return ExprRet(); 
+}
+ExprRet VMExec::yieldfrom(YieldFrom_t* n, int depth) { return ExprRet(); }
+
+
 ExprRet VMExec::constant(Constant_t* n, int depth) { 
     return n->value; 
 }
-ExprRet VMExec::attribute(Attribute_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::subscript(Subscript_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::starred(Starred_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::listexpr(ListExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::tupleexpr(TupleExpr_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::slice(Slice_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::dicttype(DictType_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::arraytype(ArrayType_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::arrow(Arrow_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::builtintype(BuiltinType_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::tupletype(TupleType_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::settype(SetType_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::classtype(ClassType_t* n, int depth) { return ExprRet(); }
-ExprRet VMExec::comment(Comment_t* n, int depth) { return ExprRet(); }
+ExprRet VMExec::attribute(Attribute_t* n, int depth) { 
+    // get the value or set the value of an attribute
+
+    return ExprRet(); 
+}
+ExprRet VMExec::subscript(Subscript_t* n, int depth) { 
+    // call native []
+    // or call __getitem__ / __setitem__
+    return ExprRet(); 
+}
+
+ExprRet VMExec::dictexpr(DictExpr_t* n, int depth) { 
+    //
+    // How would the GC interact here
+    //  1. we need the GC to know about the memory allocation
+    //     a. _new_object should call placement new and the memory should be allocated for it by the GC
+    //        or it should take a reference to a `GarbageCollector` that will allocate the memory for it
+    //     b. we could move the tag out of Value and into the GC
+    //        Makes Value cheaper overall, plus once sema is run type safety should be guaranteed
+    //
+    //  2. it needs to know HOW to free it
+    //     a. Here the value is a C++ class, so the constructor can be called
+    //        BUT the value it holds might need to be deleted by a special destructor
+    //     b. If Value is a Script class, its destructor need to be called
+    //        which requires VMExec to be available
+    //     c. ValueDeleter = void(*)(Value&) so the function is not compatible with VMExec
+    //        we could change the signature to be void(*)(GarbageCollector* gc, Value&)
+    //        and VMExec would implement the `GarbageCollector` interface
+    //
+    //  3. So now we have a list of Values allocated
+    //     We can iterate over all the addressable value and mark
+    //     the reachable value
+    //
+    Value val = make_value<Dict<Value, Value>>();
+    
+    Dict<Value, Value>& dict = val.as<Dict<Value, Value>&>();
+    dict.reserve(len(n->keys));
+
+    for(int i = 0; i < len(n->keys); i++) {
+        Value key = Super::exec(n->keys[i], depth);
+        Value value = Super::exec(n->values[i], depth);
+        // dict[key] = val;
+        dict.insert({key, val});
+    }
+    return val;
+}
+ExprRet VMExec::setexpr(SetExpr_t* n, int depth) { 
+    Value val = make_value<Array<Value>>();
+    
+    Array<Value>& array = val.as<Array<Value>&>();
+    array.reserve(len(n->elts));
+
+    for(auto* elt: n->elts) {
+        Value element = Super::exec(elt, depth);
+        array.push_back(elt);
+    }
+    return val; 
+}
+ExprRet VMExec::listexpr(ListExpr_t* n, int depth) { 
+    Value val = make_value<Array<Value>>();
+    
+    Array<Value>& array = val.as<Array<Value>&>();
+    array.reserve(len(n->elts));
+
+    for(auto* elt: n->elts) {
+        Value element = Super::exec(elt, depth);
+        array.push_back(elt);
+    }
+    return val; 
+}
+ExprRet VMExec::tupleexpr(TupleExpr_t* n, int depth) { 
+    Value val = make_value<Array<Value>>();
+    
+    Array<Value>& array = val.as<Array<Value>&>();
+    array.reserve(len(n->elts));
+
+    for(auto* elt: n->elts) {
+        Value element = Super::exec(elt, depth);
+        array.push_back(elt);
+    }
+    return val; 
+}
+ExprRet VMExec::slice(Slice_t* n, int depth) { 
+    //
+    // this returns an array view/range/slice
+    Value step;
+    Value upper;
+    Value lower;
+
+    if (n->step.has_value()) {
+        step = Super::exec(n->step.value(), depth);
+    }
+    if (n->lower.has_value()) {
+        lower = Super::exec(n->lower.value(), depth);
+    }
+    if (n->upper.has_value()) {
+        upper = Super::exec(n->upper.value(), depth);
+    }
+
+    return ExprRet(); 
+}
+
 ExprRet VMExec::name(Name_t* n, int depth) {
     int idx = (n->load_id - n->store_id);
     int size = int(variables.size());
@@ -504,6 +735,8 @@ int VMExec::compute_jump_call_address(Call_t* n, int depth) {
     // sema will tell us the expression is callable
     // constant folding might simplify a lot here
 
+
+    // TODO: this can be pre-computed on VMGen
     auto find_label = [&](String name) -> int {
         for(auto& label: program->labels) {
             if (label.name == name) {
@@ -574,7 +807,7 @@ ExprRet VMExec::call(Call_t* n, int depth) {
 
         set_ic(old);
         Value v = getreg(Registers::ReturnValue);
-        std::cout << str(v) << std::endl;
+        // std::cout << str(v) << std::endl;
         return v;
     }
     return Value();
@@ -701,8 +934,16 @@ StmtRet VMExec::raise(Raise_t* n, int depth) {
     //
     return StmtRet();
 }
-StmtRet VMExec::global(Global_t* n, int depth) { return StmtRet(); }
-StmtRet VMExec::nonlocal(Nonlocal_t* n, int depth) { return StmtRet(); }
+
+//
+// Those two change variable lookup scope
+StmtRet VMExec::global(Global_t* n, int depth) { 
+    //
+    return StmtRet(); }
+StmtRet VMExec::nonlocal(Nonlocal_t* n, int depth) { 
+    //    
+    return StmtRet(); 
+}
 
 StmtRet VMExec::nativefunction(VMNativeFunction_t* n, int depth) {
     kwassert(false, "should be handled on the call level");
@@ -726,8 +967,37 @@ StmtRet VMExec::jump(Jump_t* n, int depth) {
 
 StmtRet VMExec::vmstmt(VMStmt* n, int depth) { return Super::exec(n->stmt, depth); }
 
-StmtRet VMExec::import(Import_t* n, int depth) { return StmtRet(); }
-StmtRet VMExec::importfrom(ImportFrom_t* n, int depth) { return StmtRet(); }
+ExprRet VMExec::starred(Starred_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); 
+}
+StmtRet VMExec::import(Import_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return StmtRet(); }
+StmtRet VMExec::importfrom(ImportFrom_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return StmtRet(); }
+
+ExprRet VMExec::lambda(Lambda_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); 
+}
+ExprRet VMExec::listcomp(ListComp_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); }
+ExprRet VMExec::generateexpr(GeneratorExp_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); }
+ExprRet VMExec::setcomp(SetComp_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); }
+ExprRet VMExec::dictcomp(DictComp_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); }
+ExprRet VMExec::await(Await_t* n, int depth) { 
+    kwerror(outlog(), "this should probably not exist anymore");
+    return ExprRet(); }
+
 
 StmtRet VMExec::inlinestmt(Inline_t* n, int depth) {
     kwassert(false, "should have been converted to instructions");
@@ -791,5 +1061,44 @@ ModRet VMExec::module(Module_t* n, int depth) {
 ModRet VMExec::interactive(Interactive_t* n, int depth) { return ModRet(); }
 ModRet VMExec::functiontype(FunctionType_t* n, int depth) { return ModRet(); }
 ModRet VMExec::expression(Expression_t* n, int depth) { return ModRet(); }
+
+
+
+//
+//
+//
+
+ExprRet VMExec::dicttype(DictType_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+}
+ExprRet VMExec::arraytype(ArrayType_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+}
+ExprRet VMExec::arrow(Arrow_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+    }
+ExprRet VMExec::builtintype(BuiltinType_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+}
+ExprRet VMExec::tupletype(TupleType_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+}
+ExprRet VMExec::settype(SetType_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+}
+ExprRet VMExec::classtype(ClassType_t* n, int depth) { 
+    kwerror(outlog(), "No types during runtime");
+    return ExprRet(); 
+}
+ExprRet VMExec::comment(Comment_t* n, int depth) { 
+    kwerror(outlog(), "No comments during runtime");
+    return ExprRet(); 
+}
 
 }  // namespace lython

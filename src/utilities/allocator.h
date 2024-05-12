@@ -117,8 +117,8 @@ inline SharedPtr<_Tp> make_shared(_Args&&... __args) {
                                      std::forward<_Args>(__args)...);
 }
 
-template <typename V>
-using UniquePtr = std::unique_ptr<V>;
+template <typename V, typename ...Args>
+using UniquePtr = std::unique_ptr<V, Args...>;
 
 template <typename _Tp, typename... _Args>
 inline UniquePtr<_Tp> make_unique(_Args&&... __args) {

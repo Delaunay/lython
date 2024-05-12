@@ -52,6 +52,7 @@ TEST_MACRO(attribute)
 TEST_MACRO(vm)
 TEST_MACRO(meta)
 TEST_MACRO(value)
+TEST_MACRO(garbage)
 
 if (WITH_LLVM)
   TEST_MACRO(llvm)

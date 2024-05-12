@@ -49,7 +49,7 @@ TEST_CASE("Value_SVO_Function Wrapping") {
     Value method       = KIWI_WRAP(Point2D::distance2);
     Value const_method = KIWI_WRAP(Point2D::distance);
 
-    auto [value, deleter] = make_value<Point2D>(3.0f, 4.0f);
+    auto value = make_value<Point2D>(3.0f, 4.0f);
     Value copy            = value;
 
     REQUIRE(copy.is_valid<Point2D*>() == true);
@@ -106,7 +106,7 @@ TEST_CASE("Value_SVO_Function Wrapping") {
     REQUIRE(invoke(nullptr, const_method, copy).as<float>() == 5.0f);
     REQUIRE(Value::has_error() == false);
 
-    REQUIRE(deleter == noop_destructor);
+    // REQUIRE(deleter == noop_destructor);
 }
 
 // This struct is too big and it will be allocated on the heap
@@ -143,7 +143,7 @@ TEST_CASE("Value_NOSVO_Function Wrapping") {
     Value method          = KIWI_WRAP(Rectangle::perimeter2);
     Value const_method    = KIWI_WRAP(Rectangle::perimeter);
 
-    auto [value, deleter] = make_value<Rectangle>(Point2D(3.0f, 4.0f), Point2D(3.0f, 4.0f));
+    auto value = make_value<Rectangle>(Point2D(3.0f, 4.0f), Point2D(3.0f, 4.0f));
     Value copy            = value;
 
 #define REF(T, val) ((T&)(*val.as<T*>()))
@@ -205,14 +205,15 @@ TEST_CASE("Value_NOSVO_Function Wrapping") {
     REQUIRE(invoke(nullptr, const_method, copy).as<float>() == 14.0);
     REQUIRE(Value::has_error() == false);
 
-    deleter(value);
+    value.destroy();
+    //deleter(nullptr, value);
 }
 
 TEST_CASE("Value_Reference") {
 
     int i = 4;
 
-    auto [value, deleter] = make_value<int*>(&i);
+    auto value = make_value<int*>(&i);
 
     int*& ptrref = value.ref<int*>();
 
@@ -250,7 +251,7 @@ TEST_CASE("Value_Reference") {
     REQUIRE((**value.as<int**>()) == 5);
     REQUIRE(Value::has_error() == false);
 
-    REQUIRE(deleter == noop_destructor);
+    // REQUIRE(deleter == noop_destructor);
 }
 
 struct cstruct {
@@ -269,7 +270,7 @@ TEST_CASE("Value_C_Object") {
 
     cstruct* ptr = new_cstruct();
 
-    auto [value, deleter] = from_pointer<cstruct, free_cstruct>(ptr);
+    auto value = from_pointer<cstruct, free_cstruct>(ptr);
 
     REQUIRE(value.is_valid<cstruct*>() == true);
     REQUIRE(value.as<cstruct*>() == ptr);
@@ -278,8 +279,9 @@ TEST_CASE("Value_C_Object") {
     REQUIRE(value.as<cstruct*>()->a == 2.0f);
     REQUIRE(Value::has_error() == false);
 
-    deleter(value);
-    deleter(value);
+    value.destroy();
+    value.destroy();
+    // deleter(nullptr, value);
 }
 
 struct ScriptObjectTest {
@@ -304,7 +306,7 @@ TEST_CASE("Value_Script_Check") {
 }
 
 TEST_CASE("Value_ErrorHandling") {
-    auto [a, deleter] = make_value<int>(1);
+    auto a = make_value<int>(1);
 
     REQUIRE(a.is_valid<float>() == false);
     REQUIRE(a.is_valid<int>() == true);
@@ -320,7 +322,8 @@ TEST_CASE("Value_ErrorHandling") {
     REQUIRE(Value::global_err.value_type_id == meta::type_id<int>());
     Value::reset_error();
 
-    deleter(a);
+    a.destroy();
+    // deleter(nullptr, a);
 }
 
 TEST_CASE("Value_ErrorHandling_2") {
@@ -347,10 +350,10 @@ TEST_CASE("Value_ErrorHandling_2") {
         // X(Rectangle*const*, Rectangle*const*)   \
             //
 
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        auto vv = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
         Value const v      = vv;
         TRY(CASE)
-        deleter(vv);
+        vv.destroy();
 #undef TRY
     }
     {
@@ -364,10 +367,10 @@ TEST_CASE("Value_ErrorHandling_2") {
     X(Rectangle* const*, Rectangle* const*) \
     X(int* const, int* const)
 
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        auto vv = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
         Value v            = vv;
         TRY(CASE)
-        deleter(vv);
+        vv.destroy();
 #undef TRY
     }
 #undef CASE
@@ -386,10 +389,10 @@ TEST_CASE("Value_ErrorHandling_2") {
     X(Rectangle const*, int) \
     X(Rectangle const&, int)
 
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        auto vv = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
         Value const v      = vv;
         TRY(CASE)
-        deleter(vv);
+        vv.destroy();
 #undef TRY
     }
     {
@@ -402,10 +405,10 @@ TEST_CASE("Value_ErrorHandling_2") {
     X(Rectangle const&, int) \
     X(Rectangle* const, int)
 
-        auto [vv, deleter] = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
+        auto vv = make_value<Rectangle>(Point2D(1, 1), Point2D(2, 2));
         Value v            = vv;
         TRY(CASE)
-        deleter(vv);
+        vv.destroy();
 #undef TRY
     }
 
@@ -436,7 +439,7 @@ TEST_CASE("Value_Array Wrapping") {
 
     Array<float> v = {1, 2, 3, 4};
 
-    auto [value, deleter] = make_value<Array<float>>(v);
+    auto value = make_value<Array<float>>(v);
     Value copy            = value;
 
     REQUIRE(copy.is_valid<Array<float>>() == true);
@@ -475,13 +478,8 @@ TEST_CASE("Value_Array Wrapping") {
     REQUIRE(invoke(nullptr, wrapped_cpy, copy).as<float>() == 10.0);
     REQUIRE(Value::has_error() == false);
 
-    deleter(value);
-    deleter(value);
-}
-
-std::ostream& operator<<(std::ostream& out, Array<float> const& val) {
-    print(out, val);
-    return out;
+    value.destroy();
+    value.destroy();
 }
 
 TEST_CASE("Value_Array Copy") {
@@ -489,7 +487,7 @@ TEST_CASE("Value_Array Copy") {
 
     Array<float> v = {1, 2, 3, 4};
 
-    auto [value, deleter] = make_value<Array<float>>(v);
+    auto value = make_value<Array<float>>(v);
 
     Value shallow_copy = value;
 
@@ -515,15 +513,14 @@ TEST_CASE("Value_Array Copy") {
     std::cout << is_streamable<std::ostream, Array<float>>::value << std::endl;
     std::cout << is_streamable<std::ostream, Array<float>&>::value << std::endl;
 
-    auto printer = [](std::ostream& out, Value const& v) {
-        print(out, v.as<Array<float> const&>());
-    };
+    auto printer = [](std::ostream& out, Value const& v) { out << v.as<Array<float> const&>(); };
 
     register_value<Array<float>>(printer);
 
     deep_copy.print(std::cout) << "\n";
-    deleter(value);
-    deleter(deep_copy);
+
+    value.destroy();
+    deep_copy.destroy();
 }
 
 TEST_CASE("Value_int ref") {
@@ -537,4 +534,324 @@ TEST_CASE("Value_int ref") {
     v.as<int&>() = 2;
     REQUIRE(v.as<int>() == 2);
     REQUIRE(ref.as<int>() == 2);
+}
+
+//
+//
+//  VALUE WITH OWING TYPE
+//
+//
+// Not sure if this is worth it
+// Maybe assume everything is owning unless it is a pointer ?
+// but we DO have owning pointer like C objects
+//
+//
+namespace internal {
+template <typename T, bool owned>
+struct Claim {
+    T data;
+
+    Claim() {}
+
+    template <typename... Args>
+    Claim(Args... args): data(args...) {}
+
+    operator T() { return data; }
+
+    operator T&() { return data; }
+
+    operator T const &() const { return data; }
+
+    operator T*() { return &data; }
+
+    operator T const *() const { return &data; }
+};
+}  // namespace internal
+
+template <typename T>
+bool is_owned(Value& val) {
+    using Owned = internal::Claim<T, true>;
+    return val.is_type<Owned>();
+}
+
+template <typename T>
+bool is_weakref(Value& val) {
+    using Weakref = internal::Claim<T*, false>;
+    return val.is_type<Weakref>();
+}
+
+template <typename T>
+bool is(Value& val) {
+    // this is 3 integer compare
+    return is_owned<T>(val) || is_weakref<T>(val) || val.is_type<T>();
+}
+
+// Template metafunction to strip qualifiers from a type
+template <typename T>
+struct strip_qualifiers {
+    using type = typename std::remove_pointer<typename std::remove_const<
+        typename std::remove_reference<typename std::remove_pointer<T>::type>::type>::type>::type;
+};
+
+// Template metafunction to transfer qualifiers from type T to type V
+template <typename T, typename V>
+struct transfer_qualifiers {
+    using Base = typename strip_qualifiers<T>::type;
+
+    using type = 
+        typename std::conditional_t<
+            std::is_same_v<Base*, T>,
+            V*,
+        typename std::conditional_t<
+            std::is_same_v<Base const&, T>,
+            V const&,
+        typename std::conditional_t<
+            std::is_same_v<Base const*, T>,
+            V const*,
+        typename std::conditional_t<
+            std::is_same_v<Base&, T>,
+            V&,
+        typename std::conditional_t<
+            std::is_same_v<Base*, T>,
+            V*,
+        typename std::conditional_t<
+            std::is_same_v<Base const, T>, 
+            V const, 
+            V
+        >
+        >
+        >
+        >
+        >
+        >;
+};
+
+template <typename T>
+T as(Value& val, bool& success) {
+    // What if T* IS the right type maybe another Ptr wrapper ?
+    using BaseType = strip_qualifiers<T>::type;
+
+    if (is_owned<BaseType>(val)) {
+        using BaseOwned = internal::Claim<BaseType, true>;
+        using Owned     = transfer_qualifiers<T, BaseOwned>::type;
+        success         = true;
+        if constexpr (std::is_pointer_v<Owned>) {
+            return val.as<Owned>()->operator T();
+        } else {
+            return val.as<Owned>().operator T();
+        }
+    }
+
+    if (is_weakref<BaseType>(val)) {
+        using BaseWeakref = internal::Claim<BaseType*, false>;
+        using Weakref     = transfer_qualifiers<T, BaseWeakref>::type;
+
+        success = true;
+        if constexpr (std::is_pointer_v<Weakref>) {
+            return val.as<Weakref>()->operator T();
+        } else {
+            return val.as<Weakref>().operator T();
+        }
+    }
+
+    if (is_owned<BaseType*>(val)) {
+        using BaseOwned = internal::Claim<BaseType*, true>;
+        using Owned     = transfer_qualifiers<T, BaseOwned>::type;
+
+        success = true;
+        if constexpr (std::is_pointer_v<Owned>) {
+            return val.as<Owned>()->operator T();
+        } else {
+            return val.as<Owned>().operator T();
+        }
+    }
+
+    if (is_weakref<BaseType*>(val)) {
+        using BaseWeakref = internal::Claim<BaseType*, false>;
+        using Weakref     = transfer_qualifiers<T, BaseWeakref>::type;
+
+        success = true;
+        if constexpr (std::is_pointer_v<Weakref>) {
+            return val.as<Weakref>()->operator T();
+        } else {
+            return val.as<Weakref>().operator T();
+        }
+    }
+
+    success = false;
+    return T();
+}
+
+template <typename T, typename... Args>
+Value make_owned_value(Args... args) {
+    using Ptr = typename std::conditional_t<std::is_pointer_v<T>, T, T*>;
+
+    using Owned   = internal::Claim<T, true>;
+    using Weakref = internal::Claim<Ptr, false>;
+
+    auto val = make_value<Owned>(args...);
+
+    ValueRef refmaker = [](Value& original) {
+        bool success = false;
+        Ptr  ptr     = as<Ptr>(original, success);
+        if (success) {
+            auto ref = make_value<Weakref>(ptr);
+            return ref;
+        }
+        return Value();
+    };
+
+    meta::ClassMetadata& metadata = meta::classmeta(meta::type_id<Owned>());
+    // the deleter should alredy be good
+    metadata.ref                  = refmaker;
+    return val;
+}
+
+
+template <typename T, FreeFun fun, typename... Args>
+Value owned_from_pointer(T* raw) {
+    using Owned   = internal::Claim<T*, true>;
+    using Weakref = internal::Claim<T*, false>;
+
+    auto val = make_value<Owned>(raw);
+
+    ValueRef refmaker = [](Value& original) {
+        bool success = false;
+        T*  ptr     = as<T*>(original, success);
+        if (success) {
+            auto ref = make_value<Weakref>(ptr);
+            return ref;
+        }
+        return original;
+    };
+
+    ValueDeleter deleter = [](void*, Value& original) {
+        bool success = false;
+        T* ptr = as<T*>(original, success);
+        if (success) {
+            fun(ptr);
+        }
+        return;
+    };
+
+    meta::ClassMetadata& metadata = meta::classmeta(val.tag);
+    metadata.deleter              = deleter;
+    metadata.ref                  = refmaker;
+    return val;
+}
+
+Value weakref(Value& val) {
+    meta::ClassMetadata& metadata = meta::classmeta(val.tag);
+
+    if (metadata.ref) {
+        return metadata.ref(val);
+    }
+
+    return val;
+}
+
+TEST_CASE("Value_Owned_Weakref") {
+
+    make_value<Array<int>>(32);
+
+    Value a = make_owned_value<Array<int>>(32);
+
+    Value ref     = weakref(a);
+    bool  success = false;
+
+    Array<int>* ptr_a = as<Array<int>*>(a, success);
+    REQUIRE(success);
+    REQUIRE(ptr_a->size() == 32);
+
+    Array<int>* ptr_ref = as<Array<int>*>(ref, success);
+    REQUIRE(success);
+    REQUIRE(ptr_ref->size() == 32);
+
+    REQUIRE(ptr_ref == ptr_a);
+
+    // This should do NOTHING
+    ref.destroy();
+
+    // free the value
+    a.destroy();
+}
+
+TEST_CASE("Value_Owned_Weakref_Pointer") {
+
+    int* owned_array = (int*)malloc(sizeof(int) * 32);
+
+    Value a = owned_from_pointer<int, free>(owned_array);
+
+    Value ref     = weakref(a);
+    bool  success = false;
+
+    int* ptr_a = as<int*>(a, success);
+    REQUIRE(success);
+
+    int* ptr_ref = as<int*>(ref, success);
+    REQUIRE(success);
+
+    REQUIRE(ptr_ref == ptr_a);
+
+    // This should do NOTHING
+    ref.destroy();
+
+    // free the value
+    a.destroy();
+}
+
+TEST_CASE("Transfer") {
+    {
+        using T = const int*;
+        using V = double;
+        using E = const double*;
+
+        using R = transfer_qualifiers<T, V>::type;
+        static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
+    }
+
+    {
+        using T = const int*;
+        using V = double;
+        using E = const double*;
+
+        using R = transfer_qualifiers<T, V>::type;
+        static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
+    }
+
+    {
+        using T = int;
+        using V = double;
+        using E = double;
+
+        using R = transfer_qualifiers<T, V>::type;
+        static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
+    }
+
+    {
+        using T = int const;
+        using V = double;
+        using E = double const;
+
+        using R = transfer_qualifiers<T, V>::type;
+        static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
+    }
+
+    {
+        using T = int&;
+        using V = double;
+        using E = double&;
+
+        using R = transfer_qualifiers<T, V>::type;
+        static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
+    }
+
+    {
+        using T = int const&;
+        using V = double;
+        using E = double const&;
+
+        using R = transfer_qualifiers<T, V>::type;
+        static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
+    }
 }

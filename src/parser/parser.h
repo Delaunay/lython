@@ -221,7 +221,7 @@ class Parser {
     void end_code_loc(CommonAttributes* target, Token tok);
 
     bool                       is_valid_value();
-    Tuple<Value, ValueDeleter> get_value(Node* parent);
+    Value get_value(Node* parent);
 
     OpConfig const& get_operator_config(Token const& tok) const;
 

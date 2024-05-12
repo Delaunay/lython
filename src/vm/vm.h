@@ -79,6 +79,13 @@ struct LazyCallResolve {
     Call* call = nullptr;
 };
 
+struct YieldedFunction {
+    Array<Value>       variables;   //
+    Array<Value>       registers;   //
+    lython::StackTrace stacktrace;  //
+    int ic = -1;                    // instruction counter to resume from
+};
+
 /**
  * The goal of this is to flatten the control flow into simple jumps
  * The code is flatten into a "tape" of instructions.
@@ -146,6 +153,7 @@ struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait> {
         // addressable variables are always reachable
         // but reachable might not be addressable
         variables.reserve(128);
+        args.reserve(8);
     }
 
     void set_program(Program const* prog) {
@@ -156,6 +164,13 @@ struct VMExec: public BaseVisitor<VMExec, false, VMGenTrait> {
     Value execute(Program const& program, int entry);
     void exec(int ic, int depth);
 
+    template<typename... Args>
+    Array<Value>& makeargs(Args... newargs) {
+        args = {newargs...};
+        return args;
+    }
+
+    Array<Value> args;
     Program const* program = nullptr;
 
     Value getreg(Registers register_) {

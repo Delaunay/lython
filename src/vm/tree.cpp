@@ -68,8 +68,7 @@ namespace lython {
 
 template<typename T>
 Value quickval() {
-    auto [v, _] = make_value<T>();
-    return v;
+    return make_value<T>();
 }
 
 namespace flag {
@@ -509,14 +508,14 @@ Value object__new__(GCObject* parent, ClassDef* class_t) {
     // <<<
 
     // Create a new runtime object of a specific type
-    auto [val, deleter] = make_value<ScriptObject>(class_t->attributes.size());
+    auto val = make_value<ScriptObject>(class_t->attributes.size());
     ScriptObject& obj   = val.as<ScriptObject&>();
 
     for (int i = 0; i < class_t->attributes.size(); i++) {
         auto  attr = class_t->attributes[i];
         Value value;
         if (FunctionDef* def = cast<FunctionDef>(attr.stmt)) {
-            std::tie(value, std::ignore) = make_value<Node*>(def);
+            value = make_value<Node*>(def);
         }
         obj.attributes.emplace_back(attr.name, value);
     }
@@ -690,8 +689,7 @@ Value TreeEvaluator::make_generator(Call_t* call, FunctionDef_t* n, int depth) {
     // EXEC_BODY(n->body, 0, MAKE_NAME("call ", str(function->name)));
 
     gens.pop_back();
-    auto [v, _] = make_value<Generator*>(gen);
-    return v;
+    return make_value<Generator*>(gen);
 }
 
 
@@ -783,8 +781,7 @@ Value TreeEvaluator::functiondef(FunctionDef_t* n, int depth) {
     // this should not be called
     // return_value = nullptr;
     // EXEC_BODY(n->body, 0, MAKE_NAME("call ", str(function->name)));
-    auto [v, _] = make_value<Node*>(n);
-    add_variable(n->name, v);
+    add_variable(n->name, make_value<Node*>(n));
     return flag::done();
 }
 
@@ -1089,10 +1086,10 @@ Value TreeEvaluator::ifstmt(If_t* n, int depth) {
 }
 
 Value assert_error(Value message) {
-    auto [v, _]        = make_value<ScriptObject>(2);
+    auto v        = make_value<ScriptObject>(2);
     ScriptObject& self = v.as<ScriptObject&>();
 
-    auto [t, __] = make_value<String>("AssertionError");
+    auto t = make_value<String>("AssertionError");
 
     self.attributes.emplace_back("type", t);
     self.attributes.emplace_back("message", message);
@@ -1396,7 +1393,7 @@ Value TreeEvaluator::call_exit(Value ctx, int depth) {
 // Types
 // -----
 Value TreeEvaluator::classdef(ClassDef_t* n, int depth) {
-    auto [v, _] = make_value<Node*>(n);
+    auto v = make_value<Node*>(n);
     add_variable(n->name, v);
     return v;
 }
@@ -1491,7 +1488,7 @@ Value TreeEvaluator::eval(StmtNode_t* stmt) {
         };
 
         register_value<_LyException*>(printer);
-        auto [v, _] = make_value<_LyException*>(except);
+        auto v = make_value<_LyException*>(except);
         return v;
     }
     //

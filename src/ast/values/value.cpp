@@ -101,6 +101,12 @@ std::ostream& Value::print(std::ostream& os) const {
     return os << (*this);
 }
 
+String Value::__repr__() const {
+    StringStream ss;
+    debug_print(ss);
+    return ss.str();
+}
+
 std::ostream& Value::debug_print(std::ostream& os) const {
     switch (meta::ValueTypes(tag)) {
 #define CASE(type, name)                            \
@@ -113,23 +119,20 @@ std::ostream& Value::debug_print(std::ostream& os) const {
     case meta::ValueTypes::Max: break;
     }
 
-    auto& registry = meta::TypeRegistry::instance();
-    auto& meta = registry.id_to_meta[tag];
-
+    meta::ClassMetadata& meta = meta::classmeta(tag);
     if (meta.printer) {
         meta.printer(os, *this);
         return os << ": " << meta.name;
     }
-
     return os << "obj: " << meta.name;
 }
 
 
 bool Value::destroy() {
-    auto& registry = meta::TypeRegistry::instance();
-    auto& meta = registry.id_to_meta[tag];
-    if (meta.deleter) {
-        meta.deleter(*this);
+    meta::ClassMetadata& metadata = meta::classmeta(tag);
+
+    if (metadata.deleter) {
+        metadata.deleter(nullptr, *this);
         return true;
     }
     return false;

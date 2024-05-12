@@ -14,29 +14,26 @@ struct Color {
     uint8 b;
     uint8 a;
 
-    bool operator== (Color const& val) const {
+    bool operator==(Color const& val) const {
         return *reinterpret_cast<uint32 const*>(this) == *reinterpret_cast<uint32 const*>(&val);
-    }  
+    }
 };
 
 struct Pointi {
     int32 x;
     int32 y;
 
-    bool operator== (Pointi const& val) const {
+    bool operator==(Pointi const& val) const {
         return *reinterpret_cast<uint64 const*>(this) == *reinterpret_cast<uint64 const*>(&val);
-    }  
+    }
 };
 
 struct Pointf {
     float32 x;
     float32 y;
 
-    bool operator== (Pointf const& val) const {
-        return (x == val.x) && (y == val.y);
-    }  
+    bool operator==(Pointf const& val) const { return (x == val.x) && (y == val.y); }
 };
-
 
 struct GetterError {
     int failed            = 0;
@@ -54,6 +51,15 @@ template <typename T>
 struct Query {
     static bool get(const Value& v);
 };
+
+struct GarbageCollector {
+    virtual ~GarbageCollector() {}
+
+    virtual void free(void* memory) { return std::free(memory); }
+
+    virtual void* malloc(std::size_t n, void* memory = nullptr) { return std::realloc(memory, n); }
+};
+
 
 //
 // Simple dynamic value that holds small value on the stack
@@ -139,6 +145,14 @@ struct Value {
 #undef CTOR
 
     Value(int tag, void* ptr): tag(tag) { value.obj = ptr; }
+
+    // Value(Value&& v)  {
+    //     memcpy(this, &v, sizeof(Value));
+    //     v.tag = meta::type_id<_Invalid>();
+    // }
+
+    // Value(Value const&) = default;
+    // Value& operator= (Value const&) = default;
 
     bool is_type(int obj_type_id) const { return obj_type_id == tag; }
 
@@ -238,6 +252,8 @@ struct Value {
 
     std::ostream& print(std::ostream& out) const;
     std::ostream& debug_print(std::ostream& os) const;
+
+    String __repr__() const;
 };
 
 //
@@ -283,6 +299,11 @@ template <typename T>
 T const Getter<T>::get(Value const& v, GetterError& err) {
     using NoConst   = std::remove_const_t<std::remove_reference_t<T>>;
     using NoPointer = std::remove_const_t<std::remove_pointer_t<NoConst>>;
+
+    // if (is_owned<T>())
+    // return Getter<internal::Claim<T, true>>::get(v, err)
+    // if (is_weakref<T>()) 
+    // return Getter<internal::Claim<T, false>>::get(v, err)
 
     if constexpr (std::is_reference<T>::value) {
         return *v.as<NoConst const*>(err);
@@ -491,7 +512,7 @@ using FreeFun = void (*)(void*);
 
 template <typename T, FreeFun free_fun = std::free>
 struct _destructor {
-    static void free(Value& v) {
+    static void free(void* ctx, Value& v) {
         if (v.value.obj == nullptr) {
             return;
         }
@@ -513,7 +534,7 @@ struct _destructor {
 
 template <FreeFun free_fun>
 struct _custom_free {
-    static void free(Value& v) {
+    static void free(void* ctx, Value& v) {
         free_fun(v.value.obj);
 
         // NOTE: this only nullify current value so other copy of this value
@@ -545,34 +566,53 @@ struct _printer {
 //
 
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> _new_object(int _typeid, Args... args) {
+Value _new_object(int _typeid, Args... args) {
     // up to the user to free it correctly
     void* memory = malloc(sizeof(T));
     new (memory) T(args...);
-    return std::make_tuple(Value(_typeid, memory), _destructor<T>::free);
+
+    meta::ClassMetadata& metadata = meta::classmeta(_typeid);
+    metadata.deleter              = _destructor<T>::free;
+
+    return Value(_typeid, memory);
 }
 
-inline void noop_destructor(Value& v) {}
+template <typename T, typename... Args>
+Value _new_object(GarbageCollector& gc, int _typeid, Args... args) {
+    // up to the user to free it correctly
+    void* memory = gc->malloc(sizeof(T));
+    new (memory) T(args...);
+    // now the deleter needs to know the gc
+    // unless the GC takes care of everything then no deleter needed
+    return Value(_typeid, memory);
+}
+
+inline void noop_destructor(void* ctx, Value& v) {}
 
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> _new_value(int _typeid, Args... args) {
+Value _new_value(int _typeid, Args... args) {
     // The value cannot have a destructor here
     static_assert(Value::is_small<T>());
     Value value;
     new (&value.value) T(args...);
     value.tag = _typeid;
-    return std::make_tuple(value, noop_destructor);
+
+    meta::ClassMetadata& metadata = meta::classmeta(_typeid);
+    metadata.deleter              = noop_destructor;
+
+    return value;
 }
 
 // This version allows users to specify a different type id
 // so some dynamic DS could be used multiple time with a different typeid
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> _make_value(int _typeid, Args... args) {
+Value _make_value(int _typeid, Args... args) {
     if constexpr (Value::is_small<T>()) {
         return _new_value<T>(_typeid, args...);
     }
     return _new_object<T>(_typeid, args...);
 }
+
 
 template <typename T, FreeFun fun = nullptr>
 ValueDeleter value_deleter() {
@@ -609,24 +649,28 @@ class is_streamable {
 
 // Short cut
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> make_value(Args... args) {
+Value make_value(Args... args) {
     return _make_value<T>(meta::type_id<T>(), args...);
 }
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> new_value(Args... args) {
+Value new_value(Args... args) {
     return _new_value<T>(meta::type_id<T>(), args...);
 }
 template <typename T, typename... Args>
-Tuple<Value, ValueDeleter> new_object(Args... args) {
+Value new_object(Args... args) {
     return _new_object<T>(meta::type_id<T>(), args...);
 }
 
 template <typename T, FreeFun fun, typename... Args>
-Tuple<Value, ValueDeleter> from_pointer(T* raw) {
+Value from_pointer(T* raw) {
     Value v;
     v.tag = meta::type_id<T*>();
     new (v.pointer<T*>()) T*(raw);
-    return std::make_tuple(v, _custom_free<fun>::free);
+
+    meta::ClassMetadata& metadata = meta::classmeta(v.tag);
+    metadata.deleter              = _custom_free<fun>::free;
+
+    return v;
 }
 
 //
@@ -649,20 +693,17 @@ Value binary_invoke(void* ctx, Value fun, Value a, Value b);
 
 Value unary_invoke(void* ctx, Value fun, Value a);
 
-
 template <typename T>
 struct _copy {
     static Value copy(Value const& v) {
-        auto [cpy, _] = make_value<T>(v.as<T const&>());
-        return cpy;
+        return make_value<T>(v.as<T const&>());
     }
 };
 
 template <typename T>
 struct _ref {
     static Value ref(Value& v) {
-        auto [ref, _] = make_value<T*>(v.as<T*>());
-        return ref;
+        return make_value<T*>(v.as<T*>());
     }
 };
 
@@ -671,7 +712,6 @@ ValueCopier value_copier() {
     // Call the C++ copy constructor
     return _copy<T>::copy;
 }
-
 
 //
 // Auto register STL operators if defined

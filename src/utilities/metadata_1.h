@@ -11,7 +11,7 @@ namespace lython {
 
 struct Value;
 
-using ValueDeleter = void(*)(Value&);
+using ValueDeleter = void(*)(void*, Value&);
 using ValueCopier  = Value(*)(Value const&);
 using ValuePrinter = void(*)(std::ostream&, Value const&);
 using ValueHash    = std::size_t(*)(Value const&);
@@ -100,6 +100,7 @@ struct ClassMetadata {
     int                 offset  = +0;
     int                 type_id = -1;
     AllocationStat      stat;
+    int                 weakref_type_id = -1;
 
     ValueDeleter deleter = nullptr;
     ValueCopier  copier  = nullptr;

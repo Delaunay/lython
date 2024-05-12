@@ -37,7 +37,7 @@ SET(ADD_HEADERS
     ast/ops.h 
     # ast/values/native.h
     # ast/values/generator.h
-    ast/magic.h
+    utilities/magic.h
     # ast/values/constant.h
     ast/values/value.h
     builtin/operators.h

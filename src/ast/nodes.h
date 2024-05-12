@@ -298,7 +298,7 @@ struct MatchSingleton: public Pattern {
 
     ~MatchSingleton() {
         if (deleter) {
-            deleter(value);
+            deleter(nullptr, value);
         }
     }
 
@@ -379,8 +379,8 @@ struct Constant: public ExprNode {
     template <typename T>
     Constant(T const& v): ExprNode(NodeKind::Constant)
     {
-        std::tie(value, deleter) = make_value<T>(v);
-        kwassert(deleter != nullptr, "deleter needs to be valid");
+        value = make_value<T>(v);
+        // kwassert(deleter != nullptr, "deleter needs to be valid");
     }
 
     Constant(Value v): ExprNode(NodeKind::Constant), value(v)
@@ -391,7 +391,7 @@ struct Constant: public ExprNode {
 
     ~Constant() {
         if (deleter) {
-            deleter(value);
+            deleter(nullptr, value);
         }
         deleter = nullptr;
     }
