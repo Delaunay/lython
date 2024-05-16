@@ -580,7 +580,7 @@ Value _new_object(int _typeid, Args... args) {
 template <typename T, typename... Args>
 Value _new_object(GarbageCollector& gc, int _typeid, Args... args) {
     // up to the user to free it correctly
-    void* memory = gc->malloc(sizeof(T));
+    void* memory = gc.malloc(sizeof(T));
     new (memory) T(args...);
     // now the deleter needs to know the gc
     // unless the GC takes care of everything then no deleter needed

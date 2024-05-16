@@ -93,8 +93,9 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
 #define STMT(name, fun)  TYPE_GEN(name)
 #define MOD(name, fun)   TYPE_GEN(name)
 #define MATCH(name, fun) TYPE_GEN(name)
+#define VM(name, fun)
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION
@@ -102,6 +103,7 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 #undef TYPE_GEN
 
     Bindings              bindings;
@@ -122,8 +124,9 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
 #define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
+#define VM(name, fun)
 
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION
@@ -131,6 +134,7 @@ struct ToGraph: public BaseVisitor<ToGraph, false, ToGraphVisitorTrait> {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 };

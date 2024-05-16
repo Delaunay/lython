@@ -303,8 +303,9 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, LY_ReturnType)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, LY_ReturnType)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, LY_ReturnType)
+#define VM(name, fun)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SECTION
@@ -312,6 +313,7 @@ struct ASTRender: public BaseVisitor<ASTRender, false, ASTRenderTrait> {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 };

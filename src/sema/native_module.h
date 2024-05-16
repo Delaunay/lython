@@ -220,7 +220,7 @@ void register_native_object(GCObject* root, Bindings& binding, String const& nam
     int varid = binding.add(self->name, nullptr, Type_t(), meta::type_id<T*>());
 
     Name* class_t = root->new_object<Name>();
-    class_t->varid = varid;
+    //class_t->varid = varid;
     class_t->id = identifier;
 
     create_constructor<T, Args...>(root, binding, StringRef("name"));

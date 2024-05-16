@@ -11,6 +11,7 @@ struct ToPointer {
     using type = T*;
 };
 
+inline 
 auto counter() {
     int count = 0;
     return [count] () mutable {

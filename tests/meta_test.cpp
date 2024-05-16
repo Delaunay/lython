@@ -10,6 +10,8 @@
 
 #include <catch2/catch_all.hpp>
 
+using namespace lython;
+
 struct NewPoint {
     float x = 3;
     int   y = 3;
@@ -113,10 +115,10 @@ TEST_CASE("ArrowBuilder") {
 
 TEST_CASE("Debug Print") {
 
-    print(std::cout, std::tuple<std::string, int>{"k1", 1});
+    print(std::tuple<std::string, int>{"k1", 1});
     std::cout << "\n";
 
-    print(std::cout,
+    print(
           std::vector<std::string>{
               "k1",
               "k2",
@@ -126,8 +128,7 @@ TEST_CASE("Debug Print") {
           });
     std::cout << "\n";
 
-    print(std::cout,
-          std::unordered_map<std::string, int>{
+    print(std::unordered_map<std::string, int>{
               {"k1", 1},
               {"k2", 2},
               {"k3", 3},

@@ -11,8 +11,9 @@ namespace lython {
 #define STMT(name, _) GENCASES(name)
 #define MOD(name, _)
 #define MATCH(name, _)
+#define VM(n, m)
 
-NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
+NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SSECTION
@@ -20,6 +21,7 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH)
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef GENTEST
 }

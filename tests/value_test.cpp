@@ -629,11 +629,12 @@ struct transfer_qualifiers {
 template <typename T>
 T as(Value& val, bool& success) {
     // What if T* IS the right type maybe another Ptr wrapper ?
-    using BaseType = strip_qualifiers<T>::type;
+    using BaseType = typename strip_qualifiers<T>::type;
 
     if (is_owned<BaseType>(val)) {
         using BaseOwned = internal::Claim<BaseType, true>;
-        using Owned     = transfer_qualifiers<T, BaseOwned>::type;
+        using Owned     = typename transfer_qualifiers<T, BaseOwned>::type;
+
         success         = true;
         if constexpr (std::is_pointer_v<Owned>) {
             return val.as<Owned>()->operator T();
@@ -644,7 +645,7 @@ T as(Value& val, bool& success) {
 
     if (is_weakref<BaseType>(val)) {
         using BaseWeakref = internal::Claim<BaseType*, false>;
-        using Weakref     = transfer_qualifiers<T, BaseWeakref>::type;
+        using Weakref     = typename transfer_qualifiers<T, BaseWeakref>::type;
 
         success = true;
         if constexpr (std::is_pointer_v<Weakref>) {
@@ -656,7 +657,7 @@ T as(Value& val, bool& success) {
 
     if (is_owned<BaseType*>(val)) {
         using BaseOwned = internal::Claim<BaseType*, true>;
-        using Owned     = transfer_qualifiers<T, BaseOwned>::type;
+        using Owned     = typename transfer_qualifiers<T, BaseOwned>::type;
 
         success = true;
         if constexpr (std::is_pointer_v<Owned>) {
@@ -668,7 +669,7 @@ T as(Value& val, bool& success) {
 
     if (is_weakref<BaseType*>(val)) {
         using BaseWeakref = internal::Claim<BaseType*, false>;
-        using Weakref     = transfer_qualifiers<T, BaseWeakref>::type;
+        using Weakref     = typename transfer_qualifiers<T, BaseWeakref>::type;
 
         success = true;
         if constexpr (std::is_pointer_v<Weakref>) {

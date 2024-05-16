@@ -30,6 +30,7 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef GENTEST
 

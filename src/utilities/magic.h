@@ -14,7 +14,7 @@ namespace lython {
     struct has_ ## name <T, decltype(EXPR, void())> : std::true_type {};
 
 #define KW_DEFINE_HAS_METHOD(name, method) \
-    KW_IS_EXPR_VALID(name, std::declval<T>(). ## method())
+    KW_IS_EXPR_VALID(name, std::declval<T>().method())
 
 
 KW_DEFINE_HAS_METHOD(len, __len__)
@@ -36,7 +36,7 @@ void print(T const& obj, std::ostream& out = std::cout) {
         out << obj;
         return;
     } else {
-        static_assert(false, "Could not find a convert function");
+        //static_assert(false, "Could not find a convert function");
         obj.print(out);
     }
 }
@@ -58,7 +58,7 @@ String str(T const& obj) {
         ss << obj;
         return ss.str();
     } else {
-        static_assert(false, "Could not find a convert function");
+        //static_assert(false, "Could not find a convert function");
     }
 }
 
@@ -98,7 +98,7 @@ int len(T const& val) {
     } else if constexpr (has_size<T const&>::value) {
         return IndexType(val.size());
     } else {
-        static_assert(false, "Object does not provide len method");
+        //static_assert(false, "Object does not provide len method");
     }
 }
 
