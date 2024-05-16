@@ -4,8 +4,12 @@ namespace lython {
 
 class GargabeCollector;
 
-template <typename T>
+template <typename T, bool auto_destroy = false>
 struct PointerProxy {
+    // overhead is:
+    //      Version check  (2 int compare)
+    //      Segment Lookup (ptr addition)
+    //      Memory Lookup  (ptr addition)
     T* operator->() {
         if (collector.is_valid(segment_id, version)) {
             return reinterpret_cast<T*>(collector.memory(segment_id));
@@ -35,11 +39,29 @@ struct PointerProxy {
         return nullptr;
     }
 
+    PointerProxy(PointerProxy&& proxy) {
+        collector = proxy.collector;
+        segment_id = proxy.segment_id;
+        version = proxy.version; 
+        proxy.segment_id = -1; 
+    }
+
+    PointerProxy(PointerProxy const& copy) = default;
+    PointerProxy& operator=(PointerProxy const& copy) = default;
+
+    ~PointerProxy() {
+        if (auto_destroy) {
+            destroy();
+        }
+    }
+
     private:
     friend class GargabeCollector;
 
     PointerProxy(GargabeCollector& c, int id, int version): collector(c), segment_id(id), version(version) {}
 
+    // 2x the size of a pointer, because of that reference
+    // if it becomes global then it would be the same size
     GargabeCollector& collector;
     int               segment_id;
     int               version;  // expected version
@@ -64,18 +86,15 @@ struct MemorySegment {
 #define REUSE_SEGMENTS_BEFORE_COMPACT 1
 
 
-template<typename T>
-struct _UniquePtrDeleter {
-    void operator() (PointerProxy<T>* proxy) const{
-        proxy->destroy();
-    } 
-};
-
 //
 // Special allocator that cannot lose memory
 // Memory is allocated in chunks and can be compacted
 //
 // You should call `free` or PointerProxy.destroy to trigger the destructor
+//
+//  Can this become a STL allocator ?
+//  https://stackoverflow.com/questions/65645904/implementing-a-custom-allocator-with-fancy-pointers
+//  it can-ish because the STL will assume raw pointers and shit
 //
 class GargabeCollector {
     public:
@@ -94,14 +113,58 @@ class GargabeCollector {
         return PointerProxy<T>(*this, segment_id, version);
     }
 
+    static GargabeCollector& instance() {
+        static GargabeCollector collector;
+        return collector;
+    }
+
     template <typename T>
     void free(PointerProxy<T> proxy) {
         proxy.data()->~T();
         free(proxy.segment_id);
     }
 
+    void display_memory() {
+        int size = int(raw_memory.size());
+        
+        std::cout << " +---> " << 0 << "\n";
+        int k = 0;
+        for(int i: sorted_segments()) {
+            if (k != 0) {
+                std::cout << " |" << "\n";
+            }
+            MemorySegment& segment = segments[i];
+
+            if (segment.size != 0) {
+                std::cout << " | +-> (start: " << segment.start << ") (idx:" 
+                                            << segment.idx << ") (size: " 
+                                            << segment.size << ") (version: " 
+                                            << segment.version << ")\n";
+
+                std::cout << " | |   " << (segment.used == 1? "taken": "empty") << "\n";
+                std::cout << " | +-> " << segment.start + segment.size << "\n";
+                k += 1;
+            }
+        }
+        std::cout << " +---> cursor: " << free_idx << "\n";
+        std::cout << " |     " << "\n";
+        std::cout << " +---> capacity: " << raw_memory.size() << "\n";
+    }
+
 private:
-    template<typename T>
+    Array<int> sorted_segments() {
+        Array<int> segment_order;
+        segment_order.reserve(segments.size());
+        for (int i = 0; i < segments.size(); i++) {
+            segment_order.push_back(i);
+        }
+        std::sort(segment_order.begin(), segment_order.end(), [&](int a_id, int b_id) {
+            return segments[a_id].start < segments[b_id].start;
+        });
+        return segment_order;
+    }
+
+    template<typename T, bool auto_delete>
     friend struct PointerProxy;
 
     bool is_valid(int segment_id) const {
@@ -200,26 +263,15 @@ private:
         }
     }
 
+public:
     // make all the memory segment contiguous
     void compact_memory() {
-        Array<int> segment_order;
         Array<byte> new_raw_memory(raw_memory.size(), 0);
-        segment_order.reserve(segments.size());
-        for (int i = 0; i < segments.size(); i++) {
-            segment_order.push_back(i);
-        }
- 
-        // ascending order, so segments are physically closer 
-        // I guess this is not actually that useful
-        std::sort(segment_order.begin(), segment_order.end(), [&](int a_id, int b_id) {
-            return segments[a_id].start < segments[b_id].start;
-        });
-
         int new_free_ptr = 0;
         zero_list.clear();
-        for (int i = 0; i < segment_order.size(); i++) {
-            int segment_id = segment_order[i];
-            MemorySegment& segment = segments[i];
+
+        for (int segment_id: sorted_segments()) {
+            MemorySegment& segment = segments[segment_id];
 
             // Do not copy unused segments
             if (segment.size == 0 || segment.used != 1) {
@@ -242,8 +294,7 @@ private:
         free_list.clear();
         #endif
     }
-
-
+private:
     MemorySegment& get_segment(int idx) {
         return segments[idx];
     }
@@ -314,6 +365,7 @@ private:
     Array<int>           free_list;
     #endif
 };
+
 }  // namespace lython
 
 #include <catch2/catch_all.hpp>
@@ -323,6 +375,8 @@ using namespace lython;
 TEST_CASE("Allocator_Concept") {
 
     GargabeCollector gc;
+
+    std::cout << sizeof(int*) << " vs " << sizeof(PointerProxy<int>) << "\n";
 
     PointerProxy<int> intptr = gc.malloc<int>(20);
 
@@ -342,4 +396,69 @@ TEST_CASE("Allocator_Concept") {
 
     auto array = gc.malloc<Array<int>>(20, 0);
     REQUIRE((*array).size() == 20);
+
+    intptr_2.destroy();
+    gc.display_memory();
+
+    std::cout << "===================\n";
+    std::cout << "Compact\n";
+    std::cout << "===================\n";
+
+    gc.compact_memory();
+    REQUIRE((*array).size() == 20);
+    gc.display_memory();
+
+
+   
+}
+
+
+template <typename T>
+class CompactingAllocator {
+public:
+    using size_type       = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using pointer         = PointerProxy<T>;
+    using const_pointer   = const PointerProxy<T>;
+    using reference       = T&;
+    using const_reference = const T&;
+    using value_type      = T;
+
+    template <typename _Tp1>
+    struct rebind {
+        using other = CompactingAllocator<_Tp1>;
+    };
+    bool operator==(CompactingAllocator const&) const { return true; }
+
+    bool operator!=(CompactingAllocator const& alloc) const { return !(*this == alloc); }
+
+    static void deallocate(pointer p, std::size_t n) {
+        p.destroy();
+    }
+
+    static pointer allocate(std::size_t n, const void* = nullptr) {
+        return GargabeCollector::instance().malloc<T>(n);
+    }
+
+    CompactingAllocator() noexcept {}
+
+    CompactingAllocator(const CompactingAllocator& a) noexcept {}
+
+    template <class U>
+    CompactingAllocator(const CompactingAllocator<U>& a) noexcept {}
+
+    ~CompactingAllocator() noexcept = default;
+};
+
+template <typename V>
+using CompactorAlloc = CompactingAllocator<V>;
+
+template <typename V>
+using CompArray = std::vector<V, CompactorAlloc<V>>;
+
+TEST_CASE("Allocator_Concept_Compact") {
+    CompactorAlloc<int>::allocate(123);
+
+    // does not work
+    // CompArray<int> array_test;
 }
