@@ -28,17 +28,20 @@ KW_IS_EXPR_VALID(ostream, std::declval<std::ostream&>() << std::declval<T>())
 // Helper output to anything but std::cout by default
 template <typename T>
 void print(T const& obj, std::ostream& out = std::cout) {
-    if constexpr (has_str<T>::value) {
+    constexpr bool impl_str = has_str<T>::value;
+    constexpr bool impl_os = has_ostream<T const&>::value;
+
+    if constexpr (impl_str) {
         out << obj.__str__();
         return;
     }
-    else if constexpr (has_ostream<T>::value) {
+    else if constexpr (impl_os) {
         out << obj;
         return;
-    } else {
-        //static_assert(false, "Could not find a convert function");
-        obj.print(out);
-    }
+    } 
+
+    static_assert(impl_str || impl_os, "Could not find a convert function");
+    obj.print(out);
 }
 
 template <typename T>
@@ -49,17 +52,20 @@ void print(T* const& obj, std::ostream& out = std::cout) {
 // Helper Output to string
 template <typename T>
 String str(T const& obj) {
-    if constexpr (has_str<T>::value) {
+    constexpr bool impl_str = has_str<T>::value;
+    constexpr bool impl_os = has_ostream<T const&>::value;
+
+    if constexpr (impl_str) {
         return obj.__str__();
     }
-    else if constexpr (has_ostream<T const&>::value) {
+    else if constexpr (impl_os) {
         // C++ operator
         StringStream ss;
         ss << obj;
         return ss.str();
-    } else {
-        //static_assert(false, "Could not find a convert function");
-    }
+    } 
+    
+    static_assert(impl_str || impl_os, "Could not find a convert function");
 }
 
 
@@ -93,13 +99,16 @@ inline String str(String const& obj) { return obj; }
 // makes idx - 1 well defined
 template <typename T, typename IndexType = int>
 int len(T const& val) {
-    if constexpr (has_len<T>::value) {
+    constexpr bool impl_len = has_len<T>::value;
+    constexpr bool impl_sz = has_size<T const&>::value;
+
+    if constexpr (impl_len) {
         return IndexType(val.__len__());
-    } else if constexpr (has_size<T const&>::value) {
+    } else if constexpr (impl_sz) {
         return IndexType(val.size());
-    } else {
-        //static_assert(false, "Object does not provide len method");
-    }
+    } 
+
+    static_assert(impl_sz || impl_len, "Object does not provide len method");
 }
 
 #define BINARY(X)                      \
