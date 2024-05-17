@@ -35,13 +35,14 @@ void print(T const& obj, std::ostream& out = std::cout) {
         out << obj.__str__();
         return;
     }
-    else if constexpr (impl_os) {
+    
+    if constexpr (impl_os) {
         out << obj;
         return;
     } 
 
     static_assert(impl_str || impl_os, "Could not find a convert function");
-    obj.print(out);
+    //obj.print(out);
 }
 
 template <typename T>
@@ -58,7 +59,7 @@ String str(T const& obj) {
     if constexpr (impl_str) {
         return obj.__str__();
     }
-    else if constexpr (impl_os) {
+    if constexpr (impl_os) {
         // C++ operator
         StringStream ss;
         ss << obj;
@@ -75,12 +76,11 @@ String repr(T const& obj) {
     if constexpr (has_repr<T>::value) {
         return obj.__repr__();
     }
-    else {
-        StringStream ss;
-        ss << meta::type_name<T>();
-        ss << "(" << str(obj) << ")"; 
-        return ss.str();
-    }
+
+    StringStream ss;
+    ss << meta::type_name<T>();
+    ss << "(" << str(obj) << ")"; 
+    return ss.str();
 }
 
 
@@ -104,7 +104,9 @@ int len(T const& val) {
 
     if constexpr (impl_len) {
         return IndexType(val.__len__());
-    } else if constexpr (impl_sz) {
+    } 
+    
+    if constexpr (impl_sz) {
         return IndexType(val.size());
     } 
 
