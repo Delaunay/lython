@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ast/nodes.h"
-#include "ast/visitor.h"
+#include "ast/ops/treewalk.h"
 
 namespace lython {
 
@@ -54,37 +54,15 @@ struct LoweringVisitorTrait {
  *     Name#002__add__(a, 2)
  *
  */
-struct Lowering: public BaseVisitor<Lowering, false, LoweringVisitorTrait> {
-    using Super = BaseVisitor<Lowering, false, LoweringVisitorTrait>;
+struct Lowering: public TreeWalk<Lowering, false, LoweringVisitorTrait> {
+    using Super = TreeWalk<Lowering, false, LoweringVisitorTrait>;
 
     using StmtRet = Super::StmtRet;
     using ExprRet = Super::ExprRet;
     using ModRet  = Super::ModRet;
     using PatRet  = Super::PatRet;
 
-#define FUNCTION_GEN(name, fun, rtype)                                          \
-    LY_INLINE rtype fun(name##_t* node, int depth);
-
-#define X(name, _)
-#define SSECTION(name)
-#define EXPR(name, fun)  FUNCTION_GEN(name, fun, ExprRet)
-#define STMT(name, fun)  FUNCTION_GEN(name, fun, StmtRet)
-#define MOD(name, fun)   FUNCTION_GEN(name, fun, ModRet)
-#define MATCH(name, fun) FUNCTION_GEN(name, fun, PatRet)
-#define VM(name, fun)    FUNCTION_GEN(name, fun, StmtRet)
-
-    NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
-
-#undef X
-#undef SSECTION
-#undef EXPR
-#undef STMT
-#undef MOD
-#undef MATCH
-#undef VM
-
-#undef FUNCTION_GEN
-
+    StmtRet classdef(ClassDef_t* n, int depth);
 };
 
 }
