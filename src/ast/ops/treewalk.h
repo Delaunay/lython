@@ -9,27 +9,34 @@ namespace lython {
  * Simply walk the AST
  */
 template <typename Implementation, bool isConst, typename VisitorTrait, typename... Args>
-struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTrait, Args...> {
-    using Super = BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTrait, Args...>;
+struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTrait, Args...>, isConst, VisitorTrait, Args...> {
+    using Super = BaseVisitor<TreeWalk<Implementation, isConst, VisitorTrait, Args...>, isConst, VisitorTrait, Args...>;
 
-    using StmtRet = Super::StmtRet;
-    using ExprRet = Super::ExprRet;
-    using ModRet  = Super::ModRet;
-    using PatRet  = Super::PatRet;
+    using StmtRet = typename Super::StmtRet;
+    using ExprRet = typename Super::ExprRet;
+    using ModRet  = typename Super::ModRet;
+    using PatRet  = typename Super::PatRet;
 
+
+#define TYPE_GEN(rtype, _) \
+    using rtype##_t = typename Super::rtype##_t;
+
+    KW_FOREACH_ALL(TYPE_GEN)
+
+#undef TYPE_GEN
 
     #define KW_REPLACE(node, member, depth, ...)     \
-        relplace(node, &node->member, depth, __VA_ARGS__)
+        relplace(node, &member, depth, __VA_ARGS__)
 
     template<typename T, typename A>
     bool replace(T* node, A** original, int depth) {
-        A* newer = KW_REPLACE(n, original[0], depth);
+        A* newer = exec(original[0], depth);
 
         if (original[0] == newer) {
             return false;
         }
 
-        node->remove_child_if_parent(original[0], dofree);
+        node->remove_child_if_parent(original[0], false);
         original[0] = newer;
         node->add_child(newer);
         return true;
@@ -70,48 +77,44 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
 
     // Comprehension
     ExprRet generateexpr(GeneratorExp_t* n, int depth, Args... args) {
-        for (Comprehension& comp: n->generators) {
-            KW_REPLACE(n, comp.iter, depth, args...);
-            KW_REPLACE(n, comp.target, depth, args...);
-
-            for (ExprNode* cond: comp.ifs) {
-                KW_REPLACE(n, cond, depth, args...);
+        for (int k = 0; k < n->generators.size(); k++) {
+            KW_REPLACE(n, n->generators[k].iter, depth, args...);
+            KW_REPLACE(n, n->generators[k].target, depth, args...);
+            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
+                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
             }
         }
         KW_REPLACE(n, n->elt, depth, args...);
         return n;
     }
     ExprRet listcomp(ListComp_t* n, int depth, Args... args) {
-        for (Comprehension& comp: n->generators) {
-            KW_REPLACE(n, comp.iter, depth, args...);
-            KW_REPLACE(n, comp.target, depth, args...);
-
-            for (ExprNode* cond: comp.ifs) {
-                KW_REPLACE(n, cond, depth, args...);
+        for (int k = 0; k < n->generators.size(); k++) {
+            KW_REPLACE(n, n->generators[k].iter, depth, args...);
+            KW_REPLACE(n, n->generators[k].target, depth, args...);
+            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
+                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
             }
         }
         KW_REPLACE(n, n->elt, depth, args...);
         return n;
     }
     ExprRet setcomp(SetComp_t* n, int depth, Args... args) {
-        for (Comprehension& comp: n->generators) {
-            KW_REPLACE(n, comp.iter, depth, args...);
-            KW_REPLACE(n, comp.target, depth, args...);
-
-            for (ExprNode* cond: comp.ifs) {
-                KW_REPLACE(n, cond, depth, args...);
+        for (int k = 0; k < n->generators.size(); k++) {
+            KW_REPLACE(n, n->generators[k].iter, depth, args...);
+            KW_REPLACE(n, n->generators[k].target, depth, args...);
+            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
+                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
             }
         }
         KW_REPLACE(n, n->elt, depth, args...);
         return n;
     }
     ExprRet dictcomp(DictComp_t* n, int depth, Args... args) {
-        for (Comprehension& comp: n->generators) {
-            KW_REPLACE(n, comp.iter, depth, args...);
-            KW_REPLACE(n, comp.target, depth, args...);
-
-            for (ExprNode* cond: comp.ifs) {
-                KW_REPLACE(n, cond, depth, args...);
+        for (int k = 0; k < n->generators.size(); k++) {
+            KW_REPLACE(n, n->generators[k].iter, depth, args...);
+            KW_REPLACE(n, n->generators[k].target, depth, args...);
+            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
+                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
             }
         }
         KW_REPLACE(n, n->key, depth, args...);
@@ -122,8 +125,8 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
     // Expression
     ExprRet call(Call_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->func, depth, args...);
-        for (auto* arg: n->args) {
-            KW_REPLACE(n, arg, depth, args...);
+        for (int i = 0; i < n->args.size(); i++) {
+            KW_REPLACE(n, n->args[i], depth, args...);
         }
         return n;
     }
@@ -134,16 +137,16 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n;
     }
     ExprRet boolop(BoolOp_t* n, int depth, Args... args) {
-        for (auto* expr: n->values) {
-            KW_REPLACE(n, expr, depth, args...);
+        for (int i = 0; i < n->values.size(); i++) {
+            KW_REPLACE(n, n->values[i], depth, args...);
         }
         return n;
     }
 
     ExprRet compare(Compare_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->left, depth, args...);
-        for (auto* expr: n->comparators) {
-            KW_REPLACE(n, expr, depth, args...);
+        for (int i = 0; i < n->comparators.size(); i++) {
+            KW_REPLACE(n, n->comparators[i], depth, args...);
         }
         return n;
     }
@@ -183,8 +186,8 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n;
     }
     ExprRet joinedstr(JoinedStr_t* n, int depth, Args... args) {
-        for (ExprNode* expr: n->values) {
-            KW_REPLACE(n, expr, depth, args...);
+        for (int i = 0; i < n->values.size(); i++) {
+            KW_REPLACE(n, n->values[i], depth, args...);
         }
         return n;
     }
@@ -237,8 +240,8 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n;
     }
     ExprRet arrow(Arrow_t* n, int depth, Args... args) {
-        for (ExprNode* arg: n->args) {
-            KW_REPLACE(n, arg, depth, args...);
+        for (int i = 0; i < n->args.size(); i++) {
+            KW_REPLACE(n, n->args[i], depth, args...);
         }
         KW_REPLACE(n, n->returns, depth, args...);
         return n;
@@ -247,8 +250,8 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n; 
     }
     ExprRet tupletype(TupleType_t* n, int depth, Args... args) {
-        for (ExprNode* type: n->types) {
-            KW_REPLACE(n, type, depth, args...);
+        for (int i = 0; i < n->types.size(); i++) {
+            KW_REPLACE(n, n->types[i], depth, args...);
         }
         return n;
     }
@@ -276,14 +279,14 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n;
     }
     StmtRet deletestmt(Delete_t* n, int depth, Args... args) {
-        for (ExprNode* target: n->targets) {
-            KW_REPLACE(n, target, depth, args...);
+        for (int i = 0; i < n->targets.size(); i++) {
+            KW_REPLACE(n, n->targets[0], depth, args...);
         }
         return n;
     }
     StmtRet assign(Assign_t* n, int depth, Args... args) {
-        for (ExprNode* target: n->targets) {
-            KW_REPLACE(n, target, depth, args...);
+        for (int i = 0; i < n->targets.size(); i++) {
+            KW_REPLACE(n, n->targets[i], depth, args...);
         }
         KW_REPLACE(n, n->value, depth, args...);
         return n;
@@ -344,40 +347,40 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
     }
 
     StmtRet inlinestmt(Inline_t* n, int depth, Args... args) {
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
         return n;
     }
     StmtRet functiondef(FunctionDef_t* n, int depth, Args... args) {
-        for (Decorator& decorator: n->decorator_list) {
-            KW_REPLACE(n, decorator.expr, depth, args...);
+        for (int i = 0; i < n->decorator_list.size(); i++) {
+            KW_REPLACE(n, n->decorator_list[i].expr, depth, args...);
         }
-        for (ExprNode* defaultarg: n->args.defaults) {
-            KW_REPLACE(n, defaultarg, depth, args...);
+        for (int i = 0; i < n->args.defaults.size(); i++) {
+            KW_REPLACE(n,  n->args.defaults[i], depth, args...);
         }
-        for (ExprNode* defaultarg: n->args.kw_defaults) {
-            KW_REPLACE(n, defaultarg, depth, args...);
+        for (int i = 0; i < n->args.kw_defaults.size(); i++) {
+            KW_REPLACE(n, n->args.kw_defaults[i], depth, args...);
         }
         if (n->returns.has_value()) {
             KW_REPLACE(n, n->returns.value(), depth, args...);
         }
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
         return n;
     }
     StmtRet classdef(ClassDef_t* n, int depth, Args... args) {
-        for (Decorator& decorator: n->decorator_list) {
-            KW_REPLACE(n, decorator.expr, depth, args...);
+        for (int i = 0; i < n->decorator_list.size(); i++) {
+            KW_REPLACE(n, n->decorator_list[i].expr, depth, args...);
         }
 
-        for (ExprNode* base: n->bases) {
-            KW_REPLACE(n, base, depth, args...);
+        for (int i = 0; i < n->bases.size(); i++) {
+            KW_REPLACE(n, n->bases[i], depth, args...);
         }
 
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
         return n;
     }
@@ -385,11 +388,11 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
     StmtRet forstmt(For_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->target, depth, args...);
         KW_REPLACE(n, n->iter, depth, args...);
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
-        for (StmtNode* stmt: n->orelse) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->orelse.size(); i++) {
+            KW_REPLACE(n, n->orelse[i], depth, args...);
         }
         return n;
     }
@@ -397,11 +400,11 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
     StmtRet whilestmt(While_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->test, depth, args...);
 
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
-        for (StmtNode* stmt: n->orelse) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->orelse.size(); i++) {
+            KW_REPLACE(n, n->orelse[i], depth, args...);
         }
         return n;
     }
@@ -409,11 +412,11 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
     StmtRet ifstmt(If_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->test, depth, args...);
 
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
-        for (StmtNode* stmt: n->orelse) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->orelse.size(); i++) {
+            KW_REPLACE(n, n->orelse[i], depth, args...);
         }
         return n;
     }
@@ -425,28 +428,28 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
                 KW_REPLACE(n, item.optional_vars.value(), depth, args...);
         }
 
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
         return n;
     }
     StmtRet trystmt(Try_t* n, int depth, Args... args) {
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i =0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[0], depth, args...);
         }
         for (ExceptHandler& handler: n->handlers) {
             if (handler.type.has_value())
                 KW_REPLACE(n, handler.type.value(), depth, args...);
 
-            for (StmtNode* stmt: handler.body) {
-                KW_REPLACE(n, stmt, depth, args...);
+            for (int i = 0; i < handler.body.size(); i++) {
+                KW_REPLACE(n, handler.body[i], depth, args...);
             }
         }
-        for (StmtNode* stmt: n->orelse) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i =0; i < n->orelse.size(); i++) {
+            KW_REPLACE(n, n->orelse[i], depth, args...);
         }
-        for (StmtNode* stmt: n->finalbody) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i =0; i < n->finalbody.size(); i++) {
+            KW_REPLACE(n, n->finalbody[i], depth, args...);
         }
         return n;
     }
@@ -454,13 +457,14 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
     StmtRet match(Match_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->subject, depth, args...);
 
-        for (MatchCase& branch: n->cases) {
-            KW_REPLACE(n, branch.pattern, depth, args...);
-            if (branch.guard.has_value()) {
-                KW_REPLACE(n, branch.guard.value(), depth, args...);
+
+        for (int k = 0; k < n->cases.size(); k++) {
+            KW_REPLACE(n, n->vases[k].pattern, depth, args...);
+            if (n->vases[k].guard.has_value()) {
+                KW_REPLACE(n, n->vases[k].guard.value(), depth, args...);
             }
-            for (StmtNode* stmt: branch.body) {
-                KW_REPLACE(n, stmt, depth, args...);
+            for (int i =0; i < n->vases[k].body.size(); i++) {
+                KW_REPLACE(n, n->vases[k].body[i], depth, args...);
             }
         }
         return n;
@@ -474,27 +478,29 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n; 
     }
     PatRet matchsequence(MatchSequence_t* n, int depth, Args... args) {
-        for (Pattern* pat: n->patterns) {
-            KW_REPLACE(n, pat, depth, args...);
+        for (int i = 0; i < n->patterns.size(); i++) {
+            KW_REPLACE(n, n->patterns[i], depth, args...);
         }
         return n;
     }
     PatRet matchmapping(MatchMapping_t* n, int depth, Args... args) {
-        for (ExprNode* key: n->keys) {
-            KW_REPLACE(n, key, depth, args...);
+        for (int i = 0; i < n->keys.size(); i++) {
+            KW_REPLACE(n, n->keys[i], depth, args...);
         }
-        for (Pattern* pat: n->patterns) {
-            KW_REPLACE(n, pat, depth, args...);
+        for (int i = 0; i < n->patterns.size(); i++) {
+            KW_REPLACE(n, n->patterns[i], depth, args...);
         }
         return n;
     }
     PatRet matchclass(MatchClass_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->cls, depth, args...);
-        for (Pattern* key: n->patterns) {
-            KW_REPLACE(n, key, depth, args...);
+
+        for (int i = 0; i < n->patterns.size(); i++) {
+            KW_REPLACE(n, n->patterns[i], depth, args...);
         }
-        for (Pattern* key: n->kwd_patterns) {
-            KW_REPLACE(n, key, depth, args...);
+
+        for (int i = 0; i < n->kwd_patterns.size(); i++) {
+            KW_REPLACE(n, n->kwd_patterns[i], depth, args...);
         }
         return n;
     }
@@ -507,21 +513,21 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation>, isConst, VisitorTr
         return n;
     }
     PatRet matchor(MatchOr_t* n, int depth, Args... args) {
-        for (Pattern* key: n->patterns) {
-            KW_REPLACE(n, key, depth, args...);
+        for (int i = 0; i < n->patterns.size(); i++) {
+            KW_REPLACE(n, n->patterns[i], depth, args...);
         }
         return n;
     }
 
     ModRet module(Module_t* n, int depth, Args... args) {
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
         return n;
     };
     ModRet interactive(Interactive_t* n, int depth, Args... args) {
-        for (StmtNode* stmt: n->body) {
-            KW_REPLACE(n, stmt, depth, args...);
+        for (int i = 0; i < n->body.size(); i++) {
+            KW_REPLACE(n, n->body[i], depth, args...);
         }
         return n;
     }

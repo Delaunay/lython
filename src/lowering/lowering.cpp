@@ -11,7 +11,7 @@ using PatRet  = Lowering::PatRet;
 
 
 StmtRet Lowering::classdef(ClassDef_t* n, int depth) {
-    
+    return n;
 }
 
 }
