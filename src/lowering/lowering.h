@@ -63,6 +63,18 @@ struct Lowering: public TreeWalk<Lowering, false, LoweringVisitorTrait> {
     using PatRet  = Super::PatRet;
 
     StmtRet classdef(ClassDef_t* n, int depth);
+
+    // I feel this could be done in the parser
+    // rewrite a.b = t as setattr(a, "b", t)
+    //         a.b     as getattr(a, "b")
+    //
+    // Unpacking too maybe
+    // (a, b, c)  = t
+    StmtRet assign(Assign_t* n, int depth);
+    StmtRet augassign(Assign_t* n, int depth);
+    StmtRet annassign(Assign_t* n, int depth);
+
+
 };
 
 }

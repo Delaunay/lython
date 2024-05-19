@@ -923,6 +923,8 @@ TypeExpr* SemanticAnalyser::attribute(Attribute* n, int depth) {
 
 TypeExpr* SemanticAnalyser::attribute_assign(Attribute* n, int depth, TypeExpr* expected) {
     // self: Ref[class_t]
+    n->ctx = ExprContext::Store;
+    
     auto* type_t  = exec(n->value, depth);
     auto* class_t = get_class(type_t, depth);
 
