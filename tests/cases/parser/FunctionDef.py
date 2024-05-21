@@ -1,7 +1,7 @@
 # >>> case: 0
 # >>> code
 @j
-def a(b, c=d, *e, f=g, **h) -> bool:
+def a(b, c=d, /, e=f, *g, h=i, **j) -> bool:
     """docstring"""
     return True# <<<
 
@@ -13,6 +13,20 @@ NameError: name 'g' is not defined# <<<
 NameError: name 'j' is not defined# <<<
 
 # >>> case: 1
+# >>> code
+@j
+def a(b, c=d, *e, f=g, **h) -> bool:
+    """docstring"""
+    return True# <<<
+
+# >>> error
+NameError: name 'd' is not defined# <<<
+# >>> error
+NameError: name 'g' is not defined# <<<
+# >>> error
+NameError: name 'j' is not defined# <<<
+
+# >>> case: 2
 # >>> code
 @j(l, m, c=n)
 @k

@@ -1663,6 +1663,7 @@ Arguments Parser::parse_arguments(Node* parent, char kind, int depth) {
     TRACE_START();
 
     Arguments args;
+    // ArgumentKind kind = ArgumentKind::Regular;
     //
 
     bool keywords = false;
@@ -1677,6 +1678,13 @@ Arguments Parser::parse_arguments(Node* parent, char kind, int depth) {
 
         if (token().type() == tok_comma) {
             next_token();
+        }
+
+        if (token().type() == tok_operator && token().identifier() == "/") {
+            args.posonlyargs = args.args;
+            args.args.clear();
+            next_token();
+            continue;
         }
 
         if (is_star(token())) {

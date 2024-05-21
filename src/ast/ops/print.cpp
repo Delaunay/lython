@@ -1234,7 +1234,58 @@ ReturnType Printer::comment(Comment const* n, int depth, std::ostream& out, int 
 
 void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int level) {
     int i = 0;
+    ArgumentKind prev = ArgumentKind::None;
 
+    self.visit([&](ArgumentIter<true> const& iter){
+        Arg const&      arg   = iter.arg;
+        ArgumentKind    kind  = iter.kind;
+        ExprNode const* value = iter.value;
+
+        if (i != 0) {
+            out << ", ";
+        }
+
+        if (prev == ArgumentKind::PosOnly && kind != ArgumentKind::PosOnly) {
+            out << "/";
+            i += 1;
+            prev = kind;
+            out << ", ";
+        }
+
+        if (kind == ArgumentKind::VarArg) {
+            out << "*" << arg.arg;
+            prev = kind;
+            i += 1;
+            return;
+        }
+
+        if (kind == ArgumentKind::KwArg) {
+            out << "**" << arg.arg;
+            prev = kind;
+            i += 1;
+            return;
+        }
+
+        out << arg.arg;
+        if (arg.annotation.has_value()) {
+            out << ": "; 
+            exec(arg.annotation.value(), depth, out, level);
+        }
+
+        if (value) {
+            if (arg.annotation.has_value()) {
+                out << " = ";
+            } else {
+                out << "=";
+            }
+            exec(value, depth, out, level);
+        }
+
+        i += 1;
+        prev = kind;
+    });
+
+#if 0
     for (auto& arg: self.args) {
         out << arg.arg;
 
@@ -1302,6 +1353,7 @@ void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int
         }
         out << "**" << self.kwarg.value().arg;
     }
+    #endif
 }
 
 int get_precedence(Node const* node) {

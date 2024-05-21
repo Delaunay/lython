@@ -92,7 +92,21 @@
         "source_location": "cpp",
         "span": "cpp",
         "stack": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "__bit_reference": "cpp",
+        "__node_handle": "cpp",
+        "__memory": "cpp",
+        "*.tcc": "cpp",
+        "__config": "cpp",
+        "__hash_table": "cpp",
+        "__locale": "cpp",
+        "__split_buffer": "cpp",
+        "__verbose_abort": "cpp",
+        "string_view": "cpp",
+        "memory_resource": "cpp",
+        "cwctype": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"

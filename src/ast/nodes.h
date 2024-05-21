@@ -241,6 +241,26 @@ struct Arg: public CommonAttributes {
     Optional<String>    type_comment;
 };
 
+
+enum class ArgumentKind {
+    PosOnly,
+    Regular,
+    KwOnly,
+    VarArg,
+    KwArg,
+    None,
+};
+
+template<bool IsConst>
+struct ArgumentIter {
+    using Epxr_t = typename std::conditional<IsConst, ExprNode const*, ExprNode*>::type;
+    using Arg_t = typename std::conditional<IsConst, Arg const&, Arg&>::type;
+
+    ArgumentKind kind;
+    Arg_t arg;
+    Epxr_t value;
+};
+
 struct Arguments {
     Arguments() = default;
 
@@ -271,62 +291,21 @@ struct Arguments {
 
     int size() const { return int(posonlyargs.size() + args.size() + kwonlyargs.size()); }
 
-    enum ArgumentKind {
-        PosOnly,
-        Regular,
-        KwOnly,
-        VarArg,
-        KwArg,
-    };
+    // template<typename Fun>
+    // void visit(Fun fun) {
+    //     static_visit(this, fun);
+    // }
 
-    struct ArgumentIter {
-        ArgumentKind kind;
-        Arg& arg;
-        ExprNode* value;
-    };
+    // template<typename Fun>
+    // void visit(Fun fun) const {
+    //     static_visit(this, fun);
+    // }
 
-    template<typename Fun>
-    void visit(Fun fun) {
-        int i = 0;
-        for(Arg& posonly: posonlyargs) {
-            ExprNode* value = nullptr;
-            if (i < defaults.size()) {
-                value = defaults[i]
-            }
-            fun(ArgumentIter{PosOnly, posonly, value});
-            i += 1;
-        }
+    void visit(std::function<void(ArgumentIter<false> const&)> fun); 
 
-        for(Arg& arg: args) {
-            ExprNode* value = nullptr;
-            if (i < defaults.size()) {
-                value = defaults[i]
-            }
-            fun(ArgumentIter{Regular, posonly, value});
-            i += 1;
-        }
+    void visit(std::function<void(ArgumentIter<true> const&)> fun) const;
 
-        if (vararg.has_value()) {
-            fun(ArgumentIter{VarArg, vararg.value(), nullptr});
-            i += 1;
-        }
-
-        int kw = 0;
-        for(Arg& kwonlyarg: kwonlyargs) {
-            ExprNode* value = nullptr;
-            if (kw < kw_defaults.size()) {
-                value = kw_defaults[kw]
-            }
-            fun(ArgumentIter{KwOnly, kwonlyarg, value});
-            i += 1;
-            kw += 1;
-        }
-
-         if (kwarg.has_value()) {
-            fun(ArgumentIter{KwArg, kwarg.value(), nullptr});
-            i += 1;
-        }
-    }
+    
 };
 
 struct Keyword: public CommonAttributes {

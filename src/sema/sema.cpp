@@ -666,17 +666,17 @@ void reorder_arguments(Call* call, FunctionDef* def) {
 
     int i = 0;
 
-    def->args.visit([&](Arguments::ArgumentIter& arg) {
+    def->args.visit([&](ArgumentIter<false> const & arg) {
         Keyword kw;
 
-        if (in(arg.kind, Arguments::PosOnly, Arguments::Regular)) {
+        if (in(arg.kind, ArgumentKind::PosOnly, ArgumentKind::Regular)) {
             ExprNode* arg_value = arg.value;
 
             if (i < call->args.size()) {
                 arg_value = call->args[i];
             }
 
-            if (in(arg.kind, Arguments::Regular)) {
+            if (in(arg.kind, ArgumentKind::Regular)) {
                 // Regular argument defined with a keyword
                 for(int k = 0; k < call->keywords.size(); k++) {
                     if (arg.arg.arg == call->keywords[k].arg) {
@@ -696,14 +696,14 @@ void reorder_arguments(Call* call, FunctionDef* def) {
 
         // push remaining args as variadic args
         // we probably want to save those in a different array
-        if (in(arg.kind, Arguments::VarArg)) {
+        if (in(arg.kind, ArgumentKind::VarArg)) {
             for(int k = i; k < call->args.size(); k++) {
                 var_args.push_back(call->args[k]);
             }
             return;
         }
 
-        if (in(arg.kind, Arguments::KwOnly)) {
+        if (in(arg.kind, ArgumentKind::KwOnly)) {
             ExprNode* arg_value = arg.value;
             
             for(int k = 0; k < call->keywords.size(); k++) {
@@ -722,7 +722,7 @@ void reorder_arguments(Call* call, FunctionDef* def) {
         }
 
         // Final kw arguments, that do not match anything
-        if (in(arg.kind, Arguments::KwArg)) {
+        if (in(arg.kind, ArgumentKind::KwArg)) {
             for(int k = 0; k < call->keywords.size(); k++) {
                 if (!contains(used_keywords, k)) {
                     kw_args.push_back(kw);

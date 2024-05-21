@@ -235,5 +235,74 @@ bool Arrow::set_arg_type(int i, ExprNode* arg_type) {
     return false;
 }
 
+
+template<typename T, typename Fun>
+void static_visit(T* self, Fun fun) {
+    using ArgumentIter_t = ArgumentIter<std::is_const_v<T>>;
+    using Epxr_t = typename std::conditional<std::is_const_v<T>, ExprNode const*, ExprNode*>::type;
+    using Arg_t = typename std::conditional<std::is_const_v<T>, Arg const&, Arg&>::type;
+
+
+    int i = 0;
+    int default_offset = int(self->defaults.size()) - (
+        self->posonlyargs.size() + self->args.size());
+
+    auto getdefault = [&]() -> int{
+        return default_offset + i;
+    };
+    
+    for(Arg_t posonly: self->posonlyargs) {
+        Epxr_t value = nullptr;
+        auto offset = getdefault();
+        if (offset >= 0 && offset < self->defaults.size()) {
+            value = self->defaults[offset];
+        }
+        fun(ArgumentIter_t{ArgumentKind::PosOnly, posonly, value});
+        i += 1;
+    }
+
+    for(Arg_t arg: self->args) {
+        Epxr_t value = nullptr;
+        
+        auto offset = getdefault();
+        if (offset >= 0 && offset < self->defaults.size()) {
+            value = self->defaults[offset];
+        }
+        fun(ArgumentIter_t{ArgumentKind::Regular, arg, value});
+        i += 1;
+    }
+
+    if (self->vararg.has_value()) {
+        fun(ArgumentIter_t{ArgumentKind::VarArg, self->vararg.value(), nullptr});
+        i += 1;
+    }
+
+    int kw = 0;
+    for(Arg_t kwonlyarg: self->kwonlyargs) {
+        Epxr_t value = nullptr;
+
+        auto offset = int(self->kw_defaults.size()) - int(self->kwonlyargs.size()) + kw;
+        if (offset >= 0 && offset < self->kw_defaults.size()) {
+            value = self->kw_defaults[offset];
+        }
+
+        fun(ArgumentIter_t{ArgumentKind::KwOnly, kwonlyarg, value});
+        i += 1;
+        kw += 1;
+    }
+
+        if (self->kwarg.has_value()) {
+        fun(ArgumentIter_t{ArgumentKind::KwArg, self->kwarg.value(), nullptr});
+        i += 1;
+    }
+}
+
+
+    void Arguments::visit(std::function<void(ArgumentIter<false> const&)> fun) {
+        static_visit(this, fun);
+    }
+    void Arguments::visit(std::function<void(ArgumentIter<true> const&)> fun) const {
+        static_visit(this, fun);
+    }
 // ------------------------------------------
 }  // namespace lython
