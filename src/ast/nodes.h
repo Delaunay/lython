@@ -248,13 +248,85 @@ struct Arguments {
 
     Array<Arg>       posonlyargs;
     Array<Arg>       args;
-    Optional<Arg>    vararg;  // *args
+    Optional<Arg>    vararg;  // *args      -> This could be resolved at the call site
     Array<Arg>       kwonlyargs;
     Array<ExprNode*> kw_defaults;
-    Optional<Arg>    kwarg;  // **kwargs
+    Optional<Arg>    kwarg;  // **kwargs    -> This could be resolved at the call site
     Array<ExprNode*> defaults;
 
+    // we should probably have some structure to record the resolved variadic arguments
+    // could be a superset here
+    // or maybe generate some code for a subset at the call site
+
+    // f(*args, **kwargs) <= This is just forward the arguments as is
+    bool is_forward() {
+        return posonlyargs.size() == 0 && args.size() == 0 && 
+            vararg.has_value() && kwonlyargs.size() == 0 &&
+            kw_defaults.size() == 0 && kwarg.has_value() && defaults.size() == 0;
+    }
+
+    bool is_variadic() {
+        return vararg.has_value() || kwarg.has_value();
+    }
+
     int size() const { return int(posonlyargs.size() + args.size() + kwonlyargs.size()); }
+
+    enum ArgumentKind {
+        PosOnly,
+        Regular,
+        KwOnly,
+        VarArg,
+        KwArg,
+    };
+
+    struct ArgumentIter {
+        ArgumentKind kind;
+        Arg& arg;
+        ExprNode* value;
+    };
+
+    template<typename Fun>
+    void visit(Fun fun) {
+        int i = 0;
+        for(Arg& posonly: posonlyargs) {
+            ExprNode* value = nullptr;
+            if (i < defaults.size()) {
+                value = defaults[i]
+            }
+            fun(ArgumentIter{PosOnly, posonly, value});
+            i += 1;
+        }
+
+        for(Arg& arg: args) {
+            ExprNode* value = nullptr;
+            if (i < defaults.size()) {
+                value = defaults[i]
+            }
+            fun(ArgumentIter{Regular, posonly, value});
+            i += 1;
+        }
+
+        if (vararg.has_value()) {
+            fun(ArgumentIter{VarArg, vararg.value(), nullptr});
+            i += 1;
+        }
+
+        int kw = 0;
+        for(Arg& kwonlyarg: kwonlyargs) {
+            ExprNode* value = nullptr;
+            if (kw < kw_defaults.size()) {
+                value = kw_defaults[kw]
+            }
+            fun(ArgumentIter{KwOnly, kwonlyarg, value});
+            i += 1;
+            kw += 1;
+        }
+
+         if (kwarg.has_value()) {
+            fun(ArgumentIter{KwArg, kwarg.value(), nullptr});
+            i += 1;
+        }
+    }
 };
 
 struct Keyword: public CommonAttributes {
@@ -597,6 +669,7 @@ struct Call: public ExprNode {
     ExprNode*        func = nullptr;
     Array<ExprNode*> args;
     Array<Keyword>   keywords;
+    Array<ExprNode*> varargs;
 
     int jump_id = -1;
 

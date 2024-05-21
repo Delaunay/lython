@@ -648,6 +648,102 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
     return nullptr;
 }
 
+void reorder_arguments(Call* call, FunctionDef* def) {
+    // Transform as many argument as possible to positional
+    //
+    //  We should probably only allow *args && **kwargs for code generation
+    //
+    //
+
+    // fetch the arguments
+    //  this only works if vararg & kwarg are not set
+    Array<Keyword>   args;
+    Array<ExprNode*> final_args;
+    Array<ExprNode*> var_args;
+    Array<Keyword>  kw_args;
+
+    Array<int> used_keywords;
+
+    int i = 0;
+
+    def->args.visit([&](Arguments::ArgumentIter& arg) {
+        Keyword kw;
+
+        if (in(arg.kind, Arguments::PosOnly, Arguments::Regular)) {
+            ExprNode* arg_value = arg.value;
+
+            if (i < call->args.size()) {
+                arg_value = call->args[i];
+            }
+
+            if (in(arg.kind, Arguments::Regular)) {
+                // Regular argument defined with a keyword
+                for(int k = 0; k < call->keywords.size(); k++) {
+                    if (arg.arg.arg == call->keywords[k].arg) {
+                        arg_value = call->keywords[k].value;
+                        used_keywords.push_back(k);
+                        break;
+                    }
+                }
+            }
+
+            kw.arg = arg.arg.arg;
+            kw.value = arg_value;
+            args.push_back(kw);
+            i += 1;
+            return;
+        }
+
+        // push remaining args as variadic args
+        // we probably want to save those in a different array
+        if (in(arg.kind, Arguments::VarArg)) {
+            for(int k = i; k < call->args.size(); k++) {
+                var_args.push_back(call->args[k]);
+            }
+            return;
+        }
+
+        if (in(arg.kind, Arguments::KwOnly)) {
+            ExprNode* arg_value = arg.value;
+            
+            for(int k = 0; k < call->keywords.size(); k++) {
+                // The argument is defined in the call
+                if (call->keywords[k].arg == arg.arg.arg) {
+                    arg_value = call->keywords[k].value;
+                    used_keywords.push_back(k);
+                    break;
+                }
+            }
+
+            kw.arg = arg.arg.arg;
+            kw.value = arg_value;
+            args.push_back(kw);
+            return;
+        }
+
+        // Final kw arguments, that do not match anything
+        if (in(arg.kind, Arguments::KwArg)) {
+            for(int k = 0; k < call->keywords.size(); k++) {
+                if (!contains(used_keywords, k)) {
+                    kw_args.push_back(kw);
+                }
+            }
+        }
+    });
+
+    final_args.resize(args.size());
+    for(Keyword kw: args) {
+        final_args.push_back(kw.value);
+    }
+
+    // args - reordered (include posonly, regular & kwonly)
+    // varargs list of args
+    // kwargs dictionnary   
+    call->args = final_args;
+    call->varargs = var_args;
+    call->keywords = kw_args;
+}
+
 TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     // Get the type of the function
     // if function function is an attribute obj.attr
@@ -1230,6 +1326,18 @@ TypeExpr* SemanticAnalyser::functiondef(FunctionDef* n, int depth) {
         bindings.add(n->name, n, n->type);
         return n->type;
     }
+
+    //
+    // FIXME: need to change how arguments are added to the context
+    // first all arguments that could be positional are added (posonly, regular, kwonly)
+    // then varargs and kwargs are added last
+    // 
+    // Arguments are converted to positional whenever possible
+    // so there is no overhead cost in using kw arguments
+    // the overhead will come when varargs and kwargs are used
+    //
+    // Although, maybe we could convert them as well 
+    // with more advanced tracing
 
     // if sema was already done on the function
     if (n->type && !eager) {

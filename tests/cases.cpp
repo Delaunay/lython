@@ -497,8 +497,40 @@ Array<TestCase> const& Comment_examples() {
     return example;
 }
 
+// def function(a=1, /, b=2, c=3, *, d=3,  **kwargs):
+//   return a + b + c
+
 Array<TestCase> const& FunctionDef_examples() {
     static Array<TestCase> example = {
+        // FunctionDef(
+        //   name='function',
+        //   args=arguments(
+        //     posonlyargs=[
+        //       arg(arg='b'),
+        //       arg(arg='c')],
+        //     args=[
+        //       arg(arg='e')],
+        //     vararg=arg(arg='g'),
+        //     kwonlyargs=[
+        //       arg(arg='h')],
+        //     kw_defaults=[
+        //       Constant(value=3)],
+        //     kwarg=arg(arg='j'),
+        //     defaults=[
+        //       Constant(value=1),
+        //       Constant(value=2)]),
+        //   body=[
+        //     Return(
+        {"@j\n"
+         "def a(b, c=d, /, e=f, *g, h=i, **j) -> bool:\n"
+         "    \"\"\"docstring\"\"\"\n"
+         "    return True",
+         {
+             NE("d"),
+             NE("g"),
+             NE("j"),
+         }},
+
         {"@j\n"
          "def a(b, c=d, *e, f=g, **h) -> bool:\n"
          "    \"\"\"docstring\"\"\"\n"

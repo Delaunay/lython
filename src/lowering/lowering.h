@@ -21,7 +21,7 @@ struct LoweringVisitorTrait {
 
 
 /*
- * Remove syntatic sugar from the ast and generate a canonical/simplifier representation
+ * Remove syntatic sugar from the ast and generate a canonical/simplified representation
  *
  * Examples
  * --------
@@ -57,6 +57,21 @@ struct LoweringVisitorTrait {
 struct Lowering: public TreeWalk<Lowering, false, LoweringVisitorTrait> {
     using Super = TreeWalk<Lowering, false, LoweringVisitorTrait>;
 
+
+    // Rewrite:
+    //   Remove syntatic sugar for simpler processing
+    //
+    //   Simplify
+    //         a.b = t      => setattr(a, "b", t)  
+    //         a.b          => getattr(a, "b")     <= This can stay actually
+    //         a[0]         => getitem
+    //         a[0] = t     => setitem
+    //   Unify
+    //        - a       => call(unary_sub, a)
+    //       a + b      => call(binary_add, a, b)
+    //       a and b    => call(and, a, b)
+    //       a < b      => call(lt, a, b)
+
     using StmtRet = Super::StmtRet;
     using ExprRet = Super::ExprRet;
     using ModRet  = Super::ModRet;
@@ -64,12 +79,6 @@ struct Lowering: public TreeWalk<Lowering, false, LoweringVisitorTrait> {
 
     StmtRet classdef(ClassDef_t* n, int depth);
 
-    // I feel this could be done in the parser
-    // rewrite a.b = t as setattr(a, "b", t)
-    //         a.b     as getattr(a, "b")
-    //
-    // Unpacking too maybe
-    // (a, b, c)  = t
     StmtRet assign(Assign_t* n, int depth);
     StmtRet augassign(Assign_t* n, int depth);
     StmtRet annassign(Assign_t* n, int depth);
