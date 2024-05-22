@@ -648,19 +648,17 @@ SemanticAnalyser::get_arrow(ExprNode* fun, ExprNode* type, int depth, int& offse
     return nullptr;
 }
 
-void reorder_arguments(Call* call, FunctionDef* def) {
+bool SemanticAnalyser::reorder_arguments(Call* call, FunctionDef* def) {
+    // return;
     // Transform as many argument as possible to positional
     //
-    //  We should probably only allow *args && **kwargs for code generation
+    //  We should probably only allow *args && **kwargs at compile time
+    //  as code generator helper
     //
-    //
-
-    // fetch the arguments
-    //  this only works if vararg & kwarg are not set
     Array<Keyword>   args;
     Array<ExprNode*> final_args;
     Array<ExprNode*> var_args;
-    Array<Keyword>  kw_args;
+    Array<Keyword>   kw_args;
 
     Array<int> used_keywords;
 
@@ -731,8 +729,21 @@ void reorder_arguments(Call* call, FunctionDef* def) {
         }
     });
 
-    final_args.resize(args.size());
+    bool is_ok = true;
+    final_args.reserve(args.size());
     for(Keyword kw: args) {
+        if (kw.value == nullptr) {
+            is_ok = false;
+            SEMA_ERROR(
+                call,
+                TypeError, 
+                fmt::format(
+                    "TypeError: {} missing 1 required positional argument: '{}'",
+                    str(call),
+                    str(kw.arg)
+                )
+            );
+        }
         final_args.push_back(kw.value);
     }
 
@@ -742,6 +753,7 @@ void reorder_arguments(Call* call, FunctionDef* def) {
     call->args = final_args;
     call->varargs = var_args;
     call->keywords = kw_args;
+    return is_ok;
 }
 
 TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
@@ -750,10 +762,16 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     // this returns the type of the function
     auto* type = exec(n->func, depth);
 
-    // we are calling a type, this is a constructor
-    // if (equal(type, Type_t())) {
-    //
-    //}
+    // 
+    bool is_call_valid = false;
+    if (Name* name = cast<Name>(n->func)) {
+        BindingEntry const* entry = lookup(name);
+        if (entry) {
+            if (FunctionDef* def = cast<FunctionDef>(entry->value)){
+                is_call_valid = reorder_arguments(n, def);
+            }
+        }
+    }
 
     int       offset = 0;
     ClassDef* cls    = nullptr;
@@ -814,13 +832,7 @@ TypeExpr* SemanticAnalyser::call(Call* n, int depth) {
     }
 
     // FIXME: we do not know the returns so we just use the one we have
-    if (arrow != nullptr) {
-        if (got->arg_count() != arrow->arg_count()) {
-            // we do not really that check
-            // SEMA_ERROR(TypeError(" missing {} required positional arguments"));
-            //
-        }
-
+    if (arrow != nullptr && is_call_valid) {
         got->returns = arrow->returns;
 
         // (Point, Point) -> Point
@@ -1174,6 +1186,63 @@ TypeExpr* SemanticAnalyser::slice(Slice* n, int depth) {
 // }
 
 void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* def, int depth) {
+    int i = 0;
+    TypeExpr* class_t = nullptr;
+    if (def != nullptr) {
+        class_t = make_ref(arrow, str(def->name), Type_t());
+    }
+
+    args.visit([&](ArgumentIter<false> const& iter) {
+        if (in(iter.kind, ArgumentKind::VarArg, ArgumentKind::KwArg)) {
+            kwdebug(semalog, "Unsupported argument type");
+            return;
+        }
+
+        TypeExpr* ann_t = nullptr;
+        TypeExpr* val_t = nullptr;
+
+        bool ann_v = false;
+
+        if(iter.arg.annotation.has_value()) {
+            ann_t = exec(iter.arg.annotation.value(), depth);
+            ann_v = is_type(ann_t, depth, LOC);
+        }
+
+        if (iter.value) {
+            val_t = exec(iter.value, depth);
+        }
+
+        if (ann_v && val_t) {
+            typecheck(nullptr, iter.arg.annotation.value(), iter.value, val_t, LOC);
+        }
+
+        TypeExpr* arg_t = ann_v ? iter.arg.annotation.value(): val_t;
+
+        // First argument might be self: cls
+        if (def != nullptr && i == 0 && class_t) {
+            if (arg_t) {
+                typecheck(nullptr, arg_t, nullptr, class_t, LOC);
+            }
+            arg_t = class_t;
+        }
+        
+        // we could populate the default value here
+        // but we would not want sema to think this is a constant
+        add_name(iter.arg.arg, nullptr, arg_t);
+
+        if (arrow != nullptr) {
+            arrow->names.push_back(iter.arg.arg);
+
+            if (!arrow->add_arg_type(arg_t)) {
+                SEMA_ERROR(
+                    arrow, TypeError, fmt::format("Cannot have a function type refer to itself"));
+            }
+        }
+
+        i += 1;
+    });
+
+    #if 0
     TypeExpr* class_t = nullptr;
     if (def != nullptr) {
         class_t = make_ref(arrow, str(def->name), Type_t());
@@ -1273,6 +1342,7 @@ void SemanticAnalyser::add_arguments(Arguments& args, Arrow* arrow, ClassDef* de
             }
         }
     }
+    #endif
 }
 
 Arrow* SemanticAnalyser::functiondef_arrow(FunctionDef* n, StmtNode* class_t, int depth) {

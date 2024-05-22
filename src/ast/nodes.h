@@ -345,7 +345,7 @@ struct MatchValue: public Pattern {
 
 struct MatchSingleton: public Pattern {
     Value value;
-    ValueDeleter deleter;
+    ValueDeleter deleter = nullptr;
 
     ~MatchSingleton() {
         if (deleter) {

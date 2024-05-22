@@ -22,40 +22,49 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
 
 TEST_CASE("SEMA_FunctionDef_Typing") {
     static Array<TestCase> ex = {
-        {
+        {   // 0
             "def fun():\n"
             "    return x\n",  // Name error
-            {
+            TestErrors({
                 NE("x"),
-            },
+            }),
         },
-        {
+        {   // 1
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
             "x = fun(1)\n"  // Works
         },
-        {
+        {   // 2
+            "def fun(a: i32, b: i32 = 2, /, c: i32 = 4, *args, d: i32 = 4, **kwargs) -> i32:\n"
+            "    return a + b + c + d\n",
+            // Call
+            "fun(5, 6, 9, 10, d=7, c=8, e=4)",
+            // Type
+            // FIXME
+            "(i32, i32, i32, i32) -> i32"
+        },
+        {   // 3
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
             "x: i32 = fun(1)\n"  // Works
         },
 
-        {
+        {   // 4
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
             "x = fun(1.0)\n",  // Type Error
-            {
+            TestErrors({
                 TE("fun(1.0)", "(f64) -> i32", "fun", "(i32) -> i32"),
-            },
+            }),
         },
 
         {
             "def fun(a: i32) -> i32:\n"
             "    return a\n"
             "x: f32 = fun(1)\n",  // Type Error
-            {
+            TestErrors({
                 TE("x", "f32", "fun(1)", "i32"),
-            },
+            }),
         },
 
         {
@@ -75,6 +84,7 @@ TEST_CASE("SEMA_FunctionDef_Typing") {
             "    return a\n"
             "x: i32 = fun()\n",  // missing argument
             TestErrors({
+                String("TypeError: fun() missing 1 required positional argument: 'a'"),
                 // TE("Argument a is not defined");
             }),
         },
@@ -339,6 +349,22 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
             Module* mod;
 
             std::tie(deduced_type, errors) = sema_it(c.code, mod);
+
+
+            if (!c.call.empty()) {
+                StringBuffer reader(c.call);
+                Lexer        lex(reader);
+                Parser       parser(lex);
+                parser.parse_to_module(mod);
+
+                SemanticAnalyser sema;
+                sema.exec(mod, 0);
+
+                StmtNode* stmt = mod->body[int(mod->body.size()) - 1];
+                std::cout << c.call << "\n";
+                REQUIRE(str(stmt) == c.call);
+            }
+
 
             REQUIRE(errors == c.errors);
 

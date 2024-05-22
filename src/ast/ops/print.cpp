@@ -559,24 +559,38 @@ ReturnType Printer::call(Call const* self, int depth, std::ostream& out, int lev
 
     exec(self->func, depth, out, level);
     out << "(";
+    int k = 0;
 
     for (int i = 0; i < self->args.size(); i++) {
-        exec(self->args[i], depth, out, level);
-
-        if (i < self->args.size() - 1 || !self->keywords.empty())
+        if (k > 0) {
             out << ", ";
+        }
+        exec(self->args[i], depth, out, level);
+        k += 1;
     }
 
+
+    for (int i = 0; i < self->varargs.size(); i++) {
+        if (k > 0) {
+            out << ", ";
+        }
+        exec(self->varargs[i], depth, out, level);
+        k += 1;
+    }
+
+
     for (int i = 0; i < self->keywords.size(); i++) {
+        if (k > 0) {
+            out << ", ";
+        }
+
         auto const& key = self->keywords[i];
 
         out << self->keywords[i].arg;
         out << "=";
 
         exec(key.value, depth, out, level);
-
-        if (i < self->keywords.size() - 1)
-            out << ", ";
+        k += 1;
     }
 
     out << ")";
@@ -1284,76 +1298,6 @@ void Printer::arguments(Arguments const& self, int depth, std::ostream& out, int
         i += 1;
         prev = kind;
     });
-
-#if 0
-    for (auto& arg: self.args) {
-        out << arg.arg;
-
-        if (arg.annotation.has_value()) {
-            out << ": ";
-            exec(arg.annotation.value(), depth, out, level);
-        }
-
-        auto default_offset = self.args.size() - 1 - i;
-        if (self.defaults.size() > 0 && default_offset < self.defaults.size()) {
-            if (arg.annotation.has_value()) {
-                out << " = ";
-            } else {
-                out << "=";
-            }
-            exec(self.defaults[default_offset], depth, out, -1);
-        }
-
-        if (i + 1 < self.args.size()) {
-            out << ", ";
-        }
-        i += 1;
-    }
-
-    if (self.vararg.has_value()) {
-        if (self.args.size() > 0) {
-            out << ", ";
-        }
-
-        out << "*" << self.vararg.value().arg;
-    }
-
-    if ((self.args.size() > 0 || self.vararg.has_value()) && self.kwonlyargs.size() > 0) {
-        out << ", ";
-    }
-
-    i = 0;
-    for (auto const& kw: self.kwonlyargs) {
-        out << kw.arg;
-
-        if (kw.annotation.has_value()) {
-            out << ": ";
-            exec(kw.annotation.value(), depth, out, level);
-        }
-
-        auto default_offset = self.kwonlyargs.size() - 1 - i;
-        if (self.kw_defaults.size() > 0 && default_offset < self.kw_defaults.size()) {
-            if (kw.annotation.has_value()) {
-                out << " = ";
-            } else {
-                out << "=";
-            }
-            exec(self.kw_defaults[default_offset], depth, out, -1);
-        }
-
-        if (i + 1 < self.kwonlyargs.size()) {
-            out << ", ";
-        }
-        i += 1;
-    }
-
-    if (self.kwarg.has_value()) {
-        if (!self.kwonlyargs.empty()) {
-            out << ", ";
-        }
-        out << "**" << self.kwarg.value().arg;
-    }
-    #endif
 }
 
 int get_precedence(Node const* node) {

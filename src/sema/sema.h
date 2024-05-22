@@ -141,6 +141,8 @@ struct SemanticAnalyser: public BaseVisitor<SemanticAnalyser, false, SemaVisitor
 
     bool is_type(TypeExpr* node, int depth, lython::CodeLocation const& loc);
 
+    bool reorder_arguments(Call* call, FunctionDef* def);
+
     template <typename T, typename... Args>
     void sema_error(Node* node, lython::CodeLocation const& loc, Args... args) {
         errors.push_back(std::unique_ptr<SemaException>(new T(args...)));
