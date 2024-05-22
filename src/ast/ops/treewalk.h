@@ -54,9 +54,12 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return n;
     }
     ExprRet setexpr(SetExpr_t* n, int depth, Args... args) {
+        // enter(n, depth, args...)
         for (int i = 0; i < (n->elts).size(); i++) {
+            // emit(n, attr, depth, args...)
             KW_REPLACE(n, n->elts[i], depth, args...);
         }
+        // exit(n, depth, args...)
         return n;
     }
     ExprRet listexpr(ListExpr_t* n, int depth, Args... args) {

@@ -4,11 +4,5 @@
 
 namespace lython {
 
-using StmtRet = TreeWalk::StmtRet;
-using ExprRet = TreeWalk::ExprRet;
-using ModRet  = TreeWalk::ModRet;
-using PatRet  = TreeWalk::PatRet;
-
-
 
 }
