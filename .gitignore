@@ -61,3 +61,8 @@ dependencies/icu
 out.txt
 
 code/llvm/current/*.ll
+
+conan/*.cmake
+conan/*.json
+conan/*.sh
+conan/*.profraw

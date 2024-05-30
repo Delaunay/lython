@@ -64,3 +64,9 @@
 [submodule "dependencies/flecs"]
 	path = dependencies/flecs
 	url = https://github.com/SanderMertens/flecs.git
+[submodule "dependencies/emsdk"]
+	path = dependencies/emsdk
+	url = https://github.com/emscripten-core/emsdk.git
+[submodule "dependencies/freetype"]
+	path = dependencies/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype.git

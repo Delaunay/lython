@@ -512,3 +512,18 @@ Roadmap
 * [ ] context manager
 * [ ] decorator
 * [ ] fmt
+
+
+
+
+
+mkdir build-emcc
+cd build-emcc
+export TOOLCHAIN_FILE=../dependencies/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+CMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE cmake ..
+
+
+export FREETYPE_LIBRARY=/home/newton/work/lython/dependencies/freetype/build
+export FREETYPE_INCLUDE_DIRS=/home/newton/work/lython/dependencies/freetype/build/include  
+export CMAKE_TOOLCHAIN_FILE=/home/newton/work/lython/dependencies/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake 
+cmake -DSDL2TTF_VENDORED=1 -DNO_LLVM=1 ..
