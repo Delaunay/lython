@@ -11,6 +11,8 @@ bool Value::operator==(Value const& val) const {
     case meta::ValueTypes::name: return value.name == val.value.name;
             KIWI_VALUE_TYPES(CASE)
 #undef CASE
+    case meta::ValueTypes::Max:
+        return false;
         }
 
         // To make it work  on arbitrary value we need to 

@@ -527,3 +527,12 @@ export FREETYPE_LIBRARY=/home/newton/work/lython/dependencies/freetype/build
 export FREETYPE_INCLUDE_DIRS=/home/newton/work/lython/dependencies/freetype/build/include  
 export CMAKE_TOOLCHAIN_FILE=/home/newton/work/lython/dependencies/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake 
 cmake -DSDL2TTF_VENDORED=1 -DNO_LLVM=1 ..
+
+
+
+cd build-emac
+conan install ../conan/ --profile emacscripten --build missing -of ../build-emac
+cmake .. -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DSDL2TTF_VENDORED=1 -DNO_LLVM=1 -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+
+
