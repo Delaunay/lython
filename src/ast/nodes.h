@@ -70,7 +70,7 @@ struct ModNode: public Node {
 
     NodeFamily family() const override { return NodeFamily::Module; }
 
-    bool is_leaf() { return false; }
+    bool is_leaf() override { return false; }
 };
 
 struct Comment;
@@ -334,7 +334,7 @@ struct Pattern: public CommonAttributes, public Node {
 
     NodeFamily family() const override { return NodeFamily::Pattern; }
 
-    bool is_leaf() { return false; }
+    bool is_leaf() override { return false; }
 };
 
 struct MatchValue: public Pattern {

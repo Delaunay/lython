@@ -1,5 +1,5 @@
 #ifndef LYTHON_LOG_CODELOC_H
-#define LYTHON_LOG_CODELOG_H
+#define LYTHON_LOG_CODELOC_H
 
 #include <cassert>
 #include <string>

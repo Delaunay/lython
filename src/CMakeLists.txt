@@ -12,7 +12,10 @@ INCLUDE_DIRECTORIES(mimalloc)
 
 # Libraries
 # =========
-SET(LIBRARIES fmt::fmt-header-only)
+
+find_package(fmt)
+find_package(zlib)
+SET(LIBRARIES fmt::fmt)
 
 IF(WITH_VALGRIND)
     MESSAGE(STATUS "Disabling mimalloc")
@@ -122,7 +125,7 @@ SET(ADD_SOURCE
 IF(BUILD_WINDOWS)
 ENDIF()
 
-IF(BUILD_POSIX)
+IF(BUILD_POSIX AND !BUILD_WEBASSEMBLY)
     ADD_COMPILE_OPTIONS(-mavx2)
 ENDIF()
 
@@ -155,7 +158,7 @@ TARGET_LINK_LIBRARIES(liblogging  ${LIBRARIES})
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
 TARGET_LINK_LIBRARIES(liblython ${LIBRARIES} ${LLVM_LIRARIES})
-ADD_DEPENDENCIES(liblython zlib zlibstatic)
+ADD_DEPENDENCIES(liblython ZLIB::ZLIB)
 
 ADD_LIBRARY(stblyb stdlib/siphash.cpp)
 SET_PROPERTY(TARGET stblyb PROPERTY CXX_STANDARD ${LY_CXX_STANDARD})

@@ -10,6 +10,7 @@
 #include "logging/codeloc.h"
 
 #include <fmt/core.h> 
+#include <fmt/format.h>
 
 namespace lython {
 
@@ -33,6 +34,7 @@ using FormatBuffer = fmt::memory_buffer;
 
 
 struct Output {
+    virtual ~Output() {}
     virtual void write(FormatBuffer const& msg) = 0;
     virtual void write(std::string const& msg) = 0;
 

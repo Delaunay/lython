@@ -100,6 +100,8 @@ struct Equality {
             return exec(reinterpret_cast<ExprNode *>(a), reinterpret_cast<ExprNode *>(b), 0);
         case NodeFamily::Pattern:
             return exec(reinterpret_cast<Pattern *>(a), reinterpret_cast<Pattern *>(b), 0);
+        case NodeFamily::VM:
+            return false;
         }
         // clang-format on
         return false;
