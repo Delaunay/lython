@@ -1,0 +1,13 @@
+prefix=E:/work/lython/binaries
+exec_prefix=E:/work/lython/binaries
+libdir=E:/work/lython/binaries/lib
+sharedlibdir=E:/work/lython/binaries/lib
+includedir=E:/work/lython/binaries/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.13
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}

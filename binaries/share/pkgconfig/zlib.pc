@@ -1,8 +1,8 @@
-prefix=E:/work/lython/binaries
-exec_prefix=E:/work/lython/binaries
-libdir=E:/work/lython/binaries/lib
-sharedlibdir=E:/work/lython/binaries/lib
-includedir=E:/work/lython/binaries/include
+prefix=/home/newton/work/lython/build/binaries
+exec_prefix=/home/newton/work/lython/build/binaries
+libdir=/usr/local/lib
+sharedlibdir=/usr/local/lib
+includedir=/usr/local/include
 
 Name: zlib
 Description: zlib compression library

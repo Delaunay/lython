@@ -66,3 +66,5 @@ conan/*.cmake
 conan/*.json
 conan/*.sh
 conan/*.profraw
+
+binaries/

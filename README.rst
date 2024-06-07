@@ -536,3 +536,7 @@ cmake .. -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=./conan_toolchain.cmake -DCM
 cmake --build .
 
 
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=../binaries
+cmake --build .
+cmake --install .
