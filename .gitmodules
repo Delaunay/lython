@@ -64,9 +64,12 @@
 [submodule "dependencies/flecs"]
 	path = dependencies/flecs
 	url = https://github.com/SanderMertens/flecs.git
-[submodule "dependencies/emsdk"]
-	path = dependencies/emsdk
-	url = https://github.com/emscripten-core/emsdk.git
 [submodule "dependencies/freetype"]
 	path = dependencies/freetype
 	url = https://gitlab.freedesktop.org/freetype/freetype.git
+[submodule "dependencies/wasm_webgpu"]
+	path = dependencies/wasm_webgpu
+	url = https://github.com/juj/wasm_webgpu.git
+[submodule "dependencies/webgpu-headers"]
+	path = dependencies/webgpu-headers
+	url = https://github.com/webgpu-native/webgpu-headers.git

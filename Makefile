@@ -28,3 +28,9 @@ coverage:
 		--gcov-exclude '.*dependencies/.*'	\
 		-e '.*dependencies/.*'				\
 		--exclude-directories dependencies/
+
+
+
+build:
+	conan install conanfile.txt --build=missing
+	cmake --preset conan-release

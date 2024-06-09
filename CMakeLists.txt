@@ -32,6 +32,7 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # add cmake FindXXX script to find pre-compiled libraries if any
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+SET(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/binaries/")
 INCLUDE(constant)
 FIND_PACKAGE(Python)
 

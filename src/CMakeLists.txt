@@ -6,14 +6,14 @@
 # ========
 
 INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(../dependencies/fmt/include)
+# INCLUDE_DIRECTORIES(../dependencies/fmt/include)
 INCLUDE_DIRECTORIES(../dependencies)
 INCLUDE_DIRECTORIES(mimalloc)
 
 # Libraries
 # =========
 
-find_package(fmt)
+find_package(fmt REQUIRED)
 find_package(zlib)
 SET(LIBRARIES fmt::fmt)
 
