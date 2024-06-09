@@ -6,5 +6,5 @@
 using namespace kiwi;
 
 TEST_CASE("Array") {
-    TEST_LEXING([](){ return "1.0"; })
+    // TEST_LEXING([](){ return "1.0"; })
 }

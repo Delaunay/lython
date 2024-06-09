@@ -32,5 +32,15 @@ coverage:
 
 
 build:
-	conan install conanfile.txt --build=missing
-	cmake --preset conan-release
+
+	conan install conanfile.txt --build=missing --profile:build=./conan/release --profile:host=./conan/release
+	cmake --preset release
+	cmake --build --preset release
+
+	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
+	cmake --preset default
+	cmake --build --preset development
+
+	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/debug
+	cmake --preset debug
+	cmake --build --preset debug

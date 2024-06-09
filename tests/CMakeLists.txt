@@ -5,8 +5,7 @@
 # Includes
 INCLUDE_DIRECTORIES(../src)
 INCLUDE(CTest)
-INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
-
+# INCLUDE_DIRECTORIES(../dependencies/catch2/single_include)
 
 ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
 

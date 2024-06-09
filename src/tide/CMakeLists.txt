@@ -61,7 +61,7 @@ TARGET_INCLUDE_DIRECTORIES(tide PUBLIC ${CMAKE_SOURCE_DIR}/dependencies/imgui-no
 TARGET_LINK_LIBRARIES(tide 
     liblython
     vkbootstrap vma glm tinyobjloader stb_image liblogging ${SYS_LIBRARY} 
-    Vulkan::Vulkan ${SDL_LIBRARY} liblogging argparse
+    Vulkan::Vulkan ${SDL_LIBRARY} liblogging argparse::argparse
     flecs::flecs_static
 )
 

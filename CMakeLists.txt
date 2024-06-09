@@ -4,7 +4,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
 # project name + language used
 PROJECT(lython C CXX)
 
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # debug/release
@@ -14,6 +13,7 @@ SET(CMAKE_DEBUG_POSTFIX "-debug")
 # Compiler-flag
 IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     MESSAGE(STATUS "Building Debug Version")
+
     IF(UNIX)
         ADD_DEFINITIONS(-O0)
         ADD_LINK_OPTIONS(-rdynamic)
@@ -22,7 +22,7 @@ ELSE()
     MESSAGE(STATUS "Building Release Version: " ${CMAKE_BUILD_TYPE})
 
     # causes: nvcc fatal   : redefinition of argument 'optimize'
-    # ADD_DEFINITIONS(-O2) 
+    # ADD_DEFINITIONS(-O2)
 ENDIF()
 
 # specify where compiled files must go
@@ -32,11 +32,11 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # add cmake FindXXX script to find pre-compiled libraries if any
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-SET(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/binaries/")
+LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/binaries/")
+MESSAGE(STATUS ${CMAKE_MODULE_PATH})
 INCLUDE(constant)
-FIND_PACKAGE(Python)
 
-# Project's Options 
+# Project's Options
 # ====================================
 OPTION(BUILD_TESTING "Enable tests" ON)
 OPTION(BUILD_USING_CLANG "Enable with clang" OFF)
@@ -52,7 +52,7 @@ OPTION(WITH_COZ "Enable coz profiler" OFF)
 OPTION(NO_LLVM "Disable LLVM" OFF)
 
 IF(BUILD_USING_CLANG)
-    IF (WITH_COVERAGE)
+    IF(WITH_COVERAGE)
         ADD_COMPILE_OPTIONS(-fprofile-instr-generate -fcoverage-mapping)
         LINK_LIBRARIES(-fprofile-instr-generate -fcoverage-mapping)
     ENDIF()
@@ -83,19 +83,18 @@ IF(UNIX)
     SET(BUILD_POSIX 1)
     SET(WITH_LOG 1)
 
-    # export ASAN_OPTIONS=abort_on_error=1:halt_on_error=1
-    # export UBSAN_OPTIONS=abort_on_error=1:halt_on_error=1
-    # -fsanitize=address,undefined,thread -fsanitize-trap
-    # -g3                                                       # Debug information
+# export ASAN_OPTIONS=abort_on_error=1:halt_on_error=1
+# export UBSAN_OPTIONS=abort_on_error=1:halt_on_error=1
+# -fsanitize=address,undefined,thread -fsanitize-trap
+# -g3                                                       # Debug information
 
-    # -Wall -Wextra -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
-
+# -Wall -Wextra -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion
 ELSEIF(WIN32)
     MESSAGE(" * Platform: Windows")
     SET(BUILD_WINDOWS 1)
     add_compile_options(/EHsc)
     add_compile_options(/Z7)
-    
+
     # /RTCcsu
     # /W4 /wd4146 /wd4245 /D_CRT_SECURE_NO_WARNINGS
     # /Z7                                            <= Debug information embedded in binaries
@@ -116,6 +115,13 @@ SET(CXX_STANDARD_REQUIRED ON)
 
 # FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(Git REQUIRED)
+FIND_PACKAGE(ZLIB)
+FIND_PACKAGE(argparse)
+FIND_PACKAGE(mimalloc)
+FIND_PACKAGE(fmt REQUIRED)
+FIND_PACKAGE(Catch2 REQUIRED)
+# FIND_PACKAGE(backtrace)
+
 
 # CMake Exentions
 # ====================================
@@ -124,6 +130,7 @@ FIND_PACKAGE(Git REQUIRED)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 INCLUDE(genrev)
 
+MESSAGE(STATUS ${CMAKE_BUILD_TYPE} " " ${CMAKE_CONFIGURATION_TYPES})
 SET(LLVM_REQUESTED_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 INCLUDE(ConfigureLLVM)
 

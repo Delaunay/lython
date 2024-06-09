@@ -6,15 +6,13 @@
 # ========
 
 INCLUDE_DIRECTORIES(.)
+
 # INCLUDE_DIRECTORIES(../dependencies/fmt/include)
 INCLUDE_DIRECTORIES(../dependencies)
 INCLUDE_DIRECTORIES(mimalloc)
 
 # Libraries
 # =========
-
-find_package(fmt REQUIRED)
-find_package(zlib)
 SET(LIBRARIES fmt::fmt)
 
 IF(WITH_VALGRIND)
@@ -37,10 +35,12 @@ ENDIF(WITH_COZ)
 # Source
 SET(ADD_HEADERS
     ast/nodes.h
-    ast/ops.h 
+    ast/ops.h
+
     # ast/values/native.h
     # ast/values/generator.h
     utilities/magic.h
+
     # ast/values/constant.h
     ast/values/value.h
     builtin/operators.h
@@ -79,6 +79,7 @@ SET(ADD_HEADERS
 
 SET(ADD_SOURCE
     ast/nodes.cpp
+
     # ast/values/native.cpp
     ast/values/value.cpp
     ast/ops/context.cpp
@@ -152,8 +153,7 @@ ADD_DEFINITIONS(-DFMT_USE_CONSTEXPR=0)
 
 # Support library for utilities
 ADD_LIBRARY(liblogging logging/backtrace.cpp logging/logger.cpp)
-TARGET_LINK_LIBRARIES(liblogging  ${LIBRARIES})
-
+TARGET_LINK_LIBRARIES(liblogging ${LIBRARIES})
 
 # Core language libraries
 ADD_LIBRARY(liblython ${SRC_LIST} ${ADD_HEADERS} ${ADD_SOURCE})
@@ -180,7 +180,7 @@ SET(ADD_CLI_SOURCE
     cli/commands/vm.cpp
 )
 ADD_EXECUTABLE(lython ${ADD_CLI_SOURCE})
-TARGET_LINK_LIBRARIES(lython liblython liblogging argparse ${LIBRARIES} ${LLVM_LIRARIES})
+TARGET_LINK_LIBRARIES(lython liblython liblogging argparse::argparse ${LIBRARIES} ${LLVM_LIRARIES})
 
 SET_PROPERTY(TARGET lython PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 SET_PROPERTY(TARGET lython PROPERTY CMAKE_CXX_STANDARD ${LY_CXX_STANDARD})
@@ -218,13 +218,8 @@ ENDIF()
 # COMPILE_OPTIONS "--analyze"
 # EXCLUDE_FROM_DEFAULT_BUILD true)
 # ENDFUNCTION()
-
-# find_package(backtrace)
-
 add_subdirectory(tide)
-
-
-
 
 # Plugin Example
 ADD_LIBRARY(PluginExample SHARED plugin/example.cpp)
+TARGET_LINK_LIBRARIES(PluginExample ${LIBRARIES})

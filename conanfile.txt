@@ -8,6 +8,9 @@ sdl/2.28.3
 sdl_ttf/2.22.0
 flecs/3.2.8
 imgui/cci.20230105+1.89.2.docking
+argparse/3.0
+catch2/3.6.0
+
 
 [generators]
 CMakeDeps

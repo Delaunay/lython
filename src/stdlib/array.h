@@ -57,6 +57,8 @@ struct error {};
 template <typename V>  //
 struct ArrayNative {
 
+    using ArrayPyIter = typename PyIter<typename lython::Array<V>::iterator>;
+
     std::size_t __sizeof__() const { return sizeof(this) + sizeof(V) * values.size(); }
 
     template <typename T>  //
@@ -141,7 +143,8 @@ struct ArrayNative {
     void sort() { std::sort(values.begin(), values.end()); }
 
     struct Reverse {
-        using iterator_concept  = std::contiguous_iterator_tag;
+        // C++20
+        // using iterator_concept  = std::contiguous_iterator_tag;
         using iterator_category = std::random_access_iterator_tag;
 
         using difference_type = std::ptrdiff_t;
@@ -209,7 +212,8 @@ struct ArrayNative {
     Reverse reverse() { return Reverse{this, int(values.size()) - 1}; }
 
     struct Iterator {
-        using iterator_concept  = std::contiguous_iterator_tag;
+        // C++20
+        // using iterator_concept  = std::contiguous_iterator_tag;
         using iterator_category = std::random_access_iterator_tag;
 
         using difference_type = std::ptrdiff_t;
@@ -319,11 +323,11 @@ struct ArrayNative {
         return false;
     };
 
-    std::variant<PyIter, IndexError> __getitem__(Slice const& key) const {
+    std::variant<ArrayPyIter, IndexError> __getitem__(Slice const& key) const {
         if (normalize_slice(slice)) {
             return IndexError();
         }
-        return PyIter{values.begin() + key.start, values.begin() + key.end, key.step}
+        return ArrayPyIter{values.begin() + key.start, values.begin() + key.end, key.step}
     }
 
     std::variant<V, IndexError> __getitem__(int const& key) const {
@@ -346,7 +350,7 @@ struct ArrayNative {
             return IndexError();
         }
 
-        auto destiter = PyIter{
+        auto destiter = ArrayPyIter{
             values.begin() + key.start, 
             values.begin() + key.end, 
             key.step

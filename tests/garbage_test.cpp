@@ -1,5 +1,7 @@
 #include "dtypes.h"
 
+#include <algorithm>
+
 namespace lython {
 
 class GargabeCollector;

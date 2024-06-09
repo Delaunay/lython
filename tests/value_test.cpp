@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 
 #include <catch2/catch_all.hpp>
 
