@@ -93,7 +93,14 @@ struct YieldedFunction {
  *
  * This simplify resumption, while keeping the rest as high level as possible
  *
- * Technically call is a jump but it is unconditional
+ * Technically call is a jump but it is unconditional so the CPU can cache the instruction ahead
+ * 
+ * Exceptions handling: when a try-catch is found it push exception handling on a global stack (records the handled exception type & the resume jump)
+ * when raise is called it does an unconditional jump to an exception handling function that will
+ * lookup for the exception specific handler.
+ * 
+ * cleanup code still needs to be triggered in the right order though
+ * 
  */
 struct VMGen: public BaseVisitor<VMGen, false, VMGenTrait> {
     using Super = BaseVisitor<VMGen, false, VMGenTrait>;

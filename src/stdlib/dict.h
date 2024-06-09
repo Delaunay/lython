@@ -95,7 +95,14 @@ struct DictNative {
         }
     }
 
-    void __setitem__(K const& key, V const& val) const {
+    V __getitem__(K const& key) const {
+        if (Pair* found = _find(this, key)) {
+            return found->Value;
+        }
+        // raise
+    }
+
+    void __setitem__(K const& key, V const& val) {
         if (Pair* found = _find(this, key)) {
             found.value = val;
         } else {

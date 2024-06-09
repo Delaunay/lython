@@ -22,7 +22,7 @@ ELSE()
     MESSAGE(STATUS "Building Release Version: " ${CMAKE_BUILD_TYPE})
 
     # causes: nvcc fatal   : redefinition of argument 'optimize'
-    # ADD_DEFINITIONS(-O2)
+    # ADD_DEFINITIONS(-O2) 
 ENDIF()
 
 # specify where compiled files must go
@@ -32,8 +32,10 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # add cmake FindXXX script to find pre-compiled libraries if any
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+INCLUDE(constant)
+FIND_PACKAGE(Python)
 
-# Project's Options
+# Project's Options 
 # ====================================
 OPTION(BUILD_TESTING "Enable tests" ON)
 OPTION(BUILD_USING_CLANG "Enable with clang" OFF)
