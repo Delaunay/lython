@@ -27,7 +27,15 @@ enum class NodeFamily : int8_t
     VM,
 };
 
+#ifdef __clang__
+#pragma clang attribute
+#define KWMETA(...) __attribute__((annotate(#__VA_ARGS__))) 
+#else
+#define KWMETA(...)
+#endif
+
 // col_offset is the byte offset in the utf8 string the parser uses
+KWMETA(a, b, c, d) 
 struct CommonAttributes {
     int           lineno     = -2;
     int           col_offset = -2;

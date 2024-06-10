@@ -29,18 +29,17 @@ coverage:
 		-e '.*dependencies/.*'				\
 		--exclude-directories dependencies/
 
-
-
-build:
-
+build-release:
 	conan install conanfile.txt --build=missing --profile:build=./conan/release --profile:host=./conan/release
 	cmake --preset release
 	cmake --build --preset release
 
+build-development:
 	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
 	cmake --preset default
 	cmake --build --preset development
 
+build-debug:
 	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/debug
 	cmake --preset debug
 	cmake --build --preset debug

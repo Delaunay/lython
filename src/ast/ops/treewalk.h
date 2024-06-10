@@ -26,7 +26,10 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
 #undef TYPE_GEN
 
     #define KW_REPLACE(node, member, depth, ...)     \
-        relplace(node, &member, depth, __VA_ARGS__)
+        replace(node, &member, depth, __VA_ARGS__)
+
+    #define KW_COPY(dest, source, ...)\
+        copy(&dest, &source, depth, args...)
 
     template<typename T, typename A>
     bool replace(T* node, A** original, int depth) {
@@ -42,37 +45,57 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return true;
     }
 
+    template<typename T>
+    T* copy(T* original, int depth, Args... args) {
+        static bool deep_copy = true;
+        if (deep_copy) {
+            return original->new_object<T>();
+        }
+        return original;
+    }
+
+    template<typename T>
+    void copy(T** dest, T const** source, int depth, Args... args) {
+        dest[0] = exec(source[0], depth, args...);
+    }
+
+    template<typename T>
+    void copy(Array<T>* dest, Array<T> const* source, int depth, Args... args) {
+        if (dest != source) {
+            // Copy array
+            dest->reserve(source->size());
+            for (int i = 0; i < source->size(); i++) {
+                dest->emplace_back(copy((*source)[i], depth, args...));
+            }
+        } else {
+            // modify array
+            for (int i = 0; i < source->size(); i++) {
+                (*dest)[i] = (copy((*source)[i], depth, args...));
+            }
+        }
+    }
+
     // Literal
     ExprRet dictexpr(DictExpr_t* n, int depth, Args... args) {
-        for (int i = 0; i < (n->keys).size(); i++) {
-            KW_REPLACE(n, n->keys[i], depth, args...);
-            KW_REPLACE(n, n->values[i], depth, args...);
-
-            // KW_REPLACE(n, n->keys[i], depth, args...);
-            // KW_REPLACE(n, n->values[i], depth, args...);
-        }
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->keys, n->keys  , depth, args...);
+        KW_COPY(cpy->values, n->values, depth, args...);
+        return cpy;
     }
     ExprRet setexpr(SetExpr_t* n, int depth, Args... args) {
-        // enter(n, depth, args...)
-        for (int i = 0; i < (n->elts).size(); i++) {
-            // emit(n, attr, depth, args...)
-            KW_REPLACE(n, n->elts[i], depth, args...);
-        }
-        // exit(n, depth, args...)
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->elts, n->elts  , depth, args...);
+        return cpy;
     }
     ExprRet listexpr(ListExpr_t* n, int depth, Args... args) {
-        for (int i = 0; i < (n->elts).size(); i++) {
-            KW_REPLACE(n, n->elts[i], depth, args...);
-        }
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->elts, n->elts, depth, args...);
+        return cpy;
     }
     ExprRet tupleexpr(TupleExpr_t* n, int depth, Args... args) {
-        for (int i = 0; i < n->elts.size(); i++) {
-            KW_REPLACE(n, n->elts[i], depth, args...);
-        }
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->elts, n->elts, depth, args...);
+        return cpy;
     }
     ExprRet constant(Constant_t* n, int depth, Args... args) { 
         return n; 
@@ -80,63 +103,45 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
 
     // Comprehension
     ExprRet generateexpr(GeneratorExp_t* n, int depth, Args... args) {
-        for (int k = 0; k < n->generators.size(); k++) {
-            KW_REPLACE(n, n->generators[k].iter, depth, args...);
-            KW_REPLACE(n, n->generators[k].target, depth, args...);
-            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
-                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
-            }
-        }
-        KW_REPLACE(n, n->elt, depth, args...);
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->generators, n->generators);
+        KW_COPY(cpy->elt, n->elt);
+        return cpy;
     }
     ExprRet listcomp(ListComp_t* n, int depth, Args... args) {
-        for (int k = 0; k < n->generators.size(); k++) {
-            KW_REPLACE(n, n->generators[k].iter, depth, args...);
-            KW_REPLACE(n, n->generators[k].target, depth, args...);
-            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
-                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
-            }
-        }
-        KW_REPLACE(n, n->elt, depth, args...);
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->generators, n->generators);
+        KW_COPY(cpy->elt, n->elt);
+        return cpy;
     }
     ExprRet setcomp(SetComp_t* n, int depth, Args... args) {
-        for (int k = 0; k < n->generators.size(); k++) {
-            KW_REPLACE(n, n->generators[k].iter, depth, args...);
-            KW_REPLACE(n, n->generators[k].target, depth, args...);
-            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
-                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
-            }
-        }
-        KW_REPLACE(n, n->elt, depth, args...);
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->generators, n->generators);
+        KW_COPY(cpy->elt, n->elt);
+        return cpy;
     }
     ExprRet dictcomp(DictComp_t* n, int depth, Args... args) {
-        for (int k = 0; k < n->generators.size(); k++) {
-            KW_REPLACE(n, n->generators[k].iter, depth, args...);
-            KW_REPLACE(n, n->generators[k].target, depth, args...);
-            for (int i = 0; i < n->generators[k].ifs.size(); i++) {
-                KW_REPLACE(n, n->generators[k].ifs[i], depth, args...);
-            }
-        }
-        KW_REPLACE(n, n->key, depth, args...);
-        KW_REPLACE(n, n->value, depth, args...);
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->generators, n->generators);
+        KW_COPY(cpy->key, n->key);
+        KW_COPY(cpy->value, n->value);
+        return cpy;
     }
 
     // Expression
     ExprRet call(Call_t* n, int depth, Args... args) {
-        KW_REPLACE(n, n->func, depth, args...);
-        for (int i = 0; i < n->args.size(); i++) {
-            KW_REPLACE(n, n->args[i], depth, args...);
-        }
-        return n;
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->func, n->func);
+        KW_COPY(cpy->args, n->args);
+        KW_COPY(cpy->varargs, n->varargs);
+        KW_COPY(cpy->keywords, n->keywords);
+        return cpy;
     }
 
     ExprRet namedexpr(NamedExpr_t* n, int depth, Args... args) {
-        KW_REPLACE(n, n->target, depth, args...);
-        KW_REPLACE(n, n->value, depth, args...);
+        auto* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->target, n->target);
+        KW_COPY(cpy->value, n->value);
         return n;
     }
     ExprRet boolop(BoolOp_t* n, int depth, Args... args) {
@@ -350,9 +355,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     StmtRet inlinestmt(Inline_t* n, int depth, Args... args) {
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
         return n;
     }
     StmtRet functiondef(FunctionDef_t* n, int depth, Args... args) {
@@ -368,9 +371,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         if (n->returns.has_value()) {
             KW_REPLACE(n, n->returns.value(), depth, args...);
         }
-        for (int i = 0; n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
         return n;
     }
     StmtRet classdef(ClassDef_t* n, int depth, Args... args) {
@@ -382,45 +383,31 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
             KW_REPLACE(n, n->bases[i], depth, args...);
         }
 
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
         return n;
     }
 
     StmtRet forstmt(For_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->target, depth, args...);
         KW_REPLACE(n, n->iter, depth, args...);
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
-        for (int i = 0; i < n->orelse.size(); i++) {
-            KW_REPLACE(n, n->orelse[i], depth, args...);
-        }
+
+        exec_body(n, n->body, depth, args...);
+        exec_body(n, n->orelse, depth, args...);
+
         return n;
     }
 
     StmtRet whilestmt(While_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->test, depth, args...);
-
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
-        for (int i = 0; i < n->orelse.size(); i++) {
-            KW_REPLACE(n, n->orelse[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
+        exec_body(n, n->orelse, depth, args...);
         return n;
     }
 
     StmtRet ifstmt(If_t* n, int depth, Args... args) {
         KW_REPLACE(n, n->test, depth, args...);
-
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
-        for (int i = 0; i < n->orelse.size(); i++) {
-            KW_REPLACE(n, n->orelse[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
+        exec_body(n, n->orelse, depth, args...);
         return n;
     }
 
@@ -431,29 +418,22 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
                 KW_REPLACE(n, item.optional_vars.value(), depth, args...);
         }
 
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
         return n;
     }
     StmtRet trystmt(Try_t* n, int depth, Args... args) {
-        for (int i =0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[0], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
+
         for (ExceptHandler& handler: n->handlers) {
             if (handler.type.has_value())
                 KW_REPLACE(n, handler.type.value(), depth, args...);
 
-            for (int i = 0; i < handler.body.size(); i++) {
-                KW_REPLACE(n, handler.body[i], depth, args...);
-            }
+            exec_body(n, handler.body[i], depth, args...);
         }
-        for (int i =0; i < n->orelse.size(); i++) {
-            KW_REPLACE(n, n->orelse[i], depth, args...);
-        }
-        for (int i =0; i < n->finalbody.size(); i++) {
-            KW_REPLACE(n, n->finalbody[i], depth, args...);
-        }
+
+        exec_body(n, n->orelse, depth, args...);
+        exec_body(n, n->finalbody, depth, args...);
+
         return n;
     }
 
@@ -523,15 +503,11 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     ModRet module(Module_t* n, int depth, Args... args) {
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
         return n;
     };
     ModRet interactive(Interactive_t* n, int depth, Args... args) {
-        for (int i = 0; i < n->body.size(); i++) {
-            KW_REPLACE(n, n->body[i], depth, args...);
-        }
+        exec_body(n, n->body, depth, args...);
         return n;
     }
     ModRet functiontype(FunctionType_t* n, int depth, Args... args) { 
@@ -541,6 +517,18 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     ModRet expression(Expression_t* n, int depth, Args... args) { 
         return n; 
     }
+
+
+    template<typename Owner>
+    void exec_body(Owner* n, Array<StmtNode*>& body, int depth, Args... args) {
+        body_stack.push_back(body);
+        for (int i = 0; i < body.size(); i++) {
+            KW_REPLACE(n, body[i], depth, args...);
+        }
+        body_stack.pop();
+    }
+
+    Array<Array<StmtNode*>&> body_stack;
 };
 
 }  // namespace lython
