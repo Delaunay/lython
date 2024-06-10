@@ -29,6 +29,7 @@ NEW_EXCEPTION(NameTaken);
 
 class StringRef;
 
+
 // Should be careful to only use this for name-like strings
 // Since we keep the strings forever
 // At the moment this is global but we should maybe tie this to a Module
@@ -117,6 +118,10 @@ class StringRef {
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }
 
+    explicit StringRef(const char* str): StringRef(String(str))
+    {
+    }
+
     StringRef(String const& name): ref(StringDatabase::instance().string(name).ref) {
         lyassert(ref < StringDatabase::instance().count(), "StringRef is valid");
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
@@ -180,6 +185,17 @@ inline void show_string_stats_on_destroy(bool enabled) {
     StringDatabase::instance().print_stats = enabled;
 }
 
+
+struct Field {
+    Field(StringRef name, std::size_t o, std::size_t s, StringRef type_name):
+        name(name), offset(o), size(s), type_name(type_name)
+    {}
+
+    StringRef name;
+    std::size_t offset;
+    std::size_t size;
+    StringRef type_name;
+};
 
 }  // namespace lython
 

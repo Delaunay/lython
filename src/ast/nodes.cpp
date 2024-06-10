@@ -3,7 +3,7 @@
 #include "nodes.h"
 #include "utilities/printing.h"
 
-
+#include "ast/meta.generated.h"
 namespace lython {
 
 ExprNode* None();

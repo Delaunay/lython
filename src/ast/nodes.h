@@ -12,6 +12,10 @@
 #include "utilities/optional.h"
 #include "values/value.h"
 
+
+
+
+
 namespace lython {
 
 using Identifier = StringRef;
@@ -27,19 +31,15 @@ enum class NodeFamily : int8_t
     VM,
 };
 
-#ifdef __clang__
-#pragma clang attribute
-#define KWMETA(...) __attribute__((annotate(#__VA_ARGS__))) 
-#else
-#define KWMETA(...)
-#endif
 
 // col_offset is the byte offset in the utf8 string the parser uses
-KWMETA(a, b, c, d) 
+KWMETA(a) 
 struct CommonAttributes {
     int           lineno     = -2;
     int           col_offset = -2;
     Optional<int> end_lineno;
+
+    KWMETA(b) 
     Optional<int> end_col_offset;
 };
 

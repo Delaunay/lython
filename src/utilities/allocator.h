@@ -6,6 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
+#ifdef __clang__
+#define KWMETA(...) __attribute__((annotate(#__VA_ARGS__))) 
+#else
+#define KWMETA(...)
+#endif
+
+
 #include "utilities/metadata_1.h"
 #include "logging/logging.h"
 
