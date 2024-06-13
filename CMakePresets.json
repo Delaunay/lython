@@ -1,0 +1,61 @@
+{
+    "version": 8,
+    "include": [
+        "build/generators/CMakePresets.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "default",
+            "inherits": [
+                "conan-default"
+            ],
+            "installDir": "${sourceDir}/binaries",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/binaries",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "release",
+            "inherits": [
+                "conan-default"
+            ],
+            "installDir": "${sourceDir}/binaries",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/binaries",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug",
+            "inherits": [
+                "conan-default"
+            ],
+            "installDir": "${sourceDir}/binaries",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/binaries",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "configuration": "Debug",
+            "jobs": 32
+        },
+        {
+            "name": "development",
+            "configurePreset": "default",
+            "configuration": "RelWithDebInfo",
+            "jobs": 32
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "configuration": "Release",
+            "jobs": 32
+        }
+    ]
+}

@@ -79,6 +79,12 @@ class Optional {
         return default_value;
     }
 
+    // a way to se the data
+    T& storage() {
+        _has_data = true;
+        return holder.data.value;
+    }
+
     private:
     void set_data(const T& data) {
         if (!_has_data) {

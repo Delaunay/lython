@@ -68,3 +68,6 @@ conan/*.sh
 conan/*.profraw
 
 binaries/
+
+
+CMakeUserPresets.json
