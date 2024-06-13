@@ -368,7 +368,7 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
 
 
             StaticSingleAssignment ssa;
-            Module* ssa_mod = ssa.module(mod, 0);
+            Module* ssa_mod = cast<Module>(ssa.module(mod, 0));
 
             REQUIRE(errors == c.errors);
 

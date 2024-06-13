@@ -57,7 +57,8 @@ struct error {};
 template <typename V>  //
 struct ArrayNative {
 
-    using ArrayPyIter = typename PyIter<typename lython::Array<V>::iterator>;
+    using UnderlyingIterator = typename lython::Array<V>::iterator;
+    using ArrayPyIter = PyIter<UnderlyingIterator>;
 
     std::size_t __sizeof__() const { return sizeof(this) + sizeof(V) * values.size(); }
 
@@ -298,36 +299,36 @@ struct ArrayNative {
     }
 
     bool normalize_index(int& idx) {
-        if (start < 0) {
-            start += int(values.size());
+        if (idx < 0) {
+            idx += int(values.size());
         }
-        if (start >= values.size()) {
-            return trye;
+        if (idx >= values.size()) {
+            return true;
         }
         return false;
     }
 
     bool normalize_slice(Slice& slice) {
-        if (key.start < 0) {
-            key.start += int(values.size());
+        if (slice.start < 0) {
+            slice.start += int(values.size());
         }
-        if (key.start >= values.size()) {
+        if (slice.start >= values.size()) {
             return true;
         }
-        if (key.end < 0) {
-            key.end += int(values.size());
+        if (slice.end < 0) {
+            slice.end += int(values.size());
         }
-        if (key.end >= values.size()) {
+        if (slice.end >= values.size()) {
             return true;
         }
         return false;
     };
 
     std::variant<ArrayPyIter, IndexError> __getitem__(Slice const& key) const {
-        if (normalize_slice(slice)) {
+        if (normalize_slice(key)) {
             return IndexError();
         }
-        return ArrayPyIter{values.begin() + key.start, values.begin() + key.end, key.step}
+        return ArrayPyIter{values.begin() + key.start, values.begin() + key.end, key.step};
     }
 
     std::variant<V, IndexError> __getitem__(int const& key) const {
@@ -346,7 +347,7 @@ struct ArrayNative {
 
     template<typename It>
     std::optional<IndexError> __setitem__(Slice const& key, It& values) const {
-        if (normalize_slice(slice)) {
+        if (normalize_slice(key)) {
             return IndexError();
         }
 
@@ -370,11 +371,11 @@ struct ArrayNative {
         } 
     }
 
-    std::optional<IndexError> __detitem__(int const& key) {
-        if (start < 0) {
-            start += int(values.size());
+    std::optional<IndexError> __detitem__(int key) {
+        if (key < 0) {
+            key += int(values.size());
         }
-        if (start >= values.size()) {
+        if (key >= values.size()) {
             return IndexError();
         }
         values.erase(values.begin() + key);

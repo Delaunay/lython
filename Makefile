@@ -36,8 +36,14 @@ build-release:
 
 build-development:
 	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
+	cmake --preset conan-relwithdebinfo
+	cmake --build --preset conan-relwithdebinfo
+
+build-development-win32:
+	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
 	cmake --preset default
 	cmake --build --preset development
+
 
 build-debug:
 	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/debug

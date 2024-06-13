@@ -74,45 +74,50 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return (*parents.rbegin());
     }
 
-    template<typename T>
-    ScopedOwner<T> new_from(T* original, int depth, Args... args) {
-        return ScopedOwner<T>(get_arena()->new_object<T>(), this);
+    template<typename A>
+    ScopedOwner<A> new_from(A* original, int depth, Args... args) {
+        A* obj = get_arena()->template new_object<A>();
+        return ScopedOwner<A>(obj, this);
     }
 
-    template<typename T>
-    ScopedOwner<T> new_object() {
-        return ScopedOwner<T>(get_arena()->new_object<T>(), this);
+    template<typename A>
+    ScopedOwner<A> new_object() {
+        A* obj = get_arena()->template new_object<A>();
+        return ScopedOwner<A>(obj, this);
     }
 
     template<typename T>
     ScopedOwner<T> copy(T* original, int depth, Args... args) {
         static bool deep_copy = true;
         if (deep_copy) {
-            return new_from(original, depth, args...);
+            return ScopedOwner<T>(cast<T>(Super::exec(original, depth, args...)), this);
         }
         return ScopedOwner<T>(original, nullptr);
     }
 
-    // template<typename T>
-    // void copy(T& dest, T& source, int depth, Args... args) {
-    //     dest = cast<std::remove_pointer_t<T>>(exec(source, depth, args...));
-    // }
     template<typename T>
     void copy(T*& dest, T*& source, int depth, Args... args) {
-        dest = cast<T>(exec(source, depth, args...));
+        dest = cast<T>(Super::exec(source, depth, args...));
     }
 
     template<typename T>
     void copy(Optional<T>& dest, Optional<T>& source, int depth, Args... args) {
         if (source.has_value()) {
-            dest = some(exec(source.value(), depth, args...));
+            dest = some<T>(copy(source.value(), depth, args...));
         }
     }
+    // Arguments copy(Arguments& src, int depth, Args... args) { return src; }
+    void copy(Arguments& dest, Arguments& src, int depth, Args... args) { return;}
 
-    CmpOperator copy(CmpOperator op, int depth, Args... args) { return op; }
-    Comprehension copy(Comprehension op, int depth, Args... args) { return op; }
-    Keyword copy(Keyword op, int depth, Args... args) { return op; }
-    StringRef copy(StringRef op, int depth, Args... args) { return op; }
+    CmpOperator copy(CmpOperator& src, int depth, Args... args) { return src; }
+    Comprehension copy(Comprehension& src, int depth, Args... args) { return src; }
+    Keyword copy(Keyword& src, int depth, Args... args) { return src; }
+    StringRef copy(StringRef src, int depth, Args... args) { return src; }
+    Decorator copy(Decorator& src, int depth, Args... args) { return src; }
+    WithItem copy(WithItem& src, int depth, Args... args) { return src; }
+    ExceptHandler copy(ExceptHandler& src, int depth, Args... args) { return src; }
+    Alias copy(Alias& src, int depth, Args... args) { return src; }
+    MatchCase copy(MatchCase& src, int depth, Args... args) { return src; }
 
     void body_append(StmtNode* stmt) {
         (*body_stack.rbegin())->push_back(stmt);
@@ -123,20 +128,21 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         if constexpr (std::is_same_v<T, StmtNode*>) {
             body_stack.push_back(&dest);
         }
-        if (dest != source) {
+        // This is UB
+        if (&dest != &source) {
             // Copy array
             dest.reserve(source.size());
             for (int i = 0; i < source.size(); i++) {
-                dest.push_back(copy((source)[i], depth, args...));
+                dest.push_back(copy(source[i], depth, args...));
             }
         } else {
             // modify array
             for (int i = 0; i < source.size(); i++) {
-                (dest)[i] = (copy((source)[i], depth, args...));
+                (dest)[i] = copy(source[i], depth, args...);
             }
         }
         if constexpr (std::is_same_v<T, StmtNode*>) {
-            body_stack.pop();
+            body_stack.pop_back();
         }
     }
 
@@ -353,83 +359,83 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     // Leaves
     StmtRet invalidstmt(InvalidStatement_t* n, int depth, Args... args) {
         kwerror(outlog(), "Invalid statement");
-        return cpy;
+        return n;
     }
     StmtRet returnstmt(Return_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Return_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
     StmtRet deletestmt(Delete_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Delete_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->targets, n->targets);
         return cpy;
     }
     StmtRet assign(Assign_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Assign_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->targets, n->targets);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
     StmtRet augassign(AugAssign_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        AugAssign_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
     StmtRet annassign(AnnAssign_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        AnnAssign_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->annotation, n->annotation);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
     StmtRet exprstmt(Expr_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Expr_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
     StmtRet pass(Pass_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Pass_t* cpy = copy(n, depth, args...);
         return cpy; 
     }
     StmtRet breakstmt(Break_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Break_t* cpy = copy(n, depth, args...);
         return cpy; 
     }
     StmtRet continuestmt(Continue_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Continue_t* cpy = copy(n, depth, args...);
         return cpy; 
     }
     StmtRet assertstmt(Assert_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Assert_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->msg, n->msg);
         return cpy;
     }
     StmtRet raise(Raise_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Raise_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->exc, n->exc);
         KW_COPY(cpy->cause, n->cause);
         return cpy;
     }
     StmtRet global(Global_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Global_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->names, n->names);
         return cpy; 
     }
     StmtRet nonlocal(Nonlocal_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Nonlocal_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->names, n->names);
         return cpy; 
     }
     StmtRet import(Import_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Import_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->names, n->names);
         return cpy; 
     }
     StmtRet importfrom(ImportFrom_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        ImportFrom_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->module, n->module);
         KW_COPY(cpy->names, n->names);
         KW_COPY(cpy->level, n->level);
@@ -437,20 +443,20 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     StmtRet inlinestmt(Inline_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Inline_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
     StmtRet functiondef(FunctionDef_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        FunctionDef_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->decorator_list, n->decorator_list);
         KW_COPY(cpy->args, n->args);
-        KW_COPY(cpy->returns, n->returns)
-        KW_COPY(cpy->body, n->body)
+        KW_COPY(cpy->returns, n->returns);
+        KW_COPY(cpy->body, n->body);
         return cpy;
     }
     StmtRet classdef(ClassDef_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        ClassDef_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->decorator_list, n->decorator_list);
         KW_COPY(cpy->bases, n->bases);
         KW_COPY(cpy->body, n->body);
@@ -458,7 +464,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     StmtRet forstmt(For_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        For_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->iter, n->iter);
         KW_COPY(cpy->body, n->body);
@@ -467,7 +473,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     StmtRet whilestmt(While_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        While_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->body, n->body);
         KW_COPY(cpy->orelse, n->orelse);
@@ -475,7 +481,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     StmtRet ifstmt(If_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        If_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->body, n->body);
         KW_COPY(cpy->orelse, n->orelse);
@@ -483,88 +489,88 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     StmtRet with(With_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
-        KW_COPY(cpy->items, n->items)
+        With_t* cpy = copy(n, depth, args...);
+        KW_COPY(cpy->items, n->items);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
     StmtRet trystmt(Try_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Try_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         KW_COPY(cpy->handlers, n->handlers);
-        KW_COPY(cpy->orlese, n->orelse);
+        KW_COPY(cpy->orelse, n->orelse);
         KW_COPY(cpy->finalbody, n->finalbody);
         return cpy;
     }
 
     StmtRet match(Match_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Match_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->subject, n->subject);
         KW_COPY(cpy->cases, n->cases);
         return cpy;
     }
 
     PatRet matchvalue(MatchValue_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        MatchValue_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
     PatRet matchsingleton(MatchSingleton_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        MatchSingleton_t* cpy = copy(n, depth, args...);
         return cpy; 
     }
     PatRet matchsequence(MatchSequence_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        MatchSequence_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->patterns, n->patterns);
         return cpy;
     }
     PatRet matchmapping(MatchMapping_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        MatchMapping_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->keys, n->keys);
         KW_COPY(cpy->patterns, n->patterns);
         return cpy;
     }
     PatRet matchclass(MatchClass_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        MatchClass_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->cls, n->cls);
         KW_COPY(cpy->patterns, n->patterns);
         KW_COPY(cpy->kwd_patterns, n->kwd_patterns);
         return cpy;
     }
     PatRet matchstar(MatchStar_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        MatchStar_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->name, n->name);
         return cpy; 
     }
     PatRet matchas(MatchAs_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        MatchAs_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->pattern, n->pattern);
         KW_COPY(cpy->name, n->name);
         return cpy;
     }
     PatRet matchor(MatchOr_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        MatchOr_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->patterns, n->patterns);
         return cpy;
     }
 
     ModRet module(Module_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Module_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     };
     ModRet interactive(Interactive_t* n, int depth, Args... args) {
-        auto* cpy = copy(n, depth, args...);
+        Interactive_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
     ModRet functiontype(FunctionType_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        FunctionType_t* cpy = copy(n, depth, args...);
         return cpy; 
     }
 
     ModRet expression(Expression_t* n, int depth, Args... args) { 
-        auto* cpy = copy(n, depth, args...);
+        Expression_t* cpy = copy(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy; 
     }
