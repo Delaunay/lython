@@ -10,6 +10,7 @@
 
 #include "logging/logging.h"
 
+#include "lowering/SSA.h"
 #include "cases.h"
 
 // Path to repository on current system
@@ -365,6 +366,9 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
                 REQUIRE(str(stmt) == c.call);
             }
 
+
+            StaticSingleAssignment ssa;
+            Module* ssa_mod = ssa.module(mod, 0);
 
             REQUIRE(errors == c.errors);
 

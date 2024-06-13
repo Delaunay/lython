@@ -7,7 +7,7 @@
 namespace lython {
 
 
-struct LoweringVisitorTrait {
+struct SSAVisitorTrait {
     using StmtRet = StmtNode*;
     using ExprRet = ExprNode*;
     using ModRet  = ModNode*;
@@ -21,8 +21,8 @@ struct LoweringVisitorTrait {
 };
 
 
-struct StaticSingleAssignment: public TreeWalk<Lowering, false, LoweringVisitorTrait> {
-    using Super = TreeWalk<Lowering, false, LoweringVisitorTrait>;
+struct StaticSingleAssignment: public TreeWalk<StaticSingleAssignment, false, SSAVisitorTrait> {
+    using Super = TreeWalk<StaticSingleAssignment, false, SSAVisitorTrait>;
 
 
     using StmtRet = Super::StmtRet;
@@ -39,25 +39,25 @@ struct StaticSingleAssignment: public TreeWalk<Lowering, false, LoweringVisitorT
     //StmtRet assign(Assign_t* n, int depth);
 
     // a += b; => a1 = a + b;
-    StmtRet augassign(Assign_t* n, int depth);
+    StmtRet augassign(AugAssign_t* n, int depth);
     
     // a: b = c
-    //StmtRet annassign(Assign_t* n, int depth);
+    StmtRet annassign(Assign_t* n, int depth);
 
     // fun1(a + b, arg2, arg3) => fun1 = fun; arg1 = a + b; arg21 = arg2; arg31 = arg3; fun1(arg1, arg21, arg31);
     ExprNode* call(Call_t* n, int depth);
     
     ExprNode* load(ExprNode* expr);
     ExprNode* new_store(ExprNode* original);
-    ExprNode* maybe_new_assign(Node* parent, ExprNode* target, ExprNode* value, int depth);
+    ExprNode* maybe_new_assign(ExprNode* target, ExprNode* value, int depth);
 
-    ExprNode* new_assign(Node* parent, ExprNode* target, ExprNode* value);
+    AnnAssign* new_assign(ExprNode* target, ExprNode* value);
 
     ExprNode* split(ExprNode* original, int depth) {
-        if (Name* name = cast<Name>(expr)) {
+        if (Name* name = cast<Name>(original)) {
             return original;
         }
-        return new_assign(original->parent, exec(original, depth), original);
+        return new_assign(original, exec(original, depth))->target;
     }
 
     struct Renamed{

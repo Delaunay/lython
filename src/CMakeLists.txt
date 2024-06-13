@@ -99,6 +99,7 @@ SET(ADD_SOURCE
     lexer/token.cpp
     lexer/unlex.cpp
     lowering/lowering.cpp
+    lowering/SSA.cpp
     parser/parser.cpp
     parser/parser_ext.cpp
     parser/parsing_error.cpp

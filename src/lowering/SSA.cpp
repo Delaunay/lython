@@ -5,15 +5,15 @@
 
 namespace lython {
 
-using StmtRet = Lowering::StmtRet;
-using ExprRet = Lowering::ExprRet;
-using ModRet  = Lowering::ModRet;
-using PatRet  = Lowering::PatRet;
+using StmtRet = StaticSingleAssignment::StmtRet;
+using ExprRet = StaticSingleAssignment::ExprRet;
+using ModRet  = StaticSingleAssignment::ModRet;
+using PatRet  = StaticSingleAssignment::PatRet;
 
 
 ExprNode* StaticSingleAssignment::load(ExprNode* expr) {
-    if (Name* name = cast<Name>(expr)) {
-        expr->ctx = ExprContext::Load;
+    if (Name* nm = cast<Name>(expr)) {
+        nm->ctx = ExprContext::Load;
     }
     return expr;
 }
@@ -21,11 +21,11 @@ ExprNode* StaticSingleAssignment::load(ExprNode* expr) {
 ExprNode* StaticSingleAssignment::new_store(ExprNode* original) 
 {    
     String name = "var";
-    if (Name* name = cast<Name>(expr)) {
-        name = str(expr->id);
+    if (Name* nm = cast<Name>(original)) {
+        name = str(nm->id);
     }
 
-    Name* new_name = original->new_object<Name>();
+    Name* new_name = new_object<Name>();
     new_name->ctx = ExprContext::Store;
     StringStream ss;
     ss << name << "_#" << unique_count;
@@ -36,25 +36,25 @@ ExprNode* StaticSingleAssignment::new_store(ExprNode* original)
     return new_name;
 };
 
-ExprNode* StaticSingleAssignment::maybe_new_assign(Node* parent, ExprNode* target, ExprNode* value, int depth) {
+ExprNode* StaticSingleAssignment::maybe_new_assign(ExprNode* target, ExprNode* value, int depth) {
     switch (value->kind) {
         case NodeKind::Name: return value;
         case NodeKind::Constant: return value;
         default: break;
     }
     ExprNode* new_val = exec(value, depth);
-    return new_assign(parent, target, new_val)
+    return new_assign(target, new_val)->target;
 }
 
-ExprNode* StaticSingleAssignment::new_assign(Node* parent, ExprNode* target, ExprNode* value) {
-    AugAssign* resolved = parent->new_object<AugAssign>();
-    (*body_stack.rbegin()).push_back(new_obj);
+AnnAssign* StaticSingleAssignment::new_assign(ExprNode* target, ExprNode* value) {
+    AnnAssign* resolved = new_object<AnnAssign>();
+    body_append(resolved);
 
     // create a new unique name, maybe using target as hint
     resolved->target = new_store(target);
-    resolved_fun->value = value;
+    resolved->value = value;
 
-    return resolved->target;
+    return resolved;
 }
 
 StmtRet StaticSingleAssignment::classdef(ClassDef_t* n, int depth) {
@@ -68,49 +68,48 @@ StmtRet StaticSingleAssignment::classdef(ClassDef_t* n, int depth) {
     return n;
 }
 
-StmtRet annassign(Assign_t* n, int depth);
+StmtRet StaticSingleAssignment::annassign(Assign_t* n, int depth) {
+    return n;
+}
 
 
 StmtRet StaticSingleAssignment::augassign(AugAssign_t* n, int depth) {
-    Node* parent = n->parent;
-
     // SSA the value expression
     ExprNode* value = exec(n->value, depth);
 
-    BinOp* binop = parent->new_object<BinOp>();
+    BinOp* binop = new_object<BinOp>();
     binop->op = n->op;
     binop->left = load(n->target); // Load target
     binop->right = value;
 
     // Store target
-    return new_assign(parent, target, binop, depth);;
+    new_assign(n->target, binop);
+    return nullptr;
 }
 
 
 ExprNode* StaticSingleAssignment::call(Call_t* n, int depth) {
-    Node* parent = n->parent;
+    ExprNode* func = maybe_new_assign(n->func, n->func, depth);
 
-    ExprNode* func = maybe_new_assign(parent, n->func, n->func, depth);
-
-    Call* new_call = parent->new_object<Call>();
+    Call* new_call = Super::new_object<Call>();
     new_call->func = func;
     new_call->args.reserve(n->args.size());
 
     for(ExprNode* arg: n->args) {
-        ExprNode* new_arg = maybe_new_assign(parent, arg, arg, depth);
+        ExprNode* new_arg = maybe_new_assign(arg, arg, depth);
         new_call->args.push_back(new_arg);
     }
 
     for(Keyword& arg: n->keywords) {
-        ExprNode* new_arg = maybe_new_assign(parent, arg.value, arg.value, depth);
-        new_call->keywords.push_back({
-            arg.key, 
-            resolved_fun->target
-        });
+        ExprNode* new_arg = maybe_new_assign(arg.value, arg.value, depth);
+        lython::Keyword kw;
+        kw.arg = arg.arg;
+        kw.value = new_arg;
+        new_call->keywords.push_back(kw);
     }
 
     for(ExprNode* arg: n->varargs) {
-        ExprNode* new_arg = maybe_new_assign(parent, arg, arg, depth);
+        ExprNode* new_arg = maybe_new_assign(arg, arg, depth);
         new_call->varargs.push_back(new_arg);
     }
 

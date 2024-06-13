@@ -80,8 +80,8 @@ class Project:
             print("namespace lython {", file=fp)
             for name, struct in self.structs.items():
                 if struct["members"]:
-                    print(f"struct {name}Type {{", file=fp)
-                    print(f"    static {name}Type& cls() {{ static {name}Type _; return _; }}", file=fp)
+                    print(f"struct {struct['spelling']}Type {{", file=fp)
+                    print(f"    static {struct['spelling']}Type& cls() {{ static {struct['spelling']}Type _; return _; }}", file=fp)
                     print("    static Array<Field> const& get_fields() {", file=fp)
                     print("        static Array<Field> fields = {", file=fp)
                     for attr in struct["members"]:
@@ -121,8 +121,10 @@ class Project:
         methods = []
         ann = self.annotations.pop() if self.annotations else None
         gather_members = self.has_meta_info(node)
+        namespace = "::".join(node.get_usr().split("@S@")[1:])
         struct = {
-            "name": node.spelling,
+            "name": namespace,
+            "spelling": node.spelling,
             "ann": ann,
             "members": members,
             "methods": methods
@@ -147,7 +149,7 @@ class Project:
 
         if ann or gather_members:
             if members or methods:
-                self.structs[node.spelling] = struct
+                self.structs[namespace] = struct
 
     def find_class_struct_members(self, node, depth):
         """

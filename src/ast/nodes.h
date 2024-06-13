@@ -233,7 +233,7 @@ struct Comprehension {
     ExprNode*        target = nullptr;
     ExprNode*        iter   = nullptr;
     Array<ExprNode*> ifs;
-    int              is_async : 1;
+    int              is_async; // : 1;
 };
 
 struct ExceptHandler: public CommonAttributes {
@@ -808,9 +808,9 @@ struct FunctionDef: public StmtNode {
     String              type_comment;
     Optional<Docstring> docstring;
 
-    bool async : 1;
+    bool async; // : 1;
     // SEMA
-    bool          generator : 1;
+    bool          generator;// : 1;
     struct Arrow* type = nullptr;
 
     Function native = nullptr;
