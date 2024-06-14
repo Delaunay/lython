@@ -1,7 +1,8 @@
 {
     "version": 8,
     "include": [
-        "build/generators/CMakePresets.json"
+        "build/generators/CMakePresets.json",
+        "build/RelWithDebInfo/generators/CMakePresets.json"
     ],
     "configurePresets": [
         {

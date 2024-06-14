@@ -1,4 +1,5 @@
 #include "dtypes.h"
+// #include "vm/garbage_collector.h"
 
 #include <algorithm>
 
@@ -12,34 +13,11 @@ struct PointerProxy {
     //      Version check  (2 int compare)
     //      Segment Lookup (ptr addition)
     //      Memory Lookup  (ptr addition)
-    T* operator->() {
-        if (collector.is_valid(segment_id, version)) {
-            return reinterpret_cast<T*>(collector.memory(segment_id));
-        }
-        throw std::runtime_error("Memory freed");
-    }
-
-    T& operator*() const {
-        if (collector.is_valid(segment_id, version)) {
-            return *reinterpret_cast<T*>(collector.memory(segment_id));
-        }
-        throw std::runtime_error("Memory freed");
-    }
-
-    bool is_valid() const { return collector.is_valid(segment_id, version); }
-
-    void destroy() {
-        if (collector.is_valid(segment_id, version)) {
-            collector.free(*this);
-        }
-    }
-
-    T* data() {
-        if (collector.is_valid(segment_id, version)) {
-            return reinterpret_cast<T*>(collector.memory(segment_id));
-        }
-        return nullptr;
-    }
+    T* operator->();
+    T& operator*() const;
+    bool is_valid() const;
+    void destroy();
+    T* data();
 
     PointerProxy(PointerProxy&& proxy) {
         collector = proxy.collector;
@@ -153,7 +131,7 @@ class GargabeCollector {
         std::cout << " +---> capacity: " << raw_memory.size() << "\n";
     }
 
-private:
+//private:
     Array<int> sorted_segments() {
         Array<int> segment_order;
         segment_order.reserve(segments.size());
@@ -367,6 +345,44 @@ private:
     Array<int>           free_list;
     #endif
 };
+
+
+template <typename T, bool auto_destroy>
+    T* PointerProxy<T, auto_destroy>::operator->() {
+        if (collector.is_valid(segment_id, version)) {
+            return reinterpret_cast<T*>(collector.memory(segment_id));
+        }
+        throw std::runtime_error("Memory freed");
+    }
+
+template <typename T, bool auto_destroy>
+    T& PointerProxy<T, auto_destroy>::operator*() const {
+        if (collector.is_valid(segment_id, version)) {
+            return *reinterpret_cast<T*>(collector.memory(segment_id));
+        }
+        throw std::runtime_error("Memory freed");
+    }
+
+template <typename T, bool auto_destroy>
+    bool PointerProxy<T, auto_destroy>::is_valid() const { return collector.is_valid(segment_id, version); }
+
+template <typename T, bool auto_destroy>
+    void PointerProxy<T, auto_destroy>::destroy() {
+        if (collector.is_valid(segment_id, version)) {
+            collector.free(*this);
+        }
+    }
+
+template <typename T, bool auto_destroy>
+    T* PointerProxy<T, auto_destroy>::data() {
+        if (collector.is_valid(segment_id, version)) {
+            return reinterpret_cast<T*>(collector.memory(segment_id));
+        }
+        return nullptr;
+    }
+
+
+
 
 }  // namespace lython
 

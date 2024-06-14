@@ -3,6 +3,7 @@
 
 namespace lython {
 
+#if 0
 GargabeCollector::GargabeCollector(struct Bindings& bindings, struct Expression& root):
     bindings(bindings), root(root)  //
 {}
@@ -56,4 +57,5 @@ void GargabeCollector::shrink() {
     tracked.resize(int(tracked.size()) - deleted);
     cycle += 1;
 }
+#endif
 }  // namespace lython

@@ -789,7 +789,7 @@ struct Decorator {
     ExprNode* expr    = nullptr;
     Comment*  comment = nullptr;
 
-    Decorator(ExprNode* deco, Comment* com = nullptr): expr(deco), comment(com) {}
+    Decorator(ExprNode* deco=nullptr, Comment* com = nullptr): expr(deco), comment(com) {}
 };
 
 struct Docstring {

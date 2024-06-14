@@ -127,7 +127,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
 
     void copy(CmpOperator& dest, CmpOperator& src, int depth, Args... args) { dest = src; }
     void copy(StringRef dest, StringRef src, int depth, Args... args) { dest = src; }
-    void copy(Arg& dest, int depth, Args... args) {
+    void copy(Arg& dest, Arg& src, int depth, Args... args) {
         KW_COPY(dest.arg, src.arg);
         KW_COPY(dest.annotation, src.annotation);
     }

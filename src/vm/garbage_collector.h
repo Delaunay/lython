@@ -5,6 +5,7 @@
 
 namespace lython {
 
+#if 0
 // runtime gcobject, as opposed to the compiler gcobject that behave differently
 struct RTGCObject {
     int   cycle  = false;  // collection cycle, collect if gc cycle <= collection cycle
@@ -12,7 +13,7 @@ struct RTGCObject {
 };
 
 // Very simple garbage collector
-class GargabeCollector {
+class GargabeCollectorOld {
     GargabeCollector(struct Bindings& bindings, struct Expression& root);
 
     // Allocation hook
@@ -42,4 +43,6 @@ class GargabeCollector {
     int               cycle = 0;
     Array<RTGCObject> tracked;
 };
+
+#endif
 }  // namespace lython
