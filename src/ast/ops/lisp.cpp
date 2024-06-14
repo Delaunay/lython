@@ -20,6 +20,12 @@ struct LispSexpTrait {
 struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
     using Super = BaseVisitor<LispSexp, true, LispSexpTrait, int>;
 
+    std::ostream& out;
+
+    String indent(int level) {
+        return String(' ', level * 2);
+    }
+
     ReturnType
     sexp_body(Array<StmtNode*> const& body, int depth, int level, bool print_last = false) {
         // (
@@ -84,8 +90,10 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
 #define STMT(name, fun)  FUNCTION_GEN(name, fun, ReturnType)
 #define MOD(name, fun)   FUNCTION_GEN(name, fun, ReturnType)
 #define MATCH(name, fun) FUNCTION_GEN(name, fun, ReturnType)
+#define VM(name, fun)
 
-    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH)
+
+    NODEKIND_ENUM(X, SECTION, EXPR, STMT, MOD, MATCH, VM)
 
 #undef X
 #undef SECTION
@@ -93,6 +101,7 @@ struct LispSexp: BaseVisitor<LispSexp, true, LispSexpTrait, int> {
 #undef STMT
 #undef MOD
 #undef MATCH
+#undef VM
 
 #undef FUNCTION_GEN
 };
@@ -102,15 +111,21 @@ void comprehension(LispSexp& p, Comprehension const& self, int depth, int level)
 ReturnType LispSexp::attribute(Attribute const* self, int depth, int level) {
     // obj.attr
     // (getattr obj "attr")
+    Sexp val = exec(self->value, depth, level);
     return Sexp::list(
-        Sexp::symbol("getattr"), exec(self->value, depth, level), Sexp::string(self->attr));
+        Sexp::symbol("getattr"), 
+        val, 
+        Sexp::string(self->attr)
+    );
 }
 
 ReturnType LispSexp::subscript(Subscript const* self, int depth, int level) {
     // obj[i]
     // (getitem obj i)
+    Sexp slice = exec(self->slice, depth, level);
+
     return Sexp::list(
-        Sexp::symbol("getitem"), exec(self->value, depth, level), Sexp::string(self->attr));
+        Sexp::symbol("getitem"), exec(self->value, depth, level), slice);
 }
 
 ReturnType LispSexp::starred(Starred const* self, int depth, int level) {
@@ -140,7 +155,7 @@ ReturnType LispSexp::raise(Raise const* self, int depth, int level) {
 ReturnType LispSexp::assertstmt(Assert const* self, int depth, int level) {
     Array<Sexp> frags = {Sexp::symbol("assert")};
 
-    frags.push_back(exec(exec(self->test, depth, level));
+    frags.push_back(exec(self->test, depth, level));
 
 
     if (self->msg.has_value()) {
@@ -165,13 +180,13 @@ ReturnType LispSexp::with(With const* self, int depth, int level) {
 
         if (item.optional_vars.has_value()) {
             // (as a b)
-            name = exec(item.optional_vars.value(), depth, level);
+            Sexp name = exec(item.optional_vars.value(), depth, level);
             items.push_back(Sexp::list(Sexp::symbol("as"), expr, name));
         } else {
             items.push_back(expr);
         }
     }
-    frags.push_back(items);
+    frags.push_back(Sexp::list(items));
     frags.push_back(sexp_body(self->body, depth, level + 1));
     return Sexp::list(frags);
 }
@@ -184,7 +199,7 @@ ReturnType LispSexp::import(Import const* self, int depth, int level) {
         auto name = Sexp::symbol(alias.name);
 
         if (alias.asname.has_value()) {
-            frags.push_back(Sexp::list(Sexp::symbol("as"), name, alias.asname.value()));
+            frags.push_back(Sexp::list(Sexp::symbol("as"), name, Sexp::string(alias.asname.value())));
         } else {
             frags.push_back(name);
         }
@@ -198,7 +213,7 @@ ReturnType LispSexp::importfrom(ImportFrom const* self, int depth, int level) {
     Array<Sexp> frags = {Sexp::symbol("from")};
 
     if (self->module.has_value()) {
-        frags.push_back(Sexp::symbol(self->module.value())
+        frags.push_back(Sexp::symbol(self->module.value()));
     }
 
     Array<Sexp> imports = {Sexp::symbol("import")};
@@ -208,9 +223,9 @@ ReturnType LispSexp::importfrom(ImportFrom const* self, int depth, int level) {
         auto name = Sexp::symbol(alias.name);
 
         if (alias.asname.has_value()) {
-            import.push_back(Sexp::list(Sexp::symbol("as"), name, alias.asname.value()));
+            imports.push_back(Sexp::list(Sexp::symbol("as"), name, alias.asname.value()));
         } else {
-            import.push_back(name);
+            imports.push_back(name);
         }
     }
 
@@ -272,8 +287,8 @@ ReturnType LispSexp::dictexpr(DictExpr const* self, int depth, int level) {
     Array<Sexp> frags = {Sexp::symbol("dict")};
 
     for (int i = 0; i < self->keys.size(); i++) {
-        auto key   = exec(elem, depth, level);
-        auto value = exec(elem, depth, level);
+        auto key   = exec(self->keys[i], depth, level);
+        auto value = exec(self->values[i], depth, level);
 
         frags.push_back(Sexp::list(key, value));
     }
@@ -916,118 +931,6 @@ ReturnType LispSexp::classtype(ClassType const* self, int depth, int level) {
     return false;
 }
 
-// Helper
-// ==================================================
-
-void ConstantValue::print(std::ostream& out) const {
-    switch (kind) {
-    case TInvalid: out << "<Constant:Invalid>"; break;
-
-    case TInt: out << value.integer; break;
-
-    case TFloat: out << value.singlef; break;
-
-    case TDouble:
-        // always print a float even without decimal point
-        out << fmt::format("{:#}", value.doublef);
-        break;
-
-    case TBool:
-        if (value.boolean) {
-            out << "True";
-        } else {
-            out << "False";
-        }
-        break;
-
-    case TNone: out << "None"; break;
-
-    case TString: out << "\"" << value.string << "\""; break;
-    }
-}
-
-String Node::__str__() const {
-    StringStream ss;
-    if (kind == NodeKind::Invalid) {
-        kwerror("Node is invalid");
-    }
-    LispSexp p;
-    p.Super::exec<bool>(this, ss, 0);
-    return ss.str();
-}
-
-// void Node::print(std::ostream &out, int indent) const {
-//     out << "<not-implemented:";
-//     out << str(kind);
-//     out << ">";
-// }
-
-void print_op(std::ostream& out, BoolOperator op) {
-    // clang-format off
-    switch (op) {
-    case BoolOperator::And:   out << " and "; return;
-    case BoolOperator::Or:    out << " or " ; return;
-    case BoolOperator::None:  out << " <Bool:None> " ; return;
-    }
-    // clang-format on
-}
-
-void print_op(std::ostream& out, BinaryOperator op, bool aug) {
-    // clang-format off
-    switch (op) {
-    case BinaryOperator::Add:       out << " +"; break;
-    case BinaryOperator::Sub:       out << " -"; break;
-    case BinaryOperator::Mult:      out << " *"; break;
-    case BinaryOperator::MatMult:   out << " @"; break;
-    case BinaryOperator::Div:       out << " /"; break;
-    case BinaryOperator::Mod:       out << " %"; break;
-    case BinaryOperator::Pow:       out << " **";  break;
-    case BinaryOperator::LShift:    out << " <<";  break;
-    case BinaryOperator::RShift:    out << " >>";  break;
-    case BinaryOperator::BitOr:     out << " |";   break;
-    case BinaryOperator::BitXor:    out << " ^";   break;
-    case BinaryOperator::BitAnd:    out << " &";   break;
-    case BinaryOperator::FloorDiv:  out << " //";  break;
-    case BinaryOperator::EltMult:   out << " .*";  break;
-    case BinaryOperator::EltDiv:    out << " ./";  break;
-    case BinaryOperator::None:      out << " <Binary:None>"; break;
-    }
-    // clang-format on
-
-    if (!aug) {
-        out << " ";
-    }
-}
-
-void print_op(std::ostream& out, CmpOperator op) {
-    // clang-format off
-    switch (op) {
-    case CmpOperator::None:     out << " <Cmp:None> "; return;
-    case CmpOperator::Eq:       out << " == ";  return;
-    case CmpOperator::NotEq:    out << " != ";  return;
-    case CmpOperator::Lt:       out << " < ";   return;
-    case CmpOperator::LtE:      out << " <= ";  return;
-    case CmpOperator::Gt:       out << " > ";   return;
-    case CmpOperator::GtE:      out << " >= ";  return;
-    case CmpOperator::Is:       out << " is ";  return;
-    case CmpOperator::IsNot:    out << " is not ";  return;
-    case CmpOperator::In:       out << " in ";      return;
-    case CmpOperator::NotIn:    out << " not in ";  return;
-    }
-    // clang-format on
-}
-
-void print_op(std::ostream& out, UnaryOperator op) {
-    // clang-format off
-    switch (op) {
-    case UnaryOperator::None:   out << "<Unary:None>"; return;
-    case UnaryOperator::Invert: out << "~"; return;
-    case UnaryOperator::Not:    out << "!"; return;
-    case UnaryOperator::UAdd:   out << "+"; return;
-    case UnaryOperator::USub:   out << "-"; return;
-    }
-    // clang-format on
-}
 
 void comprehension(LispSexp& p, Comprehension const& self, int depth, int level) {
     out << " for ";
