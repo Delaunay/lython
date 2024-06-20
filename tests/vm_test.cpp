@@ -159,10 +159,10 @@ void run_test_case(String const& code, String const& expr, String const& expecte
 void run_vm_testcases(String const& name, Array<VMTestCase> const& cases) {
     kwinfo(outlog(), "Testing {}", name);
 
-    transition("vm", name, cases);
+    auto new_cases = transition("vm", name, cases);
 
     int i = 0;
-    for (auto& c: cases) {
+    for (auto& c: new_cases) {
         SECTION(c.name.c_str()) {
             Module* mod;
 

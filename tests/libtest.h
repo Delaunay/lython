@@ -59,10 +59,10 @@ void write_case(std::ostream& out, int i, VMTestCase const& testcase) ;
 
 Array<VMTestCase> load_cases(std::istream& in);
 
-Array<VMTestCase> get_test_cases(String const& folder, String const& name, Array<VMTestCase> const& maybe_cases);
+Array<VMTestCase> get_test_cases(String const& folder, String const& name, Array<VMTestCase> const&  maybe_cases);
 Array<VMTestCase> get_test_cases(String const& folder, String const& name);
 
-void transition(String const& folder, String const& name, Array<VMTestCase> const& cases);
+Array<VMTestCase>  transition(String const& folder, String const& name, Array<VMTestCase> const& cases);
 
 
 }

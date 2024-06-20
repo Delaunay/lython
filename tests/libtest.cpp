@@ -167,11 +167,8 @@ Array<VMTestCase> load_cases(std::istream& in) {
 
 String reg_modules_path() { return String(_SOURCE_DIRECTORY) + "/tests/cases"; }
 
-Array<VMTestCase>
-get_test_cases(String const& folder, String const& name, Array<VMTestCase> const& maybe_cases) {
-    transition(folder, name, maybe_cases);
-
-    return maybe_cases;
+Array<VMTestCase> get_test_cases(String const& folder, String const& name, Array<VMTestCase> const& maybe_cases) {
+    return transition(folder, name, maybe_cases);
 }
 
 Array<VMTestCase> get_test_cases(String const& folder, String const& name) {
@@ -182,7 +179,7 @@ Array<VMTestCase> get_test_cases(String const& folder, String const& name) {
     return cases;
 }
 
-void transition(String const& folder, String const& name, Array<VMTestCase> const& cases) {
+Array<VMTestCase> transition(String const& folder, String const& name, Array<VMTestCase> const& cases) {
     String path = (reg_modules_path() + String("/") + folder + String("/") + name + String(".py"));
 
     {
@@ -199,6 +196,10 @@ void transition(String const& folder, String const& name, Array<VMTestCase> cons
         {
             std::ifstream fin(path.c_str());
             loaded_cases = load_cases(fin);
+            
+            if (cases.size() == 0) {
+                return loaded_cases;
+            }
         }
 
         REQUIRE(loaded_cases.size() == cases.size());
@@ -216,6 +217,8 @@ void transition(String const& folder, String const& name, Array<VMTestCase> cons
             }
         }
     }
+
+    return cases;
 }
 
 }  // namespace lython

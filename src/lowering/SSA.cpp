@@ -69,7 +69,42 @@ StmtRet StaticSingleAssignment::classdef(ClassDef_t* n, int depth) {
 }
 
 StmtRet StaticSingleAssignment::annassign(Assign_t* n, int depth) {
-    return n;
+    ExprNode* value = exec(n->value, depth);
+    Array<ExprNode*> elements = {
+        value
+    };
+
+    if (TupleExpr* tuple = cast<TupleExpr>(value)) {
+        elements = tuple->elts;
+    }
+    else if (ListExpr* tuple = cast<ListExpr>(value)) {
+        elements = tuple->elts;
+    } 
+
+    if (elements.size() != n->targets.size()) {
+        //
+        return nullptr;
+    }
+
+    //
+    for(int i = 0; i < elements.size(); i++) {
+        // would this be working
+        // raw unpacking
+        // new_assign(n->targets[i], elements[i]);
+
+        // target = getitem(tuple, i)
+        Call* getitem = new_object<Call>();
+        Name* nm = new_object<Name>();
+        getitem->func = nm;
+        getitem->args.push_back(value);
+        Constant* cst = new_object<Constant>();
+        cst->value = i;
+        getitem->args.push_back(cst); 
+
+        new_assign(n->targets[i], getitem);
+    }
+    
+    return nullptr;
 }
 
 

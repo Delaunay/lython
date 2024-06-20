@@ -1,80 +1,48 @@
 # >>> case: 0
 # >>> code
-def fun():
-    return x
-# <<<
+@j
+def a(b, c=d, /, e=f, *g, h=i, **j) -> bool:
+    """docstring"""
+    return True# <<<
 
 # >>> error
-NameError: name 'x' is not defined# <<<
+NameError: name 'd' is not defined# <<<
+# >>> error
+NameError: name 'g' is not defined# <<<
+# >>> error
+NameError: name 'j' is not defined# <<<
 
 # >>> case: 1
 # >>> code
-def fun(a: i32) -> i32:
-    return a
-x = fun(1)
-# <<<
+@j
+def a(b, c=d, *e, f=g, **h) -> bool:
+    """docstring"""
+    return True# <<<
+
+# >>> error
+NameError: name 'd' is not defined# <<<
+# >>> error
+NameError: name 'g' is not defined# <<<
+# >>> error
+NameError: name 'j' is not defined# <<<
 
 # >>> case: 2
 # >>> code
-def fun(a: i32, b: i32 = 2, /, c: i32 = 4, *args, d: i32 = 4, **kwargs) -> i32:
-    return a + b + c + d
-# <<<
-
-# >>> call
-fun(5, 6, 9, 10, d=7, c=8, e=4)# <<<
-
-# >>> expected
-(i32, i32, i32, i32) -> i32# <<<
-
-
-# >>> case: 3
-# >>> code
-def fun(a: i32) -> i32:
-    return a
-x: i32 = fun(1)
-# <<<
-
-# >>> case: 4
-# >>> code
-def fun(a: i32) -> i32:
-    return a
-x = fun(1.0)
-# <<<
+@j(l, m, c=n)
+@k
+def a(b: bool, d: bool = True):
+    pass# <<<
 
 # >>> error
-TypeError: expression `fun(1.0)` of type `(f64) -> i32` is not compatible with expression `fun` of type `(i32) -> i32`# <<<
-
-# >>> case: 5
-# >>> code
-def fun(a: i32) -> i32:
-    return a
-x: f32 = fun(1)
-# <<<
-
+NameError: name 'j' is not defined# <<<
 # >>> error
-TypeError: expression `x` of type `f32` is not compatible with expression `fun(1)` of type `i32`# <<<
-
-# >>> case: 6
-# >>> code
-def fun(a: i32, b: f64) -> i32:
-    return a
-x: i32 = fun(b=1.0, a=1)
-# <<<
-
-# >>> case: 7
-# >>> code
-def fun(a: i32 = 1, b: f64 = 1.1) -> i32:
-    return a
-x: i32 = fun()
-# <<<
-
-# >>> case: 8
-# >>> code
-def fun(a: i32, b: f64 = 1.1) -> i32:
-    return a
-x: i32 = fun()
-# <<<
-
+j is not callable# <<<
 # >>> error
-TypeError: fun() missing 1 required positional argument: 'a'# <<<
+NameError: name 'l' is not defined# <<<
+# >>> error
+NameError: name 'm' is not defined# <<<
+# >>> error
+NameError: name 'n' is not defined# <<<
+# >>> error
+NameError: name 'k' is not defined# <<<
 
