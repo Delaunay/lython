@@ -2,7 +2,8 @@
     "version": 8,
     "include": [
         "build/generators/CMakePresets.json",
-        "build/RelWithDebInfo/generators/CMakePresets.json"
+        "build/RelWithDebInfo/generators/CMakePresets.json",
+        "build/Debug/generators/CMakePresets.json"
     ],
     "configurePresets": [
         {
@@ -30,7 +31,7 @@
         {
             "name": "debug",
             "inherits": [
-                "conan-default"
+                "conan-debug"
             ],
             "installDir": "${sourceDir}/binaries",
             "cacheVariables": {

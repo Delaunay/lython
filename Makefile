@@ -47,5 +47,5 @@ build-development-win32:
 
 build-debug:
 	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/debug
-	cmake --preset debug
-	cmake --build --preset debug
+	cmake --preset conan-debug
+	cmake --build --preset conan-debug

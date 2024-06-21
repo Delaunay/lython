@@ -244,7 +244,7 @@ struct ExceptHandler: public CommonAttributes {
 };
 
 struct Arg: public CommonAttributes {
-    Identifier          arg;
+    Identifier          arg = Identifier();
     Optional<ExprNode*> annotation;
     Optional<String>    type_comment;
 };

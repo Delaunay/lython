@@ -77,7 +77,11 @@ class StringDatabase {
     StringEntry& get(std::size_t i) {
         size_t block = i / block_size;
         size_t entry = i % block_size;
-        return (*reverse[block])[entry];
+
+        if (block < reverse.size()){
+            return (*reverse[block])[entry];
+        }
+        return (*reverse[0])[0];
     }
 
     StringEntry const& get(std::size_t i) const {
@@ -113,7 +117,11 @@ class StringDatabase {
 // Very Cheap string reference
 class StringRef {
     public:
-    StringRef(std::size_t r = 0): ref(StringDatabase::instance().inc(r)) {
+    StringRef():
+        StringRef(std::size_t(0))
+    {}
+
+    explicit StringRef(std::size_t r): ref(StringDatabase::instance().inc(r)) {
         lyassert(ref < StringDatabase::instance().count(), "StringRef is valid");
         STRING_VIEW(debug_view = StringDatabase::instance()[ref]);
     }

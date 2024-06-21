@@ -25,14 +25,17 @@ void ssa_it(TestCase const& testcase) {
     lyassert(mod->body.size() > 0, "Should parse more than one expression");
 
     kwinfo(outlog(), "{}", "SSA");
-    Module original;
     StaticSingleAssignment ssa;
-    auto newmod = ssa.module(&original, 0);
+    auto newmod = ssa.module(mod, 0);
     Module* ssa_mod = cast<Module>(newmod);
 
+    std::cout << "\n";
     std::cout << str(mod);
-    std::cout << "====";
+    std::cout << "\n====\n";
     std::cout << str(ssa_mod);
+    std::cout << "\n";
+
+    REQUIRE(str(mod) == str(ssa_mod));
 }
 
 void run_testcase(String const& folder, String const& name, Array<TestCase> cases) {

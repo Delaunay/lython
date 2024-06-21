@@ -40,6 +40,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         }
 
         T* operator->() {
+            kwassert(owner != nullptr, "Should be not null");
             return owner;
         }
 
@@ -81,6 +82,9 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
 
     template <typename A>
     ScopedOwner<A> new_from(A* original, int depth, Args... args) {
+        if (parents.size() == 0) {
+            return ScopedOwner<A>(new A(args...), this);    
+        }
         A* obj = get_arena()->template new_object<A>();
         return ScopedOwner<A>(obj, this);
     }
@@ -95,15 +99,26 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     ScopedOwner<T> copy_node(T* original, int depth, Args... args) {
         static bool deep_copy = true;
         if (deep_copy) {
-            return ScopedOwner<T>(cast<T>(Super::exec(original, depth, args...)), this);
+            auto* cpy = Super::exec(original, depth, args...);
+
+            if (original != nullptr) {
+                kwassert(cpy != nullptr, "Should have copied");
+            }
+
+            if (cpy) { 
+                if (cpy->kind == original->kind) {
+                    return ScopedOwner<T>((T*)(cpy), this);    
+                }
+            }
+            return ScopedOwner<T>(nullptr, this);
         }
         return ScopedOwner<T>(original, nullptr);
     }
 
     template <typename T>
     void copy(T*& dest, T*& source, int depth, Args... args) {
-        // default expression, module, statement copy
-        dest = cast<T>(copy_node(source, depth, args...));
+        T* cpy = copy_node(source, depth, args...);
+        dest = cpy;
     }
 
     template <typename T>
@@ -126,7 +141,12 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     void copy(CmpOperator& dest, CmpOperator& src, int depth, Args... args) { dest = src; }
-    void copy(StringRef dest, StringRef src, int depth, Args... args) { dest = src; }
+    void copy(StringRef& dest, StringRef src, int depth, Args... args) { 
+        dest = src; 
+    }
+    void copy(int& dest, int& src, int depth, Args... args) { 
+        dest = src; 
+    }
     void copy(Arg& dest, Arg& src, int depth, Args... args) {
         KW_COPY(dest.arg, src.arg);
         KW_COPY(dest.annotation, src.annotation);
@@ -135,7 +155,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         KW_COPY(dest.target, src.target);
         KW_COPY(dest.iter, src.iter);
         KW_COPY(dest.ifs, src.ifs);
-        KW_COPY(dest.is_async, src.is_async);
+        dest.is_async = src.is_async;
     }
     void copy(Keyword& dest, Keyword& src, int depth, Args... args) {
         KW_COPY(dest.arg, src.arg);
@@ -170,10 +190,13 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         if constexpr (std::is_same_v<T, StmtNode*>) {
             body_stack.push_back(&dest);
         }
+        // std::cout << (void*)(&dest) << " " << (void*)(&source) << "\n";
+        // std::cout << dest.size() << " " << source.size() << std::endl;
         // This is UB
-        if (&dest != &source) {
+        if ((void*)(&dest) != (void*)(&source)) {
             // Copy array
             dest.reserve(source.size());
+            
             for (int i = 0; i < source.size(); i++) {
                 dest.push_back(T());
                 copy(dest[i], source[i], depth, args...);
@@ -272,12 +295,14 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
     ExprRet binop(BinOp_t* n, int depth, Args... args) {
         BinOp_st cpy = new_from(n, depth, args...);
+        cpy->op = n->op;
         KW_COPY(cpy->left, n->left);
         KW_COPY(cpy->right, n->right);
         return cpy;
     }
     ExprRet unaryop(UnaryOp_t* n, int depth, Args... args) {
         UnaryOp_st cpy = new_from(n, depth, args...);
+        cpy->op = n->op;
         KW_COPY(cpy->operand, n->operand);
         return cpy;
     }
