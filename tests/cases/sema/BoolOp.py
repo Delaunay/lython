@@ -1,37 +1,46 @@
-# >>> case: 0
-# >>> code
-a and b# <<<
+# version=2
+# > 0
+# >> code
+a and b# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for and: 'None' and 'None'# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> case: 1
-# >>> code
-a or b# <<<
+# >> error
+NameError: name 'b' is not defined# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for or: 'None' and 'None'# <<<
+# >> error
+TypeError: unsupported operand type(s) for and: 'None' and 'None'# <<
 
-# >>> case: 2
-# >>> code
-a or b or c# <<<
+# > 1
+# >> code
+a or b# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for or: 'None' and 'None'# <<<
-# >>> error
-NameError: name 'c' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for or: 'None' and 'None'# <<<
+# >> error
+NameError: name 'a' is not defined# <<
+
+# >> error
+NameError: name 'b' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for or: 'None' and 'None'# <<
+
+# > 2
+# >> code
+a or b or c# <<
+
+# >> error
+NameError: name 'a' is not defined# <<
+
+# >> error
+NameError: name 'b' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for or: 'None' and 'None'# <<
+
+# >> error
+NameError: name 'c' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for or: 'None' and 'None'# <<
 

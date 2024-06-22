@@ -1,4 +1,5 @@
-# >>> case: 0
-# >>> code
-continue# <<<
+# version=2
+# > 0
+# >> code
+continue# <<
 

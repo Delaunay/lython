@@ -1,5 +1,6 @@
-# >>> case: 0
-# >>> code
+# version=2
+# > 0
+# >> code
 try:
     pass
 except Exception as b:
@@ -8,10 +9,11 @@ else:
     pass
 finally:
     pass
-# <<<
+# <<
 
-# >>> error
-NameError: name 'Exception' is not defined# <<<
-# >>> error
-TypeError: expression `Exception` is not compatible with type `Type`# <<<
+# >> error
+NameError: name 'Exception' is not defined# <<
+
+# >> error
+TypeError: expression `Exception` is not compatible with type `Type`# <<
 

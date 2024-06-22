@@ -20,6 +20,11 @@ KW_TESTING_TYPE(Call, call, String);
 KW_TESTING_TYPE(Expected, expected, String);
 KW_TESTING_TYPE(Errors, errors, Array<String>);
 
+struct Section {
+    String name;
+    Array<String> content;
+};
+
 struct TestCase {
     TestCase(String const& c, String const& call, String const& t = ""):
         code(c), call(call), expected_type(t) {}
@@ -39,6 +44,9 @@ struct TestCase {
     TestCase(TestName const& n, String const& c, Array<String> const& errors, String const& t = ""):
         name(n.name), code(c), errors(errors), expected_type(t)
     {}
+
+
+    Array<Section> values;
 
     String code;
     String call;

@@ -1,30 +1,38 @@
-# >>> case: 0
-# >>> code
+# version=2
+# > 0
+# >> code
 @e(g, h, i=j)
 @f
 class a(b, c=d):
     """docstring"""
-    pass# <<<
+    pass# <<
 
-# >>> error
-NameError: name 'b' is not defined# <<<
-# >>> error
-NameError: name 'd' is not defined# <<<
-# >>> error
-NameError: name 'e' is not defined# <<<
-# >>> error
-e is not callable# <<<
-# >>> error
-NameError: name 'g' is not defined# <<<
-# >>> error
-NameError: name 'h' is not defined# <<<
-# >>> error
-NameError: name 'j' is not defined# <<<
-# >>> error
-NameError: name 'f' is not defined# <<<
+# >> error
+NameError: name 'b' is not defined# <<
 
-# >>> case: 1
-# >>> code
+# >> error
+NameError: name 'd' is not defined# <<
+
+# >> error
+NameError: name 'e' is not defined# <<
+
+# >> error
+e is not callable# <<
+
+# >> error
+NameError: name 'g' is not defined# <<
+
+# >> error
+NameError: name 'h' is not defined# <<
+
+# >> error
+NameError: name 'j' is not defined# <<
+
+# >> error
+NameError: name 'f' is not defined# <<
+
+# > 1
+# >> code
 class Name:
     x: i32 = 0
     y: i32 = 1
@@ -32,5 +40,5 @@ class Name:
 
     def __init__(self):
         self.x = 2
-# <<<
+# <<
 

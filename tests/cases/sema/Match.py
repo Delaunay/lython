@@ -1,5 +1,6 @@
-# >>> case: 0
-# >>> code
+# version=2
+# > 0
+# >> code
 match a:
     case [1, 3]:
         return "case 1"
@@ -13,42 +14,47 @@ match a:
         return "case 5"
     case _:
         return "case 6"
-# <<<
+# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'ClassName' is not defined# <<<
-# >>> error
-NameError: name 'k' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for Gt: 'None' and 'None'# <<<
-# >>> error
-NameError: name 'k' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for Eq: 'None' and 'None'# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> case: 1
-# >>> code
+# >> error
+NameError: name 'ClassName' is not defined# <<
+
+# >> error
+NameError: name 'k' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for Gt: 'None' and 'None'# <<
+
+# >> error
+NameError: name 'k' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for Eq: 'None' and 'None'# <<
+
+# > 1
+# >> code
 match lst:
     case []:
         pass
     case [head, *tail]:
         pass
-# <<<
+# <<
 
-# >>> error
-NameError: name 'lst' is not defined# <<<
+# >> error
+NameError: name 'lst' is not defined# <<
 
-# >>> case: 2
-# >>> code
+# > 2
+# >> code
 match dct:
     case {}:
         pass
     case {1: value, **remainder}:
         pass
-# <<<
+# <<
 
-# >>> error
-NameError: name 'dct' is not defined# <<<
+# >> error
+NameError: name 'dct' is not defined# <<
 

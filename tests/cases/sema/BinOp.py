@@ -1,45 +1,51 @@
-# >>> case: 0
-# >>> code
-a + b# <<<
+# version=2
+# > 0
+# >> code
+a + b# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> case: 1
-# >>> code
-a - b# <<<
+# >> error
+NameError: name 'b' is not defined# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
+# > 1
+# >> code
+a - b# <<
 
-# >>> case: 2
-# >>> code
-a * b# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
+# >> error
+NameError: name 'b' is not defined# <<
 
-# >>> case: 3
-# >>> code
-a << b# <<<
+# > 2
+# >> code
+a * b# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> case: 4
-# >>> code
-a ^ b# <<<
+# >> error
+NameError: name 'b' is not defined# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-NameError: name 'b' is not defined# <<<
+# > 3
+# >> code
+a << b# <<
+
+# >> error
+NameError: name 'a' is not defined# <<
+
+# >> error
+NameError: name 'b' is not defined# <<
+
+# > 4
+# >> code
+a ^ b# <<
+
+# >> error
+NameError: name 'a' is not defined# <<
+
+# >> error
+NameError: name 'b' is not defined# <<
 

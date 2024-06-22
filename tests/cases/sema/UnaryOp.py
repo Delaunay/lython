@@ -1,36 +1,41 @@
-# >>> case: 0
-# >>> code
-+ a# <<<
+# version=2
+# > 0
+# >> code
++ a# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for UAdd: 'None' and 'None'# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> case: 1
-# >>> code
-- a# <<<
+# >> error
+TypeError: unsupported operand type(s) for UAdd: 'None' and 'None'# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for USub: 'None' and 'None'# <<<
+# > 1
+# >> code
+- a# <<
 
-# >>> case: 2
-# >>> code
-~ a# <<<
+# >> error
+NameError: name 'a' is not defined# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for Invert: 'None' and 'None'# <<<
+# >> error
+TypeError: unsupported operand type(s) for USub: 'None' and 'None'# <<
 
-# >>> case: 3
-# >>> code
-! a# <<<
+# > 2
+# >> code
+~ a# <<
 
-# >>> error
-NameError: name 'a' is not defined# <<<
-# >>> error
-TypeError: unsupported operand type(s) for Not: 'None' and 'None'# <<<
+# >> error
+NameError: name 'a' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for Invert: 'None' and 'None'# <<
+
+# > 3
+# >> code
+! a# <<
+
+# >> error
+NameError: name 'a' is not defined# <<
+
+# >> error
+TypeError: unsupported operand type(s) for Not: 'None' and 'None'# <<
 

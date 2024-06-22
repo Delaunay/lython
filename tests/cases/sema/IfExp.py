@@ -1,9 +1,11 @@
-# >>> case: 0
-# >>> code
-a = c if True else d# <<<
+# version=2
+# > 0
+# >> code
+a = c if True else d# <<
 
-# >>> error
-NameError: name 'c' is not defined# <<<
-# >>> error
-NameError: name 'd' is not defined# <<<
+# >> error
+NameError: name 'c' is not defined# <<
+
+# >> error
+NameError: name 'd' is not defined# <<
 
