@@ -105,4 +105,26 @@ Array<VMTestCase> get_test_cases(String const& folder, String const& name);
 Array<VMTestCase>  transition(String const& folder, String const& name, Array<VMTestCase> const& cases);
 
 
+
+// Name Error
+String NE(String const &name);
+
+// Not Callable
+String NC(std::string const &name);
+
+// Type Error
+String TE(String const &lhs_v, String const &lhs_t, String const &rhs_v, String const &rhs_t);
+
+// Attribute Error
+String AE(String const &name, String const &attr);
+
+// UnsipportedOperand
+String UO(String const &op, String const &lhs, String const &rhs);
+
+// Import Error
+String IE(String const &import, String const &name);
+
+// ModuleNotFoundError
+String MNFE(String const &module);
+
 }

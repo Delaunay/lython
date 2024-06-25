@@ -1,15 +1,19 @@
-#include "cases.h"
+// #include "cases.h"
 #include "cases_sample.h"
 
 #include <catch2/catch_all.hpp>
 #include <sstream>
 
+// Kiwi
 #include "lexer/buffer.h"
 #include "lexer/lexer.h"
 #include "logging/logging.h"
 #include "parser/parser.h"
 #include "parser/format_spec.h"
 #include "utilities/strings.cpp"
+
+//
+#include "libtest.h"
 
 using namespace lython;
 
@@ -328,13 +332,6 @@ void run_testcase(String const&                 name,
                   Array<FormatException> const& exceptions  = Array<FormatException>()) {
     int i = 0;
 
-    cases = transition( //
-        "parser",       // String const& folder, 
-        name,           // String const& name, 
-        cases           // Array<VMTestCase> const& cases
-    );
-
-
     for (auto& c: cases) {
         String const* fmt = get_exception(exceptions, FormatException{name, i});
         kwinfo(outlog(), ">>>>>>>>>>>>>>>>>>>>>>>> Start");
@@ -362,14 +359,17 @@ void run_testcase(String const&                 name,
 
 #define GENTEST(name)                                                                      \
     TEMPLATE_TEST_CASE("Parser_Success_" #name, #name, name) {                             \
-        run_testcase(str(nodekind<TestType>()), name##_examples());                        \
+        auto cases = get_test_cases("cases", #name);\
+        run_testcase(str(nodekind<TestType>()), cases);                        \
     }                                                                                      \
     TEMPLATE_TEST_CASE("Parser_Comment_" #name, #name, name) {                             \
+       auto cases = get_test_cases("cases", #name);\
         run_testcase(                                                                      \
-            str(nodekind<TestType>()), name##_examples(), insert_comment, fmt_exceptions); \
+            str(nodekind<TestType>()), cases, insert_comment, fmt_exceptions); \
     }                                                                                      \
     TEMPLATE_TEST_CASE("Parser_Failure_" #name, #name, name) {                             \
-        run_partials(str(nodekind<TestType>()), name##_examples());                        \
+        auto cases = get_test_cases("cases", #name);\
+        run_partials(str(nodekind<TestType>()), cases);                        \
     }
 
 #define X(name, _)

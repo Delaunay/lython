@@ -1,23 +1,28 @@
+// 
+#include <catch2/catch_all.hpp>
+#include <sstream>
+
+// Kiwi
 #include "utilities/printing.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "revision_data.h"
 #include "sema/sema.h"
 #include "utilities/strings.h"
-
-#include <catch2/catch_all.hpp>
-#include <sstream>
-
 #include "logging/logging.h"
-
 #include "lowering/SSA.h"
-#include "cases.h"
+
+// Test
+#include "libtest.h"
+//#include "cases.h"
 
 // Path to repository on current system
 
-String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
-
 using namespace lython;
+
+String test_modules_path() { 
+    return String(_SOURCE_DIRECTORY) + "/code"; 
+}
 
 void run_testcase(String const& folder, String const& name, Array<TestCase> cases);
 
@@ -391,7 +396,8 @@ TEST_CASE("Class_Attribute_Lookup") {
 
 #define GENTEST(name)                                               \
     TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {                \
-        run_testcase("parser", str(nodekind<TestType>()), name##_examples()); \
+        auto cases = get_test_cases("cases", #name);\
+        run_testcase("parser", str(nodekind<TestType>()), cases); \
     }
 
 #define X(name, _)

@@ -1,15 +1,16 @@
-#include "cases.h"
-#include "cases_sample.h"
+#include <catch2/catch_all.hpp>
 
+// Kiwi
 #include "ast/ops.h"
 #include "parser/parser.h"
 #include "utilities/printing.h"
 #include "utilities/strings.h"
-
-#include <catch2/catch_all.hpp>
-#include <sstream>
-
 #include "logging/logging.h"
+
+// Test
+//#include "cases.h"
+#include "cases_sample.h"
+#include "libtest.h"
 
 using namespace lython;
 
@@ -96,7 +97,8 @@ void run_testcase(String const& name, Array<TestCase> cases) {
 
 #define GENTEST(name)                                               \
     TEMPLATE_TEST_CASE("EQUAL_" #name, #name, name) {               \
-        run_testcase(str(nodekind<TestType>()), name##_examples()); \
+        auto cases = get_test_cases("cases", #name);\
+        run_testcase(str(nodekind<TestType>()), cases); \
     }
 
 #define X(name, _)

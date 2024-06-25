@@ -534,4 +534,35 @@ Array<VMTestCase> transition(String const& folder, String const& name, Array<VMT
     return cases;
 }
 
+}
+
+#include "sema/sema.h"
+
+namespace lython {
+
+String NE(String const& name) { return String(NameError(nullptr, name).message().c_str()); }
+
+String NC(std::string const& name) {
+    return String(fmt::format("{} is not callable", name).c_str());
+}
+
+String TE(String const& lhs_v, String const& lhs_t, String const& rhs_v, String const& rhs_t) {
+    return String(TypeError::message(lhs_v, lhs_t, rhs_v, rhs_t));
+}
+
+String AE(String const& name, String const& attr) {
+    return String(AttributeError::message(name, attr));
+}
+
+String UO(String const& op, String const& lhs, String const& rhs) {
+    return String(UnsupportedOperand::message(op, lhs, rhs));
+}
+
+String IE(String const& module, String const& name) {
+    return String(ImportError::message(module, name));
+}
+
+String MNFE(String const& module) { return String(ModuleNotFoundError::message(module)); }
+
+
 }  // namespace lython

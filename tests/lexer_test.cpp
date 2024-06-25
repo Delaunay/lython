@@ -1,10 +1,14 @@
-#include "cases.h"
-#include "cases_sample.h"
 
+#include <catch2/catch_all.hpp>
+
+// Kiwi
 #include "lexer/lexer.h"
 #include "utilities/strings.h"
 
-#include <catch2/catch_all.hpp>
+// Testing
+// #include "cases.h"
+#include "cases_sample.h"
+#include "libtest.h"
 
 using namespace lython;
 

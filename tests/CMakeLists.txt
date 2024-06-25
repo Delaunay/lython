@@ -10,7 +10,7 @@ INCLUDE(CTest)
 ADD_DEFINITIONS(-DWITH_LOG=${WITH_LOG})
 
 # Testing utility
-ADD_LIBRARY(liblythontest cases_errors.cpp cases.cpp cases_sample.cpp libtest.cpp cases_vm.cpp)
+ADD_LIBRARY(liblythontest cases_errors.cpp cases_sample.cpp libtest.cpp cases_vm.cpp)
 TARGET_LINK_LIBRARIES(liblythontest Catch2::Catch2 liblython liblogging)
 
 SET(TEST_LIBRARIES
@@ -19,6 +19,11 @@ SET(TEST_LIBRARIES
   liblogging
   liblythontest
 )
+
+
+ADD_EXECUTABLE(export export.cpp ${TEST_HEADERS})
+TARGET_LINK_LIBRARIES(export ${TEST_LIBRARIES})
+  
 
 # Add your test to CMAKE
 # to run all tests run 'make test'

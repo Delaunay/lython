@@ -1,3 +1,10 @@
+
+#include <catch2/catch_all.hpp>
+#include <sstream>
+
+// Kiwi
+#include "logging/logging.h"
+#include "lowering/SSA.h"
 #include "utilities/printing.h"
 #include "lexer/buffer.h"
 #include "parser/parser.h"
@@ -5,14 +12,10 @@
 #include "sema/sema.h"
 #include "utilities/strings.h"
 
-#include <catch2/catch_all.hpp>
-#include <sstream>
+// Test
+#include "libtest.h"
 
-#include "logging/logging.h"
-
-#include "lowering/SSA.h"
-#include "cases.h"
-
+using namespace lython;
 
 void ssa_it(TestCase const& testcase) {
 
@@ -60,8 +63,9 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
 }
 
 #define GENTEST(name)                                               \
-    TEMPLATE_TEST_CASE("SSA_" #name, #name, name) {                \
-        run_testcase("sema", str(nodekind<TestType>()), name##_examples()); \
+    TEMPLATE_TEST_CASE("SSA_" #name, #name, name) {                 \
+        auto cases = get_test_cases("cases", #name);                                           \
+        run_testcase("sema", str(lython::nodekind<TestType>()), cases); \
     }
 
 #define X(name, _)
