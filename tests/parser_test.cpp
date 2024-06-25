@@ -327,6 +327,14 @@ void run_testcase(String const&                 name,
                   Transformer                   Transformer = identity,
                   Array<FormatException> const& exceptions  = Array<FormatException>()) {
     int i = 0;
+
+    cases = transition( //
+        "parser",       // String const& folder, 
+        name,           // String const& name, 
+        cases           // Array<VMTestCase> const& cases
+    );
+
+
     for (auto& c: cases) {
         String const* fmt = get_exception(exceptions, FormatException{name, i});
         kwinfo(outlog(), ">>>>>>>>>>>>>>>>>>>>>>>> Start");

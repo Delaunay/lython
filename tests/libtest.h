@@ -45,15 +45,47 @@ struct TestCase {
         name(n.name), code(c), errors(errors), expected_type(t)
     {}
 
+    Array<String> get_all(String const& name) const {
+        for(Section const& section: values) {
+            if (section.name == name) {
+                return section.content;
+            }
+        }
+        std::cout << "Key `" << name << "` not found\n";
+        return Array<String>();
+    }
 
+    String get_one(String const& name) const {
+        Array<String> content = get_all(name);
+
+        if (content.size() > 1) {
+            std::cout << "Key `" << name << "` has " << content.size() << " values but only one is needed\n";
+            return "";
+        }
+
+        if (content.size() == 0) {
+            std::cout << "Key `" << name << "` has no values\n";
+            return "";
+        }
+
+        return content[0];
+    }
+
+    int            version;
+    String         name;
     Array<Section> values;
 
+    String        get_code         () const { return get_one("code");             }
+    String        get_call         () const { return get_one("call");             }
+    String        get_expected_type() const { return get_one("expected");    }
+    Array<String> get_errors       () const { return get_all("error");           }
+
+
+    // Deprecated
     String code;
     String call;
     String expected_type;
-    String name;
     Array<String> errors;
-
 
     bool operator==(TestCase const& other) const {
         return code == other.code && call == other.call && expected_type == other.expected_type;

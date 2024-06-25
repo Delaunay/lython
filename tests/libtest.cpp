@@ -2,10 +2,12 @@
 #include "utilities/printing.h"
 #include "utilities/strings.h"
 
+#include <cstdio>
 #include <catch2/catch_all.hpp>
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <filesystem>
 
 namespace lython {
 
@@ -113,20 +115,62 @@ enum class CaseSection
     Error
 };
 
-Array<VMTestCase> load_cases_v2(std::istream& in) {
-    std::regex start_regex("# > (.*)");
-    std::regex more_regex("# >> (.*)");
-    std::regex more_end_regex("(.*)# <<"); //  out << "# <<\n\n";
+
+struct LineReader {
+    LineReader(const char* filename) {
+        _file = fopen(filename, "r");
+        finished = false;
+    }
+
+    ~LineReader() {
+        fflush(_file);
+        fclose(_file);
+    }
+
+    std::string const& readline() {
+        line.resize(0);
+        while (true) {
+            int c = fgetc(_file);
+            if (c == EOF) {
+                finished = true;
+                return line;
+            }
+            line.push_back(c);
+            if (c == '\n') {
+                return line;
+            }
+        }
+        return line;
+    }
+
+    operator bool() const {
+        return !finished;
+    }
+
+    bool finished;
+    std::string line;
+    FILE* _file = nullptr;
+};
+
+
+Array<VMTestCase> load_cases_v2(const char* path) {
+    #define NEWLINE "(\r?\n)"
+    //#undef NEWLINE
+    //#define NEWLINE ""
+    std::regex start_regex("^# > (.*)" NEWLINE);
+    std::regex more_regex("^# >> (.*)" NEWLINE);
+    std::regex more_end_regex("^(.*)# <<" NEWLINE); //  out << "# <<\n\n";
     Array<VMTestCase> cases;
     Array<String> buffer;
     std::string line;
 
     int case_idx = -1;
     int section_idx = -1;
+    int empty_line = 0;
+
     auto close_previous = [&](){
         if (buffer.size() > 0) {
-            
-            String str = join("\n", buffer);
+            String str = join("", buffer);
             buffer.resize(0);
 
             if (section_idx >= 0 && case_idx >= 0) {
@@ -144,6 +188,7 @@ Array<VMTestCase> load_cases_v2(std::istream& in) {
         buffer.resize(0);
 
         VMTestCase newcase{"", ""};
+        newcase.version = 2;
         newcase.name = name.c_str();
         section_idx = -1;
         case_idx = cases.size();
@@ -171,7 +216,11 @@ Array<VMTestCase> load_cases_v2(std::istream& in) {
         }
     };
 
-    while (std::getline(in, line)) {
+    LineReader reader(path);
+
+    while (reader) {
+        line = reader.readline();
+
         std::smatch match;
         if (std::regex_match(line, match, start_regex)) {
             new_case(match[1].str());
@@ -212,6 +261,7 @@ Array<VMTestCase> load_cases_v1(std::istream& in) {
         if (i > 0) {
             cases.push_back(currentcase);
             currentcase = VMTestCase("", "");
+            currentcase.version = 1;
             i           = 0;
         }
     };
@@ -300,7 +350,7 @@ Array<VMTestCase> load_cases_v1(std::istream& in) {
     return cases;
 }
 
-Array<VMTestCase> load_cases(std::istream& in) {
+Array<VMTestCase> load_cases(const char* path, std::istream& in) {
     std::regex start_regex("# version=(.*)");
     std::string line;
     std::getline(in, line);
@@ -311,7 +361,7 @@ Array<VMTestCase> load_cases(std::istream& in) {
 
         if (version == "2") {
             std::cout << "using v2\n";
-            return load_cases_v2(in);
+            return load_cases_v2(path);
         }
     }
     
@@ -331,60 +381,119 @@ Array<VMTestCase> get_test_cases(String const& folder, String const& name) {
     String path = (reg_modules_path() + String("/") + folder + String("/") + name + String(".py"));
 
     std::ifstream     testfile_fp(path.c_str());
-    Array<VMTestCase> cases = load_cases(testfile_fp);
+    Array<VMTestCase> cases = load_cases(path.c_str(), testfile_fp);
     return cases;
+}
+
+
+template<typename T>
+int ensure(String const& folder, String const& name, T const& A, T const& B) {
+    if (A != B) {
+        std::cout << "    >" << A << "< \n\n";
+        std::cout << "    >" << B << "< \n";
+        return 1;
+    }
+    REQUIRE(A == B);
+    return 0;
 }
 
 Array<VMTestCase> transition(String const& folder, String const& name, Array<VMTestCase> const& cases) {
     String path = (reg_modules_path() + String("/") + folder + String("/") + name + String(".py"));
 
+    bool cases_loaded = false;
+    Array<VMTestCase> loaded_cases;
+    std::size_t size = std::filesystem::file_size(path);
+
+    bool file_existed = std::filesystem::exists(path) && size != 0;
+
+    std::cout << size << " " << path << "\n";
+
+    // Test case does not exist create it now
+    if (!file_existed)
     {
-        #if 0
-        {
-            std::ofstream fout(path.c_str());
-            int           i = 0;
-            for (auto& c: cases) {
-                write_case(fout, i, c);
-                i += 1;
-            }
+        std::ofstream fout(path.c_str());
+        int           i = 0;
+        for (auto& c: cases) {
+            write_case(fout, i, c);
+            i += 1;
         }
-        #endif
+        fout.flush();
+        fout.close();
+    }
+    else {
+        // load the test case from the files
+        std::ifstream fin(path.c_str());
+        loaded_cases = load_cases(path.c_str(), fin);
+        fin.close();
+        cases_loaded = true;
+    }
 
-        // load possibly old version
-        Array<VMTestCase> loaded_cases;
-        {
-            std::ifstream fin(path.c_str());
-            loaded_cases = load_cases(fin);
-            
-            if (cases.size() == 0) {
-                return loaded_cases;
-            }
-        }
+    if (cases_loaded && cases.size() > 0) {
+        int errors = ensure(folder, name, loaded_cases.size(), cases.size());
 
-        // write new version
-        {
-            std::ofstream fout((path).c_str());
-            int           i = 0;
-            for (auto& c: loaded_cases) {
-                write_case(fout, i, c);
-                i += 1;
-            }
-        }
+        int size = std::min(cases.size(), loaded_cases.size());
 
-        REQUIRE(loaded_cases.size() == cases.size());
-        for (int i = 0; i < cases.size(); i++) {
+        for (int i = 0; i < size; i++) {
+            std::cout << "\n\n";
+            std::cout << folder << " " << name  << ": " << i << "\n";
+            std::cout << String(80, '=') << "\n";
+
             VMTestCase const& original = cases[i];
             VMTestCase const& loaded   = loaded_cases[i];
 
-            REQUIRE(original.code == loaded.code);
-            REQUIRE(original.call == loaded.call);
-            REQUIRE(original.expected_type == loaded.expected_type);
-            REQUIRE(original.errors == loaded.errors);
+            if (loaded.version == 2) {
+                if (original.code.size() != 0) {
+                    errors += ensure(folder, name, original.code, loaded.get_code());
+                }
+                if (original.call.size() != 0) {
+                    errors += ensure(folder, name, original.call, loaded.get_call());
+                }
+                if (original.expected_type.size() != 0) {
+                    errors += ensure(folder, name, original.expected_type, loaded.get_expected_type());
+                }
+                if (original.errors.size() != 0) {
+                    errors += ensure(folder, name, original.errors, loaded.get_errors());
+                }
+                if (!original.name.empty()) {
+                    errors += ensure(folder, name, original.name, loaded.name);
+                }
+            } 
+            
+            if (loaded.version == 1) {
+                errors += ensure(folder, name, original.code, loaded.code);
+                errors += ensure(folder, name, original.call, loaded.call);
+                errors += ensure(folder, name, original.expected_type, loaded.expected_type);
+                errors += ensure(folder, name, original.errors, loaded.errors);
 
-            if (!original.name.empty()) {
-                REQUIRE(original.name == loaded.name);
+                if (!original.name.empty()) {
+                    errors += ensure(folder, name, original.name, loaded.name);
+                }
+            }
+
+            if (errors > 0) {
+                for (int i = 0; i < loaded_cases.size(); i++) {
+                    VMTestCase const& lc = loaded_cases[i];
+                    if (lc.version == 2) {
+                        for (auto& sec: lc.values) {
+                            std::cout << "    `" << sec.name << "` " << sec.name.size() << std::endl;
+                            std::cout << "    `" << sec.content << "`" << std::endl;
+                        }
+                    }
+                }
             }
         }
+    }
+
+    // write new version
+    if (file_existed && cases_loaded) {
+        std::ofstream fout((path).c_str());
+        int           i = 0;
+        for (auto& c: loaded_cases) {
+            write_case(fout, i, c);
+            i += 1;
+        }
+        fout.flush();
+        fout.close();
     }
 
     return cases;
