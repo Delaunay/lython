@@ -399,7 +399,21 @@ Array<VMTestCase> load_cases(const char* path, std::istream& in) {
     
     std::cout << "using v1\n";
     in.seekg(0, in.beg);
-    return load_cases_v1(in);
+    Array<VMTestCase> old_cases = load_cases_v1(in);
+    
+    {
+        std::ofstream fout(path);
+        int           i = 0;
+        for (auto& c: old_cases) {
+            write_case(fout, i, c);
+            i += 1;
+        }
+        fout.flush();
+        fout.close();
+    }
+
+
+    return old_cases;
 }
 
 

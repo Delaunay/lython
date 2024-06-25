@@ -1,24 +1,25 @@
-# >>> case: 0
-# >>> code
+# version=2
+# > 
+# >> code
 c = True
 if c:
     a = 2
 b = a + 1
-# <<<
+# <<
 
-# >>> case: 1
-# >>> code
+# > 
+# >> code
 if False:
     a = 2
 b = a + 1
-# <<<
+# <<
 
-# >>> case: 2
-# >>> code
+# > 
+# >> code
 if True:
     a = 2
 else:
     a = 3
 b = a + 1
-# <<<
+# <<
 

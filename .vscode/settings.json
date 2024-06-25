@@ -111,7 +111,8 @@
         "cinttypes": "cpp",
         "execution": "cpp",
         "print": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "strstream": "cpp"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"

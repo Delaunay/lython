@@ -1,22 +1,21 @@
+
+#include <catch2/catch_all.hpp>
+#include <fstream>
+#include <iostream>
+
+// Kiwi
 #include "lexer/buffer.h"
 #include "parser/parser.h"
 #include "revision_data.h"
 #include "sema/sema.h"
 #include "utilities/printing.h"
 #include "utilities/strings.h"
-
 #include "codegen/llvm/llvm_gen.h"
-
-#include <catch2/catch_all.hpp>
-#include <sstream>
-
 #include "logging/logging.h"
 
-#include <catch2/catch_all.hpp>
-#include <fstream>
-#include <iostream>
-
-#include "cases_vm.h"
+// Test
+#include "libtest.h"
+// #include "cases_vm.h"
 
 #if WITH_LLVM_CODEGEN
 
@@ -187,8 +186,7 @@ void run_testcases(String const& name, Array<VMTestCase> const& cases) {
 
 #define GENTEST(name)                                                                         \
     TEMPLATE_TEST_CASE("LLVM_" #name, #name, name) {                                          \
-        auto default_cases = name##_vm_examples();\
-        auto cases = get_test_cases("LLVM", str(nodekind<TestType>()), default_cases); \
+        auto cases = get_test_cases("LLVM", str(nodekind<TestType>())); \
         run_testcases(str(nodekind<TestType>()), cases);                                      \
     }
 

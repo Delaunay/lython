@@ -27,271 +27,31 @@ String test_modules_path() {
 void run_testcase(String const& folder, String const& name, Array<TestCase> cases);
 
 TEST_CASE("SEMA_FunctionDef_Typing") {
-    static Array<TestCase> ex = {
-        {   // 0
-            "def fun():\n"
-            "    return x\n",  // Name error
-            TestErrors({
-                NE("x"),
-            }),
-        },
-        {   // 1
-            "def fun(a: i32) -> i32:\n"
-            "    return a\n"
-            "x = fun(1)\n"  // Works
-        },
-        {   // 2
-            "def fun(a: i32, b: i32 = 2, /, c: i32 = 4, *args, d: i32 = 4, **kwargs) -> i32:\n"
-            "    return a + b + c + d\n",
-            // Call
-            "fun(5, 6, 9, 10, d=7, c=8, e=4)",
-            // Type
-            // FIXME
-            "(i32, i32, i32, i32) -> i32"
-        },
-        {   // 3
-            "def fun(a: i32) -> i32:\n"
-            "    return a\n"
-            "x: i32 = fun(1)\n"  // Works
-        },
-
-        {   // 4
-            "def fun(a: i32) -> i32:\n"
-            "    return a\n"
-            "x = fun(1.0)\n",  // Type Error
-            TestErrors({
-                TE("fun(1.0)", "(f64) -> i32", "fun", "(i32) -> i32"),
-            }),
-        },
-
-        {
-            "def fun(a: i32) -> i32:\n"
-            "    return a\n"
-            "x: f32 = fun(1)\n",  // Type Error
-            TestErrors({
-                TE("x", "f32", "fun(1)", "i32"),
-            }),
-        },
-
-        {
-            "def fun(a: i32, b: f64) -> i32:\n"
-            "    return a\n"
-            "x: i32 = fun(b=1.0, a=1)\n",  // works
-        },
-
-        {
-            "def fun(a: i32 = 1, b: f64 = 1.1) -> i32:\n"
-            "    return a\n"
-            "x: i32 = fun()\n",  // works
-        },
-
-        {
-            "def fun(a: i32, b: f64 = 1.1) -> i32:\n"
-            "    return a\n"
-            "x: i32 = fun()\n",  // missing argument
-            TestErrors({
-                String("TypeError: fun() missing 1 required positional argument: 'a'"),
-                // TE("Argument a is not defined");
-            }),
-        },
-    };
-
-    run_testcase("sema", "FunctionDef", ex);
+    run_testcase("sema", "FunctionDef", get_test_cases("sema", "FunctionDef"));
 }
 
 TEST_CASE("SEMA_Match_Details") {}
 
 TEST_CASE("SEMA_ClassDef_Attribute") {
-    static Array<TestCase> ex = {
-        {
-            "class Name:\n"
-            "    pass\n"
-            "\n"
-            "a = Name()\n"
-            "a.x\n"
-            "a.x = 2\n",
-            {
-                AE("Name", "x"),
-                AE("Name", "x"),
-                TE("a.x", "", "2", "i32"),
-            },
-        },
-        {
-            "class Custom:\n"
-            "    def __init__(self, a: i32):\n"
-            "        self.a = a\n"
-            "\n"
-            "a = Custom(1)\n"  // works
-        },
-        {
-            "class Name:\n"
-            "    def __init__(self, x: i32):\n"  // Resolve an attribute defined inside the ctor
-            "        self.x = x\n"
-            "\n"
-            "a = Name(2)\n"
-            "a.x\n"
-            "a.x = 4\n",
-        },
-    };
-
-    run_testcase("sema", "ClassDef", ex);
+    run_testcase("sema", "ClassDef_3", get_test_cases("sema", "ClassDef_3"));
 }
 
 TEST_CASE("SEMA_IfStmt") {
-    static Array<TestCase> ex = {
-        // FIXME, sema need to detect this
-        {
-            // `a` might be set
-            "c = True\n"
-            "if c:\n"
-            "    a = 2\n"
-            "b = a + 1\n",
-        },
-        {   // `a` will NEVER be set
-            "if False:\n"
-            "    a = 2\n"
-            "b = a + 1\n",
-        },
-        {   // `a` will always be set
-            "if True:\n"
-            "    a = 2\n"
-            "else:\n"
-            "    a = 3\n"
-            "b = a + 1\n",
-        },
-    };
-
-    run_testcase("sema", "Conditional_Assign", ex);
+    run_testcase("sema", "Conditional_Assign", get_test_cases("sema", "Conditional_Assign"));
 }
 
 TEST_CASE("SEMA_Unpacking") {
-    static Array<TestCase> ex = {
-        {
-            "def fun():\n"
-            "    return 1, 2, 3\n"
-            "a = fun()\n",
-        },
-        {
-            "def fun():\n"
-            "    return 1, 2, 3\n"
-            "a, b, c = fun()\n",
-        },
-        {
-            "def fun():\n"
-            "    return 1, 2, 3\n"
-            "a, *b = fun()\n",
-        },
-    };
-
-    run_testcase("sema", "Unpacking", ex);
+    run_testcase("sema", "Unpacking", get_test_cases("sema", "Unpacking"));
 }
 
 TEST_CASE("SEMA_ClassDef_Static_Attribute") {
-    static Array<TestCase> ex = {
-
-        {
-            "class Name:\n"
-            "    x: i32 = 1\n"
-            "\n"
-            "a = Name()\n"
-            "a.x = 2\n",
-        },
-    };
-
-    run_testcase("sema", "ClassDef", ex);
+    run_testcase("sema", "ClassDef_1", get_test_cases("sema", "ClassDef_1"));
 }
 
 TEST_CASE("SEMA_ClassDef_Magic_BoolOperator") {
-    static Array<TestCase> ex = {
-        {
-            "class CustomAnd:\n"  // Bool op
-            "    pass\n"
-            "\n"
-            "a = CustomAnd()\n"
-            "a and True\n",
-            {
-                UO("and", "CustomAnd", "bool"),
-            },
-        },
-        {
-            "class CustomAnd:\n"  // Bool op
-            "    def __and__(self, b: bool) -> bool:\n"
-            "        return True\n"
-            "\n"
-            "a = CustomAnd()\n"
-            "a and True\n"  // <= lookup of __and__ to call __and__(a, b)
-        },
-    };
-
-    run_testcase("sema", "ClassDef", ex);
+    run_testcase("sema", "ClassDef_0", get_test_cases("sema", "ClassDef_0"));
 }
 
-// TypeError
-// NameError
-// AttributeError
-//
-// Add Inheritance lookup
-Array<TestCase> sema_cases() {
-    static Array<TestCase> ex = {
-
-        /*
-
-        {
-            "class Custom:\n" // Compare op
-            "    def __gt__(self, a) -> int:\n"
-            "        retrun 1\n"
-            "\n"
-            "a = Custom()\n"
-            "a > True\n" //
-        },
-        {
-            "class Custom:\n" // Bin Operator
-            "    def __add__(self, a: int) -> int:\n"
-            "        retrun 1\n"
-            "\n"
-            "a = Custom()\n"
-            "a + 1\n" // Works
-        },
-        {
-            "class Custom:\n" // Aug Operator
-            "    def __iadd__(self, a: int) -> int:\n"
-            "        retrun 1\n"
-            "\n"
-            "a = Custom()\n"
-            "a += 1\n" // Works
-        },
-        {
-            "class Custom:\n" // Unary Operator
-            "    def __pos__(self) -> int:\n"
-            "        retrun 1\n"
-            "\n"
-            "a = Custom()\n"
-            "+a\n" // Works
-        },
-        {
-            "class Custom:\n"
-            "    def __add__(self, a: int) -> int:\n"
-            "        retrun 1\n"
-            "\n"
-            "a = Custom()\n"
-            "a + 2.0\n" // TypeError
-        },
-        {
-            "class CustomRAnd:\n"
-            "    def __rand__(self, a) -> int:\n"
-            "        retrun 1\n"
-            "\n"
-            "class Name:\n"
-            "    pass\n"
-            "\n"
-            "a = CustomRAnd()\n"
-            "b and a\n" // <= lookup if __rand__ to call __rand__(a, b)
-        },
-
-        // */
-    };
-    return ex;
-}
 
 FILE* get_fuzz_file() {
     static FILE* file = fopen("fizz.ly", "w");
@@ -342,7 +102,7 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
     Array<String> errors;
     TypeExpr*     deduced_type = nullptr;
 
-    cases = get_test_cases(folder, name, cases);
+    // cases = get_test_cases(folder, name, cases);
 
     int i = 0;
     for (auto& c: cases) {
@@ -391,13 +151,15 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
 
 TEST_CASE("Class_Attribute_Lookup") {
     // Futures tests cases
-    run_testcase("sema", "ClassDef", sema_cases());
+    run_testcase("sema", "ClassDef_New", sema_cases());
 }
 
+
+#if 1
 #define GENTEST(name)                                               \
     TEMPLATE_TEST_CASE("SEMA_" #name, #name, name) {                \
         auto cases = get_test_cases("cases", #name);\
-        run_testcase("parser", str(nodekind<TestType>()), cases); \
+        run_testcase("sema", str(nodekind<TestType>()), cases); \
     }
 
 #define X(name, _)
@@ -419,3 +181,4 @@ NODEKIND_ENUM(X, SSECTION, EXPR, STMT, MOD, MATCH, VM)
 #undef VM
 
 #undef GENTEST
+#endif

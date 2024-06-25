@@ -15,7 +15,7 @@
 #include <catch2/catch_all.hpp>
 #include <iostream>
 
-#include "cases_vm.h"
+// #include "cases_vm.h"
 #include "libtest.h"
 
 using namespace lython;
@@ -212,19 +212,22 @@ TEST_CASE("VM_AugAssign") {
     run_vm_testcases("VM_AugAssign", get_test_cases("vm", "VM_AugAssign"));
 }
 
-TEST_CASE("VM_While") { run_vm_testcases("VM_While", get_test_cases("vm", "VM_While")); }
+TEST_CASE("VM_While") { 
+    run_vm_testcases("VM_While", get_test_cases("vm", "VM_While")); }
 
 TEST_CASE("VM_AnnAssign") {
     run_vm_testcases("VM_AnnAssign", get_test_cases("vm", "VM_AnnAssign"));
 }
 
-TEST_CASE("VM_ifexp") { run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp")); }
+TEST_CASE("VM_ifexp") { 
+    run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp")); }
 
 TEST_CASE("VM_NamedExpr") {
     run_vm_testcases("VM_NamedExpr", get_test_cases("vm", "VM_NamedExpr"));
 }
 
-TEST_CASE("VM_ClassDef") { run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef")); }
+TEST_CASE("VM_ClassDef") { 
+    run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef")); }
 
 TEST_CASE("VM_Generator") {
     run_vm_testcases("VM_Generator", get_test_cases("vm", "VM_Generator"));

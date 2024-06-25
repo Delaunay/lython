@@ -1,58 +1,72 @@
 # version=2
-# > 0
+# > 
 # >> code
-@j
-def a(b, c=d, /, e=f, *g, h=i, **j) -> bool:
-    """docstring"""
-    return True# <<
+def fun():
+    return x
+# <<
 
-# >> error
-NameError: name 'd' is not defined# <<
-
-# >> error
-NameError: name 'g' is not defined# <<
-
-# >> error
-NameError: name 'j' is not defined# <<
-
-# > 1
+# >> error:: NameError: name 'x' is not defined
+# > 
 # >> code
-@j
-def a(b, c=d, *e, f=g, **h) -> bool:
-    """docstring"""
-    return True# <<
+def fun(a: i32) -> i32:
+    return a
+x = fun(1)
+# <<
 
-# >> error
-NameError: name 'd' is not defined# <<
-
-# >> error
-NameError: name 'g' is not defined# <<
-
-# >> error
-NameError: name 'j' is not defined# <<
-
-# > 2
+# > 
 # >> code
-@j(l, m, c=n)
-@k
-def a(b: bool, d: bool = True):
-    pass# <<
+def fun(a: i32, b: i32 = 2, /, c: i32 = 4, *args, d: i32 = 4, **kwargs) -> i32:
+    return a + b + c + d
+# <<
 
-# >> error
-NameError: name 'j' is not defined# <<
+# >> call
+fun(5, 6, 9, 10, d=7, c=8, e=4)# <<
 
-# >> error
-j is not callable# <<
+# >> expected
+(i32, i32, i32, i32) -> i32# <<
 
-# >> error
-NameError: name 'l' is not defined# <<
+# > 
+# >> code
+def fun(a: i32) -> i32:
+    return a
+x: i32 = fun(1)
+# <<
 
-# >> error
-NameError: name 'm' is not defined# <<
+# > 
+# >> code
+def fun(a: i32) -> i32:
+    return a
+x = fun(1.0)
+# <<
 
-# >> error
-NameError: name 'n' is not defined# <<
+# >> error:: TypeError: expression `fun(1.0)` of type `(f64) -> i32` is not compatible with expression `fun` of type `(i32) -> i32`
+# > 
+# >> code
+def fun(a: i32) -> i32:
+    return a
+x: f32 = fun(1)
+# <<
 
-# >> error
-NameError: name 'k' is not defined# <<
+# >> error:: TypeError: expression `x` of type `f32` is not compatible with expression `fun(1)` of type `i32`
+# > 
+# >> code
+def fun(a: i32, b: f64) -> i32:
+    return a
+x: i32 = fun(b=1.0, a=1)
+# <<
 
+# > 
+# >> code
+def fun(a: i32 = 1, b: f64 = 1.1) -> i32:
+    return a
+x: i32 = fun()
+# <<
+
+# > 
+# >> code
+def fun(a: i32, b: f64 = 1.1) -> i32:
+    return a
+x: i32 = fun()
+# <<
+
+# >> error:: TypeError: fun() missing 1 required positional argument: 'a'
