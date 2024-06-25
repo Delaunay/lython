@@ -18,6 +18,29 @@ void write_case_v2(std::ostream& out, int i, VMTestCase const& testcase) {
         out2 << "# version=2\n";
     }
 
+    auto long_format = [&](String const& section, String const& content) {
+        out2 << "# >> " << section << "\n";
+        out2 << content;
+        out2 << "# <<\n\n";
+    };
+
+    auto short_format = [&](String const& section, String const& content) {
+        out2 << "# >> " << section << ":: " << content << "\n";
+    };
+
+    auto both_format = [&](String const& section, String const& content)  {
+        if (content.find_first_of('\n') != std::string::npos) {
+            return long_format(section, content);
+        }
+        return short_format(section, content);
+    };
+
+    /*
+    Dict<String, std::function<void(String const&, String const&)>> dispatch = {
+        {"code", long_format},
+        {"call", long_format},
+        {"expected": long_format},
+    }; */
     //if (testcase.name != "") 
     {
         out2 << "# > " << testcase.name << "\n";
@@ -25,9 +48,11 @@ void write_case_v2(std::ostream& out, int i, VMTestCase const& testcase) {
         if (testcase.values.size() > 0) { 
             for(Section const& sect: testcase.values) {
                 for(String const&val: sect.content) {
-                    out2 << "# >> " << sect.name << "\n";
-                    out2 << val;
-                    out2 << "# <<\n\n";
+                    if (sect.name == "error") {
+                        both_format(sect.name, val);
+                        continue;
+                    }
+                    long_format(sect.name, val);
                 }
             }
         } else {
@@ -158,6 +183,7 @@ Array<VMTestCase> load_cases_v2(const char* path) {
     //#undef NEWLINE
     //#define NEWLINE ""
     std::regex start_regex("^# > (.*)" NEWLINE);
+    std::regex inline_regex("^# >> (.*):: (.*)" NEWLINE);
     std::regex more_regex("^# >> (.*)" NEWLINE);
     std::regex more_end_regex("^(.*)# <<" NEWLINE); //  out << "# <<\n\n";
     Array<VMTestCase> cases;
@@ -224,6 +250,12 @@ Array<VMTestCase> load_cases_v2(const char* path) {
         std::smatch match;
         if (std::regex_match(line, match, start_regex)) {
             new_case(match[1].str());
+            continue;
+        }
+        if (std::regex_match(line, match, inline_regex)) {
+            new_section(match[1].str().c_str());
+            buffer.push_back(String(match[2].str().c_str()));
+            close_previous();
             continue;
         }
         if (std::regex_match(line, match, more_regex)) {
@@ -402,8 +434,11 @@ Array<VMTestCase> transition(String const& folder, String const& name, Array<VMT
 
     bool cases_loaded = false;
     Array<VMTestCase> loaded_cases;
-    std::size_t size = std::filesystem::file_size(path);
 
+    std::size_t size = 0;
+    if (std::filesystem::exists(path)) {
+        size = std::filesystem::file_size(path);
+    }
     bool file_existed = std::filesystem::exists(path) && size != 0;
 
     std::cout << size << " " << path << "\n";
@@ -485,7 +520,7 @@ Array<VMTestCase> transition(String const& folder, String const& name, Array<VMT
     }
 
     // write new version
-    if (file_existed && cases_loaded) {
+    if (file_existed) {
         std::ofstream fout((path).c_str());
         int           i = 0;
         for (auto& c: loaded_cases) {
