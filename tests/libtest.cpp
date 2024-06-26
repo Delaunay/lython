@@ -580,3 +580,114 @@ String MNFE(String const& module) { return String(ModuleNotFoundError::message(m
 
 
 }  // namespace lython
+
+
+//
+//
+#include "libtest_generator.h"
+
+namespace lython {
+//
+//
+FileTestCaseGenerator::FileTestCaseGenerator(String const& folder, String const& name) {
+    path = (reg_modules_path() + String("/") + folder + String("/") + name + String(".py"));
+    cases = get_test_cases(folder, name);
+}
+
+TestCase const& FileTestCaseGenerator::get() const {
+    return cases[i];
+}
+
+bool FileTestCaseGenerator::next() {
+    i += 1;    
+    return i < cases.size();
+}
+
+Catch::Generators::GeneratorWrapper<TestCase> filecase(String const& folder, String const& name) {
+    return Catch::Generators::GeneratorWrapper<TestCase>(
+        new FileTestCaseGenerator(folder, name)
+    );
+}
+
+
+Tuple<Array<VMTestCase>, Array<std::filesystem::path>> load_recursive_cases(String const& folder) {
+    Array<VMTestCase> cases;
+    Array<std::filesystem::path> folders;
+
+    String path = reg_modules_path() + String("/") + folder;
+
+    for(auto item: std::filesystem::recursive_directory_iterator(path)) {
+        if (item.is_regular_file()) {
+            const char* path = item.path().c_str();
+
+            std::ifstream     testfile_fp(path);
+            Array<VMTestCase> newcases = load_cases(path, testfile_fp);
+            cases.insert(cases.end(), newcases.begin(), newcases.end());
+
+            folders.push_back(item);
+        }
+    }
+    return std::make_tuple(cases, folders);
+}
+
+//
+//
+FolderTestCaseGenerator::FolderTestCaseGenerator(String const& folder) {
+    std::tie(cases, folders) = load_recursive_cases(folder);
+}
+
+TestCase const& FolderTestCaseGenerator::get() const {
+    return cases[i];
+}
+
+bool FolderTestCaseGenerator::next() {
+    i += 1;    
+    return i < cases.size();
+}
+
+Catch::Generators::GeneratorWrapper<TestCase> filecase(String const& folder) {
+    return Catch::Generators::GeneratorWrapper<TestCase>(
+        new FolderTestCaseGenerator(folder)
+    );
+}
+
+//
+//
+AllTestCaseGenerator::AllTestCaseGenerator() {
+   std::tie(cases, folders) = load_recursive_cases(".");
+}
+
+TestCase const& AllTestCaseGenerator::get() const {
+    return cases[i];
+}
+
+bool AllTestCaseGenerator::next() {
+    i += 1;    
+    return i < cases.size();
+}
+
+Catch::Generators::GeneratorWrapper<TestCase> filecase() {
+    return Catch::Generators::GeneratorWrapper<TestCase>(
+        new AllTestCaseGenerator()
+    );
+}
+
+std::string make_name(TestCase const& name, int i, std::filesystem::path path) {
+    std::stringstream ss;
+    ss << path.lexically_relative(reg_modules_path());
+    ss << " ";
+    ss << name.name;
+    ss << " " << i;
+    return ss.str();
+}
+
+std::string FileTestCaseGenerator::stringifyImpl() const {
+    return make_name(get(), i, path);
+}
+std::string FolderTestCaseGenerator::stringifyImpl() const {
+    return make_name(get(), i, folders[i]);
+}
+std::string AllTestCaseGenerator::stringifyImpl() const {
+    return make_name(get(), i, folders[i]);
+}
+}

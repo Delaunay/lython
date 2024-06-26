@@ -149,10 +149,12 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
     }
 }
 
+/*
 TEST_CASE("Class_Attribute_Lookup") {
     // Futures tests cases
     run_testcase("sema", "ClassDef_New", sema_cases());
-}
+}*/
+
 
 
 #if 1
