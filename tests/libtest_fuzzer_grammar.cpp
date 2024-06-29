@@ -19,9 +19,14 @@ using Array = std::vector<T>;
 //
 struct Generator {
     virtual void write(std::string const& str) {
-        std::cout << str << std::endl;
+        if (newline) {
+            std::cout << Str(4 * indent, ' ');
+            newline = false;
+        }
+        std::cout << str;
     }
 
+    bool newline = false;
     int indent = 0;
 };
 
@@ -51,53 +56,6 @@ struct Branch: public Node {
     Array<Node*> children;
 };
 
-struct Builder {
-    Builder(Branch* parent) {
-        stack.push_back(parent);
-    }
-    
-    template<typename T, typename...Args>
-    Builder& leaf(Args... args) {
-        Leaf* l = new T(args...);
-        (*stack.rbegin()).leaves.push_back(l);
-        return *this;
-    }
-
-    template<typename T, typename...Args>
-    Builder& branch(Args... args) {
-        Branch* b = new T(args...);
-        (*stack.rbegin()).push_back(l);
-        stack.push_back(b);
-        return *this;
-    }
-
-    #define SHORTCUT(name, type, base)      \
-        template<typename... Args>\
-        Builder& name(Args... args) {       \
-            return base<type>(args...);     \
-        }
-
-    SHORTCUT(identifier, Identifier, leaf);
-    SHORTCUT(option, Optional, branch);
-    SHORTCUT(atom, Atom, leaf);
-    SHORTCUT(args, Arguments, branch);
-    SHORTCUT(call, Call, branch);
-    SHORTCUT(keyword, Keyword, leaf);
-    SHORTCUT(type, Type, leaf);
-    SHORTCUT(multiple, Multiple, branch);
-    SHORTCUT(either, Either, branch);
-    SHORTCUT(docstring, Docstring, leaf);
-    SHORTCUT(indent, Indent, leaf);
-    SHORTCUT(body, Body, branch);
-
-
-    Builder& end() {
-        stack.pop_back();
-    }
-
-    Array<Branch*> stack;
-};
-
 
 struct Leaf: public Node {};
 
@@ -111,7 +69,13 @@ struct Identifier: public Leaf {
     }
 };
 
-struct Docstring: public Leaf {};
+struct Newline: public Leaf {
+    virtual void generate(Generator& generator) {
+        generator.write("\n");
+        generator.newline = true;
+        // generator.write(Str(' ', generator.indent * 4));
+    }
+};
 
 struct Keyword: public Leaf {
     Keyword(Str const& keyword):
@@ -121,6 +85,7 @@ struct Keyword: public Leaf {
 
     virtual void generate(Generator& generator) {
         generator.write(keyword);
+        generator.write(" ");
     }
 };
 
@@ -167,31 +132,49 @@ struct Indent: public Branch {
 };
 
 struct FunctionDef: public Branch  {
-    FunctionDef() {
-        Builder(this)
-        .option()
-            .multiple()
-                .atom('@').call().atom('\n')
-            .end()
-        .end()
-        .option().keyword("async").end()
-        .keyword("def").identifier().atom('(').args().atom(')')
-            .option()
-                .keyword(" -> ").type()
-            .end()
-            .atom(":")
-            .atom("\n")
-            .indent()
-                .either()
-                    .docstring()
-                    .body().end()
-                    .keyword("pass")
-                .end()
-            .end();
+    FunctionDef();
+};
 
+struct Atom: public Leaf {
+    Atom(char c):
+        c(c)
+    {}
+
+    virtual void generate(Generator& generator) {
+        Str ss;
+        ss += c;
+        generator.write(ss);
+    }
+
+    char c;
+};
+
+struct Call: public Branch {
+    virtual void generate(Generator& generator) {
+        generator.write("call(x, y, z)");
     }
 };
 
+struct Args: public Branch {
+    virtual void generate(Generator& generator) {
+        generator.write("x, y, z");
+    }
+};
+
+struct Docstring: public Leaf {
+    Docstring() {}
+    Docstring(Str const& str):
+        docstring(str)
+    {}
+
+    virtual void generate(Generator& generator) {
+        generator.write("\"\"\"");
+        generator.write(docstring);
+        generator.write("\"\"\"");
+    }
+
+    Str docstring;
+};
 
 
 /*
@@ -350,4 +333,97 @@ namespace Python
 */
 
 
+}
+
+
+namespace lython {
+
+struct Builder {
+    Builder(Branch* parent) {
+        stack.push_back(parent);
+    }
+    
+    template<typename T, typename...Args>
+    Builder& leaf(Args... args) {
+        Leaf* l = new T(args...);
+        (*stack.rbegin())->children.push_back(l);
+        return *this;
+    }
+
+    template<typename T, typename...Args>
+    Builder& branch(Args... args) {
+        Branch* b = new T(args...);
+        (*stack.rbegin())->children.push_back(b);
+        stack.push_back(b);
+        return *this;
+    }
+
+    #define SHORTCUT(name, type, base)      \
+        template<typename... Args>\
+        Builder& name(Args... args) {       \
+            return base<type>(args...);     \
+        }
+
+    SHORTCUT(identifier, Identifier, leaf);
+    SHORTCUT(option, Optional, branch);
+    SHORTCUT(atom, Atom, leaf);
+    SHORTCUT(args, Arguments, branch);
+    SHORTCUT(call, Call, branch);
+    SHORTCUT(keyword, Keyword, leaf);
+    SHORTCUT(type, Type, leaf);
+    SHORTCUT(multiple, Multiple, branch);
+    SHORTCUT(either, Either, branch);
+    SHORTCUT(docstring, Docstring, leaf);
+    SHORTCUT(indent, Indent, branch);
+    SHORTCUT(body, Body, branch);
+    SHORTCUT(newline, Newline, leaf);
+
+
+    Builder& end() {
+        stack.pop_back();
+        return *this;
+    }
+
+    Array<Branch*> stack;
+};
+
+
+FunctionDef::FunctionDef() {
+        Builder(this)
+        .option()
+            .multiple()
+                .atom('@').call().end().newline()
+            .end()
+        .end()
+        .option().keyword("async").end()
+        .keyword("def").identifier().atom('(').args().atom(')')
+            .option()
+                .keyword(" -> ").type()
+            .end()
+            .atom(':')
+            .newline()
+            .indent()
+                .either()
+                    .docstring().newline()
+                    .body().end()
+                    .keyword("pass").newline()
+                .end()
+            .end();
+
+    }
+
+}
+
+
+int main() {
+    lython::FunctionDef def;
+
+    lython::Generator gen;
+
+    def.generate(gen);
+
+
+    gen.write("\n\n");
+
+    return 0;
 }

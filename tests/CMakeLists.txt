@@ -21,8 +21,12 @@ SET(TEST_LIBRARIES
 )
 
 
-ADD_EXECUTABLE(export export.cpp ${TEST_HEADERS})
-TARGET_LINK_LIBRARIES(export ${TEST_LIBRARIES})
+# ADD_EXECUTABLE(export export.cpp ${TEST_HEADERS})
+# TARGET_LINK_LIBRARIES(export ${TEST_LIBRARIES})
+  
+
+ADD_EXECUTABLE(fuzzer libtest_fuzzer_grammar.cpp ${TEST_HEADERS})
+TARGET_LINK_LIBRARIES(fuzzer ${TEST_LIBRARIES})
   
 
 # Add your test to CMAKE
