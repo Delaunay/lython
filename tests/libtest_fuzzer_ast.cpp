@@ -1,0 +1,10 @@
+
+
+
+namespace lython {
+
+class ASTFuzzer {
+    
+};
+
+}
