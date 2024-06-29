@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
+#include <random>
+ 
 namespace lython {
 
 using Str = std::string;
@@ -102,20 +103,45 @@ struct Optional: public Branch {
 struct Type: public Identifier {};
 
 struct Multiple: public Branch {
+    Multiple(int e = 2):
+        s(0), e(e)
+    {}
+
     virtual void generate(Generator& generator) {
-        for(int i = s; i < e; i++) {
+        std::random_device rd;
+        std::mt19937 gen(rd()); 
+        std::uniform_int_distribution<> distrib(s, e);
+        int idx = distrib(gen);
+        
+        for(int i = s; i < idx; i++) {
             for(Node* node: children) {
                 node->generate(generator);
             }
         }
     }
 
-    int s = 0;
-    int e = 10;
+    int s;
+    int e;
 };
 
 struct Either: public Branch {
+    Either() { }
 
+    virtual void generate(Generator& generator) {
+        std::random_device rd;
+        std::mt19937 gen(rd()); 
+        std::uniform_int_distribution<> distrib(0, int(children.size()) - 1);
+
+        int idx = distrib(gen);
+        
+        // std::cout << children.size() << std::endl;
+
+        if (children.size() > 0) {
+            children[idx]->generate(generator);
+        }
+    }
+
+ 
 };
 
 struct Body: public Branch {};
@@ -404,9 +430,9 @@ FunctionDef::FunctionDef() {
             .newline()
             .indent()
                 .either()
-                    .docstring().newline()
+                    .docstring()
                     .body().end()
-                    .keyword("pass").newline()
+                    .keyword("pass")
                 .end()
             .end();
 
