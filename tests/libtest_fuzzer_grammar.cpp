@@ -16,7 +16,7 @@ using Array = std::vector<T>;
 
 
 //
-// Base Node
+// Base GNode
 //
 struct Generator {
     virtual void write(std::string const& str) {
@@ -32,33 +32,32 @@ struct Generator {
 };
 
 
-struct Node {
-    virtual ~Node() {}
+struct GNode {
+    virtual ~GNode() {}
 
     virtual void generate(Generator& generator) = 0;
 };
 
-struct Branch: public Node {
-    template<typename... Args>
-    Branch() {
-    }
+struct Branch: public GNode {
+    Branch() {}
+
     ~Branch() {
-        for(Node* node: children) {
+        for(GNode* node: children) {
             delete node;
         }
     }
 
     virtual void generate(Generator& generator) {
-        for(Node* node: children) {
+        for(GNode* node: children) {
             node->generate(generator);
         }
     }
 
-    Array<Node*> children;
+    Array<GNode*> children;
 };
 
 
-struct Leaf: public Node {};
+struct Leaf: public GNode {};
 
 //
 // Leaf
@@ -114,7 +113,7 @@ struct Multiple: public Branch {
         int idx = distrib(gen);
         
         for(int i = s; i < idx; i++) {
-            for(Node* node: children) {
+            for(GNode* node: children) {
                 node->generate(generator);
             }
         }
@@ -144,13 +143,23 @@ struct Either: public Branch {
  
 };
 
-struct Body: public Branch {};
+struct Body: public Branch {
+    Body();
+};
+
+struct Group: public Branch {
+    Group(Str const& group):
+        group(group)
+    {}
+
+    Str group;
+};
 
 //
 struct Indent: public Branch {
     virtual void generate(Generator& generator) {
         generator.indent += 1;
-        for(Node* node: children) {
+        for(GNode* node: children) {
             node->generate(generator);
         }
         generator.indent -= 1;
@@ -173,6 +182,22 @@ struct Atom: public Leaf {
     }
 
     char c;
+};
+
+struct Expr: public Branch {
+    Expr();
+};
+
+struct Stmt: public Branch {
+    Stmt();
+};
+
+struct Mod: public Branch {
+    Mod();
+};
+
+struct Pattern: public Branch {
+    Pattern();
 };
 
 struct Call: public Branch {
@@ -202,169 +227,17 @@ struct Docstring: public Leaf {
     Str docstring;
 };
 
-
-/*
--- ASDL's 4 builtin types are:
--- identifier, int, string, constant
-* /
-namespace Python
-{
-    mod = Module(stmt* body, type_ignore* type_ignores)
-        | Interactive(stmt* body)
-        | Expression(expr body)
-        | FunctionType(expr* argtypes, expr returns)
-
-    stmt = FunctionDef(identifier name, arguments args,
-                       stmt* body, expr* decorator_list, expr? returns,
-                       string? type_comment, type_param* type_params)
-          | AsyncFunctionDef(identifier name, arguments args,
-                             stmt* body, expr* decorator_list, expr? returns,
-                             string? type_comment, type_param* type_params)
-
-          | ClassDef(identifier name,
-             expr* bases,
-             keyword* keywords,
-             stmt* body,
-             expr* decorator_list,
-             type_param* type_params)
-          | Return(expr? value)
-;
-          | Delete(expr* targets)
-          | Assign(expr* targets, expr value, string? type_comment)
-          | TypeAlias(expr name, type_param* type_params, expr value)
-          | AugAssign(expr target, operator op, expr value)
-          -- 'simple' indicates that we annotate simple name without parens
-          | AnnAssign(expr target, expr annotation, expr? value, int simple)
-
-          -- use 'orelse' because else is a keyword in target languages
-          | For(expr target, expr iter, stmt* body, stmt* orelse, string? type_comment)
-          | AsyncFor(expr target, expr iter, stmt* body, stmt* orelse, string? type_comment)
-          | While(expr test, stmt* body, stmt* orelse)
-          | If(expr test, stmt* body, stmt* orelse)
-          | With(withitem* items, stmt* body, string? type_comment)
-          | AsyncWith(withitem* items, stmt* body, string? type_comment)
-
-          | Match(expr subject, match_case* cases)
-
-          | Raise(expr? exc, expr? cause)
-          | Try(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
-          | TryStar(stmt* body, excepthandler* handlers, stmt* orelse, stmt* finalbody)
-          | Assert(expr test, expr? msg)
-
-          | Import(alias* names)
-          | ImportFrom(identifier? module, alias* names, int? level)
-
-          | Global(identifier* names)
-          | Nonlocal(identifier* names)
-          | Expr(expr value)
-          | Pass | Break | Continue
-
-          -- col_offset is the byte offset in the utf8 string the parser uses
-          attributes (int lineno, int col_offset, int? end_lineno, int? end_col_offset)
-
-          -- BoolOp() can use left & right?
-    expr = BoolOp(boolop op, expr* values)
-         | NamedExpr(expr target, expr value)
-         | BinOp(expr left, operator op, expr right)
-         | UnaryOp(unaryop op, expr operand)
-         | Lambda(arguments args, expr body)
-         | IfExp(expr test, expr body, expr orelse)
-         | Dict(expr* keys, expr* values)
-         | Set(expr* elts)
-         | ListComp(expr elt, comprehension* generators)
-         | SetComp(expr elt, comprehension* generators)
-         | DictComp(expr key, expr value, comprehension* generators)
-         | GeneratorExp(expr elt, comprehension* generators)
-         -- the grammar constrains where yield expressions can occur
-         | Await(expr value)
-         | Yield(expr? value)
-         | YieldFrom(expr value)
-         -- need sequences for compare to distinguish between
-         -- x < 4 < 3 and (x < 4) < 3
-         | Compare(expr left, cmpop* ops, expr* comparators)
-         | Call(expr func, expr* args, keyword* keywords)
-         | FormattedValue(expr value, int conversion, expr? format_spec)
-         | JoinedStr(expr* values)
-         | Constant(constant value, string? kind)
-
-         -- the following expression can appear in assignment context
-         | Attribute(expr value, identifier attr, expr_context ctx)
-         | Subscript(expr value, expr slice, expr_context ctx)
-         | Starred(expr value, expr_context ctx)
-         | Name(identifier id, expr_context ctx)
-         | List(expr* elts, expr_context ctx)
-         | Tuple(expr* elts, expr_context ctx)
-
-         -- can appear only in Subscript
-         | Slice(expr? lower, expr? upper, expr? step)
-
-          -- col_offset is the byte offset in the utf8 string the parser uses
-          attributes (int lineno, int col_offset, int? end_lineno, int? end_col_offset)
-
-    expr_context = Load | Store | Del
-
-    boolop = And | Or
-
-    operator = Add | Sub | Mult | MatMult | Div | Mod | Pow | LShift
-                 | RShift | BitOr | BitXor | BitAnd | FloorDiv
-
-    unaryop = Invert | Not | UAdd | USub
-
-    cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
-
-    comprehension = (expr target, expr iter, expr* ifs, int is_async)
-
-    excepthandler = ExceptHandler(expr? type, identifier? name, stmt* body)
-                    attributes (int lineno, int col_offset, int? end_lineno, int? end_col_offset)
-
-    arguments = (arg* posonlyargs, arg* args, arg? vararg, arg* kwonlyargs,
-                 expr* kw_defaults, arg? kwarg, expr* defaults)
-
-    arg = (identifier arg, expr? annotation, string? type_comment)
-           attributes (int lineno, int col_offset, int? end_lineno, int? end_col_offset)
-
-    -- keyword arguments supplied to call (NULL identifier for **kwargs)
-    keyword = (identifier? arg, expr value)
-               attributes (int lineno, int col_offset, int? end_lineno, int? end_col_offset)
-
-    -- import name with optional 'as' alias.
-    alias = (identifier name, identifier? asname)
-             attributes (int lineno, int col_offset, int? end_lineno, int? end_col_offset)
-
-    withitem = (expr context_expr, expr? optional_vars)
-
-    match_case = (pattern pattern, expr? guard, stmt* body)
-
-    pattern = MatchValue(expr value)
-            | MatchSingleton(constant value)
-            | MatchSequence(pattern* patterns)
-            | MatchMapping(expr* keys, pattern* patterns, identifier? rest)
-            | MatchClass(expr cls, pattern* patterns, identifier* kwd_attrs, pattern* kwd_patterns)
-
-            | MatchStar(identifier? name)
-            -- The optional "rest" MatchMapping parameter handles capturing extra mapping keys
-
-            | MatchAs(pattern? pattern, identifier? name)
-            | MatchOr(pattern* patterns)
-
-             attributes (int lineno, int col_offset, int end_lineno, int end_col_offset)
-
-    type_ignore = TypeIgnore(int lineno, string tag)
-
-    type_param = TypeVar(identifier name, expr? bound)
-               | ParamSpec(identifier name)
-               | TypeVarTuple(identifier name)
-               attributes (int lineno, int col_offset, int end_lineno, int end_col_offset)
-}
-*/
-
-
 }
 
 
 namespace lython {
 
 struct Builder {
+    static Builder make(Str const& name) {
+        Builder self(new Group(name));
+        return self;
+    }
+
     Builder(Branch* parent) {
         stack.push_back(parent);
     }
@@ -379,7 +252,10 @@ struct Builder {
     template<typename T, typename...Args>
     Builder& branch(Args... args) {
         Branch* b = new T(args...);
-        (*stack.rbegin())->children.push_back(b);
+
+        Branch* node = *stack.rbegin();
+        node->children.push_back(b);
+
         stack.push_back(b);
         return *this;
     }
@@ -403,7 +279,22 @@ struct Builder {
     SHORTCUT(indent, Indent, branch);
     SHORTCUT(body, Body, branch);
     SHORTCUT(newline, Newline, leaf);
+    SHORTCUT(group, Group, branch);
+    SHORTCUT(expr, Expr, branch);
+    SHORTCUT(mod, Mod, branch);
+    SHORTCUT(stmt, Stmt, branch);
+    SHORTCUT(function, FunctionDef, branch);
+    SHORTCUT(pattern, Pattern, branch);
 
+
+    Builder& expect(GNode* b) {
+        (*stack.rbegin())->children.push_back(b);
+        return *this;
+    }
+
+    Branch* finish() {
+        return stack[0];
+    }
 
     Builder& end() {
         stack.pop_back();
@@ -414,8 +305,203 @@ struct Builder {
 };
 
 
+Branch* boolop() { 
+    return Builder::make("boolop")
+        .either()
+            .keyword("and")
+            .keyword("or")
+        .end()
+    .finish();
+}
+Branch* binop() {
+    return  Builder::make("operator")
+        .either()
+            .keyword("+")
+            .keyword("-")
+            .keyword("*")
+            .keyword("@")
+            .keyword("/")
+            .keyword("%")
+            .keyword("**")
+            .keyword("<<")
+            .keyword(">>")
+            .keyword("|")
+            .keyword("^")
+            .keyword("&")
+            .keyword("//")
+        .end()
+    .finish();
+}
+
+Branch* unaryop() {
+    return Builder::make("unaryop")
+        .either()
+            .keyword("~")
+            .keyword("!")
+            .keyword("+")
+            .keyword("-")
+        .end()
+    .finish();
+}
+
+
+Branch* comparison() { 
+    return Builder::make("comparison")
+        .either()
+            .keyword("==")
+            .keyword("!=")
+            .keyword("<")
+            .keyword("<=")
+            .keyword(">")
+            .keyword(">=")
+            .keyword("is")
+            .keyword("is not")
+            .keyword("in")
+            .keyword("not in")
+        .end()
+    .finish();
+}
+
+Expr::Expr() {
+    //
+    //  Python Expression
+    //
+    Builder(this).either()
+        // <expr> <boolop> <expr>
+        .group("boolop").end()
+        // <name> := <expr>
+        .group("namedexpr").end()
+        .group("binop").expr().expect(binop()).expr().end()
+        // <unary> <expr>
+        // + (2 + 2)
+        // - a
+        // ~ a
+        // ! a
+        .group("unaryop").expect(unaryop()).expr().end()
+        // <expr> (<comp> epxr)+
+        .group("compare").end()
+        // lamba <args>: <expr>
+        .group("lambda").end()
+        // <expr> if <cond> else <expr>
+        .group("ifexp").expr().keyword("if").expr().keyword("else").expr().end()
+        // {<key>: <value> for <val> in <iter> (if <cond>)*}
+        .group("dict").end()
+        .group("set").end()
+        .group("listcomp").end()
+        .group("setcomp").end()
+        .group("dictcomp").end()
+        .group("generatorexp").end()
+        .group("await").end()
+        .group("yield").end()
+        .group("yield_from").end()
+        .group("call").end()
+        .group("formatte_value").end()
+        .group("joined_str").end()
+        .group("constant").end()
+        .group("attribute").end()
+        .group("subscript").end()
+        .group("starred").end()
+        .group("name").end()
+        .group("list").end()
+        .group("tuple").end()
+        .group("slice").end()
+    .end();
+}
+
+Body::Body() {
+    Builder(this)
+        .multiple().stmt()
+    .end();
+}
+
+Pattern::Pattern() {
+    Builder(this).either()
+        .group("match_value").end()
+        .group("match_singleton").end()
+        .group("match_sequence").end()
+        .group("match_mapping").end()
+        .group("match_class").end()
+        .group("match_star").end()
+        .group("match_as").end()
+        .group("match_or").end()
+    .end();
+}
+
+
+Stmt::Stmt() {
+    //
+    // Pyton Statement
+    //
+    Builder(this).either()
+        // funcrion & async
+        .group("functiondef").function().end()
+        .group("classdef").end()
+        // return <expr>?
+        .group("return")
+            .keyword("return")
+                .option().expr().end()
+            .end()
+        .end()
+        // del <expr>?
+        .group("delete")
+            .keyword("del")
+                .option().expr().end()
+            .end()
+        .end()
+        // <name> = <expr>
+        .group("assign").end()
+        // ignore this
+        .group("typealias").end()
+        // <name> <op>= <expr>
+        .group("aug_assign").end()
+        // <name>: <type> = <expr>
+        .group("ann_assign").end()
+        .group("for").end()
+        .group("while").end()
+        .group("if").end()
+        .group("with").end()
+        .group("match").end()
+        .group("raise").end()
+        .group("try").end()
+        .group("try_star").end()
+        .group("assert").end()
+        .group("import").end()
+        .group("import_from").end()
+        .group("global").end()
+        .group("nonlocal").end()
+        // any expression
+        .group("expr").expr().end()
+        .group("pass").keyword("pass").end()
+        .group("break").keyword("break").end()
+        .group("continue").keyword("continue").end()
+    .end();
+}
+
+Mod::Mod() {
+    //
+    //  Python Module
+    //
+    Builder(this).either()
+        // Module
+        .group("module")
+            .multiple().body().end()
+            .end()
+        // Interactive
+        .group("interactive")
+            .end()
+        // Expression
+        .group("expression")
+            .expr()
+            .end()
+        // FunctionType
+        .group("function_type")
+            .multiple().expr().end().keyword(" -> ").expr()
+            .end()
+    .end();
+}
+
 FunctionDef::FunctionDef() {
-        Builder(this)
+    Builder(this)
         .option()
             .multiple()
                 .atom('@').call().end().newline()
