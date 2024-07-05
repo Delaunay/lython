@@ -21,6 +21,10 @@ using Array = std::vector<T>;
 // Base GNode
 //
 struct Generator {
+    Generator():
+        gen(std::random_device()())
+    {}
+
     virtual void write(std::string const& str) {
         if (newline) {
             std::cout << Str(4 * indent, ' ');
@@ -31,6 +35,32 @@ struct Generator {
 
     bool newline = false;
     int indent = 0;
+
+    // generate a random number
+    template<typename T>
+    int next(T& distribution) {
+        if (replay) {
+            int value = (*replay_path.rbegin());
+            replay_path.pop_back();
+            return value;
+        }
+        int value = distribution(prng());
+        path.push_back(value);
+        return value;
+    }
+
+    void set_replay(std::vector<int> const& replay_vector) {
+        replay_path = replay_vector;
+        replay = true;
+    }
+
+private:
+    std::mt19937& prng() {  return gen; }
+
+    bool replay = false;
+    std::vector<int> replay_path;
+    std::vector<int> path;
+    std::mt19937 gen;
 };
 
 
@@ -98,6 +128,14 @@ struct Keyword: public Leaf {
     }
 };
 
+struct String: public Leaf {
+    virtual void generate(Generator& generator) {
+        generator.write("\"");
+        generator.write("random string");
+        generator.write("\"");
+    }
+};
+
 //
 // Branch
 //
@@ -106,13 +144,9 @@ struct Arguments: public Branch {};
 
 struct Optional: public Branch {
     virtual void generate(Generator& generator) {
-        std::random_device rd;
-        std::mt19937 gen(rd()); 
         std::uniform_int_distribution<> distrib(0, 1);
+        int idx = generator.next(distrib);
 
-        int idx = distrib(gen);
-
-    
         if (idx > 0) {
             Branch::generate(generator);
         }
@@ -126,12 +160,14 @@ struct Multiple: public Branch {
         s(0), e(e)
     {}
 
+    Multiple(int s, int e):
+        s(s), e(e)
+    {}
+
     virtual void generate(Generator& generator) {
-        std::random_device rd;
-        std::mt19937 gen(rd()); 
         std::uniform_int_distribution<> distrib(s, e);
-        int idx = distrib(gen);
-        
+        int idx = generator.next(distrib);
+
         for(int i = s; i < idx; i++) {
             for(GNode* node: children) {
                 node->generate(generator);
@@ -147,20 +183,13 @@ struct Either: public Branch {
     Either() { }
 
     virtual void generate(Generator& generator) {
-        std::random_device rd;
-        std::mt19937 gen(rd()); 
         std::uniform_int_distribution<> distrib(0, int(children.size()) - 1);
-
-        int idx = distrib(gen);
-        
-        // std::cout << children.size() << std::endl;
+        int idx = generator.next(distrib);
 
         if (children.size() > 0) {
             children[idx]->generate(generator);
         }
-    }
-
- 
+    } 
 };
 
 struct Body: public Branch {
@@ -187,17 +216,20 @@ struct Indent: public Branch {
 };
 
 struct Atom: public Leaf {
-    Atom(char c):
+    Atom(char ch)
+    {
+        c += ch;
+    }
+
+    Atom(Str c):
         c(c)
     {}
 
     virtual void generate(Generator& generator) {
-        Str ss;
-        ss += c;
-        generator.write(ss);
+        generator.write(c);
     }
 
-    char c;
+    Str c;
 };
 
 struct Expr: public Branch {
@@ -225,6 +257,31 @@ struct Call: public Branch {
 struct Args: public Branch {
     virtual void generate(Generator& generator) {
         generator.write("x, y, z");
+    }
+};
+
+struct Join: public Branch {
+    Join(Str const& sep, int e=2):
+        sep(sep), s(0), e(e)
+    {}
+    Str sep;
+    int s;
+    int e;
+
+    virtual void generate(Generator& generator) {
+        std::uniform_int_distribution<> distrib(s, e);
+        int idx = generator.next(distrib);
+
+        int k = 0;
+        for (int i = s; i < e; i++) {
+            for(GNode* node: children) {
+                if (k != 0) {
+                    generator.write(sep);
+                }
+                node->generate(generator);
+                k += 1;
+            }
+        }
     }
 };
 
@@ -342,6 +399,12 @@ struct Builder {
     SHORTCUT(mod, Mod, branch);
     SHORTCUT(pattern, Pattern, branch);
     SHORTCUT(group, Group, branch);
+    SHORTCUT(string, String, leaf);
+    SHORTCUT(join, Join, branch);
+
+    Builder& one_or_more(int limit) {   return multiple(1, limit); }
+    Builder& none_or_more(int limit) {   return multiple(0, limit); }
+
 
 #define HELPER(name)                                            \
     Builder& name() {                                           \
@@ -406,8 +469,7 @@ Branch* binop() {
 
 Branch* unaryop() {
     return Builder::make("unaryop", [](Builder& self){
-        self
-        .either()
+        self.either()
             .keyword("~")
             .keyword("!")
             .keyword("+")
@@ -419,8 +481,7 @@ Branch* unaryop() {
 
 Branch* comparison() { 
     return Builder::make("comparison", [](Builder& self){
-        self
-        .either()
+        self.either()
             .keyword("==")
             .keyword("!=")
             .keyword("<")
@@ -442,10 +503,17 @@ Branch* expr() {
     return Builder::make("expression", [](Builder& self){
         self.either()
         // <expr> <boolop> <expr>
-        .group("boolop").end()
+        .group("boolop")
+            .expr().expect(boolop()).expr()
+            .end()
         // <name> := <expr>
-        .group("namedexpr").end()
-        .group("binop").expr().expect(binop()).expr().end()
+        .group("namedexpr")
+            .identifier().atom(" := ").expr()
+            .end()
+        // <expr> <binop> <expr>
+        .group("binop")
+            .expr().expect(binop()).expr()
+            .end()
         // <unary> <expr>
         // + (2 + 2)
         // - a
@@ -458,27 +526,40 @@ Branch* expr() {
         .group("lambda").end()
         // <expr> if <cond> else <expr>
         .group("ifexp").expr().keyword("if").expr().keyword("else").expr().end()
-        // {<key>: <value> for <val> in <iter> (if <cond>)*}
-        .group("dict").end()
-        .group("set").end()
-        .group("listcomp").end()
-        .group("setcomp").end()
-        .group("dictcomp").end()
-        .group("generatorexp").end()
-        .group("await").end()
-        .group("yield").end()
-        .group("yield_from").end()
+        .group("await").keyword("await").expr().end()
+        .group("yield").keyword("yield").expr().end()
+        .group("yield_from").keyword("yield from").expr().end()
         .group("call").end()
         .group("formatte_value").end()
         .group("joined_str").end()
         .group("constant").end()
-        .group("attribute").end()
+        .group("attribute")
+            .expr().atom(".").identifier()
+            .end()
         .group("subscript").end()
         .group("starred").end()
-        .group("name").end()
-        .group("list").end()
-        .group("tuple").end()
+        .group("name").identifier().end()
+        .group("list")
+            .atom("[")
+                .join(", ").expr().end()
+            .atom("]").end()
         .group("slice").end()
+        .group("tuple")
+            .atom("(")
+                .join(", ").expr().end()
+            .atom(")").end()
+        .group("dict")
+            .atom("{")
+                .join(", ").expr().atom(": ").expr().end()
+            .atom("}").end()
+        .group("set")
+            .atom("{")
+                .join(", ").expr().end()
+            .atom("}").end()
+        .group("listcomp").end()
+        .group("setcomp").end()
+        .group("dictcomp").end()
+        .group("generatorexp").end()
     .end();
     });
 }
@@ -520,20 +601,26 @@ Branch* statement() {
             .group("return")
                 .keyword("return")
                     .option().expr().end()
-            .end()
+                .end()
             // del <expr>?
             .group("delete")
                 .keyword("del")
                     .option().expr().end()
                 .end()
             // <name> = <expr>
-            .group("assign").end()
+            .group("assign")
+                .identifier().atom(" = ").expr()
+                .end()
             // ignore this
             .group("typealias").end()
             // <name> <op>= <expr>
-            .group("aug_assign").end()
+            .group("aug_assign")
+                .identifier().expect(binop()).atom("=").expr()
+                .end()
             // <name>: <type> = <expr>
-            .group("ann_assign").end()
+            .group("ann_assign")
+                .identifier().atom(": ").identifier().atom(" = ").expr()
+                .end()
             .group("for").end()
             .group("while").end()
             .group("if").end()
@@ -542,9 +629,16 @@ Branch* statement() {
             .group("raise").end()
             .group("try").end()
             .group("try_star").end()
-            .group("assert").end()
-            .group("import").end()
-            .group("import_from").end()
+            .group("assert")
+                .keyword("assert").expr().atom(", ").string()
+                .end()
+            .group("import")
+                .keyword("import")
+                .end()
+            .group("import_from")
+                .keyword("from")
+                .keyword("import")
+                .end()
             .group("global").end()
             .group("nonlocal").end()
             // any expression
