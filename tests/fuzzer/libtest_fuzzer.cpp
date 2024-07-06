@@ -468,8 +468,8 @@ int main(int argc, const char* argv[])
         return true;
     };
 
-#if 0
-    lython::Branch* def = lython::bool_();
+#if 1
+    lython::Branch* def = lython::number();
     
     for (int i = 0; i < 1; i++) {
         lython::Generator gen;

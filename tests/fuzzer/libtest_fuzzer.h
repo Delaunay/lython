@@ -89,6 +89,7 @@ Branch* unaryop();
 Branch* binop();
 Branch* boolop();
 Branch* callargs();
+Branch* number();
 
 //
 //
@@ -142,7 +143,7 @@ struct Generator {
     }
 
     bool done() {
-        return fetch_depth() < 20;
+        return fetch_depth() > 20;
     }
 
 
@@ -441,7 +442,7 @@ struct Builder {
     SHORTCUT(string, String, leaf);
     SHORTCUT(join, Join, branch);
 
-    Builder& one_or_more(int limit) {   return multiple(1, limit); }
+    Builder& one_or_more(int limit) {   return multiple(0, limit + 1); }
     Builder& none_or_more(int limit) {   return multiple(0, limit); }
 
 

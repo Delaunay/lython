@@ -136,7 +136,7 @@ Branch* joined_str() {
 
 Branch* number() {
     return Builder::make("constant", [](Builder& self){
-        self.multiple().either()
+        self.one_or_more(12).either()
             .atom("0")
             .atom("1")
             .atom("2")
