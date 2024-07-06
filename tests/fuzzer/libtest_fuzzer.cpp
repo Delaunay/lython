@@ -18,7 +18,7 @@ int main()
     
     for (int i = 0; i < 1; i++) {
         lython::Generator gen;
-        def->generate(gen);
+        def->generate(gen, 0);
         gen.write("\n\n");
     }
 

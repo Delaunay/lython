@@ -136,6 +136,16 @@ struct Generator {
         replay = true;
     }
 
+    static int& fetch_depth() {
+        static int depth = 0;
+        return depth;
+    }
+
+    bool done() {
+        return fetch_depth() < 20;
+    }
+
+
 private:
     std::mt19937& prng() {  return gen; }
 
@@ -148,7 +158,7 @@ private:
 struct GNode {
     virtual ~GNode() {}
 
-    virtual void generate(Generator& generator) = 0;
+    virtual void generate(Generator& generator, int depth) = 0;
 };
 
 struct Branch: public GNode {
@@ -162,9 +172,9 @@ struct Branch: public GNode {
         }
     }
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         for(GNode* node: children) {
-            node->generate(generator);
+            node->generate(generator, depth + 1);
         }
     }
 
@@ -179,13 +189,13 @@ struct Leaf: public GNode {};
 //
 
 struct Identifier: public Leaf {
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.write("identifier");
     }
 };
 
 struct Newline: public Leaf {
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.write("\n");
         generator.newline = true;
         // generator.write(Str(' ', generator.indent * 4));
@@ -198,14 +208,14 @@ struct Keyword: public Leaf {
     {}
     Str keyword;
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.write(keyword);
         generator.write(" ");
     }
 };
 
 struct String: public Leaf {
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.write("\"");
         generator.write("random string");
         generator.write("\"");
@@ -218,12 +228,12 @@ struct String: public Leaf {
 
 
 struct Optional: public Branch {
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         std::uniform_int_distribution<> distrib(0, 1);
         int idx = generator.next(distrib);
 
-        if (idx > 0) {
-            Branch::generate(generator);
+        if (idx > 0 && !generator.done()) {
+            Branch::generate(generator, depth + 1);
         }
     }
 };
@@ -239,13 +249,17 @@ struct Multiple: public Branch {
         s(s), e(e)
     {}
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         std::uniform_int_distribution<> distrib(s, e);
         int idx = generator.next(distrib);
 
         for(int i = s; i < idx; i++) {
             for(GNode* node: children) {
-                node->generate(generator);
+                node->generate(generator, depth + 1);
+            }
+
+            if (generator.done()) {
+                return;
             }
         }
     }
@@ -257,12 +271,12 @@ struct Multiple: public Branch {
 struct Either: public Branch {
     Either() { }
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         std::uniform_int_distribution<> distrib(0, int(children.size()) - 1);
         int idx = generator.next(distrib);
 
         if (children.size() > 0) {
-            children[idx]->generate(generator);
+            children[idx]->generate(generator, depth + 1);
         }
     } 
 };
@@ -277,10 +291,10 @@ struct Group: public Branch {
 
 //
 struct Indent: public Branch {
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.indent += 1;
         for(GNode* node: children) {
-            node->generate(generator);
+            node->generate(generator, depth + 1);
         }
         generator.indent -= 1;
     }
@@ -296,7 +310,7 @@ struct Atom: public Leaf {
         c(c)
     {}
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.write(c);
     }
 
@@ -312,7 +326,7 @@ struct Join: public Branch {
     int s;
     int e;
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         std::uniform_int_distribution<> distrib(s, e);
         int idx = generator.next(distrib);
 
@@ -322,7 +336,7 @@ struct Join: public Branch {
                 if (k != 0) {
                     generator.write(sep);
                 }
-                node->generate(generator);
+                node->generate(generator, depth + 1);
                 k += 1;
             }
         }
@@ -335,7 +349,7 @@ struct Docstring: public Leaf {
         docstring(str)
     {}
 
-    virtual void generate(Generator& generator) {
+    virtual void generate(Generator& generator, int depth) {
         generator.write("\"\"\"");
         generator.write(docstring);
         generator.write("\"\"\"");
@@ -371,17 +385,18 @@ struct Forest {
     Array<Pair> trees;
 };
 
-
 struct Builder {
     static Branch* make(Str const& name, std::function<void(Builder&)> lazy) {
         Forest& forest = Forest::forest();
         Branch* b = forest.get<Group>(name, lazy, name);
-        Builder self(b);
         return b;
     }
 
     Builder(Branch* parent) {
         stack.push_back(parent);
+    }
+
+    ~Builder() {
     }
     
     template<typename T, typename...Args>
