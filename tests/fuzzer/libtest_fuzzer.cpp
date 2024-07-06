@@ -468,7 +468,7 @@ int main(int argc, const char* argv[])
         return true;
     };
 
-#if 1
+#if 0
     lython::Branch* def = lython::number();
     
     for (int i = 0; i < 1; i++) {

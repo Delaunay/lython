@@ -44,7 +44,8 @@ build-development-win32:
 	cmake --preset default
 	cmake --build --preset development
 
-
+# git submodule update --init
+# pip install conan cmake gcovr
 build-debug:
 	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/debug
 	cmake --preset conan-debug
