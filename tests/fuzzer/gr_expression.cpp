@@ -102,6 +102,8 @@ Branch* yield_from() {
 
 Branch* callargs() {
    return Builder::make("callargs", [](Builder& self){
+        // <expr>*, <*<expr>>?, (<identifier> = <expr>)*, <**expr>?
+        //  call(1, 2, 3, *args, key=4, key2=5, **kwargs)
         self
             .join(", ")
                 .multiple().expr().end()
@@ -134,9 +136,9 @@ Branch* joined_str() {
     });
 }
 
-Branch* number() {
-    return Builder::make("constant", [](Builder& self){
-        self.one_or_more(12).either()
+Branch* digit() {
+    return Builder::make("digit", [](Builder& self){
+        self.either()
             .atom("0")
             .atom("1")
             .atom("2")
@@ -147,7 +149,99 @@ Branch* number() {
             .atom("7")
             .atom("8")
             .atom("9")
-        .end().end();
+        .end();
+    });
+}
+
+Branch* number() {
+    // Number with no leading 0
+    // we do not want to generate 0000123
+    // FIXMEL but currently it cannot generate just 0
+    return Builder::make("number", [](Builder& self){
+        self
+        .either()
+            .atom("0")
+            .group("non_zero")
+                .either()
+                    .atom("1")
+                    .atom("2")
+                    .atom("3")
+                    .atom("4")
+                    .atom("5")
+                    .atom("6")
+                    .atom("7")
+                    .atom("8")
+                    .atom("9")
+                .end()
+                .multiple().expect(digit()).end()
+            .end()
+        .end();
+    });
+}
+
+Branch* octal() {
+    return Builder::make("octal", [](Builder& self){
+        // Max octal = 37777777777 (11 digits)
+        self.atom("0o")
+            .one_or_more(11)
+                .either()
+                    .atom("0")
+                    .atom("1")
+                    .atom("2")
+                    .atom("3")
+                    .atom("4")
+                    .atom("5")
+                    .atom("6")
+                    .atom("7")
+                .end()
+            .end();
+    });
+}
+
+Branch* hex() {
+    return Builder::make("hex", [](Builder& self){
+        self.atom("0x")
+            .one_or_more(8)
+                .either()
+                    .expect(digit())
+                    .atom("a")
+                    .atom("b")
+                    .atom("c")
+                    .atom("d")
+                    .atom("e")
+                    .atom("f")
+                .end()
+            .end();
+    });
+}
+
+Branch* binary_num() {
+    return Builder::make("binary_num", [](Builder& self){
+        self.atom("0b")
+            .one_or_more(32)
+                .either()
+                    .atom("0")
+                    .atom("1")
+                .end()
+            .end();
+    });
+}
+
+Branch* float_() {
+    return Builder::make("float_", [](Builder& self){
+        self.expect(number()).atom(".").expect(number());
+    });
+}
+
+Branch* scientific() {
+    return Builder::make("scientific", [](Builder& self){
+        self.either()
+            .expect(float_())
+            .expect(number())
+        .end()
+            .atom("e")
+            .option().either().atom("+").atom("-").end().end()
+            .expect(number());
     });
 }
 
@@ -156,11 +250,29 @@ Branch* constant() {
         self.either()
             // number
             .expect(number())
+            // Oct number       0o1
+            .expect(octal())
+            // Hex number       0x1
+            .expect(hex())
+            // Binary number    0b1
+            .expect(binary_num())
             // string
             .string()
             // float
-
+            .expect(float_())
+            // Scientific notation
+            .expect(scientific())
+            // bool
+            .atom("True")
+            .atom("False")
+            .atom("None")
             // tuples with constant
+            .group("tuple_constant")
+                .atom("(")
+                    .join(", ")
+                        .expect(constant())
+                    .end()
+                .atom(")")
         .end();
     });
 }
@@ -261,27 +373,27 @@ Branch* generatorexp() {
 Branch* boolop() { 
     return Builder::make("boolop", [](Builder& self){
         self.either()
-            .keyword(" and")
-            .keyword(" or")
+            .atom(" and")
+            .atom(" or")
         .end();
     });
 }
 Branch* binop() {
     return  Builder::make("operator", [](Builder& self){
         self.either()
-            .keyword(" +")
-            .keyword(" -")
-            .keyword(" *")
-            .keyword(" @")
-            .keyword(" /")
-            .keyword(" %")
-            .keyword(" **")
-            .keyword(" <<")
-            .keyword(" >>")
-            .keyword(" |")
-            .keyword(" ^")
-            .keyword(" &")
-            .keyword(" //")
+            .atom(" +")
+            .atom(" -")
+            .atom(" *")
+            .atom(" @")
+            .atom(" /")
+            .atom(" %")
+            .atom(" **")
+            .atom(" <<")
+            .atom(" >>")
+            .atom(" |")
+            .atom(" ^")
+            .atom(" &")
+            .atom(" //")
         .end();
     });
 }
@@ -289,10 +401,10 @@ Branch* binop() {
 Branch* unaryop() {
     return Builder::make("unaryop", [](Builder& self){
         self.either()
-            .keyword(" ~")
-            .keyword(" !")
-            .keyword(" +")
-            .keyword(" -")
+            .atom(" ~")
+            .atom(" !")
+            .atom(" +")
+            .atom(" -")
         .end();
     });
 }
@@ -301,16 +413,16 @@ Branch* unaryop() {
 Branch* compop() { 
     return Builder::make("compop", [](Builder& self){
         self.either()
-            .keyword(" ==")
-            .keyword(" !=")
-            .keyword(" <")
-            .keyword(" <=")
-            .keyword(" >")
-            .keyword(" >=")
-            .keyword(" is")
-            .keyword(" is not")
-            .keyword(" in")
-            .keyword(" not in")
+            .atom(" ==")
+            .atom(" !=")
+            .atom(" <")
+            .atom(" <=")
+            .atom(" >")
+            .atom(" >=")
+            .atom(" is")
+            .atom(" is not")
+            .atom(" in")
+            .atom(" not in")
         .end();
     });
 }
