@@ -25,7 +25,14 @@ SET(TEST_LIBRARIES
 # TARGET_LINK_LIBRARIES(export ${TEST_LIBRARIES})
   
 
-ADD_EXECUTABLE(fuzzer fuzzer/libtest_fuzzer_grammar.cpp ${TEST_HEADERS})
+ADD_EXECUTABLE(fuzzer 
+  fuzzer/libtest_fuzzer.cpp 
+  fuzzer/gr_expression.cpp 
+  fuzzer/gr_statement.cpp 
+  fuzzer/gr_pattern.cpp 
+  fuzzer/gr_mod.cpp 
+  ${TEST_HEADERS}
+)
 TARGET_LINK_LIBRARIES(fuzzer ${TEST_LIBRARIES})
   
 
