@@ -134,9 +134,34 @@ Branch* joined_str() {
     });
 }
 
+Branch* number() {
+    return Builder::make("constant", [](Builder& self){
+        self.multiple().either()
+            .atom("0")
+            .atom("1")
+            .atom("2")
+            .atom("3")
+            .atom("4")
+            .atom("5")
+            .atom("6")
+            .atom("7")
+            .atom("8")
+            .atom("9")
+        .end().end();
+    });
+}
+
 Branch* constant() {
     return Builder::make("constant", [](Builder& self){ 
+        self.either()
+            // number
+            .expect(number())
+            // string
+            .string()
+            // float
 
+            // tuples with constant
+        .end();
     });
 }
 
@@ -155,10 +180,11 @@ Branch* subscript() {
 
 Branch* starred() {
     return Builder::make("starred", [](Builder& self){ 
-
+        self.atom("*").identifier();
     });
 }
 
+            
 Branch* name() {
     return Builder::make("name", [](Builder& self){ 
         self.identifier();
@@ -189,8 +215,7 @@ Branch* tuple() {
 
 Branch* dict() {
     return Builder::make("dict", [](Builder& self){ 
-        self
-            .atom("{")
+        self.atom("{")
                 .join(", ").expr().atom(": ").expr().end()
             .atom("}");
     });
