@@ -19,7 +19,8 @@ using namespace lython;
 
 void ssa_it(TestCase const& testcase) {
 
-    StringBuffer reader(testcase.code);
+
+    StringBuffer reader(testcase.get_code());
     Lexer        lex(reader);
     Parser       parser(lex);
 
@@ -27,18 +28,40 @@ void ssa_it(TestCase const& testcase) {
     Module* mod = parser.parse_module();
     lyassert(mod->body.size() > 0, "Should parse more than one expression");
 
-    kwinfo(outlog(), "{}", "SSA");
-    StaticSingleAssignment ssa;
-    auto newmod = ssa.module(mod, 0);
-    Module* ssa_mod = cast<Module>(newmod);
+    // SSA inherit from the copy tree
+    {
+        using CopyWalk = TreeWalk<StaticSingleAssignment, false, SSAVisitorTrait>;
 
-    std::cout << "\n";
-    std::cout << str(mod);
-    std::cout << "\n====\n";
-    std::cout << str(ssa_mod);
-    std::cout << "\n";
+        kwinfo(outlog(), "{}", "SSA");
+        CopyWalk cpy;
+        auto newmod = cpy.module(mod, 0);
+        Module* cpy_mod = cast<Module>(newmod);
 
-    REQUIRE(str(mod) == str(ssa_mod));
+        std::cout << "\n";
+        std::cout << str(mod);
+        std::cout << "\n====\n";
+        std::cout << str(cpy_mod);
+        std::cout << "\n";
+
+        REQUIRE(str(mod) == str(cpy_mod));
+    }
+
+    // SSA
+    {
+        kwinfo(outlog(), "{}", "SSA");
+        StaticSingleAssignment ssa;
+        auto newmod = ssa.module(mod, 0);
+        Module* ssa_mod = cast<Module>(newmod);
+
+        std::cout << "\n";
+        std::cout << str(mod);
+        std::cout << "\n====\n";
+        std::cout << str(ssa_mod);
+        std::cout << "\n";
+
+        REQUIRE(str(ssa_mod) == testcase.get_one("SSA"));
+    }
+
 }
 
 void run_testcase(String const& folder, String const& name, Array<TestCase> cases) {
@@ -65,7 +88,7 @@ void run_testcase(String const& folder, String const& name, Array<TestCase> case
 #define GENTEST(name)                                               \
     TEMPLATE_TEST_CASE("SSA_" #name, #name, name) {                 \
         auto cases = get_test_cases("cases", #name);                                           \
-        run_testcase("sema", str(lython::nodekind<TestType>()), cases); \
+        run_testcase("SSA", str(lython::nodekind<TestType>()), cases); \
     }
 
 #define X(name, _)

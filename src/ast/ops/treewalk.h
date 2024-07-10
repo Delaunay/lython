@@ -186,6 +186,19 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     void body_append(StmtNode* stmt) { (*body_stack.rbegin())->push_back(stmt); }
 
     template <typename T>
+    void copy_item(int i, Array<T*>& dest, int j, Array<T*>& source, int depth, Args... args) {
+        dest[i] = copy_node(source[j], depth, args...);
+    }
+
+    template <typename T>
+    void copy_item(int i, Array<T>& dest, int j, Array<T>& source, int depth, Args... args) {
+        T tmp;
+        copy(tmp, source[j], depth, args...);
+        dest[i] = tmp;
+    }
+
+
+    template <typename T>
     void copy(Array<T>& dest, Array<T>& source, int depth, Args... args) {
         if constexpr (std::is_same_v<T, StmtNode*>) {
             body_stack.push_back(&dest);
@@ -195,16 +208,18 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         // This is UB
         if ((void*)(&dest) != (void*)(&source)) {
             // Copy array
+            // this cannot work because SSA will insert more stuff in it
             dest.reserve(source.size());
             
             for (int i = 0; i < source.size(); i++) {
+                int j = int(dest.size());
                 dest.push_back(T());
-                copy(dest[i], source[i], depth, args...);
+                copy_item(j, dest, i, source, depth, args...);
             }
         } else {
             // modify array
             for (int i = 0; i < source.size(); i++) {
-                copy(dest[i], source[i], depth, args...);
+                copy_item(i, dest, i, source, depth, args...);
             }
         }
         if constexpr (std::is_same_v<T, StmtNode*>) {
@@ -213,49 +228,49 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     // Literal
-    ExprRet dictexpr(DictExpr_t* n, int depth, Args... args) {
+    virtual ExprRet dictexpr(DictExpr_t* n, int depth, Args... args) {
         DictExpr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->keys, n->keys);
         KW_COPY(cpy->values, n->values);
         return cpy;
     }
-    ExprRet setexpr(SetExpr_t* n, int depth, Args... args) {
+    virtual ExprRet setexpr(SetExpr_t* n, int depth, Args... args) {
         SetExpr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->elts, n->elts);
         return cpy;
     }
-    ExprRet listexpr(ListExpr_t* n, int depth, Args... args) {
+    virtual ExprRet listexpr(ListExpr_t* n, int depth, Args... args) {
         ListExpr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->elts, n->elts);
         return cpy;
     }
-    ExprRet tupleexpr(TupleExpr_t* n, int depth, Args... args) {
+    virtual ExprRet tupleexpr(TupleExpr_t* n, int depth, Args... args) {
         TupleExpr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->elts, n->elts);
         return cpy;
     }
-    ExprRet constant(Constant_t* n, int depth, Args... args) { return n; }
+    virtual ExprRet constant(Constant_t* n, int depth, Args... args) { return n; }
 
     // Comprehension
-    ExprRet generateexpr(GeneratorExp_t* n, int depth, Args... args) {
+    virtual ExprRet generateexpr(GeneratorExp_t* n, int depth, Args... args) {
         GeneratorExp_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->generators, n->generators);
         KW_COPY(cpy->elt, n->elt);
         return cpy;
     }
-    ExprRet listcomp(ListComp_t* n, int depth, Args... args) {
+    virtual ExprRet listcomp(ListComp_t* n, int depth, Args... args) {
         ListComp_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->generators, n->generators);
         KW_COPY(cpy->elt, n->elt);
         return cpy;
     }
-    ExprRet setcomp(SetComp_t* n, int depth, Args... args) {
+    virtual ExprRet setcomp(SetComp_t* n, int depth, Args... args) {
         SetComp_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->generators, n->generators);
         KW_COPY(cpy->elt, n->elt);
         return cpy;
     }
-    ExprRet dictcomp(DictComp_t* n, int depth, Args... args) {
+    virtual ExprRet dictcomp(DictComp_t* n, int depth, Args... args) {
         DictComp_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->generators, n->generators);
         KW_COPY(cpy->key, n->key);
@@ -264,7 +279,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     // Expression
-    ExprRet call(Call_t* n, int depth, Args... args) {
+    virtual ExprRet call(Call_t* n, int depth, Args... args) {
         Call_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->func, n->func);
         KW_COPY(cpy->args, n->args);
@@ -273,45 +288,45 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    ExprRet namedexpr(NamedExpr_t* n, int depth, Args... args) {
+    virtual ExprRet namedexpr(NamedExpr_t* n, int depth, Args... args) {
         NamedExpr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet boolop(BoolOp_t* n, int depth, Args... args) {
+    virtual ExprRet boolop(BoolOp_t* n, int depth, Args... args) {
         BoolOp_st cpy = new_from(n, depth, args...);
         cpy->op       = n->op;
         KW_COPY(cpy->values, n->values);
         return cpy;
     }
 
-    ExprRet compare(Compare_t* n, int depth, Args... args) {
+    virtual ExprRet compare(Compare_t* n, int depth, Args... args) {
         Compare_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->left, n->left);
         KW_COPY(cpy->ops, n->ops);
         KW_COPY(cpy->comparators, n->comparators);
         return cpy;
     }
-    ExprRet binop(BinOp_t* n, int depth, Args... args) {
+    virtual ExprRet binop(BinOp_t* n, int depth, Args... args) {
         BinOp_st cpy = new_from(n, depth, args...);
         cpy->op = n->op;
         KW_COPY(cpy->left, n->left);
         KW_COPY(cpy->right, n->right);
         return cpy;
     }
-    ExprRet unaryop(UnaryOp_t* n, int depth, Args... args) {
+    virtual ExprRet unaryop(UnaryOp_t* n, int depth, Args... args) {
         UnaryOp_st cpy = new_from(n, depth, args...);
         cpy->op = n->op;
         KW_COPY(cpy->operand, n->operand);
         return cpy;
     }
-    ExprRet lambda(Lambda_t* n, int depth, Args... args) {
+    virtual ExprRet lambda(Lambda_t* n, int depth, Args... args) {
         Lambda_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
-    ExprRet ifexp(IfExp_t* n, int depth, Args... args) {
+    virtual ExprRet ifexp(IfExp_t* n, int depth, Args... args) {
         IfExp_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->body, n->body);
@@ -320,49 +335,49 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     //
-    ExprRet await(Await_t* n, int depth, Args... args) {
+    virtual ExprRet await(Await_t* n, int depth, Args... args) {
         Await_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet yield(Yield_t* n, int depth, Args... args) {
+    virtual ExprRet yield(Yield_t* n, int depth, Args... args) {
         Yield_st cpy = new_from(n, depth, args...);
         KW_COPY(n->value, n->value);
         return cpy;
     }
-    ExprRet yieldfrom(YieldFrom_t* n, int depth, Args... args) {
+    virtual ExprRet yieldfrom(YieldFrom_t* n, int depth, Args... args) {
         YieldFrom_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet joinedstr(JoinedStr_t* n, int depth, Args... args) {
+    virtual ExprRet joinedstr(JoinedStr_t* n, int depth, Args... args) {
         JoinedStr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->values, n->values);
         return cpy;
     }
-    ExprRet formattedvalue(FormattedValue_t* n, int depth, Args... args) {
+    virtual ExprRet formattedvalue(FormattedValue_t* n, int depth, Args... args) {
         FormattedValue_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         KW_COPY(cpy->format_spec, n->format_spec);
         return cpy;
     }
-    ExprRet attribute(Attribute_t* n, int depth, Args... args) {
+    virtual ExprRet attribute(Attribute_t* n, int depth, Args... args) {
         Attribute_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet subscript(Subscript_t* n, int depth, Args... args) {
+    virtual ExprRet subscript(Subscript_t* n, int depth, Args... args) {
         Subscript_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         KW_COPY(cpy->slice, n->slice);
         return cpy;
     }
-    ExprRet starred(Starred_t* n, int depth, Args... args) {
+    virtual ExprRet starred(Starred_t* n, int depth, Args... args) {
         Starred_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet slice(Slice_t* n, int depth, Args... args) {
+    virtual ExprRet slice(Slice_t* n, int depth, Args... args) {
         Slice_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->lower, n->lower);
         KW_COPY(cpy->upper, n->upper);
@@ -370,7 +385,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    ExprRet name(Name_t* n, int depth, Args... args) {
+    virtual ExprRet name(Name_t* n, int depth, Args... args) {
         Name_st cpy = new_from(n, depth, args...);
         cpy->id     = n->id;
         cpy->ctx    = n->ctx;
@@ -379,43 +394,43 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
 
     // Types
-    ExprRet dicttype(DictType_t* n, int depth, Args... args) {
+    virtual ExprRet dicttype(DictType_t* n, int depth, Args... args) {
         DictType_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->key, n->key);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet arraytype(ArrayType_t* n, int depth, Args... args) {
+    virtual ExprRet arraytype(ArrayType_t* n, int depth, Args... args) {
         ArrayType_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet arrow(Arrow_t* n, int depth, Args... args) {
+    virtual ExprRet arrow(Arrow_t* n, int depth, Args... args) {
         Arrow_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->args, n->args);
         KW_COPY(cpy->returns, n->returns);
         return cpy;
     }
-    ExprRet builtintype(BuiltinType_t* n, int depth, Args... args) {
+    virtual ExprRet builtintype(BuiltinType_t* n, int depth, Args... args) {
         BuiltinType_st cpy = new_from(n, depth, args...);
         cpy->name          = n->name;
         return cpy;
     }
-    ExprRet tupletype(TupleType_t* n, int depth, Args... args) {
+    virtual ExprRet tupletype(TupleType_t* n, int depth, Args... args) {
         TupleType_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->types, n->types);
         return cpy;
     }
-    ExprRet settype(SetType_t* n, int depth, Args... args) {
+    virtual ExprRet settype(SetType_t* n, int depth, Args... args) {
         SetType_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    ExprRet classtype(ClassType_t* n, int depth, Args... args) {
+    virtual ExprRet classtype(ClassType_t* n, int depth, Args... args) {
         ClassType_st cpy = copy_node(n, depth, args...);
         return cpy;
     }
-    ExprRet comment(Comment_t* n, int depth, Args... args) {
+    virtual ExprRet comment(Comment_t* n, int depth, Args... args) {
         Comment_st cpy = new_from(n, depth, args...);
         return cpy;
     }
@@ -423,84 +438,85 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     // JUMP
 
     // Leaves
-    StmtRet invalidstmt(InvalidStatement_t* n, int depth, Args... args) {
+    virtual StmtRet invalidstmt(InvalidStatement_t* n, int depth, Args... args) {
         kwerror(outlog(), "Invalid statement");
         return n;
     }
-    StmtRet returnstmt(Return_t* n, int depth, Args... args) {
+    virtual StmtRet returnstmt(Return_t* n, int depth, Args... args) {
         Return_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    StmtRet deletestmt(Delete_t* n, int depth, Args... args) {
+    virtual StmtRet deletestmt(Delete_t* n, int depth, Args... args) {
         Delete_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->targets, n->targets);
         return cpy;
     }
-    StmtRet assign(Assign_t* n, int depth, Args... args) {
+    virtual StmtRet assign(Assign_t* n, int depth, Args... args) {
         Assign_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->targets, n->targets);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    StmtRet augassign(AugAssign_t* n, int depth, Args... args) {
+    virtual StmtRet augassign(AugAssign_t* n, int depth, Args... args) {
         AugAssign_st cpy = new_from(n, depth, args...);
+        cpy->op = n->op;
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    StmtRet annassign(AnnAssign_t* n, int depth, Args... args) {
+    virtual StmtRet annassign(AnnAssign_t* n, int depth, Args... args) {
         AnnAssign_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->annotation, n->annotation);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    StmtRet exprstmt(Expr_t* n, int depth, Args... args) {
+    virtual StmtRet exprstmt(Expr_t* n, int depth, Args... args) {
         Expr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    StmtRet pass(Pass_t* n, int depth, Args... args) {
+    virtual StmtRet pass(Pass_t* n, int depth, Args... args) {
         Pass_st cpy = new_from(n, depth, args...);
         return cpy;
     }
-    StmtRet breakstmt(Break_t* n, int depth, Args... args) {
+    virtual StmtRet breakstmt(Break_t* n, int depth, Args... args) {
         Break_st cpy = new_from(n, depth, args...);
         return cpy;
     }
-    StmtRet continuestmt(Continue_t* n, int depth, Args... args) {
+    virtual StmtRet continuestmt(Continue_t* n, int depth, Args... args) {
         Continue_st cpy = new_from(n, depth, args...);
         return cpy;
     }
-    StmtRet assertstmt(Assert_t* n, int depth, Args... args) {
+    virtual StmtRet assertstmt(Assert_t* n, int depth, Args... args) {
         Assert_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->msg, n->msg);
         return cpy;
     }
-    StmtRet raise(Raise_t* n, int depth, Args... args) {
+    virtual StmtRet raise(Raise_t* n, int depth, Args... args) {
         Raise_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->exc, n->exc);
         KW_COPY(cpy->cause, n->cause);
         return cpy;
     }
-    StmtRet global(Global_t* n, int depth, Args... args) {
+    virtual StmtRet global(Global_t* n, int depth, Args... args) {
         Global_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->names, n->names);
         return cpy;
     }
-    StmtRet nonlocal(Nonlocal_t* n, int depth, Args... args) {
+    virtual StmtRet nonlocal(Nonlocal_t* n, int depth, Args... args) {
         Nonlocal_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->names, n->names);
         return cpy;
     }
-    StmtRet import(Import_t* n, int depth, Args... args) {
+    virtual StmtRet import(Import_t* n, int depth, Args... args) {
         Import_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->names, n->names);
         return cpy;
     }
-    StmtRet importfrom(ImportFrom_t* n, int depth, Args... args) {
+    virtual StmtRet importfrom(ImportFrom_t* n, int depth, Args... args) {
         ImportFrom_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->module, n->module);
         KW_COPY(cpy->names, n->names);
@@ -508,12 +524,12 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    StmtRet inlinestmt(Inline_t* n, int depth, Args... args) {
+    virtual StmtRet inlinestmt(Inline_t* n, int depth, Args... args) {
         Inline_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
-    StmtRet functiondef(FunctionDef_t* n, int depth, Args... args) {
+    virtual StmtRet functiondef(FunctionDef_t* n, int depth, Args... args) {
         FunctionDef_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->decorator_list, n->decorator_list);
         KW_COPY(cpy->args, n->args);
@@ -521,7 +537,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
-    StmtRet classdef(ClassDef_t* n, int depth, Args... args) {
+    virtual StmtRet classdef(ClassDef_t* n, int depth, Args... args) {
         ClassDef_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->decorator_list, n->decorator_list);
         KW_COPY(cpy->bases, n->bases);
@@ -529,7 +545,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    StmtRet forstmt(For_t* n, int depth, Args... args) {
+    virtual StmtRet forstmt(For_t* n, int depth, Args... args) {
         For_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->target, n->target);
         KW_COPY(cpy->iter, n->iter);
@@ -538,7 +554,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    StmtRet whilestmt(While_t* n, int depth, Args... args) {
+    virtual StmtRet whilestmt(While_t* n, int depth, Args... args) {
         While_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->body, n->body);
@@ -546,7 +562,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    StmtRet ifstmt(If_t* n, int depth, Args... args) {
+    virtual StmtRet ifstmt(If_t* n, int depth, Args... args) {
         If_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->test, n->test);
         KW_COPY(cpy->body, n->body);
@@ -554,13 +570,13 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    StmtRet with(With_t* n, int depth, Args... args) {
+    virtual StmtRet with(With_t* n, int depth, Args... args) {
         With_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->items, n->items);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
-    StmtRet trystmt(Try_t* n, int depth, Args... args) {
+    virtual StmtRet trystmt(Try_t* n, int depth, Args... args) {
         Try_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         KW_COPY(cpy->handlers, n->handlers);
@@ -569,73 +585,73 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return cpy;
     }
 
-    StmtRet match(Match_t* n, int depth, Args... args) {
+    virtual StmtRet match(Match_t* n, int depth, Args... args) {
         Match_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->subject, n->subject);
         KW_COPY(cpy->cases, n->cases);
         return cpy;
     }
 
-    PatRet matchvalue(MatchValue_t* n, int depth, Args... args) {
+    virtual PatRet matchvalue(MatchValue_t* n, int depth, Args... args) {
         MatchValue_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->value, n->value);
         return cpy;
     }
-    PatRet matchsingleton(MatchSingleton_t* n, int depth, Args... args) {
+    virtual PatRet matchsingleton(MatchSingleton_t* n, int depth, Args... args) {
         MatchSingleton_st cpy = new_from(n, depth, args...);
         return cpy;
     }
-    PatRet matchsequence(MatchSequence_t* n, int depth, Args... args) {
+    virtual PatRet matchsequence(MatchSequence_t* n, int depth, Args... args) {
         MatchSequence_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->patterns, n->patterns);
         return cpy;
     }
-    PatRet matchmapping(MatchMapping_t* n, int depth, Args... args) {
+    virtual PatRet matchmapping(MatchMapping_t* n, int depth, Args... args) {
         MatchMapping_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->keys, n->keys);
         KW_COPY(cpy->patterns, n->patterns);
         return cpy;
     }
-    PatRet matchclass(MatchClass_t* n, int depth, Args... args) {
+    virtual PatRet matchclass(MatchClass_t* n, int depth, Args... args) {
         MatchClass_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->cls, n->cls);
         KW_COPY(cpy->patterns, n->patterns);
         KW_COPY(cpy->kwd_patterns, n->kwd_patterns);
         return cpy;
     }
-    PatRet matchstar(MatchStar_t* n, int depth, Args... args) {
+    virtual PatRet matchstar(MatchStar_t* n, int depth, Args... args) {
         MatchStar_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->name, n->name);
         return cpy;
     }
-    PatRet matchas(MatchAs_t* n, int depth, Args... args) {
+    virtual PatRet matchas(MatchAs_t* n, int depth, Args... args) {
         MatchAs_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->pattern, n->pattern);
         KW_COPY(cpy->name, n->name);
         return cpy;
     }
-    PatRet matchor(MatchOr_t* n, int depth, Args... args) {
+    virtual PatRet matchor(MatchOr_t* n, int depth, Args... args) {
         MatchOr_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->patterns, n->patterns);
         return cpy;
     }
 
-    ModRet module(Module_t* n, int depth, Args... args) {
+    virtual ModRet module(Module_t* n, int depth, Args... args) {
         Module_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     };
-    ModRet interactive(Interactive_t* n, int depth, Args... args) {
+    virtual ModRet interactive(Interactive_t* n, int depth, Args... args) {
         Interactive_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;
     }
-    ModRet functiontype(FunctionType_t* n, int depth, Args... args) {
+    virtual ModRet functiontype(FunctionType_t* n, int depth, Args... args) {
         FunctionType_st cpy = new_from(n, depth, args...);
         return cpy;
     }
 
-    ModRet expression(Expression_t* n, int depth, Args... args) {
+    virtual ModRet expression(Expression_t* n, int depth, Args... args) {
         Expression_st cpy = new_from(n, depth, args...);
         KW_COPY(cpy->body, n->body);
         return cpy;

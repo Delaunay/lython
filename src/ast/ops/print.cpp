@@ -87,6 +87,10 @@ struct Printer: BaseVisitor<Printer, true, PrintTrait, std::ostream&, int> {
         for (auto const& stmt: body) {
             k += 1;
 
+            if (stmt == nullptr) {
+                continue;
+            }
+
             out << indent(level);
             bool printed_new_line = exec(stmt, depth, out, level);
 

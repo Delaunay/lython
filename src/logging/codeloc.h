@@ -18,12 +18,20 @@ constexpr char __source_dir[] = _SOURCE_DIRECTORY;
 // Length of the path so we can cut unimportant folders
 constexpr int __size_src_dir = sizeof(_SOURCE_DIRECTORY) / sizeof(char);
 
+inline 
+std::string small_file(std::string const& file){
+    if (file.size() < __size_src_dir) {
+        return file;
+    }
+    return file.substr(__size_src_dir);
+}
+
 struct CodeLocation {
     CodeLocation(std::string const& file,
                  std::string const& fun,
                  int                line,
                  std::string const& fun_long):
-        filename(file.substr(__size_src_dir)),
+        filename(small_file(file)),
         function_name(fun), line(line), function_long(fun_long) {}
 
     std::string filename;

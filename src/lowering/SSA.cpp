@@ -118,8 +118,7 @@ StmtRet StaticSingleAssignment::augassign(AugAssign_t* n, int depth) {
     binop->right = value;
 
     // Store target
-    new_assign(n->target, binop);
-    return nullptr;
+    return new_assign(n->target, binop);
 }
 
 
