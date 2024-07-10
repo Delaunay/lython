@@ -32,3 +32,27 @@ def a(b: bool, d: bool = True):
 # >> error:: NameError: name 'm' is not defined
 # >> error:: NameError: name 'n' is not defined
 # >> error:: NameError: name 'k' is not defined
+
+
+
+# > 
+# >> code
+@j
+def a(b, c=d, *e, f=g, **h) -> bool:
+    """docstring"""
+    return True
+# <<
+
+# >> call
+fun()# <<
+
+# > 
+# >> code
+@j(l, m, c=n)
+@k
+def a(b: bool, d: bool = True):
+    pass
+# <<
+
+# >> call
+fun()# <<

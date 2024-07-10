@@ -19,3 +19,41 @@ a -= b# <<
 
 # >> SSA
 a_#0:  = a - b# <<
+
+
+
+
+# > case: VM_Aug_Add_i32
+# >> code
+def fun(a: i32) -> i32:
+    a += 1
+    return a
+# <<
+
+# >> call
+fun(0)# <<
+
+# >> result
+1# <<
+
+
+# > 
+# >> code
+def fun(a: i32, b: i32) -> i32:
+    a += b
+    return a
+# <<
+
+# >> call
+fun(2, 1)# <<
+
+# > 
+# >> code
+def fun(a: i32, b: i32) -> i32:
+    a -= b
+    return a
+# <<
+
+# >> call
+fun(2, 1)# <<
+

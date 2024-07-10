@@ -10,3 +10,24 @@ raise a from b# <<
 raise a# <<
 
 # >> error:: NameError: name 'a' is not defined
+
+
+
+# > 
+# >> code
+def fun():
+    raise a from b
+# <<
+
+# >> call
+fun()# <<
+
+# > 
+# >> code
+def fun():
+    raise a
+# <<
+
+# >> call
+fun()# <<
+

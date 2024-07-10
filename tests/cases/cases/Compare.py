@@ -38,3 +38,75 @@ a is not b# <<
 # >> error:: NameError: name 'a' is not defined
 # >> error:: NameError: name 'b' is not defined
 # >> error:: TypeError: unsupported operand type(s) for IsNot: 'None' and 'None'
+
+
+# > case: VM_Compare_True
+# >> code
+def fun() -> bool:
+    return 1 < 2 < 3 < 4 < 5
+# <<
+
+# >> call
+fun()# <<
+
+# >> results
+True# <<
+
+
+# >> case: VM_Compare_False
+# >> code
+def fun() -> bool:
+    return 1 > 2 > 3 > 4 > 5
+# <<
+
+# >> call
+fun()# <<
+
+# >> results
+False# <<
+
+
+# > 
+# >> code
+def fun(a: i32, b: i32, c: i32, d: i32) -> bool:
+    return a < b > c != d
+# <<
+
+# >> call
+fun()# <<
+
+# > 
+# >> code
+def fun():
+    return a not in b
+# <<
+
+# >> call
+fun()# <<
+
+# > 
+# >> code
+def fun():
+    return a in b
+# <<
+
+# >> call
+fun()# <<
+
+# > 
+# >> code
+def fun():
+    return a is b
+# <<
+
+# >> call
+fun()# <<
+
+# > 
+# >> code
+def fun():
+    return a is not b
+# <<
+
+# >> call
+fun()# <<

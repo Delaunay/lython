@@ -48,7 +48,7 @@ void write_case_v2(std::ostream& out, int i, VMTestCase const& testcase) {
         if (testcase.values.size() > 0) { 
             for(Section const& sect: testcase.values) {
                 for(String const&val: sect.content) {
-                    if (sect.name == "error") {
+                    if (in(sect.name, "error", "type", "call", "result")) {
                         both_format(sect.name, val);
                         continue;
                     }
