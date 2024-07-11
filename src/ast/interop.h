@@ -8,6 +8,7 @@
 
 namespace lython {
 
+
 template<typename Sig> 
 class Interop {
 
@@ -19,9 +20,9 @@ class Interop {
 template<typename R, typename ...Args> 
 struct Interop<R(Args...)> {
     using NativeArgs = std::tuple<Args...>;
-    using ScriptValue = lython::Constant*;
+    using ScriptValue = lython::Value;
     using ScriptArgs = Array<ScriptValue>;
-    using ScriptFunction_C = ScriptValue (*)(GCObject*, R(*)(Args...), ScriptArgs const&);
+    using ScriptFunction_C = ScriptValue (*)(void*, R(*)(Args...), ScriptArgs const&);
 
     static NativeArgs from_script(ScriptArgs const& args) {
         NativeArgs arguments;
@@ -102,32 +103,25 @@ struct Interop<R(Args...)> {
 
     static ScriptFunction_C wrap() {
         // Save it to the C function type to ensure it works
-        return [](GCObject* mem, R(*fun)(Args...), ScriptArgs const& args) -> ScriptValue {  //
+        return [](void* mem, R(*fun)(Args...), ScriptArgs const& args) -> ScriptValue {  //
             // Unpack args to the correct Type into Packed
             NativeArgs arguments = from_script(args);
 
-            R* value = nullptr;
-            Constant* rval = allocate_return_value(mem, value);
+            // R* value = nullptr;
+            // Constant* rval = allocate_return_value(mem, value);
             
             // Apply the free method
-            (*value) = std::apply(  //
+            return make_value<R>(std::apply(  //
                 fun,                //
                 arguments           //
-            );
+            ));
 
             // convert the raw value to our generic constant
             // HERE
-            return rval;
+            // return rval;
         };
     }
 };
-
-template<typename R, typename ...Args> 
-FunctionDef::WrappedNativeFunction wrap_native(R(*fun)(Args...)) {
-    return [fun](GCObject*mem, Array<Constant*> const& arguments) {
-        return Interop<R(Args...)>::wrap()(mem, fun, arguments);
-    };
-}
 
 }
 #endif

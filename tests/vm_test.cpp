@@ -48,7 +48,7 @@ int get_x(Pnt* pnt) { return pnt->x; }
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
 void make_native_module() {
-#if 0
+#if 1
     ImportLib& imported = *ImportLib::instance();
     NativeModuleBuilder nativemodule("nmodule", imported);
 

@@ -428,6 +428,11 @@ struct Interop<R(Args...)> {
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
         return call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
     };
+
+    template <FunctionType func>
+    static Function c_fun() {
+        return wrapper<func>;
+    }
 };
 
 template <typename R, typename... Args>
@@ -471,6 +476,10 @@ struct Interop<R (O::*)(Args...)> {
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
         return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
     };
+
+    static ScriptValue wrapper_dyn(FunctionType func, void* mem, ScriptArgs& args) {  //
+        return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+    };
 };
 
 template <typename R, typename O, typename... Args>
@@ -501,6 +510,10 @@ struct Interop<R (O::*)(Args...) const> {
 
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
+        return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+    };
+
+    static ScriptValue wrapper_dyn(FunctionType func, void* mem, ScriptArgs& args) {  //
         return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
     };
 };

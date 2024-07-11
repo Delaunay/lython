@@ -247,7 +247,43 @@ using function_type_of = typename function_traits<std::decay_t<Func>>::function_
 
 }
 
-#if 0
+#if 1
+
+/*
+template<typename R, typename ...Args> 
+Function wrap_native(R(*fun)(Args...)) {
+    return [fun](void*mem, Array<Value> const& arguments) -> Value {
+        return Interop<R(Args...)>::wrap()(mem, fun, arguments);
+    };
+}
+*/
+
+template<typename O, typename ...Args>
+struct ConstructoHelper {
+    static O* ctor(Args... args) {
+        return new O(args...);
+    }
+};
+
+
+template <typename Fun>
+struct Helper {
+    // using 
+    /*
+    static Function free_fun() {
+        return wrapper<func>;
+    }
+    */
+
+   /*
+    static Function free_fun_dyn(Fun func) {
+        return [func](void* mem, Array<Value>& args) -> Value {
+            return Interop<Fun>::wrapper_dyn(func, mem, args);
+        };
+    }
+    */
+};
+
 // This builds a module before sema
 // sema will go through it a build a Binding
 struct NativeModuleBuilder {
@@ -255,52 +291,86 @@ struct NativeModuleBuilder {
         module(importsys.newmodule(name))
      {}
 
-    template<typename R, typename ...Args>
-    NativeModuleBuilder& function(String const& name, R(*function)(Args...)) {
-        FunctionDef* self = module->new_object<FunctionDef>();
-        StringRef identifier(name);
-        self->name = identifier;
-        self->native = wrap_native(function);
-        self->type = function_type_builder(module, function);
+    // builder.function<fun>("name")
+    template<typename FunctionType>
+    struct function_maker {
+        using Wrapper = Interop<FunctionType>;
+        
+        NativeModuleBuilder& self;
+        StringRef name;
+        Function fun = nullptr;
 
-        module->body.push_back(self);
-        return *this;
+        template<FunctionType fun>
+        function_maker fun(String const& name) {
+            name = StringRef(name);
+            fun = Wrapper::template wrapper<fun>;
+            return *this;
+        }
+
+        NativeModuleBuilder& end() {
+            FunctionDef* def = module->new_object<FunctionDef>();
+            def->name = name;
+            def->native = fun;
+            self->module.body.push_back(def);
+            return self;
+        }
+    };
+
+    // def<test>()
+    //  .fun("name")
+    template<typename FunctionType>
+    function_maker<FunctionType>& def() {
+        return (function_maker<FunctionType>{*this});
     }
 
     template<typename O>
     struct NativeClassBinder {
+        NativeModuleBuilder& self;
         Module* module;
         ClassDef* class_t = nullptr;
+
+        // .klass()
+        //      .constructor<int, int>()
+        //
+        struct ctor_maker {
+            NativeModuleBuilder& self;
+            StringRef name;
+            Function fun = nullptr;
+    
+            template<typename ...Args>
+            function_maker fun() {
+                name = StringRef("__init__");
+                using Ctor =  ConstructoHelper<O, Args...>;
+                fun = Wrapper::template wrapper<Ctor::ctor>;
+                return *this;
+            }
+
+            NativeModuleBuilder& end() {
+                FunctionDef* def = module->new_object<FunctionDef>();
+                def->name = name;
+                def->native = fun;
+                self->module.body.push_back(def);
+                return self;
+            }
+        };
 
         template<typename ...Args>
         NativeClassBinder& constructor() {
             meta::register_members<O>();
+            return ctor_maker{self};
 
+            /*
             FunctionDef* self = class_t->new_object<FunctionDef>();
             StringRef identifier("__init__");
             self->name = identifier;
 
             FunctionTypeBuilder<O*(Args...)> builder(module);
             self->type = builder.function();
-            
-            self->native = [](GCObject* mem, Array<Constant*> const& args) -> Constant* {
-                // that is a lot of back to back allocation
-                // we can could combine them in one
-                // or/and remove some intermediate, NativePointer is probably not that necessary
-                NativePointer<O>* obj = mem->new_object<NativePointer<O>>(); // Allocate
-                
-                auto arguments = Interop<O(Args...)>::from_script(args);
 
-                void* memory = malloc(sizeof(O) * 1);                        // Allocate
-                O* rawobj = helper::ctor<O>(memory, arguments);
+            self->native = Interop<O(Args...)>::wrapper<Ctor::ctor>;
 
-                obj->set_pointer(rawobj);
-                Constant* val = mem->new_object<Constant>();
-                val->value = ConstantValue(obj);
-                return val;                      // Allocate
-            };
             class_t->body.push_back(self);
-            return *this;
+            return *this; */
         }
 
         template<typename R, typename ...Args>
@@ -308,7 +378,9 @@ struct NativeModuleBuilder {
             FunctionDef* self = class_t->new_object<FunctionDef>();
             StringRef identifier(name);
             self->name = identifier;
-            self->native = wrap_native(function);
+            self->native = Interop<O(Args...)>::wrapper<>;
+
+            // self->native = wrap_native(function);
             self->type = function_type_builder(module, function);
             class_t->body.push_back(self);
             return *this;
