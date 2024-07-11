@@ -110,3 +110,15 @@ def fun():
 
 # >> call
 fun()# <<
+
+
+# > Compare SSA
+# >> code
+e = a < b < c < d# <<
+
+# >> SSA
+LY_0 = a < b
+LY_1 = b < c
+LY_2 = c < d
+LY_3 = __and__(LY_0, LY_1)
+e = __and__(LY_3, LY_2)# <<

@@ -81,6 +81,10 @@ struct TestCase {
     Array<String> get_errors       () const { return get_all("error");           }
 
 
+    bool has(String const& name) const {
+        return get_all(name).size() > 0;
+    }
+
     // Deprecated
     String code;
     String call;

@@ -11,6 +11,17 @@
 
 namespace lython {
 
+template<typename T, typename ...Args>
+bool contains(T value, Args... args) {
+    std::vector<T> values{args...};
+    for(T const& val: values) {
+        if (val == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void write_case_v2(std::ostream& out, int i, VMTestCase const& testcase) {
     std::ostream& out2 = out; // std::cout;
 
@@ -48,7 +59,7 @@ void write_case_v2(std::ostream& out, int i, VMTestCase const& testcase) {
         if (testcase.values.size() > 0) { 
             for(Section const& sect: testcase.values) {
                 for(String const&val: sect.content) {
-                    if (in(sect.name, "error", "type", "call", "result")) {
+                    if (contains(sect.name, "error", "type", "call", "result")) {
                         both_format(sect.name, val);
                         continue;
                     }

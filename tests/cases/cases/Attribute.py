@@ -21,3 +21,18 @@ fun(Point(0, 1))# <<
 
 # >> result:: 0
 
+
+# > case
+# >> code
+a.x
+
+# >> SSA
+getattr(a, "x")# <<
+
+# > case
+# >> code
+a.x = b
+# <<
+
+# >> SSA
+setattr(a, "x", b)# <<

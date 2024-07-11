@@ -76,8 +76,6 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
         return true;
     }
 
-
-
     GCObject* get_arena() { return (*parents.rbegin()); }
 
     template <typename A>
@@ -186,17 +184,25 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     void body_append(StmtNode* stmt) { (*body_stack.rbegin())->push_back(stmt); }
 
     template <typename T>
-    void copy_item(int i, Array<T*>& dest, int j, Array<T*>& source, int depth, Args... args) {
-        dest[i] = copy_node(source[j], depth, args...);
-    }
+    void copy_item(Array<T*>& dest, int j, Array<T*>& source, int depth, Args... args) {
+        T* tmp = copy_node(source[j], depth, args...);
 
-    template <typename T>
-    void copy_item(int i, Array<T>& dest, int j, Array<T>& source, int depth, Args... args) {
-        T tmp;
-        copy(tmp, source[j], depth, args...);
+        // create space AFTER the copy
+        int i = int(dest.size());
+        dest.push_back(nullptr);
         dest[i] = tmp;
     }
 
+    template <typename T>
+    void copy_item(Array<T>& dest, int j, Array<T>& source, int depth, Args... args) {
+        T tmp;
+        copy(tmp, source[j], depth, args...);
+
+        // create space AFTER the copy
+        int i = int(dest.size());
+        dest.push_back(T());
+        dest[i] = tmp;
+    }
 
     template <typename T>
     void copy(Array<T>& dest, Array<T>& source, int depth, Args... args) {
@@ -212,14 +218,12 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
             dest.reserve(source.size());
             
             for (int i = 0; i < source.size(); i++) {
-                int j = int(dest.size());
-                dest.push_back(T());
-                copy_item(j, dest, i, source, depth, args...);
+                copy_item(dest, i, source, depth, args...);
             }
         } else {
             // modify array
             for (int i = 0; i < source.size(); i++) {
-                copy_item(i, dest, i, source, depth, args...);
+                copy_item(dest, i, source, depth, args...);
             }
         }
         if constexpr (std::is_same_v<T, StmtNode*>) {
@@ -531,6 +535,7 @@ struct TreeWalk: public BaseVisitor<TreeWalk<Implementation, isConst, VisitorTra
     }
     virtual StmtRet functiondef(FunctionDef_t* n, int depth, Args... args) {
         FunctionDef_st cpy = new_from(n, depth, args...);
+        cpy->name = n->name;
         KW_COPY(cpy->decorator_list, n->decorator_list);
         KW_COPY(cpy->args, n->args);
         KW_COPY(cpy->returns, n->returns);

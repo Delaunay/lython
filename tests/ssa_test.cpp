@@ -47,6 +47,7 @@ void ssa_it(TestCase const& testcase) {
     }
 
     // SSA
+    if (testcase.has("SSA"))
     {
         kwinfo(outlog(), "{}", "SSA");
         StaticSingleAssignment ssa;

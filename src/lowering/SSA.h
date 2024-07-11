@@ -24,7 +24,6 @@ struct SSAVisitorTrait {
 struct StaticSingleAssignment: public TreeWalk<StaticSingleAssignment, false, SSAVisitorTrait> {
     using Super = TreeWalk<StaticSingleAssignment, false, SSAVisitorTrait>;
 
-
     using StmtRet = Super::StmtRet;
     using ExprRet = Super::ExprRet;
     using ModRet  = Super::ModRet;
@@ -33,6 +32,7 @@ struct StaticSingleAssignment: public TreeWalk<StaticSingleAssignment, false, SS
     ExprNode* name(Name_t, int depth);
 
     StmtRet classdef(ClassDef_t* n, int depth);
+    StmtRet returnstmt(Return_t* n, int depth);
 
     // Might need SSA change for unpacking
     //a = b
@@ -50,6 +50,12 @@ struct StaticSingleAssignment: public TreeWalk<StaticSingleAssignment, false, SS
     ExprNode* load(ExprNode* expr);
     ExprNode* new_store(ExprNode* original);
     ExprNode* maybe_new_assign(ExprNode* target, ExprNode* value, int depth);
+
+    ExprNode* unaryop(UnaryOp_t* n, int depth);
+    ExprNode* boolop(BoolOp_t* n, int depth);
+    ExprNode* compare(Compare_t* n, int depth);
+    ExprNode* binop(BinOp_t* n, int depth);
+    ExprNode* attribute(Attribute_t* n, int depth);
 
     AnnAssign* new_assign(ExprNode* target, ExprNode* value);
 
