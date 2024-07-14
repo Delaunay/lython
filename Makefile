@@ -41,7 +41,7 @@ build-development:
 
 build-development-win32:
 	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
-	cmake --preset default
+	cmake --preset conan-default
 	cmake --build --preset development
 
 

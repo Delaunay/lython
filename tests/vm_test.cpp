@@ -47,6 +47,11 @@ int get_x(Pnt* pnt) { return pnt->x; }
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
+int compile_time_add(int a, int b) {
+    return a + b;
+}
+
+
 void make_native_module() {
 #if 1
     ImportLib& imported = *ImportLib::instance();
@@ -57,15 +62,29 @@ void make_native_module() {
     Pnt*(*stuff)(Pnt*, Pnt*) = [](Pnt* a, Pnt* b) -> Pnt* { return new Pnt(a->x + b->x, a->y + b->y); };
 
     nativemodule
-        .function("native_add", fun)
+        // Compile time function
+        .function<decltype(compile_time_add)>("native_add")
+            .set<compile_time_add>()
+        .end()
+
+        // Runtime function
+        // This could only work if I move away from a C function pointer
+        // which I am not sure I want to
+        //.function<decltype(fun)>("runtime_add")
+        //    .set(fun)
+        //.end()
         // .function("add2", [](int a, int b) -> int { return a + b; })
         // .function("add3", fun2)
-        // this does not work
+
         .klass<Pnt>("Point")
+            .constructor<int, int>()
+
             .attribute<int>("x")
             .attribute<float>("y")
-            .constructor<int, int>()
-            .method("add", stuff)
+            
+            .method<decltype(&Pnt::add)>("add")
+                .set<&Pnt::add>()
+            .end()
     ;
 
     imported.add_module("nmodule", nativemodule.module);
@@ -166,9 +185,9 @@ void run_vm_testcases(String const& name, Array<VMTestCase> const& cases) {
         SECTION(c.name.c_str()) {
             Module* mod;
 
-            String result = eval_it(c.code, c.call, mod);
+            String result = eval_it(c.get_code(), c.get_call(), mod);
 
-            REQUIRE(result == c.expected_type);
+            REQUIRE(result == c.get_result());
 
             delete mod;
 
@@ -183,6 +202,9 @@ void run_vm_testcases(String const& name, Array<VMTestCase> const& cases) {
 TEST_CASE("VM_FunctionDef") {
     run_vm_testcases("VM_FunctionDef", get_test_cases("vm", "VM_FunctionDef"));
 }
+
+
+TEST_CASE("NativeModule") { run_vm_testcases("NativeModule", get_test_cases("cases", "NativeModule")); }
 
 TEST_CASE("VM_BinOp") { run_vm_testcases("VM_BinOp", get_test_cases("vm", "VM_BinOp")); }
 
@@ -234,25 +256,6 @@ TEST_CASE("VM_Generator") {
 }
 
 #endif
-
-// TEST_CASE("VM_native_object") { run_test_case("", "get_x(name(1, 2))", "1"); }
-
-// TEST_CASE("VM_native_function") { run_test_case("", "add(1.0, 2.0)", "3.0"); }
-
-// TEST_CASE("VM_native_module") {
-//     run_test_case("from nmodule import native_add", "native_add(1, 2)", "3");
-// }
-
-// TEST_CASE("VM_native_module_object") {
-//     run_test_case("from nmodule import Point", "Point(1, 2).y", "2");
-// }
-
-// #if 1
-// TEST_CASE("VM_native_module_object_method") {
-
-//     run_test_case("from nmodule import Point", "Point(1, 2).add(Point(1, 2)).y", "4");
-// }
-// #endif
 
 #if EXPERIMENTAL_TESTS
 #define GENTEST(name)                                                      \

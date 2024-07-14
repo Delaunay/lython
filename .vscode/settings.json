@@ -112,7 +112,8 @@
         "execution": "cpp",
         "print": "cpp",
         "cfenv": "cpp",
-        "strstream": "cpp"
+        "strstream": "cpp",
+        "valarray": "cpp"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"

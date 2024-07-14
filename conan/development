@@ -6,12 +6,12 @@ build_type=RelWithDebInfo
 os={{detect_api.detect_os()}}
 arch={{detect_api.detect_arch()}}
 compiler={{compiler}}
-compiler.cppstd=17
 compiler.version={{detect_api.default_compiler_version(compiler, version)}}
 
 {% if runtime %}
     compiler.runtime={{runtime}}
+{% else %}
+    compiler.libcxx={{detect_api.detect_libcxx(compiler, version, compiler_exe)}}
 {% endif %}
 
-compiler.cppstd={{detect_api.default_cppstd(compiler, version)}}
-compiler.libcxx={{detect_api.detect_libcxx(compiler, version, compiler_exe)}}
+compiler.cppstd=17

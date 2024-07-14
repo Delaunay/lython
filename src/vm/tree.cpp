@@ -6,6 +6,7 @@
 #include "logging/logging.h"
 #include "parser/parsing_error.h"
 #include "utilities/guard.h"
+#include "sema/importlib.h"
 
 #define MAKE_NAME(type, name) ((StringStream() << type << (name)).str())
 
@@ -419,9 +420,8 @@ Value TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int dept
         compile_time = compile_time && is_concrete(arg);
     }
 
-    Value ret_result;
-
     if (compile_time) {
+        return function->native(&root, args);
         // ConstantValue result = function->native_function(&root, value_args);
         // ret_result = function->native(&root, trace.args);
         // ret_result           = root.new_object<Constant>(result);
@@ -434,7 +434,7 @@ Value TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int dept
         // root.remove_child_if_parent(arg, true);
     }
 
-    return ret_result;
+    return Value();
 }
 Value TreeEvaluator::call_script(Call_t* call, FunctionDef_t* function, int depth) {
     auto KW_IDT(_) = new_scope();
@@ -1314,12 +1314,23 @@ Value TreeEvaluator::import(Import_t* n, int depth) {
 }
 Value TreeEvaluator::importfrom(ImportFrom_t* n, int depth) {
     //
-    for (Alias const& name: n->names) {
-        StringRef binding_name = name.name;
-        if (name.asname.has_value()) {
-            binding_name = name.asname.value();
+    ImportLib* importsys = ImportLib::instance();
+    ImportLib::ImportedLib* imported = nullptr;
+
+    if (n->module.has_value()) {
+        imported = importsys->importfile(n->module.value());
+    }
+
+    if (imported) {
+        for (Alias const& name: n->names) {
+            StringRef binding_name = name.name;
+            StmtNode* val = find(imported->mod->body, binding_name);
+            
+            if (name.asname.has_value()) {
+                binding_name = name.asname.value();
+            }
+            add_variable(binding_name, make_value<Node*>(val));
         }
-        add_variable(binding_name, Value());
     }
     return flag::done();
 }
@@ -1497,8 +1508,9 @@ Value TreeEvaluator::eval(StmtNode_t* stmt) {
         auto v = make_value<_LyException*>(except);
         return v;
     }
-    //
-    return return_value;
+
+    // return_value;
+    return result;
 }
 
 int TreeEvaluator::eval() {

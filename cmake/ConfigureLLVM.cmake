@@ -21,6 +21,9 @@ if(WIN32)
 
     MESSAGE(STATUS Build Type: ${CMAKE_BUILD_TYPE})
 
+    set(LLVM_PATH ${LLVM_PATH_DEV})
+    set(LLVM_DIR ${LLVM_DIR_DEV})
+    set(Clang_DIR ${Clang_DIR_DEV})
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(LLVM_PATH ${LLVM_PATH_DEB})
         set(LLVM_DIR ${LLVM_DIR_DEB})

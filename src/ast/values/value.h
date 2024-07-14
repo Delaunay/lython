@@ -424,15 +424,16 @@ struct Interop<R(Args...)> {
         return func(to_native<Args>(args[Indices])...);
     }
 
+    // Compile time function; compatible with C function pointer
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
-        return call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
-    template <FunctionType func>
-    static Function c_fun() {
-        return wrapper<func>;
-    }
+    // Runtime wrapper
+    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
+        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+    };
 };
 
 template <typename R, typename... Args>
@@ -472,13 +473,15 @@ struct Interop<R (O::*)(Args...)> {
         return (self->*method)(args...);
     }
 
+    // compatible with C function pointer
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
-        return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+        return make_value<R>(call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
-    static ScriptValue wrapper_dyn(FunctionType func, void* mem, ScriptArgs& args) {  //
-        return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+    // Runtime wrapper
+    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
+        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 };
 
@@ -508,13 +511,15 @@ struct Interop<R (O::*)(Args...) const> {
         return (self->*method)(args...);
     }
 
+    // compatible with C function pointer
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
-        return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+        return make_value<R>(call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
-    static ScriptValue wrapper_dyn(FunctionType func, void* mem, ScriptArgs& args) {  //
-        return call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+    // Runtime wrapper
+    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
+        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 };
 

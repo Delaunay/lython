@@ -9,6 +9,8 @@ namespace lython {
 
 Array<String> python_paths();
 
+StmtNode* find(Array<StmtNode*> const& body, StringRef const& name);
+
 // Unique instance managing all the imported module
 // Currently it only lookup modules and cache the parsing
 //

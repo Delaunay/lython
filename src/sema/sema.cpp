@@ -662,6 +662,23 @@ bool SemanticAnalyser::reorder_arguments(Call* call, FunctionDef* def) {
 
     Array<int> used_keywords;
 
+    if (def->native) {
+        // detected native function
+        // native function do not have named arguments
+        // so we cannot reorder
+        if (call->keywords.size() > 0) {
+            SEMA_ERROR(
+                    call,
+                    TypeError, 
+                    fmt::format(
+                        "TypeError: Native function only support positional arguments"
+                    )
+                );
+            return false;
+        }
+        return true;
+    }
+
     int i = 0;
 
     def->args.visit([&](ArgumentIter<false> const & arg) {

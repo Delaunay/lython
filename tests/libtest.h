@@ -77,8 +77,9 @@ struct TestCase {
 
     String        get_code         () const { return get_one("code");             }
     String        get_call         () const { return get_one("call");             }
-    String        get_expected_type() const { return get_one("expected");    }
-    Array<String> get_errors       () const { return get_all("error");           }
+    String        get_expected_type() const { return get_one("expected");         }
+    Array<String> get_errors       () const { return get_all("error");            }
+    String        get_result       () const { return get_one("result");           }
 
 
     bool has(String const& name) const {

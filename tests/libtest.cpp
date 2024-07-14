@@ -629,7 +629,7 @@ Tuple<Array<VMTestCase>, Array<std::filesystem::path>> load_recursive_cases(Stri
 
     for(auto item: std::filesystem::recursive_directory_iterator(path)) {
         if (item.is_regular_file()) {
-            const char* path = item.path().c_str();
+            const char* path = item.path().string().c_str();
 
             std::ifstream     testfile_fp(path);
             Array<VMTestCase> newcases = load_cases(path, testfile_fp);
