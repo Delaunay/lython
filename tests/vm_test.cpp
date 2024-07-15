@@ -65,6 +65,7 @@ void make_native_module() {
         // Compile time function
         .function<decltype(compile_time_add)>("native_add")
             .set<compile_time_add>()
+            .args("a", "b")
         .end()
 
         // Runtime function
@@ -78,7 +79,7 @@ void make_native_module() {
 
         .klass<Pnt>("Point")
             .constructor<int, int>()
-
+            .end()
             .attribute<int>("x")
             .attribute<float>("y")
             

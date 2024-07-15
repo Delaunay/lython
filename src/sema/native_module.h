@@ -9,9 +9,10 @@
 
 namespace lython {
 
+/*
 template <typename Sig>
 struct FunctionTypeBuilder;
-
+*/
 
 #ifndef LY_TYPENAME 
 #if ! __linux__
@@ -57,11 +58,17 @@ struct Typename{
 
 #undef TYPE
 
-template <typename R, typename... Args>
-struct FunctionTypeBuilder<R(Args...)> {
+template <typename FunctionType>
+struct FunctionTypeBuilder {
+    /*
     using arguments_t = typename std::tuple<Args...>;
     using return_t    = LY_TYPENAME R;
     using function_t  = LY_TYPENAME R(Args...);
+    */
+
+    using arguments_t = typename Interop<FunctionType>::Arguments;
+    using return_t    = typename Interop<FunctionType>::ReturnType;
+    using function_t  = typename Interop<FunctionType>::FreeMethodType;
 
     // Bindings const* bindings;
     Module* module = nullptr;
@@ -70,16 +77,16 @@ struct FunctionTypeBuilder<R(Args...)> {
         module(module)
     {}
 
-    template<int N, typename... Types>
+    template<int N>
     int add_arg(Arrow* arrow) {
-        using TupleSize = typename std::tuple_size<std::remove_reference_t<std::tuple<Types...>>>;
+        using TupleSize = typename std::tuple_size<arguments_t>;
 
         if constexpr (N > 0) {
-            using ElemT = typename std::tuple_element<TupleSize::value - N, std::tuple<Types...>>::type;
+            using ElemT = typename std::tuple_element<TupleSize::value - N, arguments_t>::type;
 
             arrow->args[TupleSize::value - N] = lookup_type<ElemT>();
 
-            add_arg<N - 1, Types...>(arrow);
+            add_arg<N - 1>(arrow);
         }
         return 0;
     }
@@ -97,7 +104,7 @@ struct FunctionTypeBuilder<R(Args...)> {
         arrow->args.resize(n);
 
         // arguments<Args...>(arrow);
-        add_arg<n, Args...>(arrow);
+        add_arg<n>(arrow);
 
         arrow->returns = lookup_type<return_t>();
 
@@ -107,9 +114,9 @@ struct FunctionTypeBuilder<R(Args...)> {
 };
 
 
-template <typename R, typename... Args>
-Arrow* function_type_builder(Module* mod, R(*fun)(Args...)) {
-    return FunctionTypeBuilder<R(Args...)>(mod).maketype();
+template <typename FunctionType>
+Arrow* function_type_builder(Module* mod) {
+    return FunctionTypeBuilder<FunctionType>(mod).maketype();
 }
 
 namespace helper {
@@ -153,14 +160,18 @@ using function_type_of = typename function_traits<std::decay_t<Func>>::function_
 
 template<typename O, typename ...Args>
 struct ConstructoHelper {
+
     static O* ctor(Args... args) {
         return new O(args...);
     }
+
+    using ctor_t = decltype(ConstructoHelper::ctor);
+
 };
 
 template<typename FunctionType>
 std::function<Value(void*, Array<Value>&)> cpp_lambda(FunctionType func) {
-    return [func](void* mem, ScriptArgs& args) {
+    return [func](void* mem, Array<Value>& args) {
         return Interop<FunctionType>::wrapper(func, mem, args);
     };
 }
@@ -173,20 +184,40 @@ struct NativeModuleBuilder {
         module(importsys.newmodule(name))
      {}
 
+
+    Module* get_module() {
+        return module;
+    }
+
     // builder.function<fun>("name")
-    template<typename FunctionType>
+    template<typename Parent, typename FunctionType>
     struct function_maker {
         using Wrapper = Interop<FunctionType>;
         
-        NativeModuleBuilder& self;
-        StringRef name;
-        Function wrapped_function = nullptr;
-        Arrow* function_type = nullptr;
+        Parent&       self;
+        StringRef     name;
+        Function      wrapped_function = nullptr;
+        Arrow*        function_type = nullptr;
+        Array<String> argnames;
 
         template<FunctionType fun>
         function_maker& set() {
             wrapped_function = Wrapper::template wrapper<fun>;
-            function_type = function_type_builder(self.module, fun);
+
+            using FreeMethodType = \
+                typename Interop<FunctionType>::FreeMethodType;
+
+            function_type = function_type_builder<FreeMethodType>(
+                    self.get_module()
+            );
+            return *this;
+        }
+
+        template<typename ...Args>
+        function_maker& args(Args... names) {
+            argnames = Array<String>{
+                names...
+            };
             return *this;
         }
 
@@ -198,11 +229,22 @@ struct NativeModuleBuilder {
             return *this;
         }
 
-        NativeModuleBuilder& end() {
-            FunctionDef* def = self.module->new_object<FunctionDef>();
+        Parent& end() {
+            FunctionDef* def = self.module->template new_object<FunctionDef>();
             def->name = name;
             def->native = wrapped_function;
             def->type = function_type;
+            int i = 0;
+
+            if (def->type && def->type->args.size() > 0) {
+                for(String const& argname: argnames) {
+                    Arg arg;
+                    arg.arg = argname;
+                    arg.annotation = def->type->args[i];
+                    def->args.args.push_back(arg);
+                    i += 1;
+                }
+            }
             self.module->body.push_back(def);
             return self;
         }
@@ -211,8 +253,8 @@ struct NativeModuleBuilder {
     // def<test>()
     //  .fun("name")
     template<typename FunctionType>
-    function_maker<FunctionType> function(String const& name) {
-        return (function_maker<FunctionType>{*this, StringRef(name)});
+    function_maker<NativeModuleBuilder, FunctionType> function(String const& name) {
+        return (function_maker<NativeModuleBuilder, FunctionType>{*this, StringRef(name)});
     }
 
     template<typename O>
@@ -224,73 +266,33 @@ struct NativeModuleBuilder {
         // .klass()
         //      .constructor<int, int>()
         //
+
+
+        Module* get_module() {
+            return module;
+        }
+        
         template<typename ...Args>
-        struct ctor_maker {
-            NativeClassBinder& self;
-            StringRef name;
-            Function wrapped_function = nullptr;
-            Arrow* function_type = nullptr;
-
-            ctor_maker& set() {
-                using Ctor =  ConstructoHelper<O, Args...>;
-                using Wrapper = Interop<O*(Args...)>;
-                wrapped_function = Wrapper::template wrapper<Ctor::ctor>;
-                function_type = function_type_builder(self.module, Ctor::ctor);
-                return *this;
-            }
-
-            NativeClassBinder& end() {
-                FunctionDef* def = self.module->new_object<FunctionDef>();
-                def->name = StringRef("__init__");
-                def->native = wrapped_function;
-                def->type = function_type;
-                self.module->body.push_back(def);
-                return self;
-            }
-        };
+        using ConstructorMaker = function_maker<
+            NativeClassBinder<O>, 
+            decltype (ConstructoHelper<O, Args...>::template ctor)    
+        >;
 
         template<typename ...Args>
-        NativeClassBinder& constructor() {
+        auto constructor() {
             meta::register_members<O>();
-            auto maker = ctor_maker<Args...>{*this};
-            maker.set();
-            maker.end();
-            return *this;
+            return ConstructorMaker<Args...>{*this, StringRef("__init__")};
         }
 
         template<typename FunctionType>
-        struct method_maker {
-            using Wrapper = Interop<FunctionType>;
-            
-            NativeClassBinder& self;
-            StringRef name;
-            Function wrapped_function = nullptr;
-            Arrow* function_type = nullptr;
-
-            template<FunctionType fun>
-            method_maker& set() {
-                wrapped_function = Wrapper::template wrapper<fun>;
-                function_type = function_type_builder(self.module, Wrapper::template freemethod<fun>);
-                return *this;
-            }
-
-            method_maker& set(FunctionType fun) {
-                wrapped_function = cpp_lambda(fun)>;
-                return *this;
-            }
-
-            NativeClassBinder& end() {
-                FunctionDef* def = self.module->new_object<FunctionDef>();
-                def->name = name;
-                def->native = wrapped_function;
-                self.module->body.push_back(def);
-                return self;
-            }
-        };
-
+        using MethodMaker = function_maker<
+            NativeClassBinder<O>, 
+            FunctionType
+        >;
+    
         template<typename FunctionType>
-        method_maker<FunctionType> method(String const& name) {
-            return (method_maker<FunctionType>{*this, StringRef(name)});
+        auto method(String const& name) {
+            return MethodMaker<FunctionType>{*this, StringRef(name)};
         }
     
         template<typename T>

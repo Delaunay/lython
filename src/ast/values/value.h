@@ -398,6 +398,9 @@ GETTER(Function, fun)
 
 std::ostream& operator<<(std::ostream& os, Value const& v);
 
+template <typename T, typename... Args>
+Value make_value(Args... args);
+
 //
 // Automatic Function Wrapper
 //
@@ -408,10 +411,18 @@ struct Interop;
 template <typename R, typename... Args>
 struct Interop<R(Args...)> {
     using NativeArgs       = std::tuple<Args...>;
+    using Arguments        = std::tuple<Args...>;
+    using ReturnType       = R;
     using FunctionType     = R (*)(Args...);
     using ScriptValue      = Value;
     using ScriptArgs       = Array<Value>;
     using ScriptFunction_C = Function;
+    using FreeMethodType   = R(Args...);
+
+    template <FunctionType method>
+    static R freemethod(Args... args) {
+        return (method)(args...);
+    }
 
     template <typename T>
     static T to_native(Value& val) {
@@ -439,10 +450,18 @@ struct Interop<R(Args...)> {
 template <typename R, typename... Args>
 struct Interop<R (*)(Args...)> {
     using NativeArgs       = std::tuple<Args...>;
+    using Arguments        = std::tuple<Args...>;
+    using ReturnType       = R;
     using FunctionType     = R (*)(Args...);
     using ScriptValue      = Value;
     using ScriptArgs       = Array<Value>;
     using ScriptFunction_C = Function;
+    using FreeMethodType   = R(Args...);
+
+    template <FunctionType method>
+    static R freemethod(Args... args) {
+        return (method)(args...);
+    }
 
     template <FunctionType func>
     static auto constexpr wrapper = Interop<R(Args...)>::template wrapper<func>;
@@ -451,10 +470,13 @@ struct Interop<R (*)(Args...)> {
 template <typename R, typename O, typename... Args>
 struct Interop<R (O::*)(Args...)> {
     using NativeArgs       = std::tuple<O*, Args...>;
+    using Arguments        = std::tuple<Args...>;
+    using ReturnType       = R;
     using FunctionType     = R (O::*)(Args...);
     using ScriptValue      = Value;
     using ScriptArgs       = Array<Value>;
     using ScriptFunction_C = Function;
+    using FreeMethodType   = R(O*, Args...);
 
     template <typename T>
     static T to_native(Value& val) {
@@ -489,9 +511,12 @@ template <typename R, typename O, typename... Args>
 struct Interop<R (O::*)(Args...) const> {
     using NativeArgs       = std::tuple<O*, Args...>;
     using FunctionType     = R (O::*)(Args...) const;
+    using Arguments        = std::tuple<Args...>;
+    using ReturnType       = R;
     using ScriptValue      = Value;
     using ScriptArgs       = Array<Value>;
     using ScriptFunction_C = Function;
+    using FreeMethodType   = R(O const*, Args...);
 
     template <typename T>
     static T to_native(Value& val) {
@@ -768,6 +793,10 @@ template <typename T>
 void register_value(ValuePrinter printer = nullptr) {
     static bool _ = _register_value<T>(printer);
 }
+
+//
+//
+//
 
 }  // namespace lython
 
