@@ -47,26 +47,28 @@ int get_x(Pnt* pnt) { return pnt->x; }
 
 String test_modules_path() { return String(_SOURCE_DIRECTORY) + "/code"; }
 
-int compile_time_add(int a, int b) {
-    return a + b;
-}
-
+int compile_time_add(int a, int b) { return a + b; }
 
 void make_native_module() {
 #if 1
-    ImportLib& imported = *ImportLib::instance();
+    ImportLib&          imported = *ImportLib::instance();
     NativeModuleBuilder nativemodule("nmodule", imported);
 
-    int(*fun)(int, int) = [](int a, int b) -> int { return a + b; };
+    int (*fun)(int, int)              = [](int a, int b) -> int { return a + b; };
     std::function<int(int, int)> fun2 = [](int a, int b) -> int { return a + b; };
-    Pnt*(*stuff)(Pnt*, Pnt*) = [](Pnt* a, Pnt* b) -> Pnt* { return new Pnt(a->x + b->x, a->y + b->y); };
+    Pnt* (*stuff)(Pnt*, Pnt*)         = [](Pnt* a, Pnt* b) -> Pnt* {
+        return new Pnt(a->x + b->x, a->y + b->y);
+    };
 
     nativemodule
         // Compile time function
         .function<decltype(compile_time_add)>("native_add")
-            .set<compile_time_add>()
-            .args("a", "b")
+        .set<compile_time_add>()
+        .args("a", "b")
         .end()
+
+        // Simplified
+        .def<&compile_time_add>("new_add", "a", "b")
 
         // Runtime function
         // This could only work if I move away from a C function pointer
@@ -78,15 +80,13 @@ void make_native_module() {
         // .function("add3", fun2)
 
         .klass<Pnt>("Point")
-            .constructor<int, int>()
-            .end()
+            .constructor<int, int>({"x", "y"})
             .attribute<int>("x")
             .attribute<float>("y")
-            
+
             .method<decltype(&Pnt::add)>("add")
-                .set<&Pnt::add>()
-            .end()
-    ;
+            .set<&Pnt::add>()
+        .end();
 
     imported.add_module("nmodule", nativemodule.module);
 
@@ -204,8 +204,9 @@ TEST_CASE("VM_FunctionDef") {
     run_vm_testcases("VM_FunctionDef", get_test_cases("vm", "VM_FunctionDef"));
 }
 
-
-TEST_CASE("NativeModule") { run_vm_testcases("NativeModule", get_test_cases("cases", "NativeModule")); }
+TEST_CASE("NativeModule") {
+    run_vm_testcases("NativeModule", get_test_cases("cases", "NativeModule"));
+}
 
 TEST_CASE("VM_BinOp") { run_vm_testcases("VM_BinOp", get_test_cases("vm", "VM_BinOp")); }
 
@@ -235,22 +236,19 @@ TEST_CASE("VM_AugAssign") {
     run_vm_testcases("VM_AugAssign", get_test_cases("vm", "VM_AugAssign"));
 }
 
-TEST_CASE("VM_While") { 
-    run_vm_testcases("VM_While", get_test_cases("vm", "VM_While")); }
+TEST_CASE("VM_While") { run_vm_testcases("VM_While", get_test_cases("vm", "VM_While")); }
 
 TEST_CASE("VM_AnnAssign") {
     run_vm_testcases("VM_AnnAssign", get_test_cases("vm", "VM_AnnAssign"));
 }
 
-TEST_CASE("VM_ifexp") { 
-    run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp")); }
+TEST_CASE("VM_ifexp") { run_vm_testcases("VM_ifexp", get_test_cases("vm", "VM_ifexp")); }
 
 TEST_CASE("VM_NamedExpr") {
     run_vm_testcases("VM_NamedExpr", get_test_cases("vm", "VM_NamedExpr"));
 }
 
-TEST_CASE("VM_ClassDef") { 
-    run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef")); }
+TEST_CASE("VM_ClassDef") { run_vm_testcases("VM_ClassDef", get_test_cases("vm", "VM_ClassDef")); }
 
 TEST_CASE("VM_Generator") {
     run_vm_testcases("VM_Generator", get_test_cases("vm", "VM_Generator"));

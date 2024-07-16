@@ -39,6 +39,8 @@ struct Point2D {
 
 float freefun_distance(Point2D const* p) { return sqrt(p->x * p->x + p->y * p->y); }
 
+
+
 TEST_CASE("Value_SVO_Function Wrapping") {
     Value distance([](void*, Array<Value>& args) -> Value {
         Value a = args[0];
@@ -46,9 +48,15 @@ TEST_CASE("Value_SVO_Function Wrapping") {
     });
 
     auto  _            = &Point2D::distance2;
+#if 0
     Value wrapped      = KIWI_WRAP(freefun_distance);
     Value method       = KIWI_WRAP(Point2D::distance2);
     Value const_method = KIWI_WRAP(Point2D::distance);
+#else
+    Value wrapped      = kiwi_function<&freefun_distance>();
+    Value method       = kiwi_function<&Point2D::distance2>();
+    Value const_method = kiwi_function<&Point2D::distance>();
+#endif
 
     auto value = make_value<Point2D>(3.0f, 4.0f);
     Value copy            = value;
@@ -599,7 +607,7 @@ template <typename T, typename V>
 struct transfer_qualifiers {
     using Base = typename strip_qualifiers<T>::type;
 
-    using type = 
+    using type =
         typename std::conditional_t<
             std::is_same_v<Base*, T>,
             V*,
@@ -616,8 +624,8 @@ struct transfer_qualifiers {
             std::is_same_v<Base*, T>,
             V*,
         typename std::conditional_t<
-            std::is_same_v<Base const, T>, 
-            V const, 
+            std::is_same_v<Base const, T>,
+            V const,
             V
         >
         >

@@ -408,6 +408,12 @@ Value make_value(Args... args);
 template <typename Sig>
 struct Interop;
 
+template<typename FunctionType>
+constexpr int arg_count() {
+    using Arguments = Interop<FunctionType>::Arguments;
+    return std::tuple_size_v<std::remove_reference_t<Arguments>>;
+}
+
 template <typename R, typename... Args>
 struct Interop<R(Args...)> {
     using NativeArgs       = std::tuple<Args...>;
@@ -445,6 +451,21 @@ struct Interop<R(Args...)> {
     static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
         return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
+
+    // Special case for constructors
+    // so allocation can be skipped for small objects
+    static Value ctor(void* mem, Args... args) {
+        return make_value<R>(args...);
+    }
+
+    template <std::size_t... Indices>
+    static Value internal_ctor(void* mem, ScriptArgs& args, std::index_sequence<Indices...>) {
+        return ctor(mem, to_native<Args>(args[Indices])...);
+    }
+
+    static ScriptValue constructor(void* mem, ScriptArgs& args) {
+        return internal_ctor(mem, args, std::make_index_sequence<sizeof...(Args)>{});
+    }
 };
 
 template <typename R, typename... Args>
@@ -517,6 +538,7 @@ struct Interop<R (O::*)(Args...) const> {
     using ScriptArgs       = Array<Value>;
     using ScriptFunction_C = Function;
     using FreeMethodType   = R(O const*, Args...);
+    using BountMethodType  = R(Args...);
 
     template <typename T>
     static T to_native(Value& val) {
@@ -530,6 +552,16 @@ struct Interop<R (O::*)(Args...) const> {
 
         return (self->*func)(to_native<Args>(args[Indices + 1])...);
     }
+
+    // This would never be compatible with a C function pointer
+    /*
+    template<FunctionType method>
+    static BountMethodType bound_method(O* self) {
+        return [](Args... args) -> R {
+            return (self->*func)(args...);
+        };
+    }
+    */
 
     template <FunctionType method>
     static R freemethod(O* self, Args... args) {
@@ -548,7 +580,13 @@ struct Interop<R (O::*)(Args...) const> {
     };
 };
 
-#define KIWI_WRAP(funfun) Function(Interop<decltype(&funfun)>::wrapper<(&funfun)>)
+template <auto Fun>
+Function kiwi_function() {
+    using Gen = Interop<decltype(Fun)>;
+    return Gen::wrapper<Fun>;
+}
+
+#define KIWI_WRAP(funfun) kiwi_function<&funfun>()
 
 // Specialization for C object that have a custom free
 using FreeFun = void (*)(void*);

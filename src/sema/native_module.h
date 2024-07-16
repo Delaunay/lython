@@ -66,9 +66,13 @@ struct FunctionTypeBuilder {
     using function_t  = LY_TYPENAME R(Args...);
     */
 
-    using arguments_t = typename Interop<FunctionType>::Arguments;
-    using return_t    = typename Interop<FunctionType>::ReturnType;
-    using function_t  = typename Interop<FunctionType>::FreeMethodType;
+    using Arguments             = typename Interop<FunctionType>::Arguments;
+    using ReturnType            = typename Interop<FunctionType>::ReturnType;
+    using CanonicalFunctionType = typename Interop<FunctionType>::FreeMethodType;
+
+    enum {
+        arg_count = arg_count<FunctionType>()
+    };
 
     // Bindings const* bindings;
     Module* module = nullptr;
@@ -79,12 +83,10 @@ struct FunctionTypeBuilder {
 
     template<int N>
     int add_arg(Arrow* arrow) {
-        using TupleSize = typename std::tuple_size<arguments_t>;
-
         if constexpr (N > 0) {
-            using ElemT = typename std::tuple_element<TupleSize::value - N, arguments_t>::type;
+            using ElemT = typename std::tuple_element<arg_count - N, Arguments>::type;
 
-            arrow->args[TupleSize::value - N] = lookup_type<ElemT>();
+            arrow->args[arg_count - N] = lookup_type<ElemT>();
 
             add_arg<N - 1>(arrow);
         }
@@ -97,18 +99,12 @@ struct FunctionTypeBuilder {
     }
 
     Arrow* maketype() {
-        // using TupleSize = typename std::tuple_size<std::remove_reference_t<std::tuple<Args...>>>;
-        constexpr int n = std::tuple_size_v<std::remove_reference_t<arguments_t>>;
-
         Arrow* arrow = module->new_object<Arrow>();
-        arrow->args.resize(n);
+        arrow->args.resize(arg_count);
 
-        // arguments<Args...>(arrow);
-        add_arg<n>(arrow);
+        add_arg<arg_count>(arrow);
 
-        arrow->returns = lookup_type<return_t>();
-
-        //std::cout << typeid(R(Args...)).name() << " " << str(arrow) << std::endl;
+        arrow->returns = lookup_type<ReturnType>();
         return arrow;
     }
 };
@@ -119,48 +115,12 @@ Arrow* function_type_builder(Module* mod) {
     return FunctionTypeBuilder<FunctionType>(mod).maketype();
 }
 
-namespace helper {
-template<typename T, typename Tuple, std::size_t... Is>
-    T* _ctor(void* memory, Tuple&& tuple, std::index_sequence<Is...>) {
-        return new(memory) T(std::get<Is>(std::forward<Tuple>(tuple))...);
-    }
-
-    template<typename T, typename Tuple>
-    T* ctor(void* memory, Tuple&& tuple) {
-        return _ctor<T>(
-            memory, 
-            std::forward<Tuple>(tuple),
-            std::make_index_sequence<std::tuple_size_v<std::decay_t<Tuple>>>{}
-        );
-    }
-}
-
-namespace meta {
-template<typename Func>
-struct function_traits;
-
-template<typename R, typename... Args>
-struct function_traits<R(*)(Args...)> {
-    using function_type = R(*)(Args...);
-    using function = std::function<R(Args...)>;
-};
-
-template<typename R, typename... Args>
-struct function_traits<std::function<R(Args...)>> {
-    using function_type = R(*)(Args...);
-    using function = std::function<R(Args...)>;
-};
-
-template<typename Func>
-using function_type_of = typename function_traits<std::decay_t<Func>>::function_type;
-
-}
-
 #if 1
 
 template<typename O, typename ...Args>
 struct ConstructoHelper {
 
+    // FIXME: if O is small it might not need allocation
     static O* ctor(Args... args) {
         return new O(args...);
     }
@@ -176,6 +136,26 @@ std::function<Value(void*, Array<Value>&)> cpp_lambda(FunctionType func) {
     };
 }
 
+FunctionDef* make_native_function(Module* module, StringRef name, Array<String> const& argnames, Function implementation, Arrow* type) {
+    FunctionDef* def = module->new_object<FunctionDef>();
+    def->name = StringRef(name);
+    def->native = implementation;
+    def->type = type;
+
+    int i = 0;
+    if (def->type && def->type->args.size() > 0) {
+        for(String const& argname: argnames) {
+            Arg arg;
+            arg.arg = argname;
+            arg.annotation = def->type->args[i];
+            def->args.args.push_back(arg);
+            i += 1;
+        }
+    }
+
+    module->body.push_back(def);
+    return def;
+}
 
 // This builds a module before sema
 // sema will go through it a build a Binding
@@ -189,6 +169,8 @@ struct NativeModuleBuilder {
         return module;
     }
 
+    // Deprecated ?
+    // this might allow us to add more meta data in the future
     // builder.function<fun>("name")
     template<typename Parent, typename FunctionType>
     struct function_maker {
@@ -230,25 +212,35 @@ struct NativeModuleBuilder {
         }
 
         Parent& end() {
-            FunctionDef* def = self.module->template new_object<FunctionDef>();
-            def->name = name;
-            def->native = wrapped_function;
-            def->type = function_type;
-            int i = 0;
-
-            if (def->type && def->type->args.size() > 0) {
-                for(String const& argname: argnames) {
-                    Arg arg;
-                    arg.arg = argname;
-                    arg.annotation = def->type->args[i];
-                    def->args.args.push_back(arg);
-                    i += 1;
-                }
-            }
-            self.module->body.push_back(def);
+            FunctionDef* def = make_native_function(
+                self.module,
+                name,
+                argnames,
+                wrapped_function,
+                function_type
+            );
             return self;
         }
     };
+
+
+    // .def<&add>("add", "a", "b")
+    template<auto Fun, typename ...Names>
+    NativeModuleBuilder& def(String const& funname, Names... argnames) {
+        using Wrapper = Interop<decltype(Fun)>;
+        using FreeMethodType = typename Wrapper::FreeMethodType;
+
+        static_assert(arg_count<decltype(Fun)>() >= sizeof...(argnames), "Number of arguments must match number of strings");
+
+        FunctionDef* def = make_native_function(
+            module,
+            funname,
+            Array<String>{argnames...},
+            Wrapper::template wrapper<Fun>,
+            function_type_builder<FreeMethodType>(module)
+        );
+        return *this;
+    }
 
     // def<test>()
     //  .fun("name")
@@ -256,7 +248,6 @@ struct NativeModuleBuilder {
     function_maker<NativeModuleBuilder, FunctionType> function(String const& name) {
         return (function_maker<NativeModuleBuilder, FunctionType>{*this, StringRef(name)});
     }
-
     template<typename O>
     struct NativeClassBinder {
         NativeModuleBuilder& self;
@@ -279,9 +270,25 @@ struct NativeModuleBuilder {
         >;
 
         template<typename ...Args>
-        auto constructor() {
+        auto constructor(std::initializer_list<String> argnames) {
+            if (sizeof...(Args) < argnames.size()) {
+                // error: "More names than arguments"
+            }
+
             meta::register_members<O>();
-            return ConstructorMaker<Args...>{*this, StringRef("__init__")};
+
+            using Wrapper = Interop<O(Args...)>;
+            using FreeMethodType = typename Wrapper::FreeMethodType;
+
+            FunctionDef* def = make_native_function(
+                module,
+                StringRef("__init__"),
+                Array<String>(argnames),
+                Wrapper::constructor,
+                function_type_builder<FreeMethodType>(module)
+            );
+
+            return *this;
         }
 
         template<typename FunctionType>
