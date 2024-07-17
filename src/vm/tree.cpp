@@ -402,8 +402,17 @@ Value TreeEvaluator::call_native(Call_t* call, FunctionDef_t* function, int dept
     Array<Value> args;
     StackTrace&  trace = traces[traces.size() - 1];
 
+    Value self;
+    if (auto attr = cast<Attribute>(call->func)) {
+        args.reserve(call->args.size() + 1);
+        self = exec(attr->value, depth);
+        args.push_back(self);
+    } else {
+        args.reserve(call->args.size());
+    }
+
     // Array<Constant*>      value_args;
-    args.reserve(call->args.size());
+    
     trace.args.reserve(call->args.size());
 
     bool compile_time = true;
@@ -527,8 +536,6 @@ Value object__new__(GCObject* parent, ClassDef* class_t) {
 }
 
 Value TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) {
-    // Create the object
-    Value obj = object__new__(&root, cls);
 
     // std::cout << "wtf" << std::endl;
     FunctionDef* ctor = nullptr;
@@ -566,12 +573,16 @@ Value TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) 
             compile_time = compile_time && is_concrete(arg);
         }
 
+        return ctor->native(this, value_args);
         // Constant* ret = ctor->native(&root, value_args);
         // return ret;
     }
 
     // execute function
     auto KW_IDT(_) = new_scope();
+
+    // Create the object
+    Value obj = object__new__(&root, cls);
 
     if (ctor != nullptr) {
         add_variable(ctor->args.args[0].arg, obj);

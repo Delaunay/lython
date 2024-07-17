@@ -83,9 +83,10 @@ void make_native_module() {
             .constructor<int, int>({"x", "y"})
             .attribute<int>("x")
             .attribute<float>("y")
+            .def<&Pnt::add>("add", "self", "b")
 
-            .method<decltype(&Pnt::add)>("add")
-            .set<&Pnt::add>()
+            // .method<decltype(&Pnt::add)>("add")
+            // .set<&Pnt::add>()
         .end();
 
     imported.add_module("nmodule", nativemodule.module);

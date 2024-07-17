@@ -136,7 +136,8 @@ std::function<Value(void*, Array<Value>&)> cpp_lambda(FunctionType func) {
     };
 }
 
-FunctionDef* make_native_function(Module* module, StringRef name, Array<String> const& argnames, Function implementation, Arrow* type) {
+template<typename Owner>
+FunctionDef* make_native_function(Owner* module, StringRef name, Array<String> const& argnames, Function implementation, Arrow* type) {
     FunctionDef* def = module->new_object<FunctionDef>();
     def->name = StringRef(name);
     def->native = implementation;
@@ -258,6 +259,9 @@ struct NativeModuleBuilder {
         //      .constructor<int, int>()
         //
 
+        NativeModuleBuilder& end() {
+            return self;
+        }
 
         Module* get_module() {
             return module;
@@ -281,13 +285,30 @@ struct NativeModuleBuilder {
             using FreeMethodType = typename Wrapper::FreeMethodType;
 
             FunctionDef* def = make_native_function(
-                module,
+                class_t,
                 StringRef("__init__"),
                 Array<String>(argnames),
                 Wrapper::constructor,
                 function_type_builder<FreeMethodType>(module)
             );
 
+            return *this;
+        }
+
+        template<auto Fun, typename ...Names>
+        NativeClassBinder& def(String const& funname, Names... argnames) {
+            using Wrapper = Interop<decltype(Fun)>;
+            using FreeMethodType = typename Wrapper::FreeMethodType;
+
+            static_assert(arg_count<FreeMethodType>() >= sizeof...(argnames), "Number of arguments must match number of strings");
+
+            FunctionDef* def = make_native_function(
+                class_t,
+                funname,
+                Array<String>{argnames...},
+                Wrapper::template wrapper<Fun>,
+                function_type_builder<FreeMethodType>(module)
+            );
             return *this;
         }
 
