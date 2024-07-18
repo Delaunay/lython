@@ -837,6 +837,12 @@ void register_value(ValuePrinter printer = nullptr) {
     static bool _ = _register_value<T>(printer);
 }
 
+
+void setattr(Value& obj, String const& name, Value val);
+Value getattrref(Value& obj, String const& name);
+Value getattr(Value obj, String const& name);
+
+
 //
 //
 //

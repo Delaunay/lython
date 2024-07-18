@@ -153,7 +153,7 @@ struct TreeEvaluator: public BaseVisitor<TreeEvaluator, false, TreeEvaluatorTrai
 
     Value* fetch_name(Name_t* name, int depth);
 
-    Value* fetch_attribute(Attribute_t* n, int depth);
+    Value& fetch_attribute(Attribute_t* n, int depth);
 
     Value* fetch_store_target(ExprNode* n, int depth);
 

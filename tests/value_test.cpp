@@ -35,10 +35,26 @@ struct Point2D {
     float distance() const { return sqrt(x * x + y * y); }
 
     float distance2() { return sqrt(x * x + y * y); }
+
+    bool operator== (Point2D const& other) const {
+        return x == other.x && y == other.y;
+    }
 };
 
 float freefun_distance(Point2D const* p) { return sqrt(p->x * p->x + p->y * p->y); }
 
+
+template <>
+struct lython::meta::ReflectionTrait<Point2D> {
+    static int register_members() {
+        lython::meta::new_member<Point2D, float>("x");
+        lython::meta::new_member<Point2D, float>("y");
+        // lython::meta::new_method("add", &Pnt::add);
+        // lython::meta::new_method("sum", &Pnt::sum);
+
+        return 1;
+    }
+};
 
 
 TEST_CASE("Value_SVO_Function Wrapping") {
@@ -131,6 +147,19 @@ struct Rectangle {
 
     float perimeter2() { return (s.x + s.y) * 2.0f; }
 };
+
+template <>
+struct lython::meta::ReflectionTrait<Rectangle> {
+    static int register_members() {
+        lython::meta::new_member<Rectangle, Point2D>("p");
+        lython::meta::new_member<Rectangle, Point2D>("s");
+        // lython::meta::new_method("add", &Pnt::add);
+        // lython::meta::new_method("sum", &Pnt::sum);
+
+        return 1;
+    }
+};
+
 
 float freefun_perimeter_cst(Rectangle const* p) { return (p->s.x + p->s.y) * 2.0f; }
 float freefun_perimeter_cst_ref(Rectangle const& p) { return (p.s.x + p.s.y) * 2.0f; }
@@ -864,4 +893,73 @@ TEST_CASE("Transfer") {
         using R = transfer_qualifiers<T, V>::type;
         static_assert(std::is_same<R, E>::value, "Transfer the qualifier");
     }
+}
+
+
+
+TEST_CASE("Value_Point_attribute") {
+    meta::register_members<Point2D>();
+
+    {
+        auto value = make_value<Point2D>(3.0f, 4.0f);
+
+        meta::ClassMetadata const& meta = meta::classmeta(value.tag);
+        REQUIRE(meta.members.size() == 2);
+
+        Value x = getattr(value, "x");
+        REQUIRE(x.tag == meta::type_id<float>());
+        REQUIRE(x.as<float>() == 3.f);
+
+        Value y = getattr(value, "y");
+        REQUIRE(y.tag == meta::type_id<float>());
+        REQUIRE(y.as<float>() == 4.f);
+
+        setattr(value, "y", make_value<float>(5.0f));
+
+        // Point2D instance was changed
+        y = getattr(value, "y");
+        REQUIRE(y.tag == meta::type_id<float>());
+        REQUIRE(y.as<float>() == 5.f);
+
+        // Point2D instance was changed
+        REQUIRE(value.as<Point2D>().y == 5.f);
+    }
+
+    {
+        auto value = make_value<Point2D>(3.0f, 4.0f);
+
+        Value y = getattrref(value, "y");
+        REQUIRE(y.tag == meta::type_id<float*>());
+        REQUIRE(y.as<float>() == 4.f);
+
+        y.ref<float>() = 5.0f;
+
+        // Point2D instance was changed
+        y = getattr(value, "y");
+        REQUIRE(y.tag == meta::type_id<float>());
+        REQUIRE(y.as<float>() == 5.f);
+
+        // Point2D instance was changed
+        REQUIRE(value.as<Point2D>().y == 5.f);
+    }
+}
+
+
+TEST_CASE("Value attribute") {
+    meta::register_members<Rectangle>();
+
+    auto value = make_value<Rectangle>(Point2D(3.0f, 4.0f), Point2D(3.0f, 4.0f));
+ 
+     meta::ClassMetadata const& meta = meta::classmeta(value.tag);
+
+    REQUIRE(meta.members.size() == 2);
+
+    Value p = getattr(value, "p");
+    REQUIRE(p.tag == meta::type_id<Point2D>());
+    REQUIRE(p.as<Point2D>() == Point2D(3.0f, 4.0f));
+
+    Value s = getattr(value, "s");
+    REQUIRE(s.tag == meta::type_id<Point2D>());
+    REQUIRE(s.as<Point2D>() == Point2D(3.0f, 4.0f));
+
 }

@@ -101,6 +101,8 @@ struct ClassMetadata {
     int                 type_id = -1;
     AllocationStat      stat;
     int                 weakref_type_id = -1;
+    int                 size = 0;
+    bool                is_trivially_copyable = false;
 
     ValueDeleter deleter = nullptr;
     ValueCopier  copier  = nullptr;
@@ -163,10 +165,7 @@ void override_typename(const char* str) {
 
 // Insert a type name override
 template <typename T>
-const char* register_type(const char* str) {
-    static int _ = _register_type_once<T>(str);
-    return str;
-}
+const char* register_type(const char* str);
 
 // Return the type name of a function
 // You can specialize it to override
@@ -205,6 +204,10 @@ std::tuple<int, int> member_id(int _typeid, std::string const& name);
 // Low Level API to retrieve the classmeta
 ClassMetadata& classmeta(int _typeid);
 
+
+template<typename T>
+ClassMetadata& classmeta();
+
 template<typename T>
 struct ReflectionTrait {
     static int register_members() {
@@ -212,10 +215,32 @@ struct ReflectionTrait {
     }
 };
 
+
+template<typename T>
+int init_classmeta() {
+    ClassMetadata& meta = classmeta(type_id<T>());
+    meta.size = sizeof(T);
+    meta.is_trivially_copyable = std::is_trivially_copyable<T>::value;
+    meta.weakref_type_id = type_id<T*>();
+    return 0;
+}
+
 template<typename T>
 void register_members() {
-    static int _ = ReflectionTrait<T>::register_members();
+    static int _ = ReflectionTrait<T>::register_members() + 
+        init_classmeta<T>()
+    ;
 }
+
+// Insert a type name override
+template <typename T>
+const char* register_type(const char* str) {
+    static int _ = _register_type_once<T>(str) +
+        ReflectionTrait<T>::register_members() +
+        init_classmeta<T>();
+    return str;
+}
+
 
 // High level API to retrive the classmeta
 // register the members if not done already
@@ -224,6 +249,7 @@ ClassMetadata& classmeta() {
     register_members<T>();
     return classmeta(type_id<T>());
 }
+
 
 template<typename T, typename U>
 void new_member(std::string const& name) {

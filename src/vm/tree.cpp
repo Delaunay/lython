@@ -839,8 +839,8 @@ Value TreeEvaluator::assign(Assign_t* n, int depth) {
 
             // Update attrubyte
             if (Attribute* attr = cast<Attribute>(target)) {
-                Value* val = fetch_attribute(attr, depth);
-                (*val)     = values->elts[i];
+                Value& val = fetch_attribute(attr, depth);
+                val     = values->elts[i];
             }
         }
         return flag::done();
@@ -850,8 +850,8 @@ Value TreeEvaluator::assign(Assign_t* n, int depth) {
         auto* target = n->targets[0];
 
         if (Attribute* attr = cast<Attribute>(target)) {
-            Value* val = fetch_attribute(attr, depth);
-            (*val)     = value;
+            Value val = fetch_attribute(attr, depth);
+            (val)     = value;
         }
 
         if (Name* name = cast<Name>(target)) {
@@ -866,7 +866,7 @@ Value TreeEvaluator::assign(Assign_t* n, int depth) {
 
 Value* TreeEvaluator::fetch_store_target(ExprNode* n, int depth) {
     if (Attribute* attr = cast<Attribute>(n)) {
-        return fetch_attribute(attr, depth);
+        return &fetch_attribute(attr, depth);
     }
 
     if (Name* name = cast<Name>(n)) {
@@ -1389,24 +1389,51 @@ Value TreeEvaluator::await(Await_t* n, int depth) { return nullptr; }
 // Objects
 Value TreeEvaluator::slice(Slice_t* n, int depth) { return nullptr; }
 
-Value* TreeEvaluator::fetch_attribute(Attribute_t* n, int depth) {
+Value& TreeEvaluator::fetch_attribute(Attribute_t* n, int depth) {
     Value obj = exec(n->value, depth);
+
+    meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
+
+    int member_id = -1;
+    int i = 0;
+    for(meta::Member const& member: meta.members) {
+        if (StringRef(member.name.c_str()) == n->attr) {
+            member_id = i;
+            break;
+        }
+        i += 1;
+    }
+
+    if (i >= 0) {
+        Value property;
+        meta::Member const& member = meta.members[member_id];
+        int type = member.type;
+        int refid = meta::classmeta(type).weakref_type_id;
+
+        property.tag = refid;
+        if (meta.size <= sizeof(Value::Holder) && meta.is_trivially_copyable) {
+            property.value.obj = ((char*)&obj) + member.offset;
+        }
+        return property;
+    }
+
     kwassert(obj.tag == meta::type_id<ScriptObject>(), "Attribute should be an object");
     ScriptObject&         dat  = obj.as<ScriptObject&>();
 
     if (dat.attributes.size() > 0) {
         Tuple<String, Value>& attr = dat.attributes[n->attrid];
-        return &std::get<1>(attr);
+        return std::get<1>(attr);
     }
 
-    return nullptr;
+    static Value invalid;
+    return invalid;
 }
 
 Value TreeEvaluator::attribute(Attribute_t* n, int depth) { 
-    Value* val = fetch_attribute(n, depth);
+    Value& val = fetch_attribute(n, depth);
 
-    if (val) {
-        return *val;
+    if (val.tag != meta::type_id<_Invalid>()) {
+        return val;
     }
 
     kwdebug(treelog, "Attribute not found {}", n->attr);
