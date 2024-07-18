@@ -410,7 +410,7 @@ struct Interop;
 
 template<typename FunctionType>
 constexpr int arg_count() {
-    using Arguments = Interop<FunctionType>::Arguments;
+    using Arguments = typename Interop<FunctionType>::Arguments;
     return std::tuple_size_v<std::remove_reference_t<Arguments>>;
 }
 
@@ -583,7 +583,7 @@ struct Interop<R (O::*)(Args...) const> {
 template <auto Fun>
 Function kiwi_function() {
     using Gen = Interop<decltype(Fun)>;
-    return Gen::wrapper<Fun>;
+    return Gen::template wrapper<Fun>;
 }
 
 #define KIWI_WRAP(funfun) kiwi_function<&funfun>()

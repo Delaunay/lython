@@ -288,6 +288,8 @@ struct NativeModuleBuilder {
                 function_type_builder<FreeMethodType>(module)
             );
 
+            // add the def to class_t so vm can find __init__ when looking for it
+
             return *this;
         }
 

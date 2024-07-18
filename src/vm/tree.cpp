@@ -550,9 +550,10 @@ Value TreeEvaluator::call_constructor(Call_t* call, ClassDef_t* cls, int depth) 
                 }
             }
         }
+
     }
 
-    if (ctor->native) {
+    if (ctor && ctor->native) {
         Array<Value> value_args;
         value_args.reserve(call->args.size());
 
@@ -1380,13 +1381,26 @@ Value TreeEvaluator::slice(Slice_t* n, int depth) { return nullptr; }
 Value* TreeEvaluator::fetch_attribute(Attribute_t* n, int depth) {
     Value obj = exec(n->value, depth);
     kwassert(obj.tag == meta::type_id<ScriptObject>(), "Attribute should be an object");
-
     ScriptObject&         dat  = obj.as<ScriptObject&>();
-    Tuple<String, Value>& attr = dat.attributes[n->attrid];
-    return &std::get<1>(attr);
+
+    if (dat.attributes.size() > 0) {
+        Tuple<String, Value>& attr = dat.attributes[n->attrid];
+        return &std::get<1>(attr);
+    }
+
+    return nullptr;
 }
 
-Value TreeEvaluator::attribute(Attribute_t* n, int depth) { return *fetch_attribute(n, depth); }
+Value TreeEvaluator::attribute(Attribute_t* n, int depth) { 
+    Value* val = fetch_attribute(n, depth);
+
+    if (val) {
+        return *val;
+    }
+
+    kwdebug(treelog, "Attribute not found {}", n->attr);
+    return Value(_None());
+}
 Value TreeEvaluator::subscript(Subscript_t* n, int depth) { return nullptr; }
 
 // Call __next__ for a given object
