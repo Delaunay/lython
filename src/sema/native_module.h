@@ -138,7 +138,7 @@ std::function<Value(void*, Array<Value>&)> cpp_lambda(FunctionType func) {
 
 template<typename Owner>
 FunctionDef* make_native_function(Owner* module, StringRef name, Array<String> const& argnames, Function implementation, Arrow* type) {
-    FunctionDef* def = module->new_object<FunctionDef>();
+    FunctionDef* def = module->template new_object<FunctionDef>();
     def->name = StringRef(name);
     def->native = implementation;
     def->type = type;
