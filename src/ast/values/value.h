@@ -519,6 +519,11 @@ struct Interop<R (O::*)(Args...)> {
     // compatible with C function pointer
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
+        constexpr int expected = arg_count<FreeMethodType>();
+
+        if (args.size() != expected) {
+            kwerror(outlog(), "Function: {} expected {} arguments got {} arguments", typeid(func).name(), expected, args.size());
+        }
         return make_value<R>(call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
