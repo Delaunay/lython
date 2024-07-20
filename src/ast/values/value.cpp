@@ -235,7 +235,7 @@ Value getattr(Value obj, String const& name) {
         void* src = value_memory(meta, obj);
 
         // property is a value held in the object itself
-        if (attrmeta.is_trivially_copyable) { 
+        if (attrmeta.is_trivially_copyable && attrmeta.size <= sizeof(Value::Holder)) { 
             src = (uint8*)(src) + member->offset;
             memcpy(dest, src, member->size);
             return property;
@@ -295,14 +295,33 @@ void setattr(Value& obj, String const& name, Value val) {
 
         void* dest = value_memory(meta, obj) + member->offset;
 
-        if (attrmeta.is_trivially_copyable) {
+        if (attrmeta.is_trivially_copyable && attrmeta.size <= sizeof(Value::Holder)) { 
             void* src = (void*)(&val.value);
             memcpy(dest, src, member->size);
             return;
         }
 
         // the object is going to be a pointer
-        dest = val.value.obj;
+        // property could be pointer or value
+        // on our side Value will always be a pointer
+       
+        // this is pointer on pointer
+        if (attrmeta.type_id == attrmeta.weakref_type_id) {
+            dest = val.value.obj;
+        } else {
+            // copy our pointer to the value
+            void* src = val.value.obj;
+            memcpy(dest, src, member->size);
+
+            // if this is a move then we should zero out the source
+            // so it cannot be used anymore
+            // C++ classes that allocates memory
+            // should only be used by one owner
+            // Zero out the source
+            // memset(src, 0, member->size);
+        }
+
+        return;
     }
     kwassert(false, "Not handled");
 }

@@ -146,6 +146,10 @@ struct Rectangle {
     float perimeter() const { return (s.x + s.y) * 2.0f; }
 
     float perimeter2() { return (s.x + s.y) * 2.0f; }
+
+    bool operator== (Rectangle const& op) const {
+        return p == op.p && s == op.s;
+    }
 };
 
 template <>
@@ -319,7 +323,7 @@ TEST_CASE("Value_C_Object") {
 
     value.destroy();
     value.destroy();
-    // deleter(nullptr, value);
+    // deleter(nullptr, value);Point2D
 }
 
 struct ScriptObjectTest {
@@ -944,7 +948,6 @@ TEST_CASE("Value_Point_attribute") {
     }
 }
 
-
 TEST_CASE("Value attribute") {
     meta::register_members<Rectangle>();
 
@@ -961,5 +964,62 @@ TEST_CASE("Value attribute") {
     Value s = getattr(value, "s");
     REQUIRE(s.tag == meta::type_id<Point2D>());
     REQUIRE(s.as<Point2D>() == Point2D(3.0f, 4.0f));
+
+    setattr(value, "s", make_value<Point2D>(1.0f, 2.0f));
+    s = getattr(value, "s");
+    REQUIRE(s.tag == meta::type_id<Point2D>());
+    REQUIRE(s.as<Point2D>() == Point2D(1.0f, 2.0f));
+
+}
+
+struct Rect2 {
+    Rectangle a;
+    Rectangle b;
+
+    Rect2() {}
+
+    Rect2(Rectangle p, Rectangle s): a(p), b(s) {}
+
+};
+
+
+template <>
+struct lython::meta::ReflectionTrait<Rect2> {
+    static int register_members() {
+        lython::meta::new_member<Rect2, Rectangle>("a");
+        lython::meta::new_member<Rect2, Rectangle>("b");
+        // lython::meta::new_method("add", &Pnt::add);
+        // lython::meta::new_method("sum", &Pnt::sum);
+
+        return 1;
+    }
+};
+
+
+TEST_CASE("Value Rect2 attribute") {
+    meta::register_members<Rect2>();
+
+    auto rect1 = Rectangle(Point2D(1.0f, 2.0f), Point2D(3.0f, 4.0f));
+    auto rect2 = Rectangle(Point2D(5.0f, 6.0f), Point2D(7.0f, 8.0f));
+
+    auto value = make_value<Rect2>(rect1, rect2);
+ 
+    meta::ClassMetadata const& meta = meta::classmeta(value.tag);
+
+    REQUIRE(meta.members.size() == 2);
+
+    Value p = getattr(value, "a");
+    REQUIRE(p.tag == meta::type_id<Rectangle>());
+    REQUIRE(p.as<Rectangle>() == rect1);
+
+    Value s = getattr(value, "b");
+    REQUIRE(s.tag == meta::type_id<Rectangle>());
+    REQUIRE(s.as<Rectangle>() == rect2);
+
+    auto rect3 = Rectangle(Point2D(9.0f, 10.0f), Point2D(11.0f, 12.0f));
+    setattr(value, "b", make_value<Rectangle>(rect3));
+    s = getattr(value, "b");
+    REQUIRE(s.tag == meta::type_id<Rectangle>());
+    REQUIRE(s.as<Rectangle>() == rect3);
 
 }

@@ -219,9 +219,15 @@ struct ReflectionTrait {
 template<typename T>
 int init_classmeta() {
     ClassMetadata& meta = classmeta(type_id<T>());
+    meta.type_id = type_id<T>();
     meta.size = sizeof(T);
     meta.is_trivially_copyable = std::is_trivially_copyable<T>::value;
-    meta.weakref_type_id = type_id<T*>();
+    
+    if (std::is_pointer_v<T>) {
+        meta.weakref_type_id = type_id<T>();
+    } else {
+        meta.weakref_type_id = type_id<T*>();
+    }
     return 0;
 }
 
