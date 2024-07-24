@@ -1021,5 +1021,51 @@ TEST_CASE("Value Rect2 attribute") {
     s = getattr(value, "b");
     REQUIRE(s.tag == meta::type_id<Rectangle>());
     REQUIRE(s.as<Rectangle>() == rect3);
+}
 
+
+struct NewVec {
+    NewVec(Array<float> const& data):
+        data(data)
+    {}
+
+    Array<float> data;
+};
+
+
+template <>
+struct lython::meta::ReflectionTrait<NewVec> {
+    static int register_members() {
+        lython::meta::new_member<NewVec, Array<float>>("data");
+        return 1;
+    }
+};
+
+
+TEST_CASE("Value Non trivial attribute") {
+    meta::register_members<NewVec>();
+
+    Array<float> data = {1.f, 2.f};
+    auto value = make_value<NewVec>(data);
+ 
+    meta::ClassMetadata& meta = meta::classmeta(value.tag);
+
+    {
+        meta::ClassMetadata& meta_v = meta::classmeta(meta::type_id<Array<float>>());
+        meta_v.assign = [](Value& src, Value const& dest) {
+            src.as<Array<float>&>() = dest.as<Array<float> const&>();
+        };
+    }
+
+    REQUIRE(meta.members.size() == 1);
+
+    Value p = getattr(value, "data");
+    REQUIRE(p.tag == meta::type_id<Array<float>>());
+    REQUIRE(p.as<Array<float>>() == data);
+
+    Array<float> data2 = {3.f, 4.f};
+    setattr(value, "data", make_value<Array<float>>(data2));
+    Value s = getattr(value, "data");
+    REQUIRE(s.tag == meta::type_id<Array<float>>());
+    REQUIRE(s.as<Array<float>>() == data2);
 }

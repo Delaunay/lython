@@ -13,6 +13,7 @@ struct Value;
 
 using ValueDeleter = void(*)(void*, Value&);
 using ValueCopier  = Value(*)(Value const&);
+using ValueAssign  = void(*)(Value&, Value const&);
 using ValuePrinter = void(*)(std::ostream&, Value const&);
 using ValueHash    = std::size_t(*)(Value const&);
 using ValueRef      = Value(*)(Value&);
@@ -109,6 +110,7 @@ struct ClassMetadata {
     ValuePrinter printer = nullptr;
     ValueHash    hasher  = nullptr;
     ValueRef     ref     = nullptr;
+    ValueAssign  assign  = nullptr;
 };
 
 struct TypeRegistry {
@@ -259,6 +261,7 @@ ClassMetadata& classmeta() {
 
 template<typename T, typename U>
 void new_member(std::string const& name) {
+    classmeta<U>();
     ClassMetadata& registry = classmeta(type_id<T>());
     int size = sizeof(U);
     registry.members.emplace_back(name, type_id<U>(), registry.offset, size);

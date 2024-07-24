@@ -220,6 +220,7 @@ Value getattr(Value obj, String const& name) {
     for(meta::Member const& mb: meta.members) {
         if (String(mb.name.c_str()) == name) {
             member = &mb;
+            break;
         }
     }
 
@@ -256,6 +257,7 @@ Value getattrref(Value& obj, String const& name) {
     for(meta::Member const& mb: meta.members) {
         if (String(mb.name.c_str()) == name) {
             member = &mb;
+            break;
         }
     }
 
@@ -285,6 +287,7 @@ void setattr(Value& obj, String const& name, Value val) {
     for(meta::Member const& mb: meta.members) {
         if (String(mb.name.c_str()) == name) {
             member = &mb;
+            break;
         }
     }
 
@@ -308,20 +311,30 @@ void setattr(Value& obj, String const& name, Value val) {
         // this is pointer on pointer
         if (attrmeta.type_id == attrmeta.weakref_type_id) {
             dest = val.value.obj;
+            return;
         } else {
-            // copy our pointer to the value
-            void* src = val.value.obj;
-            memcpy(dest, src, member->size);
-
             // if this is a move then we should zero out the source
             // so it cannot be used anymore
             // C++ classes that allocates memory
             // should only be used by one owner
             // Zero out the source
             // memset(src, 0, member->size);
-        }
+            if (attrmeta.is_trivially_copyable) {
+                // copy our pointer to the value
+                void* src = val.value.obj;
+                memcpy(dest, src, member->size);
+                return;
+            }
 
-        return;
+            // dest is a pointer to a member
+            // but it needs a copy destination
+            // this should call a copy/asignment
+            Value valdest;
+            valdest.tag = attrmeta.weakref_type_id;
+            valdest.value.obj = dest;
+            attrmeta.assign(valdest, val);
+            return;
+        }
     }
     kwassert(false, "Not handled");
 }
