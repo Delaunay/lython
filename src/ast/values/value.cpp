@@ -281,6 +281,15 @@ Value getattrref(Value& obj, String const& name) {
 }
 
 
+
+Value make_pointer(int tag, void* ptr) {
+    Value vptr;
+    vptr.tag = tag;
+    vptr.value.obj = ptr;
+    return vptr;
+};
+
+
 void setattr(Value& obj, String const& name, Value val) {
     meta::Member const* member = nullptr;
     meta::ClassMetadata const& meta = meta::classmeta(obj.tag);

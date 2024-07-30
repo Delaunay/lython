@@ -18,9 +18,11 @@ int main(int argc, char* argv[]) {
     // set_log_level(LogLevel::Error, true);
     // set_log_level(LogLevel::Fatal, true);
 
+    bool show = false;
+
     register_globals();
-    show_alloc_stats_on_destroy(true);
-    show_string_stats_on_destroy(true);
+    show_alloc_stats_on_destroy(show);
+    show_string_stats_on_destroy(show);
 
     int result = Catch::Session().run(argc, argv);
 
