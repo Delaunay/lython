@@ -635,6 +635,7 @@ struct BoehmGarbageCollector {
 #endif
 
 void BoehmGarbageCollector::scan_registers() {
+#if BUILD_WINDOWS
     void* registers[16];
 
     CONTEXT context;
@@ -663,6 +664,8 @@ void BoehmGarbageCollector::scan_registers() {
             mark(registers[i]);
         }
     }
+#else
+#endif
 }
 void BoehmGarbageCollector::scan_stack() {
 #if BUILD_WINDOWS
@@ -814,7 +817,7 @@ TEST_CASE("BoehmGarbageCollector_Globals") {
 }
 
 
-TEST_CASE("BoehmGarbageCollector_AllReachable") {
+void* test_all_there() {
     BoehmGarbageCollector gc;
 
     ListBool* n1 = make_list(gc, true, nullptr);
@@ -829,9 +832,18 @@ TEST_CASE("BoehmGarbageCollector_AllReachable") {
     gc.dump(std::cout);
 
     REQUIRE(gc.allocations.size() == 5);
+
+    // need to return it else it might not be in the stack anymore
+    return (void*)n5;
 }
 
-TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
+
+TEST_CASE("BoehmGarbageCollector_AllReachable") {
+    test_all_there();
+}
+
+
+void* test_nested() {
     BoehmGarbageCollector gc;
 
     ListBool* n5 = make_list(
@@ -840,9 +852,17 @@ TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
         make_list(
             gc, true, make_list(gc, true, make_list(gc, true, make_list(gc, true, nullptr)))));
 
+
     gc.dump(std::cout);
     gc.collect();
     gc.dump(std::cout);
 
     REQUIRE(gc.allocations.size() == 5);
+
+    // need to return it else it might not be in the stack anymore
+    return n5;
+}
+
+TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
+    test_nested();
 }
