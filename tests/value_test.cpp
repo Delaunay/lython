@@ -1069,3 +1069,15 @@ TEST_CASE("Value Non trivial attribute") {
     REQUIRE(s.tag == meta::type_id<Array<float>>());
     REQUIRE(s.as<Array<float>>() == data2);
 }
+
+// heap is taken care of by the GC
+// stack we use pthread to fetch the range
+// 
+TEST_CASE("Value Non trivial attribute2") {
+    meta::register_members<NewVec>();
+
+    {
+        Array<float> data = {1.f, 2.f};
+        auto value = make_value<NewVec>(data);
+    }
+}

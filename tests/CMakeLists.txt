@@ -34,7 +34,12 @@ ADD_EXECUTABLE(fuzzer
   ${TEST_HEADERS}
 )
 TARGET_LINK_LIBRARIES(fuzzer ${TEST_LIBRARIES})
-  
+ 
+ADD_EXECUTABLE(garbage 
+  garbage.cpp
+)
+# TARGET_LINK_LIBRARIES(garbage)
+ 
 
 # Add your test to CMAKE
 # to run all tests run 'make test'

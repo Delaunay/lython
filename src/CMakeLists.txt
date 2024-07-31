@@ -59,6 +59,9 @@ SET(ADD_HEADERS
     parser/format_spec.h
     sema/sema.h
     sema/importlib.h
+    stdlib/garbage.cpp
+    stdlib/garbage_linux.cpp
+    stdlib/garbage_windows.cpp
     vm/tree.h
     vm/vm.h
     vm/garbage_collector.h

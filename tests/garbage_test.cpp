@@ -1,6 +1,7 @@
 #include "dtypes.h"
 // #include "vm/garbage_collector.h"
 
+#include "stdlib/garbage.h"
 #include <algorithm>
 
 namespace lython {
@@ -472,311 +473,10 @@ TEST_CASE("Allocator_Concept_Compact") {
     // CompArray<int> array_test;
 }
 
-struct GCObjectHeader {
-    size_t size;
-    bool   marked : 1;
-
-    // does not work on windows
-    // void* data[0];
-
-    void* data() { return ((char*)(this)) + sizeof(GCObjectHeader); }
-};
-
-struct BoehmGarbageCollector {
-    void* heap_start;
-    void* heap_end;
-
-    int is_pointer(void* ptr) {
-        // Check if the pointer is within the heap range
-        // if (ptr < heap_start || ptr >= heap_end) {
-        //    return false;
-        //}
-
-        // Check alignment: must be aligned to pointer size
-        // if (reinterpret_cast<uintptr_t>(ptr) % alignof(void*) != 0) {
-        //    return false;
-        // }
-
-        // Check if the pointer is an actual allocated object
-        GCObjectHeader* hdr = header(ptr);
-        if (std::find(allocations.begin(), allocations.end(), hdr) != allocations.end()) {
-            // kwdebug(outlog(), "Good");
-            return true;
-        }
-
-        // this happens all the time
-        // kwdebug(outlog(), "Bad {}", ptr);
-        return false;
-    }
-
-    template <typename T>
-    T* malloc() {
-        return (T*)malloc(sizeof(T));
-    }
-
-    void* malloc(std::size_t size) {
-        // TODO handle alignment
-        GCObjectHeader* hdr = (GCObjectHeader*)std::malloc(size + sizeof(GCObjectHeader));
-        kwdebug(outlog(), "Allocating {} - {}", (void*)(hdr), hdr->data());
-
-        hdr->size   = size;
-        hdr->marked = 0;
-        allocations.push_back(hdr);
-        return hdr->data();
-    }
-
-    void free(void* ptr) {
-        if (ptr == nullptr) {
-            return;
-        }
-        GCObjectHeader* hdr = header(ptr);
-        kwdebug(outlog(), "free {}", (void*)(hdr));
-        std::free(hdr);
-    }
-
-    void mark(void* obj) { flat_mark(obj); }
-
-    Array<void*> pointers;
-
-    void flat_mark(void* obj) {
-        pointers = {obj};
-        kwdebug(outlog(), "marking {}", obj);
-
-        while (!pointers.empty()) {
-            void* ptr = *pointers.rbegin();
-            pointers.pop_back();
-
-            if (ptr == nullptr || is_marked(ptr)) {
-                kwdebug(outlog(), "already marked");
-                continue;
-            }
-
-            GCObjectHeader* hdr = header(ptr);
-            hdr->marked         = true;
-            kwdebug(outlog(), "marked {}", (void*)(hdr));
-
-            for (int i = 0; i < hdr->size; i++) {
-                void** member = reinterpret_cast<void**>(ptr) + i;
-                if (is_pointer(*member)) {
-                    pointers.push_back(*member);
-                }
-            }
-        }
-    }
-
-    bool is_marked(void* ptr) { return header(ptr)->marked; }
-
-    void clear_mark(void* ptr) { header(ptr)->marked = 0; }
-
-    GCObjectHeader* header(void* ptr) {
-        return (GCObjectHeader*)((char*)(ptr) - sizeof(GCObjectHeader));
-    }
-
-    void collect() { stop_world_collect(); }
-
-    void stop_world_collect() {
-        get_heap_bounds();
-
-        // Mark
-        kwdebug(outlog(), "mark stack");
-        scan_stack();
-        kwdebug(outlog(), "mark globals");
-        scan_globals();
-        kwdebug(outlog(), "mark registers");
-        scan_registers();
-
-        // Sweep
-        kwdebug(outlog(), "Sweep");
-        sweep();
-    }
-
-    void sweep() {
-        Array<GCObjectHeader*> allocs;
-        for (GCObjectHeader* obj: allocations) {
-            if (!obj->marked) {
-                kwdebug(outlog(), "free {}", (void*)(obj));
-                std::free(obj);
-            } else {
-                kwdebug(outlog(), "still used");
-                obj->marked = 0;
-                allocs.push_back(obj);
-            }
-        }
-        allocations = allocs;
-    }
-
-    void scan_stack();
-    void scan_globals();
-    void scan_registers();
-    void get_heap_bounds();
-
-    Array<GCObjectHeader*> allocations;
-
-    void dump(std::ostream& out) {
-        get_heap_bounds();
-
-        out << "+--> 0 | " << heap_start << "\n";
-        for (GCObjectHeader* obj: allocations) {
-            auto diff = (char*)(obj) - (char*)(heap_start);
-            out << fmt::format("| +-> {} | {}\n", diff, (void*)(obj));
-            out << "| | \n";
-            out << "| +-> size: " << obj->size << "\n";
-        }
-        out << "+--> " << (char*)(heap_end) - (char*)(heap_start) << " | " << heap_end << "\n";
-    }
-};
-
-#if __has_include(<windows.h>)
-#ifndef BUILD_WINDOWS
-#define BUILD_WINDOWS 1
-#endif
-#include <intrin.h>
-#include <windows.h>
-#endif
-
-void BoehmGarbageCollector::scan_registers() {
-#if BUILD_WINDOWS
-    void* registers[16];
-
-    CONTEXT context;
-    RtlCaptureContext(&context);
-
-    registers[0] = (void*)context.Rax;
-    registers[1] = (void*)context.Rbx;
-    registers[2] = (void*)context.Rcx;
-    registers[3] = (void*)context.Rdx;
-    registers[4] = (void*)context.Rsi;
-    registers[5] = (void*)context.Rdi;
-    registers[6] = (void*)context.Rbp;
-    registers[7] = (void*)context.Rsp;
-    registers[8] = (void*)context.R8;
-    registers[9] = (void*)context.R9;
-    registers[10] = (void*)context.R10;
-    registers[11] = (void*)context.R11;
-    registers[12] = (void*)context.R12;
-    registers[13] = (void*)context.R13;
-    registers[14] = (void*)context.R14;
-    registers[15] = (void*)context.R15;
-
-    // Check each register to see if it contains a pointer
-    for (int i = 0; i < 16; ++i) {
-        if (is_pointer(registers[i])) {
-            mark(registers[i]);
-        }
-    }
-#else
-#endif
-}
-void BoehmGarbageCollector::scan_stack() {
-#if BUILD_WINDOWS
-// Obtain stack bounds for the current thread
-#if 0
-    MEMORY_BASIC_INFORMATION mbi;
-    VirtualQuery(&mbi, &mbi, sizeof(mbi));
-
-    // Stack limits
-    void* stack_base = mbi.BaseAddress;
-    void* stack_top  = (char*)mbi.BaseAddress + mbi.RegionSize;
-#elif 1
-    CONTEXT context;
-    RtlCaptureContext(&context);
-    PNT_TIB pTib = (PNT_TIB)NtCurrentTeb();
-
-    // Use Rsp for stack pointer in x86_64
-    void** stack_pointer = (void**)context.Rsp;
-    void** stack_base = (void**)pTib->StackBase;
-#else
-
-    PNT_TIB pTib = (PNT_TIB)NtCurrentTeb();
-
-    // The stack limits are in the TEB
-    void* stack_base = pTib->StackBase;   // High address
-    void* stack_top  = pTib->StackLimit;  // Low address
-#endif
-
-    // Iterate over stack
-    for (void** current = stack_pointer; current < stack_base; ++current) {
-        if (is_pointer(*current)) {
-            mark(*current);
-        }
-    }
-#else
-#endif
-}
-
-void BoehmGarbageCollector::scan_globals() {
-// i.e root set
-#if BUILD_WINDOWS
-    // Get a handle to the current module (application)
-    HMODULE hModule = GetModuleHandle(NULL);
-
-    // Variables to store section info
-    PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)hModule;
-    PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((char*)hModule + dosHeader->e_lfanew);
-
-    // Get the data section
-    PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(ntHeaders);
-    for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i, ++section) {
-        if (strcmp((char*)section->Name, ".data") == 0 ||
-            strcmp((char*)section->Name, ".bss") == 0) {
-            void* start = (char*)hModule + section->VirtualAddress;
-            void* end   = (char*)start + section->Misc.VirtualSize;
-
-            // Scan each potential pointer location
-            for (void** current = (void**)start; current < (void**)end; ++current) {
-                if (is_pointer(*current)) {
-                    // Mark object as reachable in GC
-                    mark(*current);
-                }
-            }
-        }
-    }
-#else
-#endif
-}
-
-void BoehmGarbageCollector::get_heap_bounds() {
-#if BUILD_WINDOWS
-    HANDLE             heap = GetProcessHeap();  // Get the default process heap
-    PROCESS_HEAP_ENTRY entry;
-    entry.lpData = NULL;
-
-    SIZE_T lowestAddress  = (SIZE_T)-1;  // Start with the highest possible address
-    SIZE_T highestAddress = 0;           // Start with the lowest possible address
-
-    while (HeapWalk(heap, &entry) != 0) {
-        if (entry.wFlags & PROCESS_HEAP_ENTRY_BUSY) {  // Check if this entry is used
-            SIZE_T start = (SIZE_T)entry.lpData;
-            SIZE_T end   = start + entry.cbData;
-
-            // Update the lowest and highest addresses
-            if (start < lowestAddress) {
-                lowestAddress = start;
-            }
-            if (end > highestAddress) {
-                highestAddress = end;
-            }
-        }
-    }
-
-    heap_start = (void*)lowestAddress;
-    heap_end   = (void*)highestAddress;
-
-    kwdebug(outlog(),
-            "heap {} - {} = {}",
-            heap_start,
-            heap_end,
-            (char*)(heap_end) - (char*)(heap_start));
-#else
-#endif
-}
-
 struct ListBool {
     bool      val;
     ListBool* next = nullptr;
 };
-
-
 
 ListBool* make_list(BoehmGarbageCollector& gc, bool val, ListBool* prev) {
     ListBool* lst = gc.malloc<ListBool>();
@@ -784,8 +484,6 @@ ListBool* make_list(BoehmGarbageCollector& gc, bool val, ListBool* prev) {
     lst->next     = prev;
     return lst;
 }
-
-#include <setjmp.h>
 
 TEST_CASE("BoehmGarbageCollector_Marks recursively find pointers") {
     BoehmGarbageCollector gc;
@@ -837,6 +535,26 @@ void* test_all_there() {
     return (void*)n5;
 }
 
+void* test_only_two() {
+    BoehmGarbageCollector gc;
+
+    ListBool* n1 = make_list(gc, true, nullptr);
+    ListBool* n2 = make_list(gc, true, n1);
+    make_list(gc, true, n2);
+    make_list(gc, true, n2);
+    make_list(gc, true, n2);
+
+    // why is it collecting pointers
+    gc.dump(std::cout);
+    gc.collect();
+    gc.dump(std::cout);
+
+    REQUIRE(gc.allocations.size() == 2);
+
+    // need to return it else it might not be in the stack anymore
+    return (void*)n2;
+}
+
 
 TEST_CASE("BoehmGarbageCollector_AllReachable") {
     test_all_there();
@@ -865,4 +583,9 @@ void* test_nested() {
 
 TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
     test_nested();
+}
+
+
+TEST_CASE("BoehmGarbageCollector_Collect_Garbage") {
+    test_only_two();
 }
