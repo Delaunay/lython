@@ -11,7 +11,7 @@
 namespace lython {
 
 #if BUILD_WINDOWS
-void BoehmGarbageCollector::scan_registers() {
+void BoehmGarbageCollector::mark_registers(GCGen gen) {
     void* registers[16];
 
     CONTEXT context;
@@ -36,12 +36,12 @@ void BoehmGarbageCollector::scan_registers() {
 
     // Check each register to see if it contains a pointer
     for (int i = 0; i < 16; ++i) {
-        if (is_pointer(registers[i])) {
-            mark(registers[i]);
+        if (is_pointer(gen, registers[i])) {
+            mark_obj(registers[i], gen);
         }
     }
 }
-void BoehmGarbageCollector::scan_stack() {
+void BoehmGarbageCollector::mark_stack(GCGen gen) {
     // Obtain stack bounds for the current thread
     CONTEXT context;
     RtlCaptureContext(&context);
@@ -53,13 +53,13 @@ void BoehmGarbageCollector::scan_stack() {
 
     // Iterate over stack
     for (void** current = stack_pointer; current < stack_base; ++current) {
-        if (is_pointer(*current)) {
-            mark(*current);
+        if (is_pointer(gen, *current)) {
+            mark_obj(*current, gen);
         }
     }
 }
 
-void BoehmGarbageCollector::scan_globals() {
+void BoehmGarbageCollector::mark_globals(GCGen gen) {
 // i.e root set
     // Get a handle to the current module (application)
     HMODULE hModule = GetModuleHandle(NULL);
@@ -78,9 +78,9 @@ void BoehmGarbageCollector::scan_globals() {
 
             // Scan each potential pointer location
             for (void** current = (void**)start; current < (void**)end; ++current) {
-                if (is_pointer(*current)) {
+                if (is_pointer(gen, *current)) {
                     // Mark object as reachable in GC
-                    mark(*current);
+                    mark_obj(*current, gen);
                 }
             }
         }

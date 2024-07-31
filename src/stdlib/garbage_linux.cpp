@@ -2,7 +2,8 @@
 
 namespace lython {
 
-void BoehmGarbageCollector::scan_registers() {
+#if BUILD_LINUX
+void BoehmGarbageCollector::scan_registers(GCGen gen) {
     void* registers[16];
 
     // Inline assembly to capture register values
@@ -33,12 +34,12 @@ void BoehmGarbageCollector::scan_registers() {
 
     // Check each register to see if it contains a pointer
     for (int i = 0; i < 16; ++i) {
-        if (is_pointer(registers[i])) {
-            mark(registers[i]);
+        if (is_pointer(gen, registers[i])) {
+            mark_obj(registers[i], gen);
         }
     }
 }
-void BoehmGarbageCollector::scan_stack() {
+void BoehmGarbageCollector::scan_stack(GCGen gen) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
@@ -57,8 +58,8 @@ void BoehmGarbageCollector::scan_stack() {
 
     // Iterate over the stack
     for (void **current = stack_pointer; current < stack_end; ++current) {
-        if (is_pointer(*current)) {
-            mark(*current);
+        if (is_pointer(gen, *current)) {
+            mark_obj(*current, gen);
         }
     }
 
@@ -66,7 +67,7 @@ void BoehmGarbageCollector::scan_stack() {
     pthread_attr_destroy(&attr);
 }
 
-void BoehmGarbageCollector::scan_globals() {
+void BoehmGarbageCollector::scan_globals(GCGen gen) {
     FILE *maps = fopen("/proc/self/maps", "r");
     if (!maps) {
         kwdebug(outlog(), "could not open file to scan for globals");
@@ -85,9 +86,9 @@ void BoehmGarbageCollector::scan_globals() {
         if (strchr(perms, 'w') != NULL) {
             // Scan each potential pointer location
             for (void **current = (void **)start; current < (void **)end; ++current) {
-                if (is_pointer(*current)) {
+                if (is_pointer(gen, *current)) {
                     // Mark object as reachable in GC
-                    mark(*current);
+                    mark_obj(*current, gen);
                 }
             }
         }
@@ -135,6 +136,6 @@ void BoehmGarbageCollector::get_heap_bounds() {
     heap_start = (void*)lowestAddress;
     heap_end = (void*)highestAddress;
 }
-
+#endif
 
 }

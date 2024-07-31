@@ -4,7 +4,7 @@
 
 namespace lython {
 
-        int BoehmGarbageCollector::is_pointer(void* ptr) {
+        int BoehmGarbageCollector::is_pointer(GCGen gen, void* ptr) {
         // Check if the pointer is within the heap range
         // if (ptr < heap_start || ptr >= heap_end) {
         //    return false;
@@ -17,7 +17,7 @@ namespace lython {
 
         // Check if the pointer is an actual allocated object
         GCObjectHeader* hdr = header(ptr);
-        if (std::find(allocations.begin(), allocations.end(), hdr) != allocations.end()) {
+        if (std::find(allocations(gen).begin(), allocations(gen).end(), hdr) != allocations(gen).end()) {
             // kwdebug(outlog(), "Good");
             return true;
         }
@@ -27,28 +27,38 @@ namespace lython {
         return false;
     }
 
-void* BoehmGarbageCollector::malloc(std::size_t size) {
+void* BoehmGarbageCollector::malloc(std::size_t size, void (*finalizer)(void*)) {
         // TODO handle alignment
         GCObjectHeader* hdr = (GCObjectHeader*)std::malloc(size + sizeof(GCObjectHeader));
         kwdebug(outlog(), "Allocating {} - {}", (void*)(hdr), hdr->data());
 
         hdr->size   = size;
         hdr->marked = 0;
-        allocations.push_back(hdr);
+        hdr->finalizer = finalizer;
+        add(GCGen::Temporary, hdr);
         return hdr->data();
     }
 
 void BoehmGarbageCollector::free(void* ptr) {
-        if (ptr == nullptr) {
-            return;
-        }
-        GCObjectHeader* hdr = header(ptr);
-        kwdebug(outlog(), "free {}", (void*)(hdr));
-        std::free(hdr);
+    if (ptr == nullptr) {
+        return;
     }
+    GCObjectHeader* hdr = header(ptr);
+    if (hdr->finalizer) {
+        hdr->finalizer(ptr);
+    }
+    kwdebug(outlog(), "free {}", (void*)(hdr));
+    std::free(hdr);
+}
 
 
-void BoehmGarbageCollector::flat_mark(void* obj) {
+void BoehmGarbageCollector::compact() {
+
+
+}
+
+
+void BoehmGarbageCollector::mark_obj(void* obj, GCGen gen) {
     pointers = {obj};
     kwdebug(outlog(), "marking {}", obj);
 
@@ -67,60 +77,44 @@ void BoehmGarbageCollector::flat_mark(void* obj) {
 
         for (int i = 0; i < hdr->size; i++) {
             void** member = reinterpret_cast<void**>(ptr) + i;
-            if (is_pointer(*member)) {
+            if (is_pointer(gen, *member)) {
                 pointers.push_back(*member);
             }
         }
     }
 }
 
-
-
-
-void BoehmGarbageCollector::stop_world_collect() {
-        get_heap_bounds();
-
-        // Mark
-        kwdebug(outlog(), "mark stack");
-        scan_stack();
-        kwdebug(outlog(), "mark globals");
-        scan_globals();
-        kwdebug(outlog(), "mark registers");
-        scan_registers();
-
-        // Sweep
-        kwdebug(outlog(), "Sweep");
-        sweep();
-    }
-
-    void BoehmGarbageCollector::sweep() {
-        Array<GCObjectHeader*> allocs;
-        for (GCObjectHeader* obj: allocations) {
-            if (!obj->marked) {
-                kwdebug(outlog(), "free {}", (void*)(obj));
-                std::free(obj);
-            } else {
-                kwdebug(outlog(), "still used");
-                obj->marked = 0;
-                allocs.push_back(obj);
-            }
+void BoehmGarbageCollector::sweep(GCGen gen) {
+    Array<GCObjectHeader*> allocs;
+    for (GCObjectHeader* obj: allocations(gen)) {
+        if (!obj->marked) {
+            kwdebug(outlog(), "free {}", (void*)(obj));
+            std::free(obj);
+        } else {
+            obj->marked = 0;
+            allocs.push_back(obj);
         }
-        allocations = allocs;
     }
-
+    allocations(gen) = allocs;
+}
 
 void BoehmGarbageCollector::dump(std::ostream& out) {
-        get_heap_bounds();
+    get_heap_bounds();
 
-        out << fmt::format("+-->  {} | {}\n", heap_start, 0);
-        for (GCObjectHeader* obj: allocations) {
-            auto diff = (char*)(obj) - (char*)(heap_start);
-            out << fmt::format("| +-> {} | {}\n", (void*)(obj), diff);
-            out << fmt::format("| | \n");
-            out << fmt::format("| +-> {}\n", obj->size);
+    for(Generation& gen: generations) {
+        if (gen.allocations.size() > 0) {
+            out << fmt::format("+-->  {} | {}\n", heap_start, 0);
+            for (GCObjectHeader* obj: gen.allocations) {
+                auto diff = (char*)(obj) - (char*)(heap_start);
+                out << fmt::format("| +-> {} | {}\n", (void*)(obj), diff);
+                out << fmt::format("| | \n");
+                out << fmt::format("| +-> {}\n", obj->size);
+            }
+            out << fmt::format("+-->  {} | {} \n", heap_end, (char*)(heap_end) - (char*)(heap_start));
         }
-        out << fmt::format("+-->  {} | {} \n", heap_end, (char*)(heap_end) - (char*)(heap_start));
     }
+}
+
 }
 
 

@@ -494,10 +494,10 @@ TEST_CASE("BoehmGarbageCollector_Marks recursively find pointers") {
         make_list(
             gc, true, make_list(gc, true, make_list(gc, true, make_list(gc, true, nullptr)))));
 
-    gc.mark(n5);
+    gc.mark_obj(n5);
 
     int count = 0;
-    for (GCObjectHeader* hdr: gc.allocations) {
+    for (GCObjectHeader* hdr: gc.allocations(GCGen::Temporary)) {
         count += hdr->marked;
     }
 
@@ -511,7 +511,7 @@ TEST_CASE("BoehmGarbageCollector_Globals") {
 
     _global = make_list(gc, true, nullptr);
 
-    REQUIRE(gc.allocations.size() == 1);
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 1);
 }
 
 
@@ -529,7 +529,7 @@ void* test_all_there() {
     gc.collect();
     gc.dump(std::cout);
 
-    REQUIRE(gc.allocations.size() == 5);
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
 
     // need to return it else it might not be in the stack anymore
     return (void*)n5;
@@ -549,7 +549,7 @@ void* test_only_two() {
     gc.collect();
     gc.dump(std::cout);
 
-    REQUIRE(gc.allocations.size() == 2);
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 2);
 
     // need to return it else it might not be in the stack anymore
     return (void*)n2;
@@ -575,7 +575,7 @@ void* test_nested() {
     gc.collect();
     gc.dump(std::cout);
 
-    REQUIRE(gc.allocations.size() == 5);
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
 
     // need to return it else it might not be in the stack anymore
     return n5;
