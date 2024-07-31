@@ -589,3 +589,65 @@ TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
 TEST_CASE("BoehmGarbageCollector_Collect_Garbage") {
     test_only_two();
 }
+
+void print(ListBool* list) {
+    int i = 0;
+    while(list != nullptr) {
+        std::cout << i << " ";
+        list = list->next;
+        i += 1;
+    }
+}
+
+ListBool* test_relocated(BoehmGarbageCollector& gc) {
+
+    ListBool* n5 = 
+        make_list(gc, true,
+        make_list(gc, true, 
+        make_list(gc, true, 
+        make_list(gc, true, 
+        make_list(gc, true, nullptr)))));
+
+
+    auto replace = [&](void* obj, void* replacement) {
+        Array<void*> pointers = {obj};
+
+        while (!pointers.empty()) {
+            void* ptr = *pointers.rbegin();
+            pointers.pop_back();
+
+            if (ptr == nullptr || gc.is_marked(ptr)) {
+                continue;
+            }
+
+            GCObjectHeader* hdr = gc.header(ptr);
+
+            for (int i = 0; i < hdr->size; i++) {
+                void** member = reinterpret_cast<void**>(ptr) + i;
+                if (gc.is_pointer(GCGen::Temporary, *member)) {
+                    member[0] = replacement;
+                }
+            }
+        }
+    };
+
+    print(n5); printf("\n");
+    replace(n5, make_list(gc, true, nullptr));
+    print(n5); printf("\n");
+    
+    return n5;
+}
+
+TEST_CASE("BoehmGarbageCollector_Relocate") {
+    BoehmGarbageCollector gc;
+
+    ListBool* l = test_relocated(gc);
+
+    gc.dump(std::cout);
+    gc.collect();
+    gc.dump(std::cout);
+
+    // 6 allocations
+    // only 2 should remain reachable
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 2);
+}

@@ -52,6 +52,9 @@ enum class GCGen
  * 
  * compute the memory size of generation, allocate a big block
  * change the memory pointers
+ * 
+ * The header could also be dynamically allocated separately for common
+ * type/size 
  */
 struct BoehmGarbageCollector {
 
@@ -89,6 +92,23 @@ public:
 
     // mark an object as live
     void mark_obj(void* obj, GCGen gen = GCGen::Temporary);
+
+    void possible_pointer(GCGen gen, void** current) {
+        // maye this could be relocatable
+        // Mark object as reachable in GC
+        if (is_pointer(gen, *current)) {
+            mark_obj(*current, gen);
+        }
+    }
+
+    #if 0
+    void possible_pointer(GCGen gen, void* current) {
+        // Mark object as reachable in GC
+        if (is_pointer(gen, current)) {
+            mark_obj(current, gen);
+        }
+    }
+    #endif
 
 public:
 

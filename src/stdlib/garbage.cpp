@@ -52,28 +52,24 @@ void BoehmGarbageCollector::free(void* ptr) {
 }
 
 
-void BoehmGarbageCollector::compact() {
-
-
-}
-
 
 void BoehmGarbageCollector::mark_obj(void* obj, GCGen gen) {
     pointers = {obj};
-    kwdebug(outlog(), "marking {}", obj);
-
+    // kwdebug(outlog(), "marking {}", obj);
+    int j = 0;
     while (!pointers.empty()) {
         void* ptr = *pointers.rbegin();
         pointers.pop_back();
 
         if (ptr == nullptr || is_marked(ptr)) {
-            kwdebug(outlog(), "already marked");
+            kwdebug(outlog(), "{} already marked", j);
             continue;
         }
 
         GCObjectHeader* hdr = header(ptr);
         hdr->marked         = true;
-        kwdebug(outlog(), "marked {}", (void*)(hdr));
+        kwdebug(outlog(), "{} marked {}", j, (void*)(hdr));
+        j += 1;
 
         for (int i = 0; i < hdr->size; i++) {
             void** member = reinterpret_cast<void**>(ptr) + i;
@@ -83,6 +79,7 @@ void BoehmGarbageCollector::mark_obj(void* obj, GCGen gen) {
         }
     }
 }
+
 
 void BoehmGarbageCollector::sweep(GCGen gen) {
     Array<GCObjectHeader*> allocs;

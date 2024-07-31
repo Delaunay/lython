@@ -1,9 +1,15 @@
 #include "garbage.h"
 
+
+#if __has_include(<pthread.h>)
+#include <pthread.h>
+#define BUILD_LINUX 1
+#endif
+
 namespace lython {
 
 #if BUILD_LINUX
-void BoehmGarbageCollector::scan_registers(GCGen gen) {
+void BoehmGarbageCollector::mark_registers(GCGen gen) {
     void* registers[16];
 
     // Inline assembly to capture register values
@@ -34,12 +40,13 @@ void BoehmGarbageCollector::scan_registers(GCGen gen) {
 
     // Check each register to see if it contains a pointer
     for (int i = 0; i < 16; ++i) {
+        // relocating registers mean changing their values
         if (is_pointer(gen, registers[i])) {
             mark_obj(registers[i], gen);
         }
     }
 }
-void BoehmGarbageCollector::scan_stack(GCGen gen) {
+void BoehmGarbageCollector::mark_stack(GCGen gen) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
@@ -58,16 +65,14 @@ void BoehmGarbageCollector::scan_stack(GCGen gen) {
 
     // Iterate over the stack
     for (void **current = stack_pointer; current < stack_end; ++current) {
-        if (is_pointer(gen, *current)) {
-            mark_obj(*current, gen);
-        }
+        possible_pointer(gen, current);
     }
 
     // Clean up
     pthread_attr_destroy(&attr);
 }
 
-void BoehmGarbageCollector::scan_globals(GCGen gen) {
+void BoehmGarbageCollector::mark_globals(GCGen gen) {
     FILE *maps = fopen("/proc/self/maps", "r");
     if (!maps) {
         kwdebug(outlog(), "could not open file to scan for globals");
@@ -86,10 +91,7 @@ void BoehmGarbageCollector::scan_globals(GCGen gen) {
         if (strchr(perms, 'w') != NULL) {
             // Scan each potential pointer location
             for (void **current = (void **)start; current < (void **)end; ++current) {
-                if (is_pointer(gen, *current)) {
-                    // Mark object as reachable in GC
-                    mark_obj(*current, gen);
-                }
+                possible_pointer(gen, current);
             }
         }
     }
