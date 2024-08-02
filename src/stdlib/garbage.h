@@ -55,6 +55,9 @@ enum class GCGen
  * 
  * The header could also be dynamically allocated separately for common
  * type/size 
+ * 
+ * Currently the GC never runs, some heuristic needs to be put in place
+ * to make it run periodically
  */
 struct BoehmGarbageCollector {
 

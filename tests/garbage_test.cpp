@@ -4,6 +4,10 @@
 #include "stdlib/garbage.h"
 #include <algorithm>
 
+
+#define KIWI_NOINLINE __attribute__ ((noinline))
+
+
 namespace lython {
 
 class GargabeCollector;
@@ -485,6 +489,16 @@ ListBool* make_list(BoehmGarbageCollector& gc, bool val, ListBool* prev) {
     return lst;
 }
 
+void KIWI_NOINLINE print(ListBool* list) {
+    int i = 0;
+    while(list != nullptr) {
+        std::cout << i << " ";
+        list = list->next;
+        i += 1;
+    }
+}
+
+
 TEST_CASE("BoehmGarbageCollector_Marks recursively find pointers") {
     BoehmGarbageCollector gc;
 
@@ -515,7 +529,7 @@ TEST_CASE("BoehmGarbageCollector_Globals") {
 }
 
 
-void* test_all_there() {
+ListBool* KIWI_NOINLINE test_all_there() {
     BoehmGarbageCollector gc;
 
     ListBool* n1 = make_list(gc, true, nullptr);
@@ -532,10 +546,10 @@ void* test_all_there() {
     REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
 
     // need to return it else it might not be in the stack anymore
-    return (void*)n5;
+    return n5;
 }
 
-void* test_only_two() {
+ListBool* KIWI_NOINLINE test_only_two() {
     BoehmGarbageCollector gc;
 
     ListBool* n1 = make_list(gc, true, nullptr);
@@ -549,19 +563,23 @@ void* test_only_two() {
     gc.collect();
     gc.dump(std::cout);
 
+    printf("%lu \n", gc.allocations(GCGen::Temporary).size());
+    printf("%lu \n", gc.allocations(GCGen::Medium).size());
+    printf("%lu \n", gc.allocations(GCGen::Long).size());
+
     REQUIRE(gc.allocations(GCGen::Temporary).size() == 2);
 
     // need to return it else it might not be in the stack anymore
-    return (void*)n2;
+    return n2;
 }
 
 
 TEST_CASE("BoehmGarbageCollector_AllReachable") {
-    test_all_there();
+    print(test_all_there());
 }
 
 
-void* test_nested() {
+ListBool* KIWI_NOINLINE test_nested() {
     BoehmGarbageCollector gc;
 
     ListBool* n5 = make_list(
@@ -582,24 +600,16 @@ void* test_nested() {
 }
 
 TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
-    test_nested();
+    print(test_nested());
 }
 
 
 TEST_CASE("BoehmGarbageCollector_Collect_Garbage") {
-    test_only_two();
+    print(test_only_two());
 }
 
-void print(ListBool* list) {
-    int i = 0;
-    while(list != nullptr) {
-        std::cout << i << " ";
-        list = list->next;
-        i += 1;
-    }
-}
 
-ListBool* test_relocated(BoehmGarbageCollector& gc) {
+ListBool* KIWI_NOINLINE test_relocated(BoehmGarbageCollector& gc) {
 
     ListBool* n5 = 
         make_list(gc, true,
@@ -638,14 +648,31 @@ ListBool* test_relocated(BoehmGarbageCollector& gc) {
     return n5;
 }
 
+
+char KIWI_NOINLINE reset_frame() {
+    volatile char data[1024 * 1024 * 1024];
+    char c = 0;
+    for(int i; i < sizeof(data); i++) {
+        c += data[i];
+    }
+    return c;
+}
+
+
 TEST_CASE("BoehmGarbageCollector_Relocate") {
     BoehmGarbageCollector gc;
 
     ListBool* l = test_relocated(gc);
+    reset_frame();
 
-    gc.dump(std::cout);
+    //gc.dump(std::cout);
     gc.collect();
-    gc.dump(std::cout);
+    //gc.dump(std::cout);
+
+    print(l);
+
+    gc.collect();
+
 
     // 6 allocations
     // only 2 should remain reachable

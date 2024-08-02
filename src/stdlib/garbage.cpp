@@ -43,6 +43,7 @@ void BoehmGarbageCollector::free(void* ptr) {
     if (ptr == nullptr) {
         return;
     }
+    // TODO: remove the ptr from the allocation
     GCObjectHeader* hdr = header(ptr);
     if (hdr->finalizer) {
         hdr->finalizer(ptr);
@@ -84,14 +85,22 @@ void BoehmGarbageCollector::mark_obj(void* obj, GCGen gen) {
 void BoehmGarbageCollector::sweep(GCGen gen) {
     Array<GCObjectHeader*> allocs;
     for (GCObjectHeader* obj: allocations(gen)) {
+        if (obj == nullptr) {
+            continue;
+        }
         if (!obj->marked) {
             kwdebug(outlog(), "free {}", (void*)(obj));
+            if (obj->finalizer) {
+                obj->finalizer(obj->data());
+            }
             std::free(obj);
         } else {
             obj->marked = 0;
             allocs.push_back(obj);
         }
     }
+    
+    // TODO: promotion logic here
     allocations(gen) = allocs;
 }
 
