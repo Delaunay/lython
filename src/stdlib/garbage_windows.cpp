@@ -37,10 +37,18 @@ void BoehmGarbageCollector::mark_registers(GCGen gen) {
     // Check each register to see if it contains a pointer
     for (int i = 0; i < 16; ++i) {
         if (is_pointer(gen, registers[i])) {
-            mark_obj(registers[i], gen);
+            mark_obj(registers[i], gen, Mark::Register);
         }
     }
 }
+
+
+bool is_aligned(void* ptr) {
+    constexpr size_t alignment = alignof(void*);
+    return reinterpret_cast<uintptr_t>(ptr) % alignment == 0;
+}
+
+
 void BoehmGarbageCollector::mark_stack(GCGen gen) {
     // Obtain stack bounds for the current thread
     CONTEXT context;
@@ -50,11 +58,14 @@ void BoehmGarbageCollector::mark_stack(GCGen gen) {
     // Use Rsp for stack pointer in x86_64
     void** stack_pointer = (void**)context.Rsp;
     void** stack_base = (void**)pTib->StackBase;
+    void** stack_limit = (void**)pTib->StackLimit;
 
     // Iterate over stack
     for (void** current = stack_pointer; current < stack_base; ++current) {
-        if (is_pointer(gen, *current)) {
-            mark_obj(*current, gen);
+        if (current >= stack_limit && current < stack_base) { 
+            if (is_pointer(gen, *current)) {
+                mark_obj(*current, gen, Mark::Stack);
+            }
         }
     }
 }
@@ -80,7 +91,7 @@ void BoehmGarbageCollector::mark_globals(GCGen gen) {
             for (void** current = (void**)start; current < (void**)end; ++current) {
                 if (is_pointer(gen, *current)) {
                     // Mark object as reachable in GC
-                    mark_obj(*current, gen);
+                    mark_obj(*current, gen, Mark::Global);
                 }
             }
         }

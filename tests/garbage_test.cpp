@@ -1,11 +1,12 @@
 #include "dtypes.h"
 // #include "vm/garbage_collector.h"
 
+
+
+#define WITH_LOG 1
 #include "stdlib/garbage.h"
 #include <algorithm>
 
-
-#define KIWI_NOINLINE __attribute__ ((noinline))
 
 
 namespace lython {
@@ -483,7 +484,7 @@ struct ListBool {
 };
 
 ListBool* make_list(BoehmGarbageCollector& gc, bool val, ListBool* prev) {
-    ListBool* lst = gc.malloc<ListBool>();
+    ListBool* lst = gc.malloc<ListBool>(LOC);
     lst->val      = val;
     lst->next     = prev;
     return lst;
@@ -499,117 +500,62 @@ void KIWI_NOINLINE print(ListBool* list) {
 }
 
 
-TEST_CASE("BoehmGarbageCollector_Marks recursively find pointers") {
-    BoehmGarbageCollector gc;
+#define reset_frame()
 
-    ListBool* n5 = make_list(
-        gc,
-        true,
-        make_list(
-            gc, true, make_list(gc, true, make_list(gc, true, make_list(gc, true, nullptr)))));
-
-    gc.mark_obj(n5);
-
-    int count = 0;
-    for (GCObjectHeader* hdr: gc.allocations(GCGen::Temporary)) {
-        count += hdr->marked;
-    }
-
-    REQUIRE(count == 5);
+#define reset_frame__() {                       \
+    int size = 1024 * 2;                        \
+    volatile char* data = (char*) alloca(size); \
+    memset((void*)data, size, 0);               \
 }
 
-ListBool* _global = nullptr;
+KIWI_NOINLINE char reset_frame_(int size=1024) {
+    volatile char* data = (char*) alloca(size);
+    memset((void*)data, size, 0);
 
-TEST_CASE("BoehmGarbageCollector_Globals") {
-    BoehmGarbageCollector gc;
+    volatile char* data2 = (char*) malloc(size);
+    memset((void*)data2, size, 0);
 
-    _global = make_list(gc, true, nullptr);
-
-    REQUIRE(gc.allocations(GCGen::Temporary).size() == 1);
+    return data[size - 1] + data2[size - 1];
 }
 
 
-ListBool* KIWI_NOINLINE test_all_there() {
-    BoehmGarbageCollector gc;
-
+KIWI_NOINLINE ListBool* test_all_there(BoehmGarbageCollector& gc) {
     ListBool* n1 = make_list(gc, true, nullptr);
     ListBool* n2 = make_list(gc, true, n1);
     ListBool* n3 = make_list(gc, true, n2);
     ListBool* n4 = make_list(gc, true, n3);
     ListBool* n5 = make_list(gc, true, n4);
 
-    // why is it collecting pointers
-    gc.dump(std::cout);
-    gc.collect();
-    gc.dump(std::cout);
-
-    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
-
     // need to return it else it might not be in the stack anymore
     return n5;
 }
 
-ListBool* KIWI_NOINLINE test_only_two() {
-    BoehmGarbageCollector gc;
+KIWI_NOINLINE ListBool* test_only_two(BoehmGarbageCollector& gc) {
+    ListBool* n1 = gc.named(make_list(gc, true, nullptr), "n1");
+    ListBool* n2 = gc.named(make_list(gc, true, n1), "n2");
 
-    ListBool* n1 = make_list(gc, true, nullptr);
-    ListBool* n2 = make_list(gc, true, n1);
-    make_list(gc, true, n2);
-    make_list(gc, true, n2);
-    make_list(gc, true, n2);
+    // Orphans
+    ListBool* n3 = gc.named(make_list(gc, true, nullptr), "n3");
+    ListBool* n4 = gc.named(make_list(gc, true, nullptr), "n4");
+    ListBool* n5 = gc.named(make_list(gc, true, nullptr), "n5");
 
-    // why is it collecting pointers
-    gc.dump(std::cout);
-    gc.collect();
-    gc.dump(std::cout);
-
-    printf("%lu \n", gc.allocations(GCGen::Temporary).size());
-    printf("%lu \n", gc.allocations(GCGen::Medium).size());
-    printf("%lu \n", gc.allocations(GCGen::Long).size());
-
-    REQUIRE(gc.allocations(GCGen::Temporary).size() == 2);
-
-    // need to return it else it might not be in the stack anymore
+    n3 = nullptr;
+    n4 = nullptr;
+    n5 = nullptr;
     return n2;
 }
 
-
-TEST_CASE("BoehmGarbageCollector_AllReachable") {
-    print(test_all_there());
-}
-
-
-ListBool* KIWI_NOINLINE test_nested() {
-    BoehmGarbageCollector gc;
-
+KIWI_NOINLINE ListBool* test_nested(BoehmGarbageCollector& gc) {
     ListBool* n5 = make_list(
         gc,
         true,
         make_list(
             gc, true, make_list(gc, true, make_list(gc, true, make_list(gc, true, nullptr)))));
 
-
-    gc.dump(std::cout);
-    gc.collect();
-    gc.dump(std::cout);
-
-    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
-
-    // need to return it else it might not be in the stack anymore
     return n5;
 }
 
-TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
-    print(test_nested());
-}
-
-
-TEST_CASE("BoehmGarbageCollector_Collect_Garbage") {
-    print(test_only_two());
-}
-
-
-ListBool* KIWI_NOINLINE test_relocated(BoehmGarbageCollector& gc) {
+KIWI_NOINLINE ListBool* test_relocated(BoehmGarbageCollector& gc) {
 
     ListBool* n5 = 
         make_list(gc, true,
@@ -649,13 +595,47 @@ ListBool* KIWI_NOINLINE test_relocated(BoehmGarbageCollector& gc) {
 }
 
 
-char KIWI_NOINLINE reset_frame() {
-    volatile char data[1024 * 1024 * 1024];
-    char c = 0;
-    for(int i; i < sizeof(data); i++) {
-        c += data[i];
-    }
-    return c;
+TEST_CASE("BoehmGarbageCollector_AllReachable") {
+    BoehmGarbageCollector gc;
+
+    auto l = test_all_there(gc);
+
+    reset_frame();      // try to clean the stack
+    gc.collect();       // Garbage collect
+    print(l);           // print list because it should still be reachable
+    gc.dump(std::cout);
+
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
+}
+
+
+TEST_CASE("BoehmGarbageCollector_AllReachable_Nested") {
+    std::cout << "Test: "<< sizeof(ListBool) << std::endl;
+    BoehmGarbageCollector gc;
+
+    auto l = test_nested(gc);
+
+    reset_frame();
+    gc.collect();
+    print(l);
+    gc.dump(std::cout);
+
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
+}
+
+
+TEST_CASE("BoehmGarbageCollector_Collect_Garbage") {
+    BoehmGarbageCollector gc;
+
+    auto l = test_only_two(gc);
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 5);
+
+    reset_frame();
+    gc.collect();
+    print(l);
+    gc.dump(std::cout);
+
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 2);
 }
 
 
@@ -663,18 +643,48 @@ TEST_CASE("BoehmGarbageCollector_Relocate") {
     BoehmGarbageCollector gc;
 
     ListBool* l = test_relocated(gc);
+
     reset_frame();
-
-    //gc.dump(std::cout);
     gc.collect();
-    //gc.dump(std::cout);
-
     print(l);
-
-    gc.collect();
-
+    gc.dump(std::cout);
 
     // 6 allocations
     // only 2 should remain reachable
     REQUIRE(gc.allocations(GCGen::Temporary).size() == 2);
+}
+
+
+TEST_CASE("BoehmGarbageCollector_Marks recursively find pointers") {
+    BoehmGarbageCollector gc;
+
+    ListBool* n5 = make_list(
+        gc,
+        true,
+        make_list(
+            gc, true, make_list(gc, true, make_list(gc, true, make_list(gc, true, nullptr)))));
+
+    gc.mark_obj(n5);
+
+    int count = 0;
+    for (GCObjectHeader* hdr: gc.allocations(GCGen::Temporary)) {
+        count += hdr->marked;
+    }
+
+    REQUIRE(count == 5);
+}
+
+
+ListBool* _global = nullptr;
+TEST_CASE("BoehmGarbageCollector_Globals") {
+    BoehmGarbageCollector gc;
+
+    _global = make_list(gc, true, nullptr);
+
+    gc.collect();
+    gc.dump(std::cout);
+
+    REQUIRE(gc.allocations(GCGen::Temporary).size() == 1);
+
+    // TODO: global should still be deleted
 }

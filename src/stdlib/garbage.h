@@ -10,10 +10,32 @@ struct Finalizer {
     }
 };
 
+
+#define KIWI_ALLOCATION_DEBUG 1
+#if __linux__
+#define KIWI_NOINLINE __attribute__ ((noinline))
+#else
+#define KIWI_NOINLINE __declspec(noinline)
+#endif
+
+enum class Mark {
+    None,
+    Stack,
+    Register,
+    Global,
+    Child,
+};
+
 struct GCObjectHeader {
     std::size_t size = 0;
     bool        marked : 1;
     void (*finalizer)(void*) = nullptr;
+
+#if KIWI_ALLOCATION_DEBUG
+    uint8_t mark_source;
+    CodeLocation loc = CodeLocation::noloc();
+    std::string name;
+#endif
 
     // does not work on windows
     // void* data[0];
@@ -25,11 +47,29 @@ struct Generation {
     Array<GCObjectHeader*> allocations;
 };
 
+template <typename T>
+class ReversedIterable {
+public:
+    ReversedIterable(T& container) : container_(container) {}
+
+    auto begin() const { return container_.rbegin(); }
+    auto end() const { return container_.rend(); }
+
+private:
+    T& container_;
+};
+
+template <typename T>
+ReversedIterable<T> reversed(T& container) {
+    return ReversedIterable<T>(container);
+}
+
 enum class GCGen
 {
-    Temporary,
+    Temporary,  // Gets collected often
     Medium,
-    Long,
+    Long,       // Gets rarely collected
+    Root,       // Never gets collected
     Max,
 };
 
@@ -64,6 +104,24 @@ struct BoehmGarbageCollector {
 public:
     BoehmGarbageCollector() { generations.resize(int(GCGen::Max)); }
 
+    ~BoehmGarbageCollector() {
+        // freeing the remaining memory might be tricky
+        // usually it is better to free the latest first
+        // Note: that we do a simple delete without taking into account
+        // where the pointers are we could try to identify members
+        // so we delete members first then the main object
+        // currently I think the allocation order is mainly kept in our DS
+        // so maybe it is not an issue
+        for(Generation& gen: generations) {
+            for(GCObjectHeader* hdr: reversed(gen.allocations)) {
+                if (hdr->finalizer) {
+                    hdr->finalizer(hdr->data());
+                }
+                std::free(hdr);
+            }
+            gen.allocations.clear();
+        }
+    }
     int is_pointer(GCGen gen, void* ptr);
 
     template <typename T>
@@ -94,7 +152,7 @@ public:
     }
 
     // mark an object as live
-    void mark_obj(void* obj, GCGen gen = GCGen::Temporary);
+    void mark_obj(void* obj, GCGen gen = GCGen::Temporary, Mark source = Mark::None);
 
     void possible_pointer(GCGen gen, void** current) {
         // maye this could be relocatable
@@ -128,14 +186,17 @@ public:
         return false;
     }
 
-    void promote(GCObjectHeader* obj, GCGen gen) {
-        if (should_promote(obj)) {
-            gen = promotion(gen);
-        }
-        allocations(gen).push_back(obj);
-    }
-
     void mark(GCGen gen) {
+        get_heap_bounds();
+
+        #if KIWI_ALLOCATION_DEBUG
+        for(GCObjectHeader* obj: allocations(gen)) {
+            if (obj) {
+                obj->mark_source = 0;
+            }
+        }
+        #endif
+
         mark_stack(gen);
         mark_globals(gen);
         mark_registers(gen);
@@ -158,6 +219,33 @@ public:
     Array<Generation> generations;  // list of allocations
     void*             heap_start = nullptr;
     void*             heap_end   = nullptr;
+
+    // insert debug info inside the header
+    void* augment(void* ptr, CodeLocation const& loc) {
+        #if KIWI_ALLOCATION_DEBUG
+        GCObjectHeader* hdr = header(ptr);
+        hdr->loc = loc;
+        #endif
+        return ptr;
+    }
+
+    template<typename T>
+    T* named(T* ptr, std::string const& name) {
+        #if KIWI_ALLOCATION_DEBUG
+        GCObjectHeader* hdr = header(ptr);
+        hdr->name = name;
+        #endif
+        return ptr;
+    }
+
+    template <typename T>
+    T* malloc(CodeLocation const& loc) {
+        return (T*)malloc(sizeof(T), loc, Finalizer<T>::finalize);
+    }
+    
+    void* malloc(std::size_t size, CodeLocation const& loc, void (*finalizer)(void*) = nullptr) {
+        return augment(malloc(size, finalizer), loc);
+    }
 };
 
 }  // namespace lython
