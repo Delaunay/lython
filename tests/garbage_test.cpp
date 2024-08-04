@@ -479,11 +479,11 @@ TEST_CASE("Allocator_Concept_Compact") {
 }
 
 struct ListBool {
-    bool      val;
+    int      val;
     ListBool* next = nullptr;
 };
 
-ListBool* make_list(BoehmGarbageCollector& gc, bool val, ListBool* prev) {
+ListBool* make_list(BoehmGarbageCollector& gc, int val, ListBool* prev) {
     ListBool* lst = gc.malloc<ListBool>(LOC);
     lst->val      = val;
     lst->next     = prev;
@@ -493,10 +493,11 @@ ListBool* make_list(BoehmGarbageCollector& gc, bool val, ListBool* prev) {
 void KIWI_NOINLINE print(ListBool* list) {
     int i = 0;
     while(list != nullptr) {
-        std::cout << i << " ";
+        std::cout << "(" << i << ": " << list->val << ") ";
         list = list->next;
         i += 1;
     }
+    std::cout << "\n";
 }
 
 
@@ -506,7 +507,7 @@ void KIWI_NOINLINE print(ListBool* list) {
     int size = 1024 * 2;                        \
     volatile char* data = (char*) alloca(size); \
     memset((void*)data, size, 0);               \
-}
+}truetrue
 
 KIWI_NOINLINE char reset_frame_(int size=1024) {
     volatile char* data = (char*) alloca(size);
@@ -520,24 +521,24 @@ KIWI_NOINLINE char reset_frame_(int size=1024) {
 
 
 KIWI_NOINLINE ListBool* test_all_there(BoehmGarbageCollector& gc) {
-    ListBool* n1 = make_list(gc, true, nullptr);
-    ListBool* n2 = make_list(gc, true, n1);
-    ListBool* n3 = make_list(gc, true, n2);
-    ListBool* n4 = make_list(gc, true, n3);
-    ListBool* n5 = make_list(gc, true, n4);
+    ListBool* n1 = make_list(gc, 1, nullptr);
+    ListBool* n2 = make_list(gc, 2, n1);
+    ListBool* n3 = make_list(gc, 3, n2);
+    ListBool* n4 = make_list(gc, 4, n3);
+    ListBool* n5 = make_list(gc, 5, n4);
 
     // need to return it else it might not be in the stack anymore
     return n5;
 }
 
 KIWI_NOINLINE ListBool* test_only_two(BoehmGarbageCollector& gc) {
-    ListBool* n1 = gc.named(make_list(gc, true, nullptr), "n1");
-    ListBool* n2 = gc.named(make_list(gc, true, n1), "n2");
+    ListBool* n1 = gc.named(make_list(gc, 1, nullptr), "n1");
+    ListBool* n2 = gc.named(make_list(gc, 2, n1), "n2");
 
     // Orphans
-    ListBool* n3 = gc.named(make_list(gc, true, nullptr), "n3");
-    ListBool* n4 = gc.named(make_list(gc, true, nullptr), "n4");
-    ListBool* n5 = gc.named(make_list(gc, true, nullptr), "n5");
+    ListBool* n3 = gc.named(make_list(gc, 3, nullptr), "n3");
+    ListBool* n4 = gc.named(make_list(gc, 4, nullptr), "n4");
+    ListBool* n5 = gc.named(make_list(gc, 5, nullptr), "n5");
 
     n3 = nullptr;
     n4 = nullptr;
@@ -548,9 +549,9 @@ KIWI_NOINLINE ListBool* test_only_two(BoehmGarbageCollector& gc) {
 KIWI_NOINLINE ListBool* test_nested(BoehmGarbageCollector& gc) {
     ListBool* n5 = make_list(
         gc,
-        true,
+        1,
         make_list(
-            gc, true, make_list(gc, true, make_list(gc, true, make_list(gc, true, nullptr)))));
+            gc, 2, make_list(gc, 3, make_list(gc, 4, make_list(gc, 5, nullptr)))));
 
     return n5;
 }
@@ -558,11 +559,11 @@ KIWI_NOINLINE ListBool* test_nested(BoehmGarbageCollector& gc) {
 KIWI_NOINLINE ListBool* test_relocated(BoehmGarbageCollector& gc) {
 
     ListBool* n5 = 
-        make_list(gc, true,
-        make_list(gc, true, 
-        make_list(gc, true, 
-        make_list(gc, true, 
-        make_list(gc, true, nullptr)))));
+        gc.named(make_list(gc, 1,
+        gc.named(make_list(gc, 2, 
+        gc.named(make_list(gc, 3, 
+        gc.named(make_list(gc, 4, 
+        gc.named(make_list(gc, 5, nullptr), "n1")), "n2")), "n3")), "n4")), "n5");
 
 
     auto replace = [&](void* obj, void* replacement) {
@@ -588,7 +589,7 @@ KIWI_NOINLINE ListBool* test_relocated(BoehmGarbageCollector& gc) {
     };
 
     print(n5); printf("\n");
-    replace(n5, make_list(gc, true, nullptr));
+    replace(n5, gc.named(make_list(gc, 6, nullptr), "n6"));
     print(n5); printf("\n");
     
     return n5;
@@ -686,5 +687,4 @@ TEST_CASE("BoehmGarbageCollector_Globals") {
 
     REQUIRE(gc.allocations(GCGen::Temporary).size() == 1);
 
-    // TODO: global should still be deleted
 }

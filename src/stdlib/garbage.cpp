@@ -82,7 +82,6 @@ void BoehmGarbageCollector::mark_obj(void* obj, GCGen gen, Mark source) {
             hdr->mark_source |= (1 << int(Mark::Child));
         }
 #endif
-        
 
         kwdebug(outlog(), "{} marked {}", j, (void*)(hdr));
         j += 1;
@@ -139,10 +138,10 @@ std::string sources(uint8_t source) {
         src += "reg ";
     }
     if (global) {
-        src += "global";
+        src += "global ";
     }
     if (child) {
-        src += "child";
+        src += "child ";
     }
     return src;
 }

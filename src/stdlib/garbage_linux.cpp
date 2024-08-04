@@ -42,7 +42,7 @@ void BoehmGarbageCollector::mark_registers(GCGen gen) {
     for (int i = 0; i < 16; ++i) {
         // relocating registers mean changing their values
         if (is_pointer(gen, registers[i])) {
-            mark_obj(registers[i], gen);
+            mark_obj(registers[i], gen, Mark::Register);
         }
     }
 }
@@ -65,7 +65,7 @@ void BoehmGarbageCollector::mark_stack(GCGen gen) {
 
     // Iterate over the stack
     for (void **current = stack_pointer; current < stack_end; ++current) {
-        possible_pointer(gen, current);
+        possible_pointer(gen, current, Mark::Stack);
     }
 
     // Clean up
@@ -76,22 +76,24 @@ void BoehmGarbageCollector::mark_globals(GCGen gen) {
     FILE *maps = fopen("/proc/self/maps", "r");
     if (!maps) {
         kwdebug(outlog(), "could not open file to scan for globals");
+        return;
     }
 
     char line[256];
     while (fgets(line, sizeof(line), maps)) {
         unsigned long start, end;
         char perms[5];
+        char pathname[256] = "";
 
-        if (sscanf(line, "%lx-%lx %4s", &start, &end, perms) != 3) {
+        if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %255s", &start, &end, perms, pathname) < 4) {
             continue;
         }
 
-        // Check if the section is writable (indicated by 'w' in perms)
-        if (strchr(perms, 'w') != NULL) {
+        // Check if the section is writable and belongs to the main executable or shared libraries
+        if (strchr(perms, 'w') != NULL && strstr(pathname, "[heap]") == NULL) {
             // Scan each potential pointer location
             for (void **current = (void **)start; current < (void **)end; ++current) {
-                possible_pointer(gen, current);
+                possible_pointer(gen, current, Mark::Global);
             }
         }
     }

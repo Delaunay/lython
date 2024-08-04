@@ -154,19 +154,19 @@ public:
     // mark an object as live
     void mark_obj(void* obj, GCGen gen = GCGen::Temporary, Mark source = Mark::None);
 
-    void possible_pointer(GCGen gen, void** current) {
+    void possible_pointer(GCGen gen, void** current, Mark source) {
         // maye this could be relocatable
         // Mark object as reachable in GC
         if (is_pointer(gen, *current)) {
-            mark_obj(*current, gen);
+            mark_obj(*current, gen, source);
         }
     }
 
     #if 0
-    void possible_pointer(GCGen gen, void* current) {
+    void possible_pointer(GCGen gen, void* current, Mark source) {
         // Mark object as reachable in GC
         if (is_pointer(gen, current)) {
-            mark_obj(current, gen);
+            mark_obj(current, gen, source);
         }
     }
     #endif
