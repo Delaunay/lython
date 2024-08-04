@@ -220,8 +220,9 @@ public:
     void*             heap_start = nullptr;
     void*             heap_end   = nullptr;
 
-    // insert debug info inside the header
-    void* augment(void* ptr, CodeLocation const& loc) {
+    // insert location info inside the header
+    template<typename T>
+    T* located(T* ptr, CodeLocation const& loc) {
         #if KIWI_ALLOCATION_DEBUG
         GCObjectHeader* hdr = header(ptr);
         hdr->loc = loc;
@@ -229,6 +230,7 @@ public:
         return ptr;
     }
 
+    // name the allocation
     template<typename T>
     T* named(T* ptr, std::string const& name) {
         #if KIWI_ALLOCATION_DEBUG
@@ -244,7 +246,7 @@ public:
     }
     
     void* malloc(std::size_t size, CodeLocation const& loc, void (*finalizer)(void*) = nullptr) {
-        return augment(malloc(size, finalizer), loc);
+        return located(malloc(size, finalizer), loc);
     }
 };
 
