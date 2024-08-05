@@ -11,7 +11,7 @@ struct Finalizer {
 };
 
 
-#define KIWI_ALLOCATION_DEBUG 1
+#define KIWI_ALLOCATION_DEBUG 0
 #if __linux__
 #define KIWI_NOINLINE __attribute__ ((noinline))
 #else
@@ -249,5 +249,29 @@ public:
         return located(malloc(size, finalizer), loc);
     }
 };
+
+
+inline
+BoehmGarbageCollector& garbage_collector() {
+    static BoehmGarbageCollector gc;
+    return gc;
+}
+
+inline
+void* kw_malloc(std::size_t n) {
+    return garbage_collector().malloc(n);
+}
+
+template<typename T>
+T* kw_malloc() {
+    return garbage_collector().malloc<T>();
+}
+
+
+template<typename T>
+void kw_free(T* ptr) {
+    return garbage_collector().free(ptr);
+}
+
 
 }  // namespace lython

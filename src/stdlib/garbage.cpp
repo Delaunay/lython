@@ -6,8 +6,10 @@ namespace lython {
 
 int BoehmGarbageCollector::is_pointer(GCGen gen, void* ptr) {
     // Check if the pointer is within the heap range
+
+    // linux has issues with this
     if (ptr < heap_start || ptr >= heap_end) {
-        return false;
+    //    return false;
     }
 
     // Check alignment: must be aligned to pointer size
