@@ -47,8 +47,17 @@ float freefun_distance(Point2D const* p) { return sqrt(p->x * p->x + p->y * p->y
 template <>
 struct lython::meta::ReflectionTrait<Point2D> {
     static int register_members() {
-        lython::meta::new_member<Point2D, float>("x");
-        lython::meta::new_member<Point2D, float>("y");
+        #define register_prop(Type, property)                               \
+            lython::meta::register_property<&Type::property>(#property)    
+
+        register_prop(Point2D, x);
+        
+        lython::meta::register_property<&Point2D::x>("x");
+        lython::meta::register_property<&Point2D::y>("y");
+
+
+        //lython::meta::new_member<Point2D, float>("x", offsetof(Point2D, x));
+        //lython::meta::new_member<Point2D, float>("y");
         // lython::meta::new_method("add", &Pnt::add);
         // lython::meta::new_method("sum", &Pnt::sum);
 

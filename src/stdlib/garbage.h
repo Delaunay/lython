@@ -32,9 +32,9 @@ struct GCObjectHeader {
     void (*finalizer)(void*) = nullptr;
 
 #if KIWI_ALLOCATION_DEBUG
-    uint8_t mark_source;
+    uint8_t      mark_source;
     CodeLocation loc = CodeLocation::noloc();
-    std::string name;
+    std::string  name;
 #endif
 
     // does not work on windows
@@ -175,9 +175,9 @@ public:
 
     GCGen promotion(GCGen gen) {
         switch(gen) {
-            case GCGen::Temporary: return GCGen::Medium;
-            case GCGen::Medium: return GCGen::Long;
-            case GCGen::Long: return GCGen::Long;
+            case GCGen::Temporary:  return GCGen::Medium;
+            case GCGen::Medium:     return GCGen::Long;
+            case GCGen::Long:       return GCGen::Long;
         }
         return GCGen::Temporary;
     }

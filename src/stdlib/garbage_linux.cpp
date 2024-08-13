@@ -97,7 +97,6 @@ void BoehmGarbageCollector::mark_globals(GCGen gen) {
             }
         }
     }
-
     fclose(maps);
 }
 

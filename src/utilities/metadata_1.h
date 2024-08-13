@@ -82,9 +82,9 @@ using VoidFunction = void(*)();
 using VoidObject = void*;
 
 
-struct Member {
-    Member(std::string const& n, int t, int o, int s, VoidFunction na = nullptr, VoidFunction m=nullptr) :
-        name(n), type(t), offset(o), size(s), native(na), method(m)
+struct Property {
+    Property(std::string const& n, int t, int s, VoidFunction na = nullptr, VoidFunction m=nullptr) :
+        name(n), type(t), size(s), native(na), method(m)
     {}
 
     std::string name;
@@ -93,12 +93,37 @@ struct Member {
     int   size = -1;
     VoidFunction native = nullptr;
     VoidFunction method = nullptr;
+
+    /*
+    template<typename ClassT>
+    void setattr(ClassT obj, Value value) {
+        impl_setattr((void*) obj, value);
+    }
+
+    template<typename ClassT>
+    Value getattr(ClassT obj) {
+        return impl_getattr((void*) obj);
+    } */
+
+    // virtual void setattr(void* obj, Value value) = 0;
+    // virtual Value getattr(void* obj) = 0;
+    // virtual ~Property() {}
+
+    struct Value (*impl_getattr)(void*) = nullptr;
+    void (*impl_setattr)(void*, struct Value) = nullptr;
+};
+
+template<typename MemberT, typename ClassT, MemberT ClassT::*member>
+struct AttrAccessor {
+    static Value getattr(void* obj);
+
+    static void setattr(void* obj, struct Value value);
 };
 
 struct ClassMetadata {
     std::string         name;
-    std::vector<Member> members;
-    int                 offset  = +0;
+    std::vector<Property> members;
+    // int                 offset  = +0;
     int                 type_id = -1;
     AllocationStat      stat;
     int                 weakref_type_id = -1;
@@ -190,16 +215,17 @@ inline const char* type_name(int class_id) {
     return name.c_str();
 };
 
+/*
 template<typename ObjectT>
-std::int8_t* member_address(ObjectT* value, Member const& member) {
+std::int8_t* member_address(ObjectT* value, Property const& member) {
     std::int8_t* mem = reinterpret_cast<std::int8_t*>((void*)value);
     std::int8_t* address = (mem + member.offset); 
     return address;
-}
+}*/
 
-Member const& nomember();
-Member const& member(int _typeid, std::string const& name);
-Member const& member(int _typeid, int id);
+Property const& nomember();
+Property const& member(int _typeid, std::string const& name);
+Property const& member(int _typeid, int id);
 
 std::tuple<int, int> member_id(int _typeid, std::string const& name);
 
@@ -210,12 +236,46 @@ ClassMetadata& classmeta(int _typeid);
 template<typename T>
 ClassMetadata& classmeta();
 
+template<typename Sig>
+struct PropertyRegister {
+};
+
+template<typename MemberT, typename ClassT>
+struct PropertyRegister<MemberT ClassT::*> {
+    using MemberType =  MemberT;
+    using ClassType =  ClassT;
+
+    template<MemberT ClassT::*member>
+    static Property& add(const char* name)
+    {
+        ClassMetadata& meta = classmeta<ClassT>();
+    
+        // auto prop = new ClassProperty<MemberT, ClassT>();
+        auto prop = Property();
+        prop.impl_setattr = AttrAccessor<MemberT, ClassT, member>::setattr;
+        prop.impl_getattr = AttrAccessor<MemberT, ClassT, member>::getattr;
+        prop.type = type_id<MemberT>();
+        prop.name = name;
+    
+        meta.members.push_back(prop);
+    
+        return *meta.members.rbegin();
+    }
+};
+
+
 template<typename T>
 struct ReflectionTrait {
     static int register_members() {
         return 0;
     }
 };
+
+template<auto Member>
+Property register_property(const char* name) {
+    return PropertyRegister<decltype(Member)>::template add<Member>(name);
+}
+
 
 
 template<typename T>
@@ -264,18 +324,17 @@ void new_member(std::string const& name) {
     classmeta<U>();
     ClassMetadata& registry = classmeta(type_id<T>());
     int size = sizeof(U);
-    registry.members.emplace_back(name, type_id<U>(), registry.offset, size);
-    registry.offset += size;
+    registry.members.emplace_back(name, type_id<U>(), size);
 }
 
 
 template<typename T>
-Member const& member(std::string const& name) {
+Property const& member(std::string const& name) {
     return member(type_id<T>(), name);
 }
 
 template<typename T>
-Member const& member(int member_id) {
+Property const& member(int member_id) {
     return member(type_id<T>(), member_id);
 }
 

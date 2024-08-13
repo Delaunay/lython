@@ -38,7 +38,11 @@ TARGET_LINK_LIBRARIES(fuzzer ${TEST_LIBRARIES})
 ADD_EXECUTABLE(garbage 
   garbage.cpp
 )
-# TARGET_LINK_LIBRARIES(garbage)
+
+ADD_EXECUTABLE(docgen 
+  docgen.cpp
+)
+TARGET_LINK_LIBRARIES(docgen liblython liblogging)
  
 
 # Add your test to CMAKE

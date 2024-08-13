@@ -1396,7 +1396,7 @@ Value& TreeEvaluator::fetch_attribute(Attribute_t* n, int depth) {
 
     int member_id = -1;
     int i = 0;
-    for(meta::Member const& member: meta.members) {
+    for(meta::Property const& member: meta.members) {
         if (StringRef(member.name.c_str()) == n->attr) {
             member_id = i;
             break;
@@ -1406,7 +1406,7 @@ Value& TreeEvaluator::fetch_attribute(Attribute_t* n, int depth) {
 
     if (i >= 0) {
         Value property;
-        meta::Member const& member = meta.members[member_id];
+        meta::Property const& member = meta.members[member_id];
         int type = member.type;
         int refid = meta::classmeta(type).weakref_type_id;
 

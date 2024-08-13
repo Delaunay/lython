@@ -435,12 +435,12 @@ ClassMetadata& classmeta(int _typeid) {
     return TypeRegistry::instance().id_to_meta[_typeid];
 }
 
-Member const& nomember() {
-    static Member const m("", -1, -1, -1);
+Property const& nomember() {
+    static Property const m("", -1, -1);
     return m;
 }
 
-Member const& member(int _typeid, int id) {
+Property const& member(int _typeid, int id) {
     ClassMetadata& registry = classmeta(_typeid);
     if (id >= registry.members.size()) {
         lyassert(0, "Member should exist");
@@ -449,10 +449,10 @@ Member const& member(int _typeid, int id) {
     return registry.members[id];
 }
 
-Member const& member(int _typeid, std::string const& name) {
+Property const& member(int _typeid, std::string const& name) {
     ClassMetadata& registry = classmeta(_typeid);
 
-    for (Member& member: registry.members) {
+    for (Property& member: registry.members) {
         if (member.name == name) {
             return member;
         }
@@ -465,7 +465,7 @@ std::tuple<int, int> member_id(int _typeid, std::string const& name) {
     ClassMetadata& registry = classmeta(_typeid);
     int i = 0;
 
-    for (Member& member: registry.members) {
+    for (Property& member: registry.members) {
         
         if (member.name == name) {
             return std::make_tuple(i, member.type);

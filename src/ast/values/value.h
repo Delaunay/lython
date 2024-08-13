@@ -2,6 +2,10 @@
 
 #include "utilities/metadata.h"
 
+//
+#include "stdlib/garbage.h"
+
+
 #define KIWI_SVO 1
 
 namespace lython {
@@ -51,15 +55,6 @@ template <typename T>
 struct Query {
     static bool get(const Value& v);
 };
-
-struct GarbageCollector {
-    virtual ~GarbageCollector() {}
-
-    virtual void free(void* memory) { return std::free(memory); }
-
-    virtual void* malloc(std::size_t n, void* memory = nullptr) { return std::realloc(memory, n); }
-};
-
 
 //
 // Simple dynamic value that holds small value on the stack
@@ -664,7 +659,7 @@ Value _new_object(int _typeid, Args... args) {
 }
 
 template <typename T, typename... Args>
-Value _new_object(GarbageCollector& gc, int _typeid, Args... args) {
+Value _new_object(BoehmGarbageCollector& gc, int _typeid, Args... args) {
     // up to the user to free it correctly
     void* memory = gc.malloc(sizeof(T));
     new (memory) T(args...);
@@ -842,6 +837,18 @@ void setattr(Value& obj, String const& name, Value val);
 Value getattrref(Value& obj, String const& name);
 Value getattr(Value obj, String const& name);
 
+
+namespace meta {
+template<typename MemberT, typename ClassT, MemberT ClassT::*member>
+Value AttrAccessor<MemberT, ClassT, member>::getattr(void* obj) {
+    return ((ClassT*)obj)->*member;
+}
+
+template<typename MemberT, typename ClassT, MemberT ClassT::*member>
+void AttrAccessor<MemberT, ClassT, member>::setattr(void* obj, Value value) {
+    ((ClassT*)obj)->*member = value.as<MemberT>();
+}
+}
 
 //
 //

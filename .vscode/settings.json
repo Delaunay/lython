@@ -115,7 +115,10 @@
         "strstream": "cpp",
         "valarray": "cpp",
         "__tree": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "__assert": "cpp",
+        "__availability": "cpp",
+        "*.def": "cpp"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"

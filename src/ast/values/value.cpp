@@ -193,7 +193,7 @@ bool register_metadata(int type_id, const char* name, ValueDeleter deleter, Valu
     return true;
 }
 
-
+#if 0
 meta::Member const* find_member(Value obj, String const& name) {
     meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
     for(meta::Member const& member: meta.members) {
@@ -203,6 +203,7 @@ meta::Member const* find_member(Value obj, String const& name) {
     }
     return nullptr;
 }
+#endif
 
 
 uint8* value_memory(meta::ClassMetadata const& meta, Value& obj) {
@@ -215,6 +216,7 @@ uint8* value_memory(meta::ClassMetadata const& meta, Value& obj) {
 
 
 Value getattr(Value obj, String const& name) {
+#if 0
     meta::Member const* member = nullptr;
     meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
     for(meta::Member const& mb: meta.members) {
@@ -247,11 +249,13 @@ Value getattr(Value obj, String const& name) {
         return property;
     }
 
+#endif
     kwassert(false, "Not handled");
     return Value(_None());
 }
 
 Value getattrref(Value& obj, String const& name) {
+    #if 0
     meta::Member const* member = nullptr;
     meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
     for(meta::Member const& mb: meta.members) {
@@ -275,7 +279,7 @@ Value getattrref(Value& obj, String const& name) {
         property.value.obj = (uint8*)(src) + member->offset;
         return property;
     }
-
+#endif
     kwassert(false, "Not handled");
     return Value(_None());
 }
@@ -291,6 +295,7 @@ Value make_pointer(int tag, void* ptr) {
 
 
 void setattr(Value& obj, String const& name, Value val) {
+    #if 0
     meta::Member const* member = nullptr;
     meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
     for(meta::Member const& mb: meta.members) {
@@ -345,6 +350,7 @@ void setattr(Value& obj, String const& name, Value val) {
             return;
         }
     }
+    #endif
     kwassert(false, "Not handled");
 }
 
