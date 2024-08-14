@@ -841,12 +841,16 @@ Value getattr(Value obj, String const& name);
 namespace meta {
 template<typename MemberT, typename ClassT, MemberT ClassT::*member>
 Value AttrAccessor<MemberT, ClassT, member>::getattr(void* obj) {
-    return ((ClassT*)obj)->*member;
+    return make_value<MemberT>(((ClassT*)obj)->*member);
 }
 
 template<typename MemberT, typename ClassT, MemberT ClassT::*member>
 void AttrAccessor<MemberT, ClassT, member>::setattr(void* obj, Value value) {
-    ((ClassT*)obj)->*member = value.as<MemberT>();
+    if constexpr (!std::is_const_v<MemberT>) {
+        ((ClassT*)obj)->*member = value.as<MemberT>();
+    } else {
+        // read only attribute
+    }
 }
 }
 

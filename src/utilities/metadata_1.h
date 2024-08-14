@@ -251,11 +251,11 @@ struct PropertyRegister<MemberT ClassT::*> {
         ClassMetadata& meta = classmeta<ClassT>();
     
         // auto prop = new ClassProperty<MemberT, ClassT>();
-        auto prop = Property();
+        auto prop = Property(name, type_id<MemberT>(), sizeof(MemberT));
         prop.impl_setattr = AttrAccessor<MemberT, ClassT, member>::setattr;
         prop.impl_getattr = AttrAccessor<MemberT, ClassT, member>::getattr;
-        prop.type = type_id<MemberT>();
-        prop.name = name;
+        // prop.type = type_id<MemberT>();
+        // prop.name = name;
     
         meta.members.push_back(prop);
     

@@ -43,6 +43,7 @@ SET(ADD_HEADERS
 
     # ast/values/constant.h
     ast/values/value.h
+    ast/meta.generated.cpp
     builtin/operators.h
     compatibility/compatibility.h
     codegen/cpp/cpp_gen.h
