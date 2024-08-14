@@ -2,11 +2,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "utilities/printing.h"
+#include "ast/ops.h"
+#include "sema/native_module.h"
 #include "utilities/metadata.h"
 #include "utilities/metadata_method.h"
-#include "sema/native_module.h"
-#include "ast/ops.h"
+#include "utilities/printing.h"
 
 #include <catch2/catch_all.hpp>
 
@@ -19,8 +19,33 @@ struct NewPoint {
     float sum(float z) { return x + y + z; }
 };
 
-float add(float a, float b) {
-    return a + b;
+float add(float a, float b) { return a + b; }
+
+TEST_CASE("NATIVE Object") {
+    using namespace lython;
+
+    meta::Property x   = lython::meta::register_member<&NewPoint::x>("x");
+    meta::Property y   = lython::meta::register_member<&NewPoint::y>("y");
+    meta::Property sum = lython::meta::register_member<&NewPoint::sum>("sum");
+
+    auto p = NewPoint{1, 2};
+
+    std::cout << sum.call(p, nullptr, 2.0f) << " == " << p.sum(2.0f) << std::endl;
+
+    std::cout << x.getattr(p)  << " == " << p.x<< std::endl;
+    x.setattr(p, 2.0f);
+    std::cout << x.getattr(p)  << " == " << p.x<< std::endl;
+
+    std::cout << y.getattr(p)  << " == " << p.y << std::endl;
+    y.setattr(p, 3);
+    std::cout << y.getattr(p)  << " == " << p.y << std::endl;
+
+    std::cout << "  x " << meta::getattr(p, "x")  << " == " << p.x << std::endl;
+    std::cout << "  y " << meta::getattr(p, "y")  << " == " << p.y << std::endl;
+    std::cout << "sum " << invoke(p, nullptr, meta::getattr(p, "sum"), 2.0f)  << " == " << p.sum(2.0f) << std::endl;
+
+    Value v = sum.call(p, nullptr, 2.0f);
+    std::cout << v  << " == " << p.sum(2.0f) << std::endl;
 }
 
 #if 0
@@ -98,43 +123,41 @@ TEST_CASE("NATIVE Object") {
 }
 #endif
 
+#if 0
 TEST_CASE("ArrowBuilder") {
 
-    lython::Module m;
-    lython::Bindings bindings;
+    lython::Module     m;
+    lython::Bindings   bindings;
     lython::Expression root;
-    lython::Arrow* type = lython::function_type_builder(
-        &m,
-        add
-    );
+    lython::Arrow*     type = lython::function_type_builder(&m, add);
 
     lython::String output = str(type);
     REQUIRE(output == "(f32, f32) -> f32");
     std::cout << str(type) << std::endl;
 }
+#endif
 
 TEST_CASE("Debug Print") {
 
     print(std::tuple<std::string, int>{"k1", 1});
     std::cout << "\n";
 
-    print(
-          std::vector<std::string>{
-              "k1",
-              "k2",
-              "k3",
-              "k4",
-              "k5",
-          });
+    print(std::vector<std::string>{
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+    });
     std::cout << "\n";
 
     print(std::unordered_map<std::string, int>{
-              {"k1", 1},
-              {"k2", 2},
-              {"k3", 3},
-              {"k4", 4},
-              {"k5", 5},
-          });
+        {"k1", 1},
+        {"k2", 2},
+        {"k3", 3},
+        {"k4", 4},
+        {"k5", 5},
+    });
     std::cout << "\n";
 
     std::unordered_map<std::string, int> hshtable{

@@ -5,7 +5,6 @@
 //
 #include "stdlib/garbage.h"
 
-
 #define KIWI_SVO 1
 
 namespace lython {
@@ -297,7 +296,7 @@ T const Getter<T>::get(Value const& v, GetterError& err) {
 
     // if (is_owned<T>())
     // return Getter<internal::Claim<T, true>>::get(v, err)
-    // if (is_weakref<T>()) 
+    // if (is_weakref<T>())
     // return Getter<internal::Claim<T, false>>::get(v, err)
 
     if constexpr (std::is_reference<T>::value) {
@@ -403,7 +402,7 @@ Value make_value(Args... args);
 template <typename Sig>
 struct Interop;
 
-template<typename FunctionType>
+template <typename FunctionType>
 constexpr int arg_count() {
     using Arguments = typename Interop<FunctionType>::Arguments;
     return std::tuple_size_v<std::remove_reference_t<Arguments>>;
@@ -439,19 +438,19 @@ struct Interop<R(Args...)> {
     // Compile time function; compatible with C function pointer
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
-        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+        return make_value<R>(
+            call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
     // Runtime wrapper
-    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
-        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) {
+        return make_value<R>(
+            call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
     // Special case for constructors
     // so allocation can be skipped for small objects
-    static Value ctor(void* mem, Args... args) {
-        return make_value<R>(args...);
-    }
+    static Value ctor(void* mem, Args... args) { return make_value<R>(args...); }
 
     template <std::size_t... Indices>
     static Value internal_ctor(void* mem, ScriptArgs& args, std::index_sequence<Indices...>) {
@@ -517,14 +516,26 @@ struct Interop<R (O::*)(Args...)> {
         constexpr int expected = arg_count<FreeMethodType>();
 
         if (args.size() != expected) {
-            kwerror(outlog(), "Function: {} expected {} arguments got {} arguments", typeid(func).name(), expected, args.size());
+            kwerror(outlog(),
+                    "Function: {} expected {} arguments got {} arguments",
+                    typeid(func).name(),
+                    expected,
+                    args.size());
         }
-        return make_value<R>(call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+
+        if constexpr (std::is_void_v<R>) {
+            call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{});
+            return Value(_None{});
+        } else {
+            return make_value<R>(
+                call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+        }
     };
 
     // Runtime wrapper
-    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
-        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) {
+        return make_value<R>(
+            call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 };
 
@@ -571,12 +582,14 @@ struct Interop<R (O::*)(Args...) const> {
     // compatible with C function pointer
     template <FunctionType func>
     static ScriptValue wrapper(void* mem, ScriptArgs& args) {  //
-        return make_value<R>(call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+        return make_value<R>(
+            call_method(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 
     // Runtime wrapper
-    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) { 
-        return make_value<R>(call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
+    static ScriptValue wrapper(FunctionType func, void* mem, ScriptArgs& args) {
+        return make_value<R>(
+            call_function(func, mem, args, std::make_index_sequence<sizeof...(Args)>{}));
     };
 };
 
@@ -694,7 +707,6 @@ Value _make_value(int _typeid, Args... args) {
     return _new_object<T>(_typeid, args...);
 }
 
-
 template <typename T, FreeFun fun = nullptr>
 ValueDeleter value_deleter() {
     if constexpr (fun == nullptr) {
@@ -765,6 +777,12 @@ Value invoke(void* ctx, Value fun, Args... args) {
     return fun.as<Function>()(ctx, value_args);
 }
 
+template <typename ClassT, typename... Args>
+Value invoke(ClassT& obj, void* ctx, Value fun, Args... args) {
+    Array<Value> value_args = {make_value<ClassT*>(&obj), Value(args)...};
+    return fun.as<Function>()(ctx, value_args);
+}
+
 // template <typename... Args>
 // Value call(Value fun, Args... values) {
 //     return fun.as<Function>()(nullptr, Array<Value>{values...});
@@ -776,16 +794,12 @@ Value unary_invoke(void* ctx, Value fun, Value a);
 
 template <typename T>
 struct _copy {
-    static Value copy(Value const& v) {
-        return make_value<T>(v.as<T const&>());
-    }
+    static Value copy(Value const& v) { return make_value<T>(v.as<T const&>()); }
 };
 
 template <typename T>
 struct _ref {
-    static Value ref(Value& v) {
-        return make_value<T*>(v.as<T*>());
-    }
+    static Value ref(Value& v) { return make_value<T*>(v.as<T*>()); }
 };
 
 template <typename T>
@@ -832,19 +846,17 @@ void register_value(ValuePrinter printer = nullptr) {
     static bool _ = _register_value<T>(printer);
 }
 
-
-void setattr(Value& obj, String const& name, Value val);
+void  setattr(Value& obj, String const& name, Value val);
 Value getattrref(Value& obj, String const& name);
 Value getattr(Value obj, String const& name);
 
-
 namespace meta {
-template<typename MemberT, typename ClassT, MemberT ClassT::*member>
+template <typename MemberT, typename ClassT, MemberT ClassT::*member>
 Value AttrAccessor<MemberT, ClassT, member>::getattr(void* obj) {
     return make_value<MemberT>(((ClassT*)obj)->*member);
 }
 
-template<typename MemberT, typename ClassT, MemberT ClassT::*member>
+template <typename MemberT, typename ClassT, MemberT ClassT::*member>
 void AttrAccessor<MemberT, ClassT, member>::setattr(void* obj, Value value) {
     if constexpr (!std::is_const_v<MemberT>) {
         ((ClassT*)obj)->*member = value.as<MemberT>();
@@ -852,7 +864,36 @@ void AttrAccessor<MemberT, ClassT, member>::setattr(void* obj, Value value) {
         // read only attribute
     }
 }
+
+// Convert a method into a free function (not bound anymore)
+// freemethod<&Class::method>() -> R(O* self, Args...)
+template <auto method>
+auto freemethod() {
+    using Wrapper = Interop<decltype(method)>;
+    return Wrapper::template freemethod<method>;
 }
+
+// Convert a method/function into a script callable
+// the arguments are converted from value to the right type
+// script<&Class::method>()
+template <auto function>
+Value script() {
+    using Wrapper = Interop<decltype(function)>;
+    return Value(Wrapper::template wrapper<function>);
+}
+
+template <auto method>
+Value ForwardAsValue<method>::fetch(void* obj) {
+    return script<method>();
+}
+
+template <typename ClassT, typename... Args>
+Value Property::call(ClassT& obj, void* ctx, Args... args) {
+    Value method = getattr(obj);
+    return invoke(obj, ctx, method, args...);
+}
+
+}  // namespace meta
 
 //
 //

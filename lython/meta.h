@@ -20,22 +20,31 @@ struct MyStruct {
 
 
 #if KMETA_PROCESSING
-#define KMETA2(...) __attribute__((annotate(#__VA_ARGS__)))
+#define KMETA(...) __attribute__((annotate(#__VA_ARGS__)))
 #else
-#define KMETA2(...)
+#define KMETA(...)
 #endif
 
-struct KMETA2(a, b, c) MyStruct1 {
+#define KCLASS(...)    KMETA(class, __VA_ARGS__)
+#define KSTRUCT(...)   KMETA(struct, __VA_ARGS__)
+#define KPROPERTY(...) KMETA(proprety, __VA_ARGS__)
+#define KFUNCTION(...) KMETA(function, __VA_ARGS__)
+#define KIGNORE(...)   KMETA(__VA_ARGS__, reflected=0)
+
+struct KSTRUCT(a, b, c) MyStruct1 {
 
     int a;
 
-
-    KMETA2(1, 2, 3)
+    KPROPERTY(FirstFlag, SomeValue=Elaborate, SecondFlag)
     int b;
 
+    KPROPERTY(reflected=0, SomeValue=Elaborate, SecondFlag)
+    int d;
 
     int c;
 
+    KFUNCTION()
+    void  fun() {}
 };
 
 

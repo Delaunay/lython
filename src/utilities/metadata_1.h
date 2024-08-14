@@ -91,34 +91,37 @@ struct Property {
     int   type = -1; 
     int   offset = -1;
     int   size = -1;
-    VoidFunction native = nullptr;
-    VoidFunction method = nullptr;
+    bool callable = false;
 
-    /*
     template<typename ClassT>
-    void setattr(ClassT obj, Value value) {
-        impl_setattr((void*) obj, value);
+    void setattr(ClassT& obj, Value value) {
+        impl_setattr((void*) (&obj), value);
     }
 
     template<typename ClassT>
-    Value getattr(ClassT obj) {
-        return impl_getattr((void*) obj);
-    } */
+    Value getattr(ClassT& obj) {
+        return impl_getattr((void*)(&obj));
+    }
 
-    // virtual void setattr(void* obj, Value value) = 0;
-    // virtual Value getattr(void* obj) = 0;
-    // virtual ~Property() {}
+    // Note: we could override the getattr/setattr here as well
+    VoidFunction native = nullptr;
+    VoidFunction method = nullptr;
 
     struct Value (*impl_getattr)(void*) = nullptr;
     void (*impl_setattr)(void*, struct Value) = nullptr;
+
+    template<typename ClassT, typename ...Args>
+    Value call(ClassT& obj, void* mem, Args... args);
 };
 
+// Properties
 template<typename MemberT, typename ClassT, MemberT ClassT::*member>
 struct AttrAccessor {
     static Value getattr(void* obj);
 
     static void setattr(void* obj, struct Value value);
 };
+
 
 struct ClassMetadata {
     std::string         name;
@@ -237,11 +240,11 @@ template<typename T>
 ClassMetadata& classmeta();
 
 template<typename Sig>
-struct PropertyRegister {
+struct MemberRegister {
 };
 
 template<typename MemberT, typename ClassT>
-struct PropertyRegister<MemberT ClassT::*> {
+struct MemberRegister<MemberT ClassT::*> {
     using MemberType =  MemberT;
     using ClassType =  ClassT;
 
@@ -264,6 +267,36 @@ struct PropertyRegister<MemberT ClassT::*> {
 };
 
 
+template<auto method> 
+struct ForwardAsValue {
+    static Value fetch(void* obj);
+};
+
+template<typename ReturnT, typename ClassT, typename... Args>
+struct MemberRegister<ReturnT(ClassT::*)(Args...)> {
+    template<ReturnT(ClassT::*method)(Args...)>
+    static Property& add(const char* name)
+    {
+        ClassMetadata& meta = classmeta<ClassT>();
+
+        auto prop = Property(name, type_id<ReturnT(ClassT::*)(Args...)>(), sizeof(std::size_t));
+
+        // probably cannot set a method
+        // although we could allow for an override here
+        // 
+        prop.impl_setattr = nullptr;
+        
+        // 1. Make a free function from the method
+        // 2. 
+        prop.impl_getattr = ForwardAsValue<method>::fetch;
+        prop.callable = true;
+        meta.members.push_back(prop);
+    
+        return *meta.members.rbegin();
+    }
+};
+
+
 template<typename T>
 struct ReflectionTrait {
     static int register_members() {
@@ -272,8 +305,8 @@ struct ReflectionTrait {
 };
 
 template<auto Member>
-Property register_property(const char* name) {
-    return PropertyRegister<decltype(Member)>::template add<Member>(name);
+Property register_member(const char* name) {
+    return MemberRegister<decltype(Member)>::template add<Member>(name);
 }
 
 
@@ -340,6 +373,30 @@ Property const& member(int member_id) {
 
 
 void print(std::ostream& ss, int typeid_, std::int8_t const* data);
+
+
+template<typename T>
+Value getattr(T& obj, const char* attr) {
+    ClassMetadata& meta = classmeta<T>();
+    for(auto& prop: meta.members) {
+        if (prop.name == attr) {
+            return prop.getattr(obj);
+        }
+    }
+    return Value(_Invalid{});
+}
+
+template<typename T, typename V>
+Value setattr(T& obj, const char* attr, V val) {
+    ClassMetadata& meta = classmeta<T>();
+    for(auto& prop: meta.members) {
+        if (prop.name == attr) {
+            prop.setattr(obj, make_value<V>(&al));
+            return Value(true);
+        }
+    }
+    return Value(_Invalid{});
+}
 
 
 }
