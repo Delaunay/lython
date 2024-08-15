@@ -193,19 +193,6 @@ bool register_metadata(int type_id, const char* name, ValueDeleter deleter, Valu
     return true;
 }
 
-#if 0
-meta::Member const* find_member(Value obj, String const& name) {
-    meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
-    for(meta::Member const& member: meta.members) {
-        if (String(member.name.c_str()) == name) {
-            return &member;
-        }
-    }
-    return nullptr;
-}
-#endif
-
-
 uint8* value_memory(meta::ClassMetadata const& meta, Value& obj) {
     if (meta.size <= sizeof(Value::Holder) && meta.is_trivially_copyable) {
         return (uint8*)(&obj.value);
@@ -215,76 +202,20 @@ uint8* value_memory(meta::ClassMetadata const& meta, Value& obj) {
 }
 
 
-Value getattr(Value obj, String const& name) {
-#if 0
-    meta::Member const* member = nullptr;
-    meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
-    for(meta::Member const& mb: meta.members) {
-        if (String(mb.name.c_str()) == name) {
-            member = &mb;
-            break;
+Value getattr(Value obj, String const& name) 
+{
+    meta::ClassMetadata& meta = meta::classmeta(obj.tag);
+    for(meta::Property& member: meta.members) {
+        if (String(member.name.c_str()) == name) {
+            int type = member.type;
+            meta::ClassMetadata const& attrmeta = meta::classmeta(type);
+            return member.getattr(obj);
         }
     }
 
-    //
-    if (member) {
-        int type = member->type;
-        meta::ClassMetadata const& attrmeta = meta::classmeta(type);
-
-        Value property;
-        property.tag = type;        
-
-        void* dest = (void*)(&property.value);
-        void* src = value_memory(meta, obj);
-
-        // property is a value held in the object itself
-        if (attrmeta.is_trivially_copyable && attrmeta.size <= sizeof(Value::Holder)) { 
-            src = (uint8*)(src) + member->offset;
-            memcpy(dest, src, member->size);
-            return property;
-        }
-
-        // the object is going to be a pointer
-        property.value.obj = (uint8*)(src) + member->offset;
-        return property;
-    }
-
-#endif
     kwassert(false, "Not handled");
     return Value(_None());
 }
-
-Value getattrref(Value& obj, String const& name) {
-    #if 0
-    meta::Member const* member = nullptr;
-    meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
-    for(meta::Member const& mb: meta.members) {
-        if (String(mb.name.c_str()) == name) {
-            member = &mb;
-            break;
-        }
-    }
-
-    //
-    if (member) {
-        int type = member->type;
-        meta::ClassMetadata const& attrmeta = meta::classmeta(type);
-
-        Value property;
-        property.tag = attrmeta.weakref_type_id;        
-
-        void* dest = (void*)(&property.value);
-        void* src = value_memory(meta, obj);
-
-        property.value.obj = (uint8*)(src) + member->offset;
-        return property;
-    }
-#endif
-    kwassert(false, "Not handled");
-    return Value(_None());
-}
-
-
 
 Value make_pointer(int tag, void* ptr) {
     Value vptr;
@@ -294,64 +225,19 @@ Value make_pointer(int tag, void* ptr) {
 };
 
 
-void setattr(Value& obj, String const& name, Value val) {
-    #if 0
-    meta::Member const* member = nullptr;
-    meta::ClassMetadata const& meta = meta::classmeta(obj.tag);
-    for(meta::Member const& mb: meta.members) {
-        if (String(mb.name.c_str()) == name) {
-            member = &mb;
-            break;
+Value setattr(Value& obj, String const& name, Value val) {
+    meta::ClassMetadata& meta = meta::classmeta(obj.tag);
+    for(meta::Property& member: meta.members) {
+        if (String(member.name.c_str()) == name) {
+            int type = member.type;
+            meta::ClassMetadata const& attrmeta = meta::classmeta(type);
+            member.setattr(obj, val);
+            return Value(true);
         }
     }
 
-    if (member) {
-        int type = member->type;
-        meta::ClassMetadata const& attrmeta = meta::classmeta(type);
-        kwassert(type == val.tag, "must match attribute type");
-
-        void* dest = value_memory(meta, obj) + member->offset;
-
-        if (attrmeta.is_trivially_copyable && attrmeta.size <= sizeof(Value::Holder)) { 
-            void* src = (void*)(&val.value);
-            memcpy(dest, src, member->size);
-            return;
-        }
-
-        // the object is going to be a pointer
-        // property could be pointer or value
-        // on our side Value will always be a pointer
-       
-        // this is pointer on pointer
-        if (attrmeta.type_id == attrmeta.weakref_type_id) {
-            dest = val.value.obj;
-            return;
-        } else {
-            // if this is a move then we should zero out the source
-            // so it cannot be used anymore
-            // C++ classes that allocates memory
-            // should only be used by one owner
-            // Zero out the source
-            // memset(src, 0, member->size);
-            if (attrmeta.is_trivially_copyable) {
-                // copy our pointer to the value
-                void* src = val.value.obj;
-                memcpy(dest, src, member->size);
-                return;
-            }
-
-            // dest is a pointer to a member
-            // but it needs a copy destination
-            // this should call a copy/asignment
-            Value valdest;
-            valdest.tag = attrmeta.weakref_type_id;
-            valdest.value.obj = dest;
-            attrmeta.assign(valdest, val);
-            return;
-        }
-    }
-    #endif
     kwassert(false, "Not handled");
+    return Value(false);
 }
 
 }  // namespace lython

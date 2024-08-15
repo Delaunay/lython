@@ -3,8 +3,6 @@
 #include "sema/bindings.h"
 #include "ast/nodes.h"
 #include "utilities/object.h"
-#include "utilities/metadata_method.h"
-#include "ast/interop.h"
 #include "sema/importlib.h"
 
 namespace lython {

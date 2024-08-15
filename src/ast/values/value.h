@@ -846,14 +846,26 @@ void register_value(ValuePrinter printer = nullptr) {
     static bool _ = _register_value<T>(printer);
 }
 
-void  setattr(Value& obj, String const& name, Value val);
+Value setattr(Value& obj, String const& name, Value val);
 Value getattrref(Value& obj, String const& name);
 Value getattr(Value obj, String const& name);
+
+
+template<typename T>
+Value copy_or_ref(T& value) {
+    if (Value::is_small<T>()) {
+        return make_value<T>(value);
+    }
+    return make_value<T*>(&value);
+}
 
 namespace meta {
 template <typename MemberT, typename ClassT, MemberT ClassT::*member>
 Value AttrAccessor<MemberT, ClassT, member>::getattr(void* obj) {
-    return make_value<MemberT>(((ClassT*)obj)->*member);
+    // if it is a simple type it gets copied
+    // but if it is big we would want to make a ref to it
+    // here we would need a GC to keep track of who is using what
+    return copy_or_ref<MemberT>(((ClassT*)obj)->*member);
 }
 
 template <typename MemberT, typename ClassT, MemberT ClassT::*member>
@@ -892,6 +904,41 @@ Value Property::call(ClassT& obj, void* ctx, Args... args) {
     Value method = getattr(obj);
     return invoke(obj, ctx, method, args...);
 }
+
+
+template<typename ClassT>
+void Property::setattr(ClassT& obj, Value value) {
+    impl_setattr((void*) (&obj), value);
+}
+
+template<typename ClassT>
+Value Property::getattr(ClassT& obj) {
+    return impl_getattr((void*)(&obj));
+}
+
+template<typename T>
+Value getattr(T& obj, const char* attr) {
+    ClassMetadata& meta = classmeta<T>();
+    for(auto& prop: meta.members) {
+        if (prop.name == attr) {
+            return prop.getattr(obj);
+        }
+    }
+    return Value(_Invalid{});
+}
+
+template<typename T, typename V>
+Value setattr(T& obj, const char* attr, V val) {
+    ClassMetadata& meta = classmeta<T>();
+    for(auto& prop: meta.members) {
+        if (prop.name == attr) {
+            prop.setattr(obj, make_value<V>(&val));
+            return Value(true);
+        }
+    }
+    return Value(_Invalid{});
+}
+
 
 }  // namespace meta
 

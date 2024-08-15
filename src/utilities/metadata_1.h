@@ -94,14 +94,10 @@ struct Property {
     bool callable = false;
 
     template<typename ClassT>
-    void setattr(ClassT& obj, Value value) {
-        impl_setattr((void*) (&obj), value);
-    }
+    void setattr(ClassT& obj, Value value);
 
     template<typename ClassT>
-    Value getattr(ClassT& obj) {
-        return impl_getattr((void*)(&obj));
-    }
+    Value getattr(ClassT& obj);
 
     // Note: we could override the getattr/setattr here as well
     VoidFunction native = nullptr;
@@ -351,16 +347,6 @@ ClassMetadata& classmeta() {
     return classmeta(type_id<T>());
 }
 
-
-template<typename T, typename U>
-void new_member(std::string const& name) {
-    classmeta<U>();
-    ClassMetadata& registry = classmeta(type_id<T>());
-    int size = sizeof(U);
-    registry.members.emplace_back(name, type_id<U>(), size);
-}
-
-
 template<typename T>
 Property const& member(std::string const& name) {
     return member(type_id<T>(), name);
@@ -374,29 +360,6 @@ Property const& member(int member_id) {
 
 void print(std::ostream& ss, int typeid_, std::int8_t const* data);
 
-
-template<typename T>
-Value getattr(T& obj, const char* attr) {
-    ClassMetadata& meta = classmeta<T>();
-    for(auto& prop: meta.members) {
-        if (prop.name == attr) {
-            return prop.getattr(obj);
-        }
-    }
-    return Value(_Invalid{});
-}
-
-template<typename T, typename V>
-Value setattr(T& obj, const char* attr, V val) {
-    ClassMetadata& meta = classmeta<T>();
-    for(auto& prop: meta.members) {
-        if (prop.name == attr) {
-            prop.setattr(obj, make_value<V>(&al));
-            return Value(true);
-        }
-    }
-    return Value(_Invalid{});
-}
 
 
 }

@@ -65,7 +65,7 @@ SET(ADD_HEADERS
     stdlib/garbage_windows.cpp
     vm/tree.h
     vm/vm.h
-    vm/garbage_collector.h
+    # vm/garbage_collector.h
     utilities/names.h
     utilities/object.h
     utilities/optional.h
@@ -117,7 +117,7 @@ SET(ADD_SOURCE
     sema/importlib.cpp
     vm/tree.cpp
     vm/vm.cpp
-    vm/garbage_collector.cpp
+    # vm/garbage_collector.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp
     utilities/pool.cpp

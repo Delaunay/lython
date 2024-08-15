@@ -5,7 +5,6 @@
 #include "ast/ops.h"
 #include "sema/native_module.h"
 #include "utilities/metadata.h"
-#include "utilities/metadata_method.h"
 #include "utilities/printing.h"
 
 #include <catch2/catch_all.hpp>
