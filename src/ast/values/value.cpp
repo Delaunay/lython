@@ -240,4 +240,20 @@ Value setattr(Value& obj, String const& name, Value val) {
     return Value(false);
 }
 
+
+Value Value::operator() (void* ctx, Array<Value> args) {
+    if (meta::type_id<Function>() == tag) {
+        return as<Function>()(ctx, args);
+    }
+    return Value();
+}
+
+namespace meta {
+
+Value Property::getattr(void* obj) {
+    return impl_getattr(obj);
+}
+
+}
+
 }  // namespace lython

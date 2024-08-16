@@ -155,6 +155,8 @@ struct Value {
         return is_type(meta::type_id<T>());
     }
 
+    Value operator() (void* ctx, Array<Value> args);
+
     template <typename T>
     bool operator==(T const& val) const {
         if (tag == meta::type_id<T>()) {

@@ -88,9 +88,9 @@ struct Property {
     {}
 
     std::string name;
-    int   type = -1; 
-    int   offset = -1;
-    int   size = -1;
+    int  type = -1; 
+    int  offset = -1;
+    int  size = -1;
     bool callable = false;
 
     template<typename ClassT>
@@ -98,6 +98,8 @@ struct Property {
 
     template<typename ClassT>
     Value getattr(ClassT& obj);
+
+    Value getattr(void* obj);
 
     // Note: we could override the getattr/setattr here as well
     VoidFunction native = nullptr;
