@@ -8,6 +8,7 @@
 
 #include "revision_data.h"
 #include "logging/codeloc.h"
+#include "kmeta.h"
 
 #include <fmt/core.h> 
 #include <fmt/format.h>
@@ -32,8 +33,7 @@ std::string format_function(std::string const&);
 // using FormatBuffer = std::vector<char>;
 using FormatBuffer = fmt::memory_buffer;
 
-
-struct Output {
+struct KIGNORE() Output {
     virtual ~Output() {}
     virtual void write(FormatBuffer const& msg) = 0;
     virtual void write(std::string const& msg) = 0;
@@ -43,22 +43,26 @@ struct Output {
     virtual void clear() {}
 };
 
-struct Stdout: public Output {
+
+struct KIGNORE() Stdout: public Output {
     void write(FormatBuffer const& msg) override;
     void write(std::string const& msg) override;
 };
 
-struct Stderr: public Output {
+
+struct KIGNORE() Stderr: public Output {
     void write(FormatBuffer const& msg) override;
     void write(std::string const& msg) override;
 };
 
-struct FileOut: public Output {
+
+struct KIGNORE() FileOut: public Output {
     void write(FormatBuffer const& msg) override;
     void write(std::string const& msg) override;
 };
 
-struct InMemory: public Output {
+
+struct KIGNORE() InMemory: public Output {
     void write(FormatBuffer const& msg) override;
     void write(std::string const& msg) override;
     void flush_to(Output& out) override;
@@ -75,7 +79,7 @@ struct OutputProxy {
     int i = 0;
 };
 
-struct Logger {
+struct KIGNORE() Logger {
     Logger(std::string const& name):
         name(name)
     {

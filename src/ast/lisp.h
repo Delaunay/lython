@@ -1,6 +1,8 @@
 #pragma once
 
 #include "dtypes.h"
+#include "utilities/magic.h"
+#include "kmeta.h"
 
 namespace lython {
 
@@ -14,7 +16,7 @@ enum class SexpTag
 };
 
 
-struct Sexp {
+struct KIGNORE() Sexp {
     template<typename ...Args>
     static Sexp list(Args... elements) {
         Sexp sexp;
@@ -36,10 +38,10 @@ struct Sexp {
         return sexp;
     }
     static Sexp string(StringRef const& s) {
-        return string(str(s));
+        return string(str<StringRef>(s));
     }
     static Sexp symbol(StringRef const& s) {
-        return symbol(str(s));
+        return symbol(str<StringRef>(s));
     }
     static Sexp symbol(String const& sym) {
         Sexp sexp;

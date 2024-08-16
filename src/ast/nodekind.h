@@ -1,6 +1,8 @@
 #ifndef LYTHON_NODEKIND_HEADER
 #define LYTHON_NODEKIND_HEADER
 
+#include <cstdint>
+
 namespace lython {
 
 // To make this more generic, I could have a StringDB that assign a integer to a constant string

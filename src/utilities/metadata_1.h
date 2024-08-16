@@ -292,6 +292,30 @@ struct MemberRegister<ReturnT(ClassT::*)(Args...)> {
     }
 };
 
+template<typename ReturnT, typename ClassT, typename... Args>
+struct MemberRegister<ReturnT(ClassT::*)(Args...) const> {
+    template<ReturnT(ClassT::*method)(Args...) const>
+    static Property& add(const char* name)
+    {
+        ClassMetadata& meta = classmeta<ClassT>();
+
+        auto prop = Property(name, type_id<ReturnT(ClassT::*)(Args...) const>(), sizeof(std::size_t));
+
+        // probably cannot set a method
+        // although we could allow for an override here
+        // 
+        prop.impl_setattr = nullptr;
+        
+        // 1. Make a free function from the method
+        // 2. 
+        prop.impl_getattr = ForwardAsValue<method>::fetch;
+        prop.callable = true;
+        meta.members.push_back(prop);
+    
+        return *meta.members.rbegin();
+    }
+};
+
 
 template<typename T>
 struct ReflectionTrait {

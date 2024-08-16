@@ -43,7 +43,6 @@ SET(ADD_HEADERS
 
     # ast/values/constant.h
     ast/values/value.h
-    ast/meta.generated.cpp
     builtin/operators.h
     compatibility/compatibility.h
     codegen/cpp/cpp_gen.h
@@ -65,6 +64,7 @@ SET(ADD_HEADERS
     stdlib/garbage_windows.cpp
     vm/tree.h
     vm/vm.h
+
     # vm/garbage_collector.h
     utilities/names.h
     utilities/object.h
@@ -81,8 +81,19 @@ SET(ADD_HEADERS
     "${BUILDDIR}/revision_data.h"
 )
 
+FIND_PACKAGE(Python)
+
+ADD_CUSTOM_COMMAND(
+    OUTPUT generated.cpp
+    COMMAND ${CMAKE_COMMAND} -E rm -f generated.cpp
+    COMMAND Python::Interpreter
+    ARGS ${CMAKE_SOURCE_DIR}/lython/header/header.py ${CMAKE_SOURCE_DIR}/src generated.cpp
+)
+
 SET(ADD_SOURCE
     ast/nodes.cpp
+
+    generated.cpp
 
     # ast/values/native.cpp
     ast/values/value.cpp
@@ -117,6 +128,7 @@ SET(ADD_SOURCE
     sema/importlib.cpp
     vm/tree.cpp
     vm/vm.cpp
+
     # vm/garbage_collector.cpp
     utilities/allocator.cpp
     utilities/metadata.cpp

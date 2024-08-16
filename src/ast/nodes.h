@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "kmeta.h"
 #include "ast/nodekind.h"
 #include "dtypes.h"
 #include "lexer/token.h"
@@ -33,13 +34,13 @@ enum class NodeFamily : int8_t
 
 
 // col_offset is the byte offset in the utf8 string the parser uses
-KWMETA(a) 
+KSTRUCT(a) 
 struct CommonAttributes {
     int           lineno     = -2;
     int           col_offset = -2;
     Optional<int> end_lineno;
 
-    KWMETA(b) 
+    KPROPERTY(b) 
     Optional<int> end_col_offset;
 };
 
@@ -309,11 +310,11 @@ struct Arguments {
     //     static_visit(this, fun);
     // }
 
+    KIGNORE()
     void visit(std::function<void(ArgumentIter<false> const&)> fun); 
 
+    KIGNORE()
     void visit(std::function<void(ArgumentIter<true> const&)> fun) const;
-
-    
 };
 
 struct Keyword: public CommonAttributes {
@@ -857,6 +858,7 @@ struct ClassDef: public StmtNode {
 
         operator bool() { return name != StringRef(); }
 
+        KIGNORE()
         void dump(std::ostream& out);
     };
     // Dict<StringRef, Attr> attributes;
@@ -864,6 +866,7 @@ struct ClassDef: public StmtNode {
     // Array<Attr> static_attributes;  // <= Namespaced Globals
     // Array<Attr> methods;
 
+    KIGNORE()
     void dump(std::ostream& out) {
         out << "Attributes:\n";
         for (auto& item: attributes) {

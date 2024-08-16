@@ -55,6 +55,17 @@ struct Query {
     static bool get(const Value& v);
 };
 
+
+template <typename T, typename = void>
+struct has_valid_sizeof : std::false_type {};
+
+template <typename T>
+struct has_valid_sizeof<T, std::void_t<decltype(sizeof(T))>> : std::true_type {};
+
+// Helper variable template
+template <typename T>
+inline constexpr bool has_valid_sizeof_v = has_valid_sizeof<T>::value;
+
 //
 // Simple dynamic value that holds small value on the stack
 // and objects on the heap, the value is cheap to copy.
@@ -126,7 +137,10 @@ struct Value {
     bool  destroy();
     Value copy() const;
     // useful to make a reference to something that is usually copied (like an int)
+
+    KFUNCTION(type=lython::Value(lython::Value::*)())
     Value       ref();
+
     std::size_t hash() const;
 
 #define CTOR(type, name)                                        \
@@ -148,6 +162,7 @@ struct Value {
     // Value(Value const&) = default;
     // Value& operator= (Value const&) = default;
 
+    KFUNCTION(type=bool(lython::Value::*)(int) const)
     bool is_type(int obj_type_id) const { return obj_type_id == tag; }
 
     template <typename T>
@@ -214,7 +229,12 @@ struct Value {
 
     template <typename T>
     static constexpr bool is_small() {
-        return (sizeof(T) <= sizeof(Value::Holder) && std::is_trivially_copyable<T>::value);
+        if constexpr (has_valid_sizeof_v<T>) {
+            return (sizeof(T) <= sizeof(Value::Holder) && std::is_trivially_copyable<T>::value);
+        } else {
+            // not valid sizeof, probably a function
+            return true;
+        }
     }
 
     // This return a pointer to the storage
@@ -244,7 +264,10 @@ struct Value {
         }
     }
 
+    KIGNORE()
     std::ostream& print(std::ostream& out) const;
+    
+    KIGNORE()
     std::ostream& debug_print(std::ostream& os) const;
 
     String __repr__() const;

@@ -1,5 +1,5 @@
-#ifndef LYTHON_EXCEPTION_HEADER
-#define LYTHON_EXCEPTION_HEADER
+#ifndef LYTHON_VALUE_EXCEPTION_HEADER
+#define LYTHON_VALUE_EXCEPTION_HEADER
 
 // Actual method signature is WIP
 // most mght become references
@@ -11,7 +11,7 @@
 namespace lython {
 
 
-struct _LyException: public GCObject {
+struct KIGNORE() _LyException: public GCObject {
     _LyException(Array<StackTrace> const& traces):
         traces(traces)
     {}
