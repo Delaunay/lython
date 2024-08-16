@@ -6,6 +6,7 @@
 #include "sema/native_module.h"
 #include "utilities/metadata.h"
 #include "utilities/printing.h"
+#include "utilities/metadata_3.h"
 
 #include <catch2/catch_all.hpp>
 
@@ -39,12 +40,18 @@ TEST_CASE("NATIVE Object") {
     y.setattr(p, 3);
     std::cout << y.getattr(p)  << " == " << p.y << std::endl;
 
+    // std::cout << fmt::format(" x: {} == {}\n", meta::getattr(p, "x"), p.x);
+
     std::cout << "  x " << meta::getattr(p, "x")  << " == " << p.x << std::endl;
     std::cout << "  y " << meta::getattr(p, "y")  << " == " << p.y << std::endl;
     std::cout << "sum " << invoke(p, nullptr, meta::getattr(p, "sum"), 2.0f)  << " == " << p.sum(2.0f) << std::endl;
 
     Value v = sum.call(p, nullptr, 2.0f);
     std::cout << v  << " == " << p.sum(2.0f) << std::endl;
+
+    meta::print(std::cout, p);
+
+    std::cout << "\n";
 }
 
 #if 0

@@ -499,6 +499,22 @@ void TypeRegistry::dump(std::ostream& out) {
     }
 }
 
+void print(std::ostream& out, int type_id, void* obj) {
+    ClassMetadata& metadata = classmeta(type_id);
+
+    out << metadata.name << "(";
+    
+    bool is_first = true;
+    for(Property& prop: metadata.members) {
+        if (!is_first) {
+            out << ", ";
+        }
+        is_first = false;
+        out << prop.name << "=" << prop.getattr(obj);
+    }
+    out << ")";
+}
+
 }  // namespace meta
 
 }  // namespace lython
