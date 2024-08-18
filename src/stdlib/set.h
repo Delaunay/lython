@@ -12,8 +12,8 @@ struct SetNative {
         return sizeof(this) + sizeof(V) * values.size();
     }
 
-    template<typenae T>
-    static V* _find(T* self, K const& key) {
+    template<typename T>
+    static V* _find(T* self, T const& key) {
         for(V& value: self->values) {
             if (value == key) 
                 return &value;
@@ -45,7 +45,7 @@ struct SetNative {
     SetNative<V> intersection(SetNative<V>const& other) {}
     SetNative<V> __and__(SetNative<V>const& other) {}
 
-    SetNative<V> union(SetNative<V>const& other) {}
+    SetNative<V> union_(SetNative<V>const& other) {}
     SetNative<V> __or__(SetNative<V>const& other) {}
 
     SetNative<V> difference(SetNative<V>const& other) {}

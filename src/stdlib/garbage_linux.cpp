@@ -10,6 +10,10 @@ namespace lython {
 
 #if BUILD_LINUX
 void BoehmGarbageCollector::mark_registers(GCGen gen) {
+
+#if BUILD_WEBASSEMBLY
+
+#else
     void* registers[16];
 
     // Inline assembly to capture register values
@@ -45,6 +49,7 @@ void BoehmGarbageCollector::mark_registers(GCGen gen) {
             mark_obj(registers[i], gen, Mark::Register);
         }
     }
+#endif
 }
 void BoehmGarbageCollector::mark_stack(GCGen gen) {
     pthread_attr_t attr;

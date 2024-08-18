@@ -12,8 +12,8 @@
 #define KIWI_STANDALONE
 #ifdef KIWI_STANDALONE
 namespace lython {
-template <typename V>
-using Array = std::vector<V>;
+//template <typename V>
+//using Array = std::vector<V>;
 }
 #endif
 

@@ -57,7 +57,7 @@ struct TupleNative {
 
         ArrayNative<V>& self;
         int i = 0;
-    }
+    };
 
     // return Iterable
     Iterator __iter__() {

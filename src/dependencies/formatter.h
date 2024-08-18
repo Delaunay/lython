@@ -3,6 +3,11 @@
 #include <fmt/core.h>
 
 
+#include "utilities/names.h"
+#include "ast/nodekind.h"
+#include "utilities/magic.h"
+
+
 template <>
 struct fmt::formatter<lython::String>: formatter<string_view> {
     auto format(lython::String const& c, format_context& ctx) const {

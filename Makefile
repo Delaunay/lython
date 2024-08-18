@@ -49,3 +49,15 @@ build-debug:
 	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/debug
 	cmake --preset conan-debug
 	cmake --build --preset conan-debug
+
+
+build-emacscripten:
+	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/emscripten
+	cmake --preset conan-release -DNO_LLVM=1
+	cmake --build --preset conan-release
+
+
+# conan install . -pr:b default -pr:h emscripten-wasm-clang -s build_type=Release -if cmake-build-release -b missing
+# source ./cmake-build-release/conanbuild.sh
+# cmake -S . -B cmake-build-release -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+# cmake --build cmake-build-release --config Release

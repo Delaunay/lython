@@ -1,3 +1,6 @@
+#pragma once
+
+
 #include "dtypes.h"
 
 namespace lython {
