@@ -87,7 +87,7 @@ ADD_CUSTOM_COMMAND(
     OUTPUT generated.cpp
     COMMAND ${CMAKE_COMMAND} -E rm -f generated.cpp
     COMMAND Python::Interpreter
-    ARGS ${CMAKE_SOURCE_DIR}/lython/header/header.py ${CMAKE_SOURCE_DIR}/src generated.cpp
+    ARGS ${CMAKE_SOURCE_DIR}/lython/header/header.py ${CMAKE_SOURCE_DIR}/src/ast generated.cpp
 )
 
 SET(ADD_SOURCE
