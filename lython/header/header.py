@@ -56,6 +56,7 @@ class Preprocessor:
                 "-nostdinc",
                 # "-I", str(folder_or_file),
                 "-I", "K:/lython/src",
+                "-I", "/home/newton/work/lython/src",
                 "-DKMETA_PROCESSING=1",
             ]
             tu = self.index.parse(
@@ -174,10 +175,23 @@ class Preprocessor:
         
         ann = attr.get("ann", {}) or {}
         overriden_type = ann.get("type", None)
+        
+        
+        
         if overriden_type:
+            if attrname.startswith("operator"):
+                ops = {
+                    "==": "operator_equal",
+                    "!=": "operator_notequal"
+                }
+                op = attrname.replace("operator", "")
+                name = ops.get(op, "Unhandled")
+            else:
+                name = attrname
+                    
             print(
-                f'        using {attrname}T = {overriden_type};\n'
-                f'        lython::meta::register_member<static_cast<{attrname}T>(&{typename}::{attrname})>("{attrname}");',
+                f'        using {name}T = {overriden_type};\n'
+                f'        lython::meta::register_member<static_cast<{name}T>(&{typename}::{attrname})>("{attrname}");',
                 file=fp,
             )
 
@@ -194,13 +208,18 @@ class Preprocessor:
     def parse_annotation(self, ann):
         return ann
 
-    def add_field(self, members, node, gather_members, field_ann):
+    def add_field(self, members, node: clang.cindex.Cursor, gather_members, field_ann):
         ann = None
         for attr in node.get_children():
             if attr.kind == clang.cindex.CursorKind.ANNOTATE_ATTR:
                 ann = self.parse_annotation(attr.spelling)
                 break
+        
+        if node.access_specifier != clang.cindex.AccessSpecifier.PUBLIC:
+            return
 
+        # print(node.availability)
+        # print(node.access_specifier)
         data = {
             "id": len(members),
             "name": node.spelling,
@@ -225,8 +244,9 @@ class Preprocessor:
 
     def accept_path(self, p):
         try:
-           os.path.commonpath([str(p), *self.files])
-           return True
+            return str(p).startswith(str(self.folder))
+            print(os.path.commonpath([str(p), self.folder]))
+            return True
         except:
             return False
     

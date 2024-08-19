@@ -185,8 +185,11 @@ struct Value {
         return !((*this) == val);
     }
 
+
+    KFUNCTION(type=bool(lython::Value::*)(Value const&) const)
     bool operator==(Value const& val) const;
 
+    KFUNCTION(type=bool(lython::Value::*)(Value const&) const)
     bool operator!=(Value const& val) const { return !((*this) == val); }
 
     template <typename T>
