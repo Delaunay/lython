@@ -1,1 +1,4 @@
+#if BUILD_WEBASSEMBLY
 
+
+#endif

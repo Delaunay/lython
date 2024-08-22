@@ -52,9 +52,11 @@ build-debug:
 
 
 build-emacscripten:
+	# build emsdk 3.1.64 that does not exist on conan.io
+	# conan create /home/newton/work/lython/dependencies/toolset/emsdk_recipe
 	conan install conanfile.txt --build=missing --profile:build=./conan/debug --profile:host=./conan/emscripten
-	cmake --preset conan-release -DNO_LLVM=1
-	cmake --build --preset conan-release
+	/home/newton/miniconda3/bin/cmake -DCMAKE_VERBOSE_MAKEFILE=ON --preset conan-release -DNO_LLVM=1
+	/home/newton/miniconda3/bin/cmake --build --preset conan-release
 
 
 # conan install . -pr:b default -pr:h emscripten-wasm-clang -s build_type=Release -if cmake-build-release -b missing

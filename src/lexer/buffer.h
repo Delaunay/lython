@@ -126,6 +126,11 @@ class StringBuffer: public AbstractBuffer {
         init();
     }
 
+    StringBuffer(std::string const& code, String const& file = "c++ string"):
+        _code(std::begin(code), std::end(code)), _file_name(file) {
+        init();
+    }
+
     char getc() override {
         if (_pos >= _code.size())
             return EOF;
