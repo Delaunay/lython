@@ -135,5 +135,6 @@
     "cmake.generator": "Ninja",
     "cmake.preferredGenerators": [
         "Ninja"
-    ]
+    ],
+    "cmake.configureOnOpen": false
 }
