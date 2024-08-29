@@ -158,7 +158,7 @@ StmtNode* Parser::parse_one(Node* parent, int depth, bool interactive) {
         tok = next_token();
     }
 
-    if (in(token().type(), tok_desindent)){
+    if (in(token().type(), tok_desindent, tok_eof)){
         return nullptr;
     }
 
