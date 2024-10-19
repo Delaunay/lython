@@ -10,50 +10,6 @@
 #include "sema/sema.h"
 #include "vm/tree.h"
 
-
-
-namespace emscripten {
-    /*
-struct LambdaWrapper {
-    #define _NEW_NAME(prefix, counter) prefix##counter
-    #define EXPAND_AND_STRINGIFY(x) #x
-    #define LAMBDA_ID() EXPAND_AND_STRINGIFY(_NEW_NAME(__embind_, __COUNTER__))
-
-    template<typename R, typename... Args, typename... Policies>
-    LambdaWrapper(std::function<R(Args...)> fn, Policies...) {
-        __lambda_id = LAMBDA_ID();
-
-        using namespace internal;
-
-        typename WithPolicies<Policies...>::template ArgTypeList<R, Args...> args;
-
-        using OriginalInvoker = Invoker<R, Args...>;
-        auto invoke = &maybe_wrap_async<OriginalInvoker, Policies...>::invoke;
-
-        // register function only works on C function pointer
-        _embind_register_function(
-            __lambda_id,
-            args.getCount(),
-            args.getTypes(),
-            getSignature(invoke),
-            reinterpret_cast<GenericFunction>(invoke),
-            reinterpret_cast<GenericFunction>(fn),
-            isAsync<Policies...>::value);
-    }
-
-    operator emscripten::val() {
-        return emscripten::val::global(__lambda_id);
-    }
-
-    emscripten::val as_function() {
-        return emscripten::val::global(__lambda_id);
-    }
-
-    const char* __lambda_id;
-};
-*/
-}
-
 namespace js {
 
 using AnimId      = emscripten::val;
@@ -204,7 +160,7 @@ struct Attribute {
     str name; 	
     
     // Sets or returns an attribute's value
-    emscripten::val value; 	
+    val value; 	
     
     // Returns true if the attribute is specified
     bool specified;
@@ -229,8 +185,9 @@ struct NamedNodeMap {
 
 struct Element {
 
-/*
-accessKey 	Sets or returns the accesskey attribute of an element
+// Sets or returns the accesskey attribute of an element
+#if 0
+accessKey 	
 addEventListener() 	Attaches an event handler to an element
 appendChild() 	Adds (appends) a new child node to an element
 attributes 	Returns a NamedNodeMap of an element's attributes
@@ -308,17 +265,28 @@ replaceChild() 	Replaces a child node in an element
 scrollHeight 	Returns the entire height of an element, including padding
 scrollIntoView() 	Scrolls the an element into the visible area of the browser window
 scrollLeft 	Sets or returns the number of pixels an element's content is scrolled horizontally
-scrollTop 	Sets or returns the number of pixels an element's content is scrolled vertically
-scrollWidth 	Returns the entire width of an element, including padding
-setAttribute() 	Sets or changes an attribute's value
-setAttributeNode() 	Sets or changes an attribute node
-style 	Sets or returns the value of the style attribute of an element
-tabIndex 	Sets or returns the value of the tabindex attribute of an element
-tagName 	Returns the tag name of an element
-textContent 	Sets or returns the textual content of a node and its descendants
-title 	Sets or returns the value of the title attribute of an element
-toString() 	Converts an element to a string
-*/
+// Sets or returns the number of pixels an element's content is scrolled vertically
+scrollTop 	
+// Returns the entire width of an element, including padding
+scrollWidth 	
+// Sets or changes an attribute's value
+setAttribute() 	
+//	Sets or changes an attribute node
+setAttributeNode() 
+// Sets or returns the value of the style attribute of an element
+style 	
+// Sets or returns the value of the tabindex attribute of an element
+tabIndex 	
+// Returns the tag name of an element
+tagName 	
+// Sets or returns the textual content of a node and its descendants
+textContent 	
+// Sets or returns the value of the title attribute of an element
+title 	
+
+// Converts an element to a string
+toString() 	
+#endif
 };
 
 
@@ -372,7 +340,7 @@ struct TokenList {
     Iterator<Pair<str, str>> entries();
 
     // Executes a callback function for each token in the list
-    void forEach(std::function<void(str, int, TokenList)> fun, emscripten::val value);
+    void forEach(std::function<void(str, int, TokenList)> fun, val value);
 
     // Returns the token at a specified index
     str item(int i);
@@ -404,7 +372,6 @@ struct TokenList {
 };
 
 struct Style {
-    /*
 alignContent 	Sets or returns the alignment between the lines inside a flexible container when the items do not use all available space
 alignItems 	Sets or returns the alignment for items inside a flexible container
 alignSelf 	Sets or returns the alignment for selected items inside a flexible container
@@ -592,7 +559,6 @@ wordSpacing 	Sets or returns the spacing between words in a text
 wordWrap 	Allows long, unbreakable words to be broken and wrap to the next line
 widows 	Sets or returns the minimum number of lines for an element that must be visible at the top of a page
 zIndex 	Sets or returns the stack order of a positioned element
-*/
 };
 
 
@@ -648,7 +614,7 @@ struct Document {
 
     // 	Returns a collection of all <form> elements in the document
     // forms 
-/*
+
     //! Attaches an event handler to the document
     void addEventListener(str const& event, std::function<void()> callback, bool capture = false);
 
@@ -719,7 +685,7 @@ struct Document {
 
     // Deprecated
     // normalizeDocument() 	
-*/
+
 
     // Deprecated
     // renameNode() 	
@@ -925,14 +891,9 @@ class_<std::map<K, V, Args...>> register_dict(const char* name) {
 
 String make_string(std::string const& str) { return String(std::begin(str), std::end(str)); }
 
-// void function(emscripten::val val) {}
+void function(emscripten::val val) {}
 
 void fun(int arg) { std::cout << "Hello " << arg << "\n"; }
-
-std::string to_string(String const& self) {
-    return std::string(self.c_str());
-}
-
 
 // Buffer
 EMSCRIPTEN_BINDINGS(lython) {
@@ -940,19 +901,14 @@ EMSCRIPTEN_BINDINGS(lython) {
     register_vector<int>("vector<int>");
 
     class_<Node>("Node");
-    class_<ExprNode>("ExprNode");
     class_<Module>("Module");
 
-    function<std::string>("str", &to_string);
-
-    class_<String>("String")
-        .constructor(make_string);
+    class_<String>("String").constructor(make_string);
 
     class_<StringBuffer>("StringBuffer")
         .constructor<String>()
         .function("next", &StringBuffer::getc)
         .function("current", &StringBuffer::peek);
-
 
     // = ;
 
@@ -995,43 +951,22 @@ EMSCRIPTEN_DECLARE_VAL_TYPE(CallbackType);
 
 void fun2(int arg) { std::cout << "Hello " << arg + 1 << "\n"; }
 
-
 int main(int argc, const char* argv[]) {
     for (int i = 0; i < argc; i++) {
         std::cout << argv[i] << std::endl;
     }
     //
 
-#if 1
-    auto cls = class_<std::function<void()>>("_callback")
+    class_<std::function<void()>>("_callback")
         .constructor<>()
         .function("opcall", &std::function<void()>::operator());
-#else
-    // emscripten::function("fun", );
-#endif
+
     emscripten::val window = emscripten::val::global("window");
 
-    // static std::function<void()> wrapped = []() {
-    //     std::cout << "Hello "
-    //               << "\n";
-    // };
-
-    // emscripten::val fun(wrapped);
-
-    // val fun = val::object();
-    // fun.set("opcall", wrapped);
-
-    // void function(const char* name, ReturnType (*fn)(Args...), Policies...)
-
-    // void _embind_register_function(
-    //     const char* name,
-    //     unsigned argCount,
-    //     const TYPEID argTypes[],
-    //     const char* signature,
-    //     GenericFunction invoker,
-    //     GenericFunction function,
-    //     bool isAsync);
-
+    static std::function<void()> wrapped = []() {
+        std::cout << "Hello "
+                  << "\n";
+    };
 
     //
     // val obj = val::object();
