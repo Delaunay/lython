@@ -77,7 +77,7 @@ Branch* functiondef() {
 
 Branch* classdef() {
     return Builder::make("classdef", [](Builder& self){ 
-
+        self.one_or_more(20).statement();
     });
 }
 Branch* return_() {
@@ -98,8 +98,9 @@ Branch* assign() {
     });
 }
 Branch* typealias() {
+    // 'type Alias = int'
     return Builder::make("typealias", [](Builder& self){ 
-
+        self.atom("type").identifier().atom(" =").identifier();
     });
 }
 Branch* aug_assign() {
@@ -114,42 +115,94 @@ Branch* ann_assign() {
 }
 Branch* for_() {
     return Builder::make("for", [](Builder& self){ 
-
+        self.atom("for").expr().atom("in").expr().atom(":").newline()
+            .one_or_more(20)
+                .statement()
+            .end();
     });
 }
 Branch* while_() {
     return Builder::make("while", [](Builder& self){ 
-
+        self.atom("while").expr().atom(":").newline()
+            .one_or_more(20)
+                .statement()
+            .end();
     });
 }
 Branch* if_() {
     return Builder::make("if", [](Builder& self){ 
-
+        self.atom("if").expr().atom(":").newline()
+            .one_or_more(20)
+                .statement()
+            .end();
     });
 }
 Branch* with() {
     return Builder::make("with", [](Builder& self){ 
-
+        // FIXME: multiple context manager can be opened here
+        self.atom("with").expr().option().group().atom("as").identifier().end().end().atom(":").newline()
+            .one_or_more(20)
+                .statement()
+            .end();
     });
 }
 Branch* match() {
     return Builder::make("match", [](Builder& self){ 
-
+        self.atom("match").expr().atom(":").newline()
+            .one_or_more(20)
+                .group()
+                    .atom("case").expect(pattern()).atom(":").newline()
+                        .one_or_more(20)
+                            .statement()
+                        .end()
+                .end()
+            .end();
     });
 }
 Branch* raise() {
     return Builder::make("raise", [](Builder& self){ 
-
+        self.atom("raise").expr();
     });
 }
 Branch* try_() {
     return Builder::make("try", [](Builder& self){ 
-
+        // FIXME multiple excepts
+        self.atom("try").atom(":").newline()
+            .group()
+                .indent()
+                .one_or_more(20)
+                    .statement()
+                .end()
+            .end()
+            // HERE multiple of excepts + exception filtering + renaming
+            // except star
+            .atom("except").atom(":").newline()
+                .group()
+                    .indent()
+                        .one_or_more(20)
+                        .statement()
+                    .end()
+                .end()
+            .atom("else").atom(":").newline()
+                .group()
+                    .indent()
+                        .one_or_more(20)
+                            .statement()
+                        .end()
+                .end()
+            .atom("finally").atom(":").newline()
+                .group()
+                    .indent()
+                        .one_or_more(20)
+                            .statement()
+                        .end()
+                .end()
+        ;
     });
 }
 Branch* try_star() {
     return Builder::make("try_star", [](Builder& self){ 
-
+        self.expect(try_());
     });
 }
 Branch* assert_() {
@@ -159,23 +212,50 @@ Branch* assert_() {
 }
 Branch* import() {
     return Builder::make("import", [](Builder& self){ 
-        self.keyword("import");
+        self.keyword("import")
+            .join(", ")
+                .one_or_more(2)
+                    .group()
+                        .group().identifier().atom(".").end().identifier()
+                    .end()
+                .end()
+                .option()
+                    .group().atom("as").identifier().end() 
+                .end()
+            .end()    
+        ;
     });
 }
 Branch* import_from() {
     return Builder::make("import_from", [](Builder& self){ 
         self.keyword("from")
-            .keyword("import");
+            .one_or_more(2).group().identifier().atom(".").end().end().identifier()
+            .keyword("import")
+                .one_or_more(2)
+                    .group()
+                        .identifier().option().atom("as").identifier().end()
+                    .end()
+                .end();
     });
 }
 Branch* global() {
     return Builder::make("global", [](Builder& self){ 
-
+        self.keyword("global")
+            .join(", ")
+                .one_or_more(10)
+                    .identifier()
+                .end()
+            .end();
     });
 }
 Branch* nonlocal() {
     return Builder::make("nonlocal", [](Builder& self){ 
-
+        self.keyword("nonlocal")
+            .join(", ")
+                .one_or_more(10)
+                    .identifier()
+                .end()
+            .end();
     });
 }
 Branch* expression() {

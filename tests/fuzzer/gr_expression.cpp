@@ -66,13 +66,24 @@ Branch* unary() {
 
 Branch* compare() {
     return Builder::make("compare", [](Builder& self){ 
-
+        // (<expr> <op>)+ <expr>
+        self.one_or_more(4)
+                .group()
+                    .expr().expect(compop())
+                .end()
+            .end()
+        .expr();
     });
 }
 
 Branch* lambda() {
     return Builder::make("lambda", [](Builder& self){ 
-
+        // lambda args: expr
+        self.atom("lambda")
+        .expect(callargs())
+        .atom(":")
+        .expr()
+        ;
     });
 }
 
@@ -126,13 +137,28 @@ Branch* call() {
 
 Branch* formatted_value() {
     return Builder::make("formatted_value", [](Builder& self){ 
-
+        self.atom("{")
+        .expr()
+        .atom(":")
+        .expr()
+        .atom("}");
     });
 }
 
 Branch* joined_str() {
     return Builder::make("joined_str", [](Builder& self){ 
-
+        self.atom("f\"")
+            .join("")
+                .multiple(10)
+                    .group()
+                        .either()
+                            .string()
+                            .formatted_value()
+                        .end()
+                    .end()
+                .end()
+            .end()
+        .atom("\"");
     });
 }
 
@@ -156,7 +182,7 @@ Branch* digit() {
 Branch* number() {
     // Number with no leading 0
     // we do not want to generate 0000123
-    // FIXMEL but currently it cannot generate just 0
+    // FIXME: but currently it cannot generate just 0
     return Builder::make("number", [](Builder& self){
         self
         .either()
@@ -286,7 +312,12 @@ Branch* attribute() {
 
 Branch* subscript() {
     return Builder::make("subscript", [](Builder& self){ 
-        self.atom("[").expr().atom("]");
+        self.atom("[")
+            .either()
+                .expr()
+                .slice()
+            .end()
+        .atom("]");
     });
 }
 
@@ -306,14 +337,19 @@ Branch* name() {
 Branch* list() {
     return Builder::make("list", [](Builder& self){ 
         self.atom("[")
-                .join(", ").expr().end()
+                .join(", ")
+                    .expr()    
+                .end()
             .atom("]");
     });
 }
 
 Branch* slice() {
     return Builder::make("slice", [](Builder& self){ 
-
+        // Slice(expr? lower, expr? upper, expr? step)
+        self.expr()                                   // lower
+            .option("step").atom(":").expr().end()    // step
+            .option("end").atom(":").expr().end();    // upper  
     });
 }
 
@@ -343,25 +379,54 @@ Branch* set() {
 
 Branch* listcomp() {
     return Builder::make("listcomp", [](Builder& self){ 
-       
+        // [ expr for a in expr (if expr)+]
+        self.atom("[")
+            .expr().atom("for").expr().atom("in").expr()
+            .option("ifs")
+                .multiple(4)
+                    .group("filter").atom("if").expr()
+                .end()
+            .end()
+       .atom("]");
     });
 }
 
 Branch* setcomp() {
     return Builder::make("setcomp", [](Builder& self){ 
-
+        self.atom("{")
+            .expr().atom("for").expr().atom("in").expr()
+            .option("ifs")
+                .multiple(4)
+                    .group("filter").atom("if").expr()
+                .end()
+            .end()
+       .atom("}");
     });
 }
 
 Branch* dictcomp() {
     return Builder::make("dictcomp", [](Builder& self){ 
-
+        self.atom("{")
+            .expr().atom(":").expr().atom("for").expr().atom("in").expr()
+            .option("ifs")
+                .multiple(4)
+                    .group("filter").atom("if").expr()
+                .end()
+            .end()
+       .atom("}");
     });
 }
 
 Branch* generatorexp() {
     return Builder::make("generatorexp", [](Builder& self){ 
-
+        self.atom("(")
+            .expr().atom("for").expr().atom("in").expr()
+            .option("ifs")
+                .multiple(4)
+                    .group("filter").atom("if").expr()
+                .end()
+            .end()
+       .atom(")");
     });
 }
 

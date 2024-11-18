@@ -32,49 +32,66 @@ namespace lython {
 
     Branch* match_value() {
         return Builder::make("match_value", [](Builder& self) {
-
+            self.expr();
         });
     }
 
     Branch* match_singleton() {
         return Builder::make("match_singleton", [](Builder& self) {
-
+            return self.expect(constant());
         });
     }
 
     Branch* match_sequence() {
         return Builder::make("match_sequence", [](Builder& self) {
-
+            self.atom("[")
+                .join(", ")
+                    .one_or_more(5).expect(pattern()).end()
+            .atom("]");
         });
     }
     
     Branch* match_mapping() {
         return Builder::make("match_mapping", [](Builder& self) {
-
+            self.atom("{")
+                .join(", ")
+                    .one_or_more(5)
+                        .group()
+                            .expr().atom(":").expect(pattern())
+                        .end()
+                    .end()
+                    // rest of the mapping
+                    .option()
+                        .identifier()
+                    .end()
+            .atom("}");
         });
     }
 
     Branch* match_class() {
         return Builder::make("match_class", [](Builder& self) {
-
+            self.identifier()
+                .atom("(")
+                .one_or_more(5).expect(pattern()).end()
+                .atom(")");
         });
     }
 
     Branch* match_star() {
         return Builder::make("match_star", [](Builder& self) {
-
+            self.atom("*").identifier();
         });
     }
 
     Branch* match_as() {
         return Builder::make("match_as", [](Builder& self) {
-
+            self.expect(pattern()).keyword("as").identifier();
         });
     }
 
     Branch* match_or() {
         return Builder::make("match_or", [](Builder& self) {
-
+            self.one_or_more(5).expect(pattern()).keyword("or").end().expect(pattern());
         });
     }
 }

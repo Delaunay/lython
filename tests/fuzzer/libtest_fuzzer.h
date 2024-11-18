@@ -456,8 +456,11 @@ struct Builder {
     HELPER(body)
     HELPER(statement)
     HELPER(pattern)
+    HELPER(slice)
+    HELPER(formatted_value)
 
 
+    // add an expected node that should be generated
     Builder& expect(GNode* b) {
         (*stack.rbegin())->children.push_back(b);
         return *this;

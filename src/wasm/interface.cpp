@@ -372,6 +372,7 @@ struct TokenList {
 };
 
 struct Style {
+    #if 0
 alignContent 	Sets or returns the alignment between the lines inside a flexible container when the items do not use all available space
 alignItems 	Sets or returns the alignment for items inside a flexible container
 alignSelf 	Sets or returns the alignment for selected items inside a flexible container
@@ -559,6 +560,7 @@ wordSpacing 	Sets or returns the spacing between words in a text
 wordWrap 	Allows long, unbreakable words to be broken and wrap to the next line
 widows 	Sets or returns the minimum number of lines for an element that must be visible at the top of a page
 zIndex 	Sets or returns the stack order of a positioned element
+#endif
 };
 
 
