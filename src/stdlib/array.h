@@ -60,7 +60,7 @@ struct ArrayNative {
     using UnderlyingIterator = typename lython::Array<V>::iterator;
     using ArrayPyIter = PyIter<UnderlyingIterator>;
 
-    std::size_t __sizeof__() const { return sizeof(this) + sizeof(V) * values.size(); }
+    std::size_t __sizeof__() const { return sizeof(this) + sizeof(V) * this->values.size(); }
 
     template <typename T>  //
     static V* _find(T* self, V const& key) {
@@ -72,7 +72,7 @@ struct ArrayNative {
     }
 
     bool __contains__(V const& key) const {
-        for (auto const& v: values) {
+        for (auto const& v: this->values) {
             if (v == key) {
                 return true;
             }
@@ -80,21 +80,21 @@ struct ArrayNative {
         return false;
     }
 
-    int __len__() const { return values.size(); }
+    int __len__() const { return this->values.size(); }
 
-    void append(V const& val) { values.push_back(val); }
+    void append(V const& val) { this->values.push_back(val); }
 
     void extend(ArrayNative<V> const& other) {
-        values.reserve(other.size() + values.size());
+        this->values.reserve(other.size() + this->values.size());
         for (auto const& v: other.values) {
-            values.push_back(v);
+            this->values.push_back(v);
         }
     }
-    void insert(int i, V const& val) { values.insert(values.begin() + i, val); }
+    void insert(int i, V const& val) { this->values.insert(this->values.begin() + i, val); }
     std::optional<ValueError> remove(V const& val) {
-        for (int i = 0; i < values.size(); i++) {
-            if (values[i] == val) {
-                values.erase(values.begin() + i);
+        for (int i = 0; i < this->values.size(); i++) {
+            if (this->values[i] == val) {
+                this->values.erase(this->values.begin() + i);
                 return {};
             }
         }
@@ -102,29 +102,29 @@ struct ArrayNative {
     }
 
     std::variant<V, IndexError> pop(int i = -1) {
-        if (values.empty()) {
+        if (this->values.empty()) {
             return IndexError();
         }
 
         if (i < 0) {
-            i += int(values.size());
+            i += int(this->values.size());
         }
 
-        V val = values[i];
-        values.erase(values.begin() + i);
+        V val = this->values[i];
+        this->values.erase(this->values.begin() + i);
         return val;
     }
-    void clear() { values.clear(); }
+    void clear() { this->values.clear(); }
 
     std::variant<int, ValueError> index(V const& val, int start = 0, int end = -1) {
         if (start < 0) {
-            start += int(values.size());
+            start += int(this->values.size());
         }
         if (end < 0) {
-            end += int(values.size());
+            end += int(this->values.size());
         }
         for (int i = start; i < end; i++) {
-            if (values[i] == val) {
+            if (this->values[i] == val) {
                 return i;
             }
         }
@@ -133,7 +133,7 @@ struct ArrayNative {
 
     int count(V const& val) {
         int acc = 0;
-        for (V const& v: values) {
+        for (V const& v: this->values) {
             if (v == val) {
                 acc += 1;
             }
@@ -141,7 +141,7 @@ struct ArrayNative {
         return acc;
     }
 
-    void sort() { std::sort(values.begin(), values.end()); }
+    void sort() { std::sort(this->values.begin(), this->values.end()); }
 
     struct Reverse {
         // C++20
@@ -208,9 +208,9 @@ struct ArrayNative {
         int             i;
     };
 
-    Reverse rbegin() { return Reverse{*this, int(values.size()) - 1}; }
+    Reverse rbegin() { return Reverse{*this, int(this->values.size()) - 1}; }
     Reverse rend() { return Reverse{*this, -1}; }
-    Reverse reverse() { return Reverse{this, int(values.size()) - 1}; }
+    Reverse reverse() { return Reverse{this, int(this->values.size()) - 1}; }
 
     struct Iterator {
         // C++20
@@ -281,15 +281,15 @@ struct ArrayNative {
 
     // return Iterable
     Iterator begin() { return Iterator{*this, 0}; }
-    Iterator end() { return Iterator{*this, int(values.size())}; }
+    Iterator end() { return Iterator{*this, int(this->values.size())}; }
     Iterator __iter__() { return Iterator{*this}; }
 
     ArrayNative<V> copy() { return this; }
 
     ArrayNative<V> __add__(ArrayNative<V> const& other) const {
         ArrayNative<V> result;
-        result.values.reserve(other.size() + values.size());
-        for (auto const& v: values) {
+        result.values.reserve(other.size() + this->values.size());
+        for (auto const& v: this->values) {
             result.values.push_back(v);
         }
         for (auto const& v: other.values) {
@@ -300,9 +300,9 @@ struct ArrayNative {
 
     bool normalize_index(int& idx) {
         if (idx < 0) {
-            idx += int(values.size());
+            idx += int(this->values.size());
         }
-        if (idx >= values.size()) {
+        if (idx >= this->values.size()) {
             return true;
         }
         return false;
@@ -310,15 +310,15 @@ struct ArrayNative {
 
     bool normalize_slice(Slice& slice) {
         if (slice.start < 0) {
-            slice.start += int(values.size());
+            slice.start += int(this->values.size());
         }
-        if (slice.start >= values.size()) {
+        if (slice.start >= this->values.size()) {
             return true;
         }
         if (slice.end < 0) {
-            slice.end += int(values.size());
+            slice.end += int(this->values.size());
         }
-        if (slice.end >= values.size()) {
+        if (slice.end >= this->values.size()) {
             return true;
         }
         return false;
@@ -328,21 +328,21 @@ struct ArrayNative {
         if (normalize_slice(key)) {
             return IndexError();
         }
-        return ArrayPyIter{values.begin() + key.start, values.begin() + key.end, key.step};
+        return ArrayPyIter{this->values.begin() + key.start, this->values.begin() + key.end, key.step};
     }
 
     std::variant<V, IndexError> __getitem__(int const& key) const {
         if (normalize_index(key)) {
             return IndexError();
         }
-        return values[key];
+        return this->values[key];
     }
 
     std::optional<IndexError> __setitem__(int const& key, V const& val) const {
         if (normalize_index(key)) {
             return IndexError();
         }
-        values[key] = val;
+        this->values[key] = val;
     }
 
     template<typename It>
@@ -373,12 +373,12 @@ struct ArrayNative {
 
     std::optional<IndexError> __detitem__(int key) {
         if (key < 0) {
-            key += int(values.size());
+            key += int(this->values.size());
         }
-        if (key >= values.size()) {
+        if (key >= this->values.size()) {
             return IndexError();
         }
-        values.erase(values.begin() + key);
+        this->values.erase(this->values.begin() + key);
     }
 
     lython::Array<V> values;

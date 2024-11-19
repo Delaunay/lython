@@ -35,9 +35,10 @@ build-release:
 	cmake --build --preset release
 
 build-development:
-	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
-	cmake --preset conan-relwithdebinfo
+	# conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development
+	# cmake --preset conan-relwithdebinfo
 	cmake --build --preset conan-relwithdebinfo
+	# cmake --build --preset conan-relwithdebinfo --target fuzzer
 
 build-development-win32:
 	conan install conanfile.txt --build=missing --profile:build=./conan/development --profile:host=./conan/development

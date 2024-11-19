@@ -68,7 +68,7 @@ Branch* compare() {
     return Builder::make("compare", [](Builder& self){ 
         // (<expr> <op>)+ <expr>
         self.one_or_more(4)
-                .group()
+                .group("comp")
                     .expr().expect(compop())
                 .end()
             .end()
@@ -150,7 +150,7 @@ Branch* joined_str() {
         self.atom("f\"")
             .join("")
                 .multiple(10)
-                    .group()
+                    .group("fmt_str")
                         .either()
                             .string()
                             .formatted_value()
@@ -347,9 +347,9 @@ Branch* list() {
 Branch* slice() {
     return Builder::make("slice", [](Builder& self){ 
         // Slice(expr? lower, expr? upper, expr? step)
-        self.expr()                                   // lower
-            .option("step").atom(":").expr().end()    // step
-            .option("end").atom(":").expr().end();    // upper  
+        self.expr()                              // lower
+            .option().atom(":").expr().end()     // step
+            .option().atom(":").expr().end();    // upper  
     });
 }
 
@@ -382,7 +382,7 @@ Branch* listcomp() {
         // [ expr for a in expr (if expr)+]
         self.atom("[")
             .expr().atom("for").expr().atom("in").expr()
-            .option("ifs")
+            .option()
                 .multiple(4)
                     .group("filter").atom("if").expr()
                 .end()
@@ -395,7 +395,7 @@ Branch* setcomp() {
     return Builder::make("setcomp", [](Builder& self){ 
         self.atom("{")
             .expr().atom("for").expr().atom("in").expr()
-            .option("ifs")
+            .option()
                 .multiple(4)
                     .group("filter").atom("if").expr()
                 .end()
@@ -408,7 +408,7 @@ Branch* dictcomp() {
     return Builder::make("dictcomp", [](Builder& self){ 
         self.atom("{")
             .expr().atom(":").expr().atom("for").expr().atom("in").expr()
-            .option("ifs")
+            .option()
                 .multiple(4)
                     .group("filter").atom("if").expr()
                 .end()
@@ -421,7 +421,7 @@ Branch* generatorexp() {
     return Builder::make("generatorexp", [](Builder& self){ 
         self.atom("(")
             .expr().atom("for").expr().atom("in").expr()
-            .option("ifs")
+            .option()
                 .multiple(4)
                     .group("filter").atom("if").expr()
                 .end()

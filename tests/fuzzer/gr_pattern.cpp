@@ -56,7 +56,7 @@ namespace lython {
             self.atom("{")
                 .join(", ")
                     .one_or_more(5)
-                        .group()
+                        .group("mapping")
                             .expr().atom(":").expect(pattern())
                         .end()
                     .end()

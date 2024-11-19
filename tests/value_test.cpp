@@ -1,3 +1,5 @@
+
+#include "utilities/metadata.h"
 #include "ast/values/value.h"
 #include "utilities/printing.h"
 

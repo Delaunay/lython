@@ -140,7 +140,7 @@ Branch* if_() {
 Branch* with() {
     return Builder::make("with", [](Builder& self){ 
         // FIXME: multiple context manager can be opened here
-        self.atom("with").expr().option().group().atom("as").identifier().end().end().atom(":").newline()
+        self.atom("with").expr().option().group("as_grp").atom("as").identifier().end().end().atom(":").newline()
             .one_or_more(20)
                 .statement()
             .end();
@@ -150,7 +150,7 @@ Branch* match() {
     return Builder::make("match", [](Builder& self){ 
         self.atom("match").expr().atom(":").newline()
             .one_or_more(20)
-                .group()
+                .group("case")
                     .atom("case").expect(pattern()).atom(":").newline()
                         .one_or_more(20)
                             .statement()
@@ -168,7 +168,7 @@ Branch* try_() {
     return Builder::make("try", [](Builder& self){ 
         // FIXME multiple excepts
         self.atom("try").atom(":").newline()
-            .group()
+            .group("try_body")
                 .indent()
                 .one_or_more(20)
                     .statement()
@@ -177,21 +177,21 @@ Branch* try_() {
             // HERE multiple of excepts + exception filtering + renaming
             // except star
             .atom("except").atom(":").newline()
-                .group()
+                .group("except_bd")
                     .indent()
                         .one_or_more(20)
                         .statement()
                     .end()
                 .end()
             .atom("else").atom(":").newline()
-                .group()
+                .group("else_bdy")
                     .indent()
                         .one_or_more(20)
                             .statement()
                         .end()
                 .end()
             .atom("finally").atom(":").newline()
-                .group()
+                .group("finally_bd")
                     .indent()
                         .one_or_more(20)
                             .statement()
@@ -215,12 +215,12 @@ Branch* import() {
         self.keyword("import")
             .join(", ")
                 .one_or_more(2)
-                    .group()
-                        .group().identifier().atom(".").end().identifier()
+                    .group("path1")
+                        .group("path2").identifier().atom(".").end().identifier()
                     .end()
                 .end()
                 .option()
-                    .group().atom("as").identifier().end() 
+                    .group("as").atom("as").identifier().end() 
                 .end()
             .end()    
         ;
@@ -229,10 +229,10 @@ Branch* import() {
 Branch* import_from() {
     return Builder::make("import_from", [](Builder& self){ 
         self.keyword("from")
-            .one_or_more(2).group().identifier().atom(".").end().end().identifier()
+            .one_or_more(2).group("path").identifier().atom(".").end().end().identifier()
             .keyword("import")
                 .one_or_more(2)
-                    .group()
+                    .group("path")
                         .identifier().option().atom("as").identifier().end()
                     .end()
                 .end();
