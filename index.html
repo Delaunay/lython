@@ -712,7 +712,7 @@ function dumpObject(obj, indent = 0) {
         async function loadWasm() {
             try {
                 var wasmImports = {
-                    a: ___cxa_throw,
+                    "a": ___cxa_throw,
                     f: ___syscall_fcntl64,
                     p: ___syscall_getcwd,
                     r: ___syscall_getdents64,
@@ -742,7 +742,10 @@ function dumpObject(obj, indent = 0) {
                 };
 
                 // Fetch and instantiate the WebAssembly module
-                const wasmModule = await WebAssembly.instantiateStreaming(fetch('liblython.wasm'), {
+                var path = 'build/Release/bin/liblython.wasm';
+                // var path = 'build/Release/bin/lython.wasm';
+
+                const wasmModule = await WebAssembly.instantiateStreaming(fetch(path), {
                     "a": wasmImports,
                     'env': asmLibraryArg,
                     'wasi_snapshot_preview1': asmLibraryArg,
@@ -778,7 +781,51 @@ function dumpObject(obj, indent = 0) {
         }
 
         // Call the function to load and list the exports
-        loadWasm();
+        //loadWasm();
+    </script>
+
+
+
+    <script>
+        var Module = {
+        onRuntimeInitialized: function() {
+            try {
+                console.log('Hellow ');
+                
+                var ss = new Module.String("def fun(a: f32, b: f32) -> f32:\n    return a + b\n\n");
+
+                var b = new Module.StringBuffer(ss);
+
+                var l = new Module.Lexer(b);
+
+                var p = new Module.Parser(l);
+
+                var m = p.parse_module();
+
+                var s = new Module.SemanticAnalyser();
+                s.analyse(m, 0)
+
+                var t = l.next();
+                console.log(t);
+                console.log(Module.str(t.identifier()));
+            } catch (e) {
+                console.log(e)
+                console.log(e.stack)
+            }
+        }
+        };
+    </script>
+
+
+    <script src="build/Release/bin/liblython.js"></script>
+    <script>
+        // dumpObject(Module)
+        /*
+            
+            <script src="build/Release/bin/lython.js"></ script>
+        // */
+
+        
     </script>
 </body>
 </html>

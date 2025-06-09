@@ -27,6 +27,16 @@ const char* VERSION_STRING = "\n"
                              "[0]    Version: " _HASH "\n"
                              "[0]       Date: " _DATE "\n\n";
 
+
+
+
+#ifndef BUILD_WEBASSEMBLY
+#define BUILD_WEBASSEMBLY 1
+#endif
+
+#if BUILD_WEBASSEMBLY
+
+#else
 int main(int argc, const char* argv[]) {
 
     auto linter   = std::make_unique<LinterCmd>();
@@ -108,3 +118,4 @@ int main(int argc, const char* argv[]) {
     std::cerr << lython_args;
     return -1;
 }
+#endif

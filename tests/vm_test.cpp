@@ -34,8 +34,8 @@ struct Pnt {
 template <>
 struct lython::meta::ReflectionTrait<Pnt> {
     static int register_members() {
-        lython::meta::new_member<Pnt, int>("x");
-        lython::meta::new_member<Pnt, int>("y");
+        //lython::meta::new_member<Pnt, int>("x");
+        //lython::meta::new_member<Pnt, int>("y");
         // lython::meta::new_method("add", &Pnt::add);
         // lython::meta::new_method("sum", &Pnt::sum);
 

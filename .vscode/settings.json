@@ -118,7 +118,8 @@
         "*.ipp": "cpp",
         "__assert": "cpp",
         "__availability": "cpp",
-        "*.def": "cpp"
+        "*.def": "cpp",
+        "html5.h": "c"
     },
     "cmake.configureSettings": {
         "CMAKE_BUILD_TYPE": "${buildType}"
@@ -135,5 +136,6 @@
     "cmake.generator": "Ninja",
     "cmake.preferredGenerators": [
         "Ninja"
-    ]
+    ],
+    "cmake.configureOnOpen": false
 }

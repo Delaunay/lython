@@ -1,5 +1,6 @@
 #include <catch2/catch_all.hpp>
 
+#include "dtypes.h"
 #include "stdlib/array.h"
 
 

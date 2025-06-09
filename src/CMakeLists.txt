@@ -40,6 +40,7 @@ SET(ADD_HEADERS
     # ast/values/native.h
     # ast/values/generator.h
     utilities/magic.h
+    wasm/interface.cpp
 
     # ast/values/constant.h
     ast/values/value.h
@@ -148,8 +149,12 @@ IF(BUILD_POSIX AND !BUILD_WEBASSEMBLY)
 ENDIF()
 
 IF(BUILD_WEBASSEMBLY)
-    add_definitions("-s LINKABLE=1")
-    add_definitions("-s EXPORT_ALL=1")
+    LIST(APPEND LIBRARIES embind)
+    ADD_COMPILE_OPTIONS(-sEXCEPTION_CATCHING_ALLOWED=YES)
+    ADD_LINK_OPTIONS(-sEXCEPTION_CATCHING_ALLOWED=YES)
+    # add_definitions()
+    # add_definitions("-s LINKABLE=1")
+    # add_definitions("-s EXPORT_ALL=1")
 ENDIF()
 
 # Defintions
@@ -211,6 +216,49 @@ IF(UNIX AND WITH_COVERAGE)
         EXCLUDE "dependencies/*" "src/tide/dependencies/*"
     )
 ENDIF()
+
+
+
+# ADD_CUSTOM_COMMAND(
+#     OUTPUT generated.cpp
+#     COMMAND ${CMAKE_COMMAND} -E rm -f generated.cpp
+#     COMMAND Python::Interpreter
+#     ARGS ${CMAKE_SOURCE_DIR}/lython/header/header.py ${CMAKE_SOURCE_DIR}/src/ast generated.cpp
+# )
+
+# emcc -lembind -o library.js -Wl,--whole-archive library.a -Wl,--no-whole-archive
+
+
+
+IF (BUILD_WEBASSEMBLY)
+    # How can I make this better
+    #
+    # /home/newton/.conan2/p/b/fmte41f475119a6f/p/lib/libfmt.a
+    # $<TARGET_PROPERTY:LINK_LIBRARIES>
+    #
+    get_target_property(FMT_LIBRARIES fmt::fmt INTERFACE_LINK_LIBRARIES)
+    message(STATUS "FMT_LIBRARIES:" $<fmt::fmt>)
+
+    ADD_CUSTOM_COMMAND(
+        TARGET liblython
+        POST_BUILD
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        COMMAND emcc -lembind -o liblython.js -Wl,--whole-archive 
+            ${CMAKE_BINARY_DIR}/lib/libliblogging.a 
+            ${CMAKE_BINARY_DIR}/lib/libliblython.a  
+            /home/newton/.conan2/p/b/fmte41f475119a6f/p/lib/libfmt.a
+            -Wl,--no-whole-archive
+        COMMAND_EXPAND_LISTS
+        VERBATIM
+    )
+
+    # ADD_EXECUTABLE(liblython.js nothing.cpp)
+    # # target_compile_options(liblython.js PRIVATE)
+    # TARGET_LINK_LIBRARIES(liblython.js liblython ${LIBRARIES} embind)
+
+    # ADD_LIBRARY()
+ENDIF()
+
 
 # SET (CUDA_SUPPORT
 # utilities/allocator.cu

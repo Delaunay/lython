@@ -1,0 +1,4 @@
+sources:
+  3.1.64:
+    sha256: d4bdce9752e7e81b3e9ced64c020516065eb14a1d192df6360a02b329b033f36
+    url: https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.64.tar.gz
