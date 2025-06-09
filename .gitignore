@@ -76,3 +76,5 @@ tests/cases/vm/
 tests/cases/sema
 tests/cases/parser
 
+ignore/
+out/
