@@ -137,5 +137,6 @@
     "cmake.preferredGenerators": [
         "Ninja"
     ],
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "iis.configDir": ""
 }
