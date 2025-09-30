@@ -1328,5 +1328,25 @@ T* checked_cast(Node* obj) {
     return cast<T>(obj);
 }
 
+// enum class XMLNodeType {
+//     Element,
+//     Text,
+//     Comment,
+//     CData,
+//     ProcessingInstruction,
+//     Document,
+// };
+
+
+struct XMLNode: public ExprNode {
+    XMLNode(): ExprNode(NodeKind::XML)
+    {}
+
+    // <Tag K=V ...> children </Tag>
+    String tag;
+    Array<ExprNode*> children;
+    Dict<String, ExprNode*> properties;
+};
+
 }  // namespace lython
 #endif

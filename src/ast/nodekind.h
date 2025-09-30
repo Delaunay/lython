@@ -54,6 +54,7 @@ enum class NodeKind : int8_t
     EXPR(SetType, settype)          \
     EXPR(BuiltinType, builtintype)  \
     EXPR(Comment, comment)          \
+    EXPR(XML, xml)                  \
     SECTION(EXPR_END)               \
     SECTION(MODULE_START)               \
     MOD(Module, module)                 \

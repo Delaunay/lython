@@ -67,6 +67,7 @@
     X(tok_assign, '=')     \
     X(tok_curly, '{')      \
     X(tok_star, '*')       \
+    X(tok_lt, '<')         \
     X(tok_augassign, -39)  \
     X(tok_annassign, -40)  \
     X(tok_walrus, -41)     \
@@ -91,7 +92,7 @@
     X(tok_or, -59)         \
     X(tok_decorator, '@')  \
     X(tok_comment, '#')    \
-    X(tok_formatstr, -60)  
+    X(tok_formatstr, -60)
 
 #define LYTHON_KEYWORDS(X)      \
     X("def", tok_def)           \

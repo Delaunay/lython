@@ -491,4 +491,98 @@ Branch* compop() {
         .end();
     });
 }
+
+
+Branch* xml_value() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self.either()
+            .group()
+                .atom("\"")
+                .string()
+                .atom("\"")
+            .end()
+            .group()
+                .atom("'")
+                .string()
+                .atom("'")
+            .end()
+            .group()
+                .atom("{")
+                .expr()
+                .atom("}")
+            .end()
+            .group()
+                .expect(xml())
+            .end()
+        .end();
+    });
+}
+
+Branch* xml_children() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self
+            .identifier()
+            .atom("=")
+            .expect(xml_value())
+        .end();
+    });
+}
+
+Branch* xml_attribute() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self
+            .identifier()
+            .atom("=")
+            .expect(xml_value())
+        .end();
+    });
+}
+
+Branch* xml_self_closing() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self
+            .atom("<")
+            .identifier()
+            .multiple().expect(xml_attribute()).end()
+            .atom("/>")
+        .end();
+    });
+}
+
+Branch* xml_closing() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self
+            .atom("<")
+            .identifier()
+            .multiple().expect(xml_attribute()).end()
+            .atom(">")
+            .multiple().expect(xml_children()).end()
+            .atom("</")
+            .identifier() // THis does not work
+            .atom(">")
+        .end();
+    });
+}
+
+Branch* xml_frag() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self
+            .atom("<")
+            .atom(">")
+            .multiple().expect(xml_children()).end()
+            .atom("</")
+            .atom(">")
+        .end();
+    });
+}
+
+Branch* xml() {
+    return Builder::make("xml_sc", [](Builder& self){
+        self.either()
+            .expect(xml_closing())
+            .expect(xml_self_closing())
+            .expect(xml_frag())
+        .end();
+    });
+}
 }

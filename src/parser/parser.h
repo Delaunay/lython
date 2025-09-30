@@ -202,6 +202,9 @@ class Parser {
     ExprNode* parse_star_expression(Node* parent, int depth);
     ExprNode* parse_ifexp(Node* parent, ExprNode* primary, int depth);
 
+    // Extension
+    ExprNode* parse_xml(Node* parent, int depth);
+
     // Expression Dispatcher
     // ---------------------
     // using the current token dispatch to the correct parsing routine
